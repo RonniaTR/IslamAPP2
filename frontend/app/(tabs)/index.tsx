@@ -229,6 +229,14 @@ export default function Dashboard() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hızlı Erişim</Text>
           <View style={styles.actionsGrid}>
+            <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/scholars')}>
+              <View style={[styles.actionIcon, { backgroundColor: '#f59e0b20' }]}>
+                <Ionicons name="people" size={28} color="#f59e0b" />
+              </View>
+              <Text style={styles.actionTitle}>Hocalar</Text>
+              <Text style={styles.actionDesc}>Âlimlerin görüşleri</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/ai-chat')}>
               <View style={[styles.actionIcon, { backgroundColor: '#3b82f620' }]}>
                 <Ionicons name="chatbubbles" size={28} color="#3b82f6" />
@@ -238,27 +246,19 @@ export default function Dashboard() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/pomodoro')}>
-              <View style={[styles.actionIcon, { backgroundColor: '#f59e0b20' }]}>
-                <Ionicons name="timer" size={28} color="#f59e0b" />
+              <View style={[styles.actionIcon, { backgroundColor: '#10b98120' }]}>
+                <Ionicons name="timer" size={28} color="#10b981" />
               </View>
               <Text style={styles.actionTitle}>İlim Pomodoro</Text>
               <Text style={styles.actionDesc}>Odaklanarak çalış</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/(tabs)/qibla')}>
-              <View style={[styles.actionIcon, { backgroundColor: '#10b98120' }]}>
-                <Ionicons name="compass" size={28} color="#10b981" />
+              <View style={[styles.actionIcon, { backgroundColor: '#8b5cf620' }]}>
+                <Ionicons name="compass" size={28} color="#8b5cf6" />
               </View>
               <Text style={styles.actionTitle}>Kıble Pusulası</Text>
               <Text style={styles.actionDesc}>{prayerTimes?.qibla_direction.toFixed(1)}°</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.actionCard, styles.quranCard]}>
-              <View style={[styles.actionIcon, { backgroundColor: '#8b5cf620' }]}>
-                <Ionicons name="book" size={28} color="#8b5cf6" />
-              </View>
-              <Text style={styles.actionTitle}>Kur'an-ı Kerim</Text>
-              <Text style={styles.actionDesc}>Oku ve dinle</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -450,9 +450,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e293b',
     borderRadius: 16,
     padding: 16,
-  },
-  quranCard: {
-    width: cardWidth,
   },
   actionIcon: {
     width: 48,

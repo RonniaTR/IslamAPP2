@@ -24,30 +24,58 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="scholars"
+        options={{
+          title: 'Hocalar',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="quran"
+        options={{
+          title: "Kur'an",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="book" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="hadith"
+        options={{
+          title: 'Hadis',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="library" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+      {/* Hidden tabs - accessible from other screens */}
+      <Tabs.Screen
         name="ai-chat"
         options={{
-          title: 'AI Asistan',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="pomodoro"
         options={{
-          title: 'İlim Pomodoro',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="timer" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
         name="qibla"
         options={{
-          title: 'Kıble',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>
@@ -64,7 +92,7 @@ const styles = StyleSheet.create({
     height: Platform.OS === 'ios' ? 88 : 64,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
   },
 });
