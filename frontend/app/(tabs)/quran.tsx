@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -48,6 +49,7 @@ interface SurahDetail {
 }
 
 export default function QuranScreen() {
+  const router = useRouter();
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSurah, setSelectedSurah] = useState<SurahDetail | null>(null);
@@ -107,6 +109,11 @@ export default function QuranScreen() {
   };
 
   const openSurah = async (surahNumber: number) => {
+    // Navigate to new surah page with TTS support
+    router.push(`/surah/${surahNumber}`);
+  };
+
+  const openSurahModal = async (surahNumber: number) => {
     setShowModal(true);
     setLoadingVerses(true);
     

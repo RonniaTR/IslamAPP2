@@ -1,332 +1,128 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type Language = 'tr' | 'en' | 'es';
+type Language = 'tr' | 'en' | 'ar';
 
 interface Translations {
-  // Navigation
-  home: string;
-  scholars: string;
-  quran: string;
-  hadith: string;
-  profile: string;
-  
-  // Common
-  loading: string;
-  search: string;
-  settings: string;
-  theme: string;
-  language: string;
-  darkMode: string;
-  lightMode: string;
-  
-  // Dashboard
-  greeting: string;
-  nextPrayer: string;
-  prayerTimes: string;
-  quickAccess: string;
-  dailyVerse: string;
-  fajr: string;
-  sunrise: string;
-  dhuhr: string;
-  asr: string;
-  maghrib: string;
-  isha: string;
-  remaining: string;
-  
-  // Quran
-  quranTitle: string;
-  surahs: string;
-  verses: string;
-  bookmark: string;
-  bookmarks: string;
-  searchQuran: string;
-  juz: string;
-  page: string;
-  meccan: string;
-  medinan: string;
-  resultsFound: string;
-  
-  // Hadith
-  hadithTitle: string;
-  categories: string;
-  source: string;
-  narrator: string;
-  authentic: string;
-  
-  // Scholars
-  scholarsTitle: string;
-  askScholar: string;
-  selectScholar: string;
-  writeQuestion: string;
-  getOpinion: string;
-  sampleQuestions: string;
-  
-  // Profile
-  profileTitle: string;
-  level: string;
-  points: string;
-  streak: string;
-  longestStreak: string;
-  statistics: string;
-  badges: string;
-  pagesRead: string;
-  hadithRead: string;
-  focusTime: string;
-  
-  // AI Chat
-  aiAssistant: string;
-  askQuestion: string;
-  clearChat: string;
-  
-  // Pomodoro
-  pomodoro: string;
-  start: string;
-  pause: string;
-  resume: string;
-  stop: string;
-  completed: string;
-  sessions: string;
-  
-  // Qibla
-  qibla: string;
-  qiblaDirection: string;
-  compass: string;
+  [key: string]: {
+    tr: string;
+    en: string;
+    ar: string;
+  };
 }
 
-const translations: Record<Language, Translations> = {
-  tr: {
-    home: 'Ana Sayfa',
-    scholars: 'Hocalar',
-    quran: "Kur'an",
-    hadith: 'Hadis',
-    profile: 'Profil',
-    loading: 'Yükleniyor...',
-    search: 'Ara',
-    settings: 'Ayarlar',
-    theme: 'Tema',
-    language: 'Dil',
-    darkMode: 'Koyu Mod',
-    lightMode: 'Aydınlık Mod',
-    greeting: 'Selamün Aleyküm',
-    nextPrayer: 'Sonraki Namaz',
-    prayerTimes: 'Namaz Vakitleri',
-    quickAccess: 'Hızlı Erişim',
-    dailyVerse: 'Günün Ayeti',
-    fajr: 'İmsak',
-    sunrise: 'Güneş',
-    dhuhr: 'Öğle',
-    asr: 'İkindi',
-    maghrib: 'Akşam',
-    isha: 'Yatsı',
-    remaining: 'kaldı',
-    quranTitle: "Kur'an-ı Kerim",
-    surahs: 'Sure',
-    verses: 'Ayet',
-    bookmark: 'Yer İmi',
-    bookmarks: 'Yer İmleri',
-    searchQuran: "Kur'an'da ara...",
-    juz: 'Cüz',
-    page: 'Sayfa',
-    meccan: 'Mekke',
-    medinan: 'Medine',
-    resultsFound: 'sonuç bulundu',
-    hadithTitle: 'Hadis-i Şerifler',
-    categories: 'Kategoriler',
-    source: 'Kaynak',
-    narrator: 'Ravi',
-    authentic: 'Sahih',
-    scholarsTitle: 'Hocaların Görüşü',
-    askScholar: 'Hocaya Sor',
-    selectScholar: 'Hoca Seçin',
-    writeQuestion: 'Sorunuzu Yazın',
-    getOpinion: 'Görüşünü Al',
-    sampleQuestions: 'Örnek Sorular',
-    profileTitle: 'Profil',
-    level: 'Seviye',
-    points: 'Puan',
-    streak: 'Seri',
-    longestStreak: 'En Uzun Seri',
-    statistics: 'İstatistikler',
-    badges: 'Rozetler',
-    pagesRead: "Kur'an Sayfası",
-    hadithRead: 'Hadis Okunan',
-    focusTime: 'Odaklanma',
-    aiAssistant: 'İslami Danışman',
-    askQuestion: 'Bir soru sorun...',
-    clearChat: 'Sohbeti Temizle',
-    pomodoro: 'İlim Pomodoro',
-    start: 'Başla',
-    pause: 'Duraklat',
-    resume: 'Devam',
-    stop: 'Durdur',
-    completed: 'Tamamlanan',
-    sessions: 'Oturum',
-    qibla: 'Kıble',
-    qiblaDirection: 'Kıble Yönü',
-    compass: 'Pusula',
-  },
-  en: {
-    home: 'Home',
-    scholars: 'Scholars',
-    quran: 'Quran',
-    hadith: 'Hadith',
-    profile: 'Profile',
-    loading: 'Loading...',
-    search: 'Search',
-    settings: 'Settings',
-    theme: 'Theme',
-    language: 'Language',
-    darkMode: 'Dark Mode',
-    lightMode: 'Light Mode',
-    greeting: 'Assalamu Alaikum',
-    nextPrayer: 'Next Prayer',
-    prayerTimes: 'Prayer Times',
-    quickAccess: 'Quick Access',
-    dailyVerse: 'Daily Verse',
-    fajr: 'Fajr',
-    sunrise: 'Sunrise',
-    dhuhr: 'Dhuhr',
-    asr: 'Asr',
-    maghrib: 'Maghrib',
-    isha: 'Isha',
-    remaining: 'remaining',
-    quranTitle: 'Holy Quran',
-    surahs: 'Surahs',
-    verses: 'Verses',
-    bookmark: 'Bookmark',
-    bookmarks: 'Bookmarks',
-    searchQuran: 'Search in Quran...',
-    juz: 'Juz',
-    page: 'Page',
-    meccan: 'Meccan',
-    medinan: 'Medinan',
-    resultsFound: 'results found',
-    hadithTitle: 'Hadith Collection',
-    categories: 'Categories',
-    source: 'Source',
-    narrator: 'Narrator',
-    authentic: 'Authentic',
-    scholarsTitle: "Scholars' Opinions",
-    askScholar: 'Ask Scholar',
-    selectScholar: 'Select Scholar',
-    writeQuestion: 'Write Your Question',
-    getOpinion: 'Get Opinion',
-    sampleQuestions: 'Sample Questions',
-    profileTitle: 'Profile',
-    level: 'Level',
-    points: 'Points',
-    streak: 'Streak',
-    longestStreak: 'Longest Streak',
-    statistics: 'Statistics',
-    badges: 'Badges',
-    pagesRead: 'Quran Pages',
-    hadithRead: 'Hadith Read',
-    focusTime: 'Focus Time',
-    aiAssistant: 'Islamic Advisor',
-    askQuestion: 'Ask a question...',
-    clearChat: 'Clear Chat',
-    pomodoro: 'Study Pomodoro',
-    start: 'Start',
-    pause: 'Pause',
-    resume: 'Resume',
-    stop: 'Stop',
-    completed: 'Completed',
-    sessions: 'Sessions',
-    qibla: 'Qibla',
-    qiblaDirection: 'Qibla Direction',
-    compass: 'Compass',
-  },
-  es: {
-    home: 'Inicio',
-    scholars: 'Eruditos',
-    quran: 'Corán',
-    hadith: 'Hadiz',
-    profile: 'Perfil',
-    loading: 'Cargando...',
-    search: 'Buscar',
-    settings: 'Ajustes',
-    theme: 'Tema',
-    language: 'Idioma',
-    darkMode: 'Modo Oscuro',
-    lightMode: 'Modo Claro',
-    greeting: 'Assalamu Alaikum',
-    nextPrayer: 'Próxima Oración',
-    prayerTimes: 'Horarios de Oración',
-    quickAccess: 'Acceso Rápido',
-    dailyVerse: 'Verso del Día',
-    fajr: 'Fajr',
-    sunrise: 'Amanecer',
-    dhuhr: 'Dhuhr',
-    asr: 'Asr',
-    maghrib: 'Maghrib',
-    isha: 'Isha',
-    remaining: 'restante',
-    quranTitle: 'Sagrado Corán',
-    surahs: 'Suras',
-    verses: 'Versículos',
-    bookmark: 'Marcador',
-    bookmarks: 'Marcadores',
-    searchQuran: 'Buscar en el Corán...',
-    juz: 'Juz',
-    page: 'Página',
-    meccan: 'Mequí',
-    medinan: 'Medinés',
-    resultsFound: 'resultados encontrados',
-    hadithTitle: 'Colección de Hadiz',
-    categories: 'Categorías',
-    source: 'Fuente',
-    narrator: 'Narrador',
-    authentic: 'Auténtico',
-    scholarsTitle: 'Opiniones de Eruditos',
-    askScholar: 'Preguntar al Erudito',
-    selectScholar: 'Seleccionar Erudito',
-    writeQuestion: 'Escribe Tu Pregunta',
-    getOpinion: 'Obtener Opinión',
-    sampleQuestions: 'Preguntas de Ejemplo',
-    profileTitle: 'Perfil',
-    level: 'Nivel',
-    points: 'Puntos',
-    streak: 'Racha',
-    longestStreak: 'Racha Más Larga',
-    statistics: 'Estadísticas',
-    badges: 'Insignias',
-    pagesRead: 'Páginas del Corán',
-    hadithRead: 'Hadiz Leídos',
-    focusTime: 'Tiempo de Enfoque',
-    aiAssistant: 'Asesor Islámico',
-    askQuestion: 'Haz una pregunta...',
-    clearChat: 'Borrar Chat',
-    pomodoro: 'Pomodoro de Estudio',
-    start: 'Iniciar',
-    pause: 'Pausar',
-    resume: 'Continuar',
-    stop: 'Detener',
-    completed: 'Completado',
-    sessions: 'Sesiones',
-    qibla: 'Qibla',
-    qiblaDirection: 'Dirección de Qibla',
-    compass: 'Brújula',
-  },
+export const translations: Translations = {
+  // Common
+  home: { tr: 'Ana Sayfa', en: 'Home', ar: 'الصفحة الرئيسية' },
+  settings: { tr: 'Ayarlar', en: 'Settings', ar: 'الإعدادات' },
+  profile: { tr: 'Profil', en: 'Profile', ar: 'الملف الشخصي' },
+  back: { tr: 'Geri', en: 'Back', ar: 'رجوع' },
+  save: { tr: 'Kaydet', en: 'Save', ar: 'حفظ' },
+  cancel: { tr: 'İptal', en: 'Cancel', ar: 'إلغاء' },
+  loading: { tr: 'Yükleniyor...', en: 'Loading...', ar: 'جاري التحميل...' },
+  error: { tr: 'Hata', en: 'Error', ar: 'خطأ' },
+  success: { tr: 'Başarılı', en: 'Success', ar: 'نجاح' },
+  
+  // Navigation
+  scholars: { tr: 'Hocalar', en: 'Scholars', ar: 'العلماء' },
+  quran: { tr: "Kur'an", en: 'Quran', ar: 'القرآن' },
+  hadith: { tr: 'Hadis', en: 'Hadith', ar: 'الحديث' },
+  quiz: { tr: 'Quiz', en: 'Quiz', ar: 'مسابقة' },
+  
+  // Dashboard
+  greeting: { tr: 'Selamün Aleyküm', en: 'Assalamu Alaikum', ar: 'السلام عليكم' },
+  nextPrayer: { tr: 'Sonraki Namaz', en: 'Next Prayer', ar: 'الصلاة القادمة' },
+  prayerTimes: { tr: 'Namaz Vakitleri', en: 'Prayer Times', ar: 'أوقات الصلاة' },
+  timeRemaining: { tr: 'kaldı', en: 'remaining', ar: 'متبقي' },
+  
+  // Prayer Names
+  fajr: { tr: 'İmsak', en: 'Fajr', ar: 'الفجر' },
+  sunrise: { tr: 'Güneş', en: 'Sunrise', ar: 'الشروق' },
+  dhuhr: { tr: 'Öğle', en: 'Dhuhr', ar: 'الظهر' },
+  asr: { tr: 'İkindi', en: 'Asr', ar: 'العصر' },
+  maghrib: { tr: 'Akşam', en: 'Maghrib', ar: 'المغرب' },
+  isha: { tr: 'Yatsı', en: 'Isha', ar: 'العشاء' },
+  
+  // Quick Actions
+  aiAdvisor: { tr: 'AI Danışman', en: 'AI Advisor', ar: 'مستشار الذكاء الاصطناعي' },
+  qiblaFinder: { tr: 'Kıble Bulucu', en: 'Qibla Finder', ar: 'اتجاه القبلة' },
+  pomodoro: { tr: 'İlim Pomodoro', en: 'Study Timer', ar: 'مؤقت الدراسة' },
+  dailyVerse: { tr: 'Günün Ayeti', en: 'Daily Verse', ar: 'آية اليوم' },
+  
+  // Quiz
+  quizTitle: { tr: 'İslami Bilgi Yarışması', en: 'Islamic Knowledge Quiz', ar: 'مسابقة المعرفة الإسلامية' },
+  multiplayer: { tr: 'Çok Oyunculu', en: 'Multiplayer', ar: 'متعدد اللاعبين' },
+  singlePlayer: { tr: 'Tek Oyuncu', en: 'Single Player', ar: 'لاعب واحد' },
+  leaderboard: { tr: 'Sıralama', en: 'Leaderboard', ar: 'لوحة الصدارة' },
+  createRoom: { tr: 'Yeni Oda Oluştur', en: 'Create New Room', ar: 'إنشاء غرفة جديدة' },
+  openRooms: { tr: 'Açık Odalar', en: 'Open Rooms', ar: 'الغرف المفتوحة' },
+  noRooms: { tr: 'Henüz açık oda yok', en: 'No open rooms yet', ar: 'لا توجد غرف مفتوحة' },
+  playSolo: { tr: 'Tek Başına Oyna', en: 'Play Solo', ar: 'العب منفرداً' },
+  selectCategory: { tr: 'Kategori seç ve bilgini test et!', en: 'Select category and test your knowledge!', ar: 'اختر الفئة واختبر معرفتك!' },
+  play: { tr: 'Oyna', en: 'Play', ar: 'العب' },
+  
+  // Quiz Categories
+  ramazan: { tr: 'Ramazan', en: 'Ramadan', ar: 'رمضان' },
+  namaz: { tr: 'Namaz', en: 'Prayer', ar: 'الصلاة' },
+  hadis: { tr: 'Hadis', en: 'Hadith', ar: 'الحديث' },
+  tefsir: { tr: 'Tefsir', en: 'Tafsir', ar: 'التفسير' },
+  fikih: { tr: 'Fıkıh', en: 'Fiqh', ar: 'الفقه' },
+  
+  // Quiz Game
+  question: { tr: 'Soru', en: 'Question', ar: 'سؤال' },
+  correct: { tr: 'Doğru!', en: 'Correct!', ar: 'صحيح!' },
+  wrong: { tr: 'Yanlış!', en: 'Wrong!', ar: 'خطأ!' },
+  points: { tr: 'puan', en: 'points', ar: 'نقاط' },
+  nextQuestion: { tr: 'Sonraki Soru', en: 'Next Question', ar: 'السؤال التالي' },
+  seeResults: { tr: 'Sonuçları Gör', en: 'See Results', ar: 'عرض النتائج' },
+  quizComplete: { tr: 'Quiz Tamamlandı!', en: 'Quiz Complete!', ar: 'اكتملت المسابقة!' },
+  totalScore: { tr: 'Toplam Puan', en: 'Total Score', ar: 'مجموع النقاط' },
+  correctAnswers: { tr: 'Doğru Cevap', en: 'Correct Answers', ar: 'الإجابات الصحيحة' },
+  accuracy: { tr: 'Başarı Oranı', en: 'Accuracy', ar: 'نسبة النجاح' },
+  playAgain: { tr: 'Tekrar Oyna', en: 'Play Again', ar: 'العب مرة أخرى' },
+  backToLobby: { tr: 'Lobiye Dön', en: 'Back to Lobby', ar: 'العودة إلى اللوبي' },
+  
+  // Quran
+  surah: { tr: 'Sure', en: 'Surah', ar: 'سورة' },
+  verse: { tr: 'Ayet', en: 'Verse', ar: 'آية' },
+  verses: { tr: 'Ayet', en: 'Verses', ar: 'آيات' },
+  juz: { tr: 'Cüz', en: 'Juz', ar: 'جزء' },
+  page: { tr: 'Sayfa', en: 'Page', ar: 'صفحة' },
+  search: { tr: 'Ara', en: 'Search', ar: 'بحث' },
+  bookmarks: { tr: 'Yer İmleri', en: 'Bookmarks', ar: 'الإشارات المرجعية' },
+  listen: { tr: 'Dinle', en: 'Listen', ar: 'استمع' },
+  stopListening: { tr: 'Durdur', en: 'Stop', ar: 'إيقاف' },
+  
+  // Settings
+  language: { tr: 'Dil', en: 'Language', ar: 'اللغة' },
+  theme: { tr: 'Tema', en: 'Theme', ar: 'المظهر' },
+  darkMode: { tr: 'Karanlık Mod', en: 'Dark Mode', ar: 'الوضع الداكن' },
+  lightMode: { tr: 'Aydınlık Mod', en: 'Light Mode', ar: 'الوضع الفاتح' },
+  music: { tr: 'Fon Müziği', en: 'Background Music', ar: 'الموسيقى الخلفية' },
+  musicOn: { tr: 'Müzik Açık', en: 'Music On', ar: 'الموسيقى مفعلة' },
+  musicOff: { tr: 'Müzik Kapalı', en: 'Music Off', ar: 'الموسيقى معطلة' },
+  
+  // Misc
+  username: { tr: 'Kullanıcı Adınız', en: 'Your Username', ar: 'اسم المستخدم' },
+  source: { tr: 'Kaynak', en: 'Source', ar: 'المصدر' },
+  explanation: { tr: 'Açıklama', en: 'Explanation', ar: 'التفسير' },
+  difficulty: { tr: 'Zorluk', en: 'Difficulty', ar: 'الصعوبة' },
+  easy: { tr: 'Kolay', en: 'Easy', ar: 'سهل' },
+  medium: { tr: 'Orta', en: 'Medium', ar: 'متوسط' },
+  hard: { tr: 'Zor', en: 'Hard', ar: 'صعب' },
 };
 
 interface LanguageContextType {
   language: Language;
-  t: Translations;
   setLanguage: (lang: Language) => void;
-  languages: { code: Language; name: string; flag: string }[];
+  t: (key: string) => string;
+  isRTL: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>('tr');
-
-  const languages = [
-    { code: 'tr' as Language, name: 'Türkçe', flag: '🇹🇷' },
-    { code: 'en' as Language, name: 'English', flag: '🇬🇧' },
-    { code: 'es' as Language, name: 'Español', flag: '🇪🇸' },
-  ];
 
   useEffect(() => {
     loadLanguage();
@@ -335,8 +131,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const loadLanguage = async () => {
     try {
       const savedLang = await AsyncStorage.getItem('app_language');
-      if (savedLang === 'tr' || savedLang === 'en' || savedLang === 'es') {
-        setLanguageState(savedLang);
+      if (savedLang && ['tr', 'en', 'ar'].includes(savedLang)) {
+        setLanguageState(savedLang as Language);
       }
     } catch (error) {
       console.error('Error loading language:', error);
@@ -352,17 +148,27 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const t = (key: string): string => {
+    const translation = translations[key];
+    if (translation) {
+      return translation[language] || translation['tr'] || key;
+    }
+    return key;
+  };
+
+  const isRTL = language === 'ar';
+
   return (
-    <LanguageContext.Provider value={{ language, t: translations[language], setLanguage, languages }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isRTL }}>
       {children}
     </LanguageContext.Provider>
   );
-};
+}
 
-export const useLanguage = () => {
+export function useLanguage() {
   const context = useContext(LanguageContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
-};
+}

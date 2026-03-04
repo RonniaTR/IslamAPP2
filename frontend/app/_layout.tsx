@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
+import { MusicProvider } from '../contexts/MusicContext';
 
 function RootLayoutContent() {
   const { colors, theme } = useTheme();
@@ -20,6 +21,10 @@ function RootLayoutContent() {
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="quiz-game" options={{ headerShown: false }} />
+        <Stack.Screen name="quiz-solo" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="surah/[number]" options={{ headerShown: false }} />
       </Stack>
     </View>
   );
@@ -29,7 +34,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <RootLayoutContent />
+        <MusicProvider>
+          <RootLayoutContent />
+        </MusicProvider>
       </LanguageProvider>
     </ThemeProvider>
   );

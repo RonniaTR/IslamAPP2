@@ -13,6 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useMusic } from '../../contexts/MusicContext';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const { width } = Dimensions.get('window');
@@ -37,6 +40,9 @@ interface City {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const { t } = useLanguage();
+  const { isPlaying, toggleMusic } = useMusic();
   const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null);
   const [cities, setCities] = useState<City[]>([]);
   const [selectedCity, setSelectedCity] = useState('istanbul');
@@ -150,13 +156,35 @@ export default function Dashboard() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Selamün Aleyküm</Text>
-            <Text style={styles.dateText}>{formatDate()}</Text>
+            <Text style={[styles.greeting, { color: colors.text }]}>{t('greeting')}</Text>
+            <Text style={[styles.dateText, { color: colors.textSecondary }]}>{formatDate()}</Text>
           </View>
-          <TouchableOpacity style={styles.cityButton} onPress={() => setShowCityPicker(!showCityPicker)}>
-            <Ionicons name="location" size={18} color="#10b981" />
-            <Text style={styles.cityText}>{prayerTimes?.city_name || 'Şehir Seç'}</Text>
-            <Ionicons name="chevron-down" size={16} color="#64748b" />
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={[styles.iconButton, { backgroundColor: colors.surface }]} 
+              onPress={toggleMusic}
+            >
+              <Ionicons 
+                name={isPlaying ? 'musical-notes' : 'musical-notes-outline'} 
+                size={20} 
+                color={isPlaying ? colors.primary : colors.textMuted} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.iconButton, { backgroundColor: colors.surface }]} 
+              onPress={() => router.push('/settings')}
+            >
+              <Ionicons name="settings-outline" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        {/* City Selector */}
+        <View style={styles.cityRow}>
+          <TouchableOpacity style={[styles.cityButton, { backgroundColor: colors.surface }]} onPress={() => setShowCityPicker(!showCityPicker)}>
+            <Ionicons name="location" size={18} color={colors.primary} />
+            <Text style={[styles.cityText, { color: colors.text }]}>{prayerTimes?.city_name || 'Şehir Seç'}</Text>
+            <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
 
@@ -307,10 +335,21 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   greeting: {
     fontSize: 24,
@@ -322,9 +361,14 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginTop: 4,
   },
+  cityRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
   cityButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     backgroundColor: '#1e293b',
     paddingHorizontal: 12,
     paddingVertical: 8,
