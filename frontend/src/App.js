@@ -8,6 +8,7 @@ import SurahDetail from './pages/SurahDetail';
 import HadithPage from './pages/HadithPage';
 import AiChat from './pages/AiChat';
 import ScholarsPage from './pages/ScholarsPage';
+import MealAudioPage from './pages/MealAudioPage';
 import QuizPage from './pages/QuizPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/quran" element={<QuranList />} />
             <Route path="/quran/:surahNumber" element={<SurahDetail />} />
+            <Route path="/meal-audio" element={<MealAudioPage />} />
             <Route path="/hadith" element={<HadithPage />} />
             <Route path="/chat" element={<AiChat />} />
             <Route path="/scholars" element={<ScholarsPage />} />

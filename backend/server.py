@@ -868,6 +868,8 @@ async def create_guest_user(response: Response):
         max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
     )
     
+    # Remove MongoDB _id before returning
+    new_user.pop("_id", None)
     return new_user
 
 @api_router.get("/auth/me")
@@ -1069,22 +1071,58 @@ async def get_reciters():
         })
     return reciters
 
+TURKISH_SURAH_NAMES = {
+    1: ("Fatiha", "Açılış"), 2: ("Bakara", "İnek"), 3: ("Al-i İmran", "İmran Ailesi"), 4: ("Nisa", "Kadınlar"),
+    5: ("Maide", "Sofra"), 6: ("En'am", "Hayvanlar"), 7: ("A'raf", "Yükseklikler"), 8: ("Enfal", "Ganimetler"),
+    9: ("Tevbe", "Tövbe"), 10: ("Yunus", "Yunus"), 11: ("Hud", "Hud"), 12: ("Yusuf", "Yusuf"),
+    13: ("Ra'd", "Gök Gürültüsü"), 14: ("İbrahim", "İbrahim"), 15: ("Hicr", "Hicr"), 16: ("Nahl", "Arı"),
+    17: ("İsra", "Gece Yolculuğu"), 18: ("Kehf", "Mağara"), 19: ("Meryem", "Meryem"), 20: ("Taha", "Taha"),
+    21: ("Enbiya", "Peygamberler"), 22: ("Hac", "Hac"), 23: ("Mü'minun", "Müminler"), 24: ("Nur", "Işık"),
+    25: ("Furkan", "Ayırt Edici"), 26: ("Şuara", "Şairler"), 27: ("Neml", "Karınca"), 28: ("Kasas", "Kıssalar"),
+    29: ("Ankebut", "Örümcek"), 30: ("Rum", "Romalılar"), 31: ("Lokman", "Lokman"), 32: ("Secde", "Secde"),
+    33: ("Ahzab", "Gruplar"), 34: ("Sebe", "Sebe"), 35: ("Fatır", "Yaratıcı"), 36: ("Yasin", "Yasin"),
+    37: ("Saffat", "Saf Tutanlar"), 38: ("Sad", "Sad"), 39: ("Zümer", "Gruplar"), 40: ("Mü'min", "Mümin"),
+    41: ("Fussilet", "Açıklanmış"), 42: ("Şura", "Danışma"), 43: ("Zuhruf", "Altın Süsler"), 44: ("Duhan", "Duman"),
+    45: ("Casiye", "Diz Çöken"), 46: ("Ahkaf", "Kum Tepeleri"), 47: ("Muhammed", "Muhammed"), 48: ("Fetih", "Fetih"),
+    49: ("Hucurat", "Odalar"), 50: ("Kaf", "Kaf"), 51: ("Zariyat", "Savuranlar"), 52: ("Tur", "Dağ"),
+    53: ("Necm", "Yıldız"), 54: ("Kamer", "Ay"), 55: ("Rahman", "Rahman"), 56: ("Vakıa", "Olay"),
+    57: ("Hadid", "Demir"), 58: ("Mücadele", "Mücadele"), 59: ("Haşr", "Toplanma"), 60: ("Mümtehine", "Sınanan Kadın"),
+    61: ("Saff", "Saf"), 62: ("Cuma", "Cuma"), 63: ("Münafikun", "Münafıklar"), 64: ("Teğabun", "Aldanma"),
+    65: ("Talak", "Boşanma"), 66: ("Tahrim", "Yasaklama"), 67: ("Mülk", "Mülk"), 68: ("Kalem", "Kalem"),
+    69: ("Hakka", "Gerçekleşen"), 70: ("Mearic", "Yükseliş Yolları"), 71: ("Nuh", "Nuh"), 72: ("Cin", "Cinler"),
+    73: ("Müzzemmil", "Örtünen"), 74: ("Müddessir", "Bürünen"), 75: ("Kıyame", "Kıyamet"), 76: ("İnsan", "İnsan"),
+    77: ("Mürselat", "Gönderilenler"), 78: ("Nebe", "Haber"), 79: ("Naziat", "Çekip Çıkaranlar"),
+    80: ("Abese", "Yüz Çevirdi"), 81: ("Tekvir", "Dürülme"), 82: ("İnfitar", "Yarılma"),
+    83: ("Mutaffifin", "Eksik Ölçenler"), 84: ("İnşikak", "Yarılma"), 85: ("Büruc", "Burçlar"),
+    86: ("Tarık", "Gece Yıldızı"), 87: ("A'la", "En Yüce"), 88: ("Gaşiye", "Kaplayacak Olan"),
+    89: ("Fecr", "Şafak"), 90: ("Beled", "Şehir"), 91: ("Şems", "Güneş"), 92: ("Leyl", "Gece"),
+    93: ("Duha", "Kuşluk Vakti"), 94: ("İnşirah", "Göğüs Açma"), 95: ("Tin", "İncir"),
+    96: ("Alak", "Asılan/Okuyan"), 97: ("Kadir", "Kadir Gecesi"), 98: ("Beyyine", "Açık Delil"),
+    99: ("Zilzal", "Deprem"), 100: ("Adiyat", "Koşanlar"), 101: ("Karia", "Çarpıcı Felaket"),
+    102: ("Tekasür", "Çoğaltma Yarışı"), 103: ("Asr", "Zaman"), 104: ("Hümeze", "Dedikoducu"),
+    105: ("Fil", "Fil"), 106: ("Kureyş", "Kureyş"), 107: ("Maun", "Yardım"),
+    108: ("Kevser", "Bolluk"), 109: ("Kafirun", "Kafirler"), 110: ("Nasr", "Yardım"),
+    111: ("Tebbet", "Alev"), 112: ("İhlas", "İhlas"), 113: ("Felak", "Şafak"), 114: ("Nas", "İnsanlar"),
+}
+
 @api_router.get("/quran/surahs")
 async def get_surahs():
     """Get list of all 114 surahs with metadata"""
     if not QURAN_ARABIC:
-        return SURAHS  # Fallback to static data
+        return SURAHS
     
     surahs = []
     for i, surah in enumerate(QURAN_ARABIC):
-        turkish_name = QURAN_TURKISH[i]['name'] if QURAN_TURKISH and i < len(QURAN_TURKISH) else surah.get('englishName', '')
+        num = surah['number']
+        tr_name, tr_meaning = TURKISH_SURAH_NAMES.get(num, (surah.get('englishName', ''), surah.get('englishNameTranslation', '')))
+        verse_count = len(surah.get('ayahs', []))
         surahs.append({
-            "number": surah['number'],
+            "number": num,
             "name": surah.get('englishName', ''),
             "arabic": surah.get('name', ''),
-            "turkish_name": turkish_name,
-            "meaning": surah.get('englishNameTranslation', ''),
-            "verses": surah.get('numberOfAyahs', 0),
+            "turkish_name": tr_name,
+            "meaning": tr_meaning,
+            "verses": verse_count,
             "revelation": "Mekke" if surah.get('revelationType') == 'Meccan' else "Medine"
         })
     return surahs
@@ -1117,17 +1155,66 @@ async def get_surah(surah_number: int, lang: str = "tr", reciter: str = "alafasy
         }
         verses.append(verse)
     
+    tr_name, tr_meaning = TURKISH_SURAH_NAMES.get(arabic_surah['number'], (arabic_surah.get('englishName', ''), arabic_surah.get('englishNameTranslation', '')))
+    
     return {
         "number": arabic_surah['number'],
-        "name": arabic_surah.get('englishName', ''),
+        "name": tr_name,
         "arabic_name": arabic_surah.get('name', ''),
-        "meaning": arabic_surah.get('englishNameTranslation', ''),
+        "meaning": tr_meaning,
         "revelation": "Mekke" if arabic_surah.get('revelationType') == 'Meccan' else "Medine",
         "total_verses": len(verses),
         "verses": verses,
         "reciter": reciter_info,
         "full_audio_url": get_surah_audio_url(surah_number, reciter)
     }
+
+
+MAZLUM_KIPER_CUZ_VIDEOS = {
+    1: "2me0jJCXs4I", 2: "LqIk2tXTNDc", 3: "ir4_OEJQhqc", 4: "6tMSXcKUqB4",
+    5: "c1WOlKHFiP8", 6: "DDFycbdvUSI", 7: "7PXwysHDnx0", 8: "m4ezfP2lvX8",
+    9: "RqXJGaXcyb0", 10: "lVO-Tzr3zlI", 11: "PxUHhJpd1qI", 12: "56em9VKpOaU",
+    13: "EDi_mRV9AeI", 14: "08QRPPl8SJs", 15: "m2sZOrHy3c4", 16: "Q8ni4RLK0I8",
+    17: "vRwVk1_g3H4", 18: "ECk42BdIxhU", 19: "iTU9TB46-PY", 20: "JSR6vrn8Mzo",
+    21: "0gQcucCIGP8", 22: "XakXpqMYsas", 23: "tq5blJAUiuU", 24: "99J35-a29LQ",
+    25: "-bCZxGY0KrY", 26: "W1OP1xdIkBA", 27: "tS_1CLXN4lE", 28: "dmG2SkkJSy0",
+    29: "fy3k-Icw8NY", 30: "KELxg7sy6IA",
+}
+
+@api_router.get("/quran/meal-audio")
+async def get_meal_audio():
+    """Get Mazlum Kiper Turkish meal audio for all 30 juz"""
+    return [
+        {
+            "juz": juz,
+            "video_id": vid,
+            "title": f"Kur'an-ı Kerim Meali - {juz}. Cüz",
+            "narrator": "Mazlum Kiper",
+            "url": f"https://www.youtube.com/watch?v={vid}",
+            "embed_url": f"https://www.youtube.com/embed/{vid}",
+        }
+        for juz, vid in MAZLUM_KIPER_CUZ_VIDEOS.items()
+    ]
+
+@api_router.get("/quran/surah/{surah_number}/meal-video")
+async def get_surah_meal_video(surah_number: int):
+    """Get the Turkish meal YouTube video for a specific surah's juz"""
+    if not QURAN_ARABIC or surah_number < 1 or surah_number > 114:
+        raise HTTPException(status_code=404, detail="Surah not found")
+    arabic_surah = QURAN_ARABIC[surah_number - 1]
+    juz = arabic_surah['ayahs'][0].get('juz', 1)
+    video_id = MAZLUM_KIPER_CUZ_VIDEOS.get(juz, MAZLUM_KIPER_CUZ_VIDEOS[1])
+    tr_name, _ = TURKISH_SURAH_NAMES.get(surah_number, ("", ""))
+    return {
+        "surah_number": surah_number,
+        "surah_name": tr_name,
+        "juz": juz,
+        "video_id": video_id,
+        "narrator": "Mazlum Kiper",
+        "url": f"https://www.youtube.com/watch?v={video_id}",
+        "embed_url": f"https://www.youtube.com/embed/{video_id}",
+    }
+
 
 @api_router.get("/quran/verse/{surah_number}/{verse_number}")
 async def get_verse(surah_number: int, verse_number: int):
@@ -1271,6 +1358,7 @@ async def add_bookmark(user_id: str, surah: int, verse: int):
         "created_at": datetime.utcnow()
     }
     await db.quran_bookmarks.insert_one(bookmark)
+    bookmark.pop("_id", None)
     return bookmark
 
 @api_router.get("/quran/bookmarks/{user_id}")

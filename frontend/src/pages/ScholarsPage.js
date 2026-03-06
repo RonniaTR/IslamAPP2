@@ -20,14 +20,10 @@ export default function ScholarsPage() {
     setLoading(true);
     setResponse(null);
     try {
-      const { data } = await api.post('/scholars/ask', {
-        session_id: sessionId,
-        question: question.trim(),
-        scholar_id: selected.id,
-      });
+      const { data } = await api.post('/scholars/ask', { session_id: sessionId, question: question.trim(), scholar_id: selected.id });
       setResponse(data);
     } catch {
-      setResponse({ response: 'Bir hata olu\u015ftu. L\u00fctfen tekrar deneyin.', scholar_name: selected.name, sources: [] });
+      setResponse({ response: 'Bir hata oluştu. Lütfen tekrar deneyin.', scholar_name: selected.name, sources: [] });
     } finally {
       setLoading(false);
     }
@@ -47,14 +43,13 @@ export default function ScholarsPage() {
         <div className="px-4">
           <form onSubmit={askScholar} className="mb-4">
             <textarea value={question} onChange={e => setQuestion(e.target.value)}
-              placeholder={`${selected.name}'a sorunuzu yaz\u0131n...`}
-              rows={3}
+              placeholder={`${selected.name}'a sorunuzu yazın...`} rows={3}
               data-testid="scholar-question-input"
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500/50 resize-none" />
             <button type="submit" disabled={loading || !question.trim()} data-testid="scholar-ask-btn"
               className="mt-2 w-full py-2.5 rounded-xl bg-purple-600 text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-40">
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              {loading ? 'Yan\u0131tlan\u0131yor...' : 'Sor'}
+              {loading ? 'Yanıtlanıyor...' : 'Sor'}
             </button>
           </form>
           {response && (
@@ -78,9 +73,9 @@ export default function ScholarsPage() {
       <div className="bg-gradient-to-b from-purple-900/30 to-transparent px-5 pt-12 pb-4">
         <div className="flex items-center gap-3 mb-2">
           <Users size={24} className="text-purple-400" />
-          <h1 className="text-xl font-bold text-white">Hocalar\u0131n G\u00f6r\u00fc\u015f\u00fc</h1>
+          <h1 className="text-xl font-bold text-white">Hocaların Görüşü</h1>
         </div>
-        <p className="text-sm text-gray-400">Farkl\u0131 alimlerin bak\u0131\u015f a\u00e7\u0131lar\u0131n\u0131 ke\u015ffedin</p>
+        <p className="text-sm text-gray-400">Farklı alimlerin bakış açılarını keşfedin</p>
       </div>
       <div className="px-4 space-y-3 pb-6">
         {scholars.map(s => (
