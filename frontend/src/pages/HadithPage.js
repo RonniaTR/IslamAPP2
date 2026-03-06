@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Star } from 'lucide-react';
+import { useLang } from '../contexts/LangContext';
 import api from '../api';
 
 export default function HadithPage() {
+  const { t } = useLang();
   const [categories, setCategories] = useState([]);
   const [hadiths, setHadiths] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -20,15 +22,15 @@ export default function HadithPage() {
       <div className="bg-gradient-to-b from-amber-900/30 to-transparent px-5 pt-12 pb-4">
         <div className="flex items-center gap-3 mb-2">
           <BookOpen size={24} className="text-amber-400" />
-          <h1 className="text-xl font-bold text-white">Hadis-i Şerif</h1>
+          <h1 className="text-xl font-bold text-white">{t.hadith}</h1>
         </div>
-        <p className="text-sm text-gray-400">Sahih hadisler ve açıklamaları</p>
+        <p className="text-sm text-gray-400">{t.hadith_desc}</p>
       </div>
       <div className="px-4 mb-4 overflow-x-auto scrollbar-hide">
         <div className="flex gap-2 pb-2">
           <button onClick={() => setSelected(null)}
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${!selected ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-white/5 text-gray-400 border border-white/10'}`}>
-            Tümü
+            {t.all}
           </button>
           {categories.map(c => (
             <button key={c.id} onClick={() => setSelected(c.id)}
@@ -50,7 +52,7 @@ export default function HadithPage() {
               <span>{h.narrator}</span>
               <span className="ml-auto text-emerald-400 text-[10px]">{h.authenticity}</span>
             </div>
-            {expandedHadith === h.id && (
+            {expandedHadith === h.id && h.explanation && (
               <div className="mt-3 pt-3 border-t border-white/5">
                 <p className="text-sm text-gray-300 leading-relaxed">{h.explanation}</p>
               </div>

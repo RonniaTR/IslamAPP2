@@ -314,25 +314,155 @@ class ActivityCreate(BaseModel):
     activity_type: str
     details: str = ""
 
-# ===================== TURKISH CITIES DATA =====================
+# ===================== ALL CITIES DATA (81 Turkish Provinces + International) =====================
 
 TURKISH_CITIES = [
-    {"id": "istanbul", "name": "İstanbul", "country": "Türkiye", "latitude": 41.0082, "longitude": 28.9784, "timezone": "Europe/Istanbul", "qibla_direction": 149.67},
-    {"id": "ankara", "name": "Ankara", "country": "Türkiye", "latitude": 39.9334, "longitude": 32.8597, "timezone": "Europe/Istanbul", "qibla_direction": 152.47},
-    {"id": "izmir", "name": "İzmir", "country": "Türkiye", "latitude": 38.4192, "longitude": 27.1287, "timezone": "Europe/Istanbul", "qibla_direction": 145.23},
-    {"id": "bursa", "name": "Bursa", "country": "Türkiye", "latitude": 40.1885, "longitude": 29.0610, "timezone": "Europe/Istanbul", "qibla_direction": 148.87},
-    {"id": "antalya", "name": "Antalya", "country": "Türkiye", "latitude": 36.8841, "longitude": 30.7056, "timezone": "Europe/Istanbul", "qibla_direction": 150.65},
-    {"id": "adana", "name": "Adana", "country": "Türkiye", "latitude": 37.0000, "longitude": 35.3213, "timezone": "Europe/Istanbul", "qibla_direction": 159.21},
-    {"id": "konya", "name": "Konya", "country": "Türkiye", "latitude": 37.8746, "longitude": 32.4932, "timezone": "Europe/Istanbul", "qibla_direction": 154.87},
-    {"id": "gaziantep", "name": "Gaziantep", "country": "Türkiye", "latitude": 37.0662, "longitude": 37.3833, "timezone": "Europe/Istanbul", "qibla_direction": 165.32},
-    {"id": "kayseri", "name": "Kayseri", "country": "Türkiye", "latitude": 38.7312, "longitude": 35.4787, "timezone": "Europe/Istanbul", "qibla_direction": 159.78},
-    {"id": "samsun", "name": "Samsun", "country": "Türkiye", "latitude": 41.2867, "longitude": 36.3300, "timezone": "Europe/Istanbul", "qibla_direction": 161.45},
-    {"id": "trabzon", "name": "Trabzon", "country": "Türkiye", "latitude": 41.0027, "longitude": 39.7168, "timezone": "Europe/Istanbul", "qibla_direction": 168.92},
-    {"id": "eskisehir", "name": "Eskişehir", "country": "Türkiye", "latitude": 39.7767, "longitude": 30.5206, "timezone": "Europe/Istanbul", "qibla_direction": 150.34},
-    {"id": "diyarbakir", "name": "Diyarbakır", "country": "Türkiye", "latitude": 37.9144, "longitude": 40.2306, "timezone": "Europe/Istanbul", "qibla_direction": 171.56},
-    {"id": "erzurum", "name": "Erzurum", "country": "Türkiye", "latitude": 39.9055, "longitude": 41.2658, "timezone": "Europe/Istanbul", "qibla_direction": 175.23},
-    {"id": "mersin", "name": "Mersin", "country": "Türkiye", "latitude": 36.8121, "longitude": 34.6415, "timezone": "Europe/Istanbul", "qibla_direction": 156.87},
+    {"id": "istanbul", "name": "İstanbul", "country": "TR", "latitude": 41.0082, "longitude": 28.9784, "timezone": "Europe/Istanbul", "qibla_direction": 149.67},
+    {"id": "ankara", "name": "Ankara", "country": "TR", "latitude": 39.9334, "longitude": 32.8597, "timezone": "Europe/Istanbul", "qibla_direction": 152.47},
+    {"id": "izmir", "name": "İzmir", "country": "TR", "latitude": 38.4192, "longitude": 27.1287, "timezone": "Europe/Istanbul", "qibla_direction": 145.23},
+    {"id": "bursa", "name": "Bursa", "country": "TR", "latitude": 40.1885, "longitude": 29.0610, "timezone": "Europe/Istanbul", "qibla_direction": 148.87},
+    {"id": "antalya", "name": "Antalya", "country": "TR", "latitude": 36.8841, "longitude": 30.7056, "timezone": "Europe/Istanbul", "qibla_direction": 150.65},
+    {"id": "adana", "name": "Adana", "country": "TR", "latitude": 37.0000, "longitude": 35.3213, "timezone": "Europe/Istanbul", "qibla_direction": 159.21},
+    {"id": "konya", "name": "Konya", "country": "TR", "latitude": 37.8746, "longitude": 32.4932, "timezone": "Europe/Istanbul", "qibla_direction": 154.87},
+    {"id": "gaziantep", "name": "Gaziantep", "country": "TR", "latitude": 37.0662, "longitude": 37.3833, "timezone": "Europe/Istanbul", "qibla_direction": 165.32},
+    {"id": "kayseri", "name": "Kayseri", "country": "TR", "latitude": 38.7312, "longitude": 35.4787, "timezone": "Europe/Istanbul", "qibla_direction": 159.78},
+    {"id": "samsun", "name": "Samsun", "country": "TR", "latitude": 41.2867, "longitude": 36.3300, "timezone": "Europe/Istanbul", "qibla_direction": 161.45},
+    {"id": "trabzon", "name": "Trabzon", "country": "TR", "latitude": 41.0027, "longitude": 39.7168, "timezone": "Europe/Istanbul", "qibla_direction": 168.92},
+    {"id": "eskisehir", "name": "Eskişehir", "country": "TR", "latitude": 39.7767, "longitude": 30.5206, "timezone": "Europe/Istanbul", "qibla_direction": 150.34},
+    {"id": "diyarbakir", "name": "Diyarbakır", "country": "TR", "latitude": 37.9144, "longitude": 40.2306, "timezone": "Europe/Istanbul", "qibla_direction": 171.56},
+    {"id": "erzurum", "name": "Erzurum", "country": "TR", "latitude": 39.9055, "longitude": 41.2658, "timezone": "Europe/Istanbul", "qibla_direction": 175.23},
+    {"id": "mersin", "name": "Mersin", "country": "TR", "latitude": 36.8121, "longitude": 34.6415, "timezone": "Europe/Istanbul", "qibla_direction": 156.87},
+    {"id": "adiyaman", "name": "Adıyaman", "country": "TR", "latitude": 37.7648, "longitude": 38.2786, "timezone": "Europe/Istanbul", "qibla_direction": 167.1},
+    {"id": "afyonkarahisar", "name": "Afyonkarahisar", "country": "TR", "latitude": 38.7507, "longitude": 30.5567, "timezone": "Europe/Istanbul", "qibla_direction": 149.5},
+    {"id": "agri", "name": "Ağrı", "country": "TR", "latitude": 39.7191, "longitude": 43.0503, "timezone": "Europe/Istanbul", "qibla_direction": 179.8},
+    {"id": "aksaray", "name": "Aksaray", "country": "TR", "latitude": 38.3687, "longitude": 34.0370, "timezone": "Europe/Istanbul", "qibla_direction": 156.3},
+    {"id": "amasya", "name": "Amasya", "country": "TR", "latitude": 40.6499, "longitude": 35.8353, "timezone": "Europe/Istanbul", "qibla_direction": 160.2},
+    {"id": "ardahan", "name": "Ardahan", "country": "TR", "latitude": 41.1105, "longitude": 42.7022, "timezone": "Europe/Istanbul", "qibla_direction": 179.1},
+    {"id": "artvin", "name": "Artvin", "country": "TR", "latitude": 41.1828, "longitude": 41.8183, "timezone": "Europe/Istanbul", "qibla_direction": 175.6},
+    {"id": "aydin", "name": "Aydın", "country": "TR", "latitude": 37.8560, "longitude": 27.8416, "timezone": "Europe/Istanbul", "qibla_direction": 145.1},
+    {"id": "balikesir", "name": "Balıkesir", "country": "TR", "latitude": 39.6484, "longitude": 27.8826, "timezone": "Europe/Istanbul", "qibla_direction": 145.7},
+    {"id": "bartin", "name": "Bartın", "country": "TR", "latitude": 41.6344, "longitude": 32.3375, "timezone": "Europe/Istanbul", "qibla_direction": 155.4},
+    {"id": "batman", "name": "Batman", "country": "TR", "latitude": 37.8812, "longitude": 41.1351, "timezone": "Europe/Istanbul", "qibla_direction": 173.6},
+    {"id": "bayburt", "name": "Bayburt", "country": "TR", "latitude": 40.2552, "longitude": 40.2249, "timezone": "Europe/Istanbul", "qibla_direction": 172.3},
+    {"id": "bilecik", "name": "Bilecik", "country": "TR", "latitude": 40.0567, "longitude": 30.0165, "timezone": "Europe/Istanbul", "qibla_direction": 149.1},
+    {"id": "bingol", "name": "Bingöl", "country": "TR", "latitude": 38.8854, "longitude": 40.4966, "timezone": "Europe/Istanbul", "qibla_direction": 173.8},
+    {"id": "bitlis", "name": "Bitlis", "country": "TR", "latitude": 38.4010, "longitude": 42.1095, "timezone": "Europe/Istanbul", "qibla_direction": 176.9},
+    {"id": "bolu", "name": "Bolu", "country": "TR", "latitude": 40.7360, "longitude": 31.6061, "timezone": "Europe/Istanbul", "qibla_direction": 152.8},
+    {"id": "burdur", "name": "Burdur", "country": "TR", "latitude": 37.7203, "longitude": 30.2908, "timezone": "Europe/Istanbul", "qibla_direction": 149.3},
+    {"id": "canakkale", "name": "Çanakkale", "country": "TR", "latitude": 40.1553, "longitude": 26.4142, "timezone": "Europe/Istanbul", "qibla_direction": 142.7},
+    {"id": "cankiri", "name": "Çankırı", "country": "TR", "latitude": 40.6013, "longitude": 33.6134, "timezone": "Europe/Istanbul", "qibla_direction": 157.1},
+    {"id": "corum", "name": "Çorum", "country": "TR", "latitude": 40.5506, "longitude": 34.9556, "timezone": "Europe/Istanbul", "qibla_direction": 159.5},
+    {"id": "denizli", "name": "Denizli", "country": "TR", "latitude": 37.7765, "longitude": 29.0864, "timezone": "Europe/Istanbul", "qibla_direction": 147.2},
+    {"id": "duzce", "name": "Düzce", "country": "TR", "latitude": 40.8438, "longitude": 31.1565, "timezone": "Europe/Istanbul", "qibla_direction": 152.9},
+    {"id": "edirne", "name": "Edirne", "country": "TR", "latitude": 41.6818, "longitude": 26.5623, "timezone": "Europe/Istanbul", "qibla_direction": 144.3},
+    {"id": "elazig", "name": "Elazığ", "country": "TR", "latitude": 38.6810, "longitude": 39.2264, "timezone": "Europe/Istanbul", "qibla_direction": 169.2},
+    {"id": "erzincan", "name": "Erzincan", "country": "TR", "latitude": 39.7500, "longitude": 39.4880, "timezone": "Europe/Istanbul", "qibla_direction": 170.1},
+    {"id": "giresun", "name": "Giresun", "country": "TR", "latitude": 40.9128, "longitude": 38.3895, "timezone": "Europe/Istanbul", "qibla_direction": 166.8},
+    {"id": "gumushane", "name": "Gümüşhane", "country": "TR", "latitude": 40.4386, "longitude": 39.5086, "timezone": "Europe/Istanbul", "qibla_direction": 169.7},
+    {"id": "hakkari", "name": "Hakkari", "country": "TR", "latitude": 37.5833, "longitude": 43.7408, "timezone": "Europe/Istanbul", "qibla_direction": 182.1},
+    {"id": "hatay", "name": "Hatay", "country": "TR", "latitude": 36.2021, "longitude": 36.1602, "timezone": "Europe/Istanbul", "qibla_direction": 161.5},
+    {"id": "igdir", "name": "Iğdır", "country": "TR", "latitude": 39.9167, "longitude": 44.0500, "timezone": "Europe/Istanbul", "qibla_direction": 182.3},
+    {"id": "isparta", "name": "Isparta", "country": "TR", "latitude": 37.7648, "longitude": 30.5566, "timezone": "Europe/Istanbul", "qibla_direction": 149.7},
+    {"id": "kahramanmaras", "name": "Kahramanmaraş", "country": "TR", "latitude": 37.5858, "longitude": 36.9371, "timezone": "Europe/Istanbul", "qibla_direction": 163.4},
+    {"id": "karabuk", "name": "Karabük", "country": "TR", "latitude": 41.2061, "longitude": 32.6204, "timezone": "Europe/Istanbul", "qibla_direction": 155.7},
+    {"id": "karaman", "name": "Karaman", "country": "TR", "latitude": 37.1759, "longitude": 33.2287, "timezone": "Europe/Istanbul", "qibla_direction": 154.8},
+    {"id": "kars", "name": "Kars", "country": "TR", "latitude": 40.6167, "longitude": 43.0975, "timezone": "Europe/Istanbul", "qibla_direction": 180.2},
+    {"id": "kastamonu", "name": "Kastamonu", "country": "TR", "latitude": 41.3887, "longitude": 33.7827, "timezone": "Europe/Istanbul", "qibla_direction": 157.8},
+    {"id": "kilis", "name": "Kilis", "country": "TR", "latitude": 36.7184, "longitude": 37.1212, "timezone": "Europe/Istanbul", "qibla_direction": 164.1},
+    {"id": "kirikkale", "name": "Kırıkkale", "country": "TR", "latitude": 39.8468, "longitude": 33.5153, "timezone": "Europe/Istanbul", "qibla_direction": 155.9},
+    {"id": "kirklareli", "name": "Kırklareli", "country": "TR", "latitude": 41.7353, "longitude": 27.2253, "timezone": "Europe/Istanbul", "qibla_direction": 144.9},
+    {"id": "kirsehir", "name": "Kırşehir", "country": "TR", "latitude": 39.1425, "longitude": 34.1709, "timezone": "Europe/Istanbul", "qibla_direction": 157.2},
+    {"id": "kocaeli", "name": "Kocaeli", "country": "TR", "latitude": 40.7654, "longitude": 29.9408, "timezone": "Europe/Istanbul", "qibla_direction": 149.3},
+    {"id": "kutahya", "name": "Kütahya", "country": "TR", "latitude": 39.4167, "longitude": 29.9833, "timezone": "Europe/Istanbul", "qibla_direction": 148.5},
+    {"id": "malatya", "name": "Malatya", "country": "TR", "latitude": 38.3552, "longitude": 38.3095, "timezone": "Europe/Istanbul", "qibla_direction": 166.7},
+    {"id": "manisa", "name": "Manisa", "country": "TR", "latitude": 38.6191, "longitude": 27.4289, "timezone": "Europe/Istanbul", "qibla_direction": 144.8},
+    {"id": "mardin", "name": "Mardin", "country": "TR", "latitude": 37.3212, "longitude": 40.7245, "timezone": "Europe/Istanbul", "qibla_direction": 172.8},
+    {"id": "mugla", "name": "Muğla", "country": "TR", "latitude": 37.2153, "longitude": 28.3636, "timezone": "Europe/Istanbul", "qibla_direction": 145.8},
+    {"id": "mus", "name": "Muş", "country": "TR", "latitude": 38.7432, "longitude": 41.5064, "timezone": "Europe/Istanbul", "qibla_direction": 175.3},
+    {"id": "nevsehir", "name": "Nevşehir", "country": "TR", "latitude": 38.6939, "longitude": 34.6857, "timezone": "Europe/Istanbul", "qibla_direction": 158.1},
+    {"id": "nigde", "name": "Niğde", "country": "TR", "latitude": 37.9667, "longitude": 34.6833, "timezone": "Europe/Istanbul", "qibla_direction": 157.4},
+    {"id": "ordu", "name": "Ordu", "country": "TR", "latitude": 40.9839, "longitude": 37.8764, "timezone": "Europe/Istanbul", "qibla_direction": 165.4},
+    {"id": "osmaniye", "name": "Osmaniye", "country": "TR", "latitude": 37.0746, "longitude": 36.2464, "timezone": "Europe/Istanbul", "qibla_direction": 161.2},
+    {"id": "rize", "name": "Rize", "country": "TR", "latitude": 41.0201, "longitude": 40.5234, "timezone": "Europe/Istanbul", "qibla_direction": 170.8},
+    {"id": "sakarya", "name": "Sakarya", "country": "TR", "latitude": 40.6940, "longitude": 30.4358, "timezone": "Europe/Istanbul", "qibla_direction": 150.8},
+    {"id": "sanliurfa", "name": "Şanlıurfa", "country": "TR", "latitude": 37.1591, "longitude": 38.7969, "timezone": "Europe/Istanbul", "qibla_direction": 168.4},
+    {"id": "siirt", "name": "Siirt", "country": "TR", "latitude": 37.9333, "longitude": 41.9500, "timezone": "Europe/Istanbul", "qibla_direction": 175.9},
+    {"id": "sinop", "name": "Sinop", "country": "TR", "latitude": 42.0231, "longitude": 35.1531, "timezone": "Europe/Istanbul", "qibla_direction": 159.1},
+    {"id": "sirnak", "name": "Şırnak", "country": "TR", "latitude": 37.4187, "longitude": 42.4918, "timezone": "Europe/Istanbul", "qibla_direction": 177.4},
+    {"id": "sivas", "name": "Sivas", "country": "TR", "latitude": 39.7477, "longitude": 37.0179, "timezone": "Europe/Istanbul", "qibla_direction": 164.1},
+    {"id": "tekirdag", "name": "Tekirdağ", "country": "TR", "latitude": 41.0027, "longitude": 27.5127, "timezone": "Europe/Istanbul", "qibla_direction": 144.1},
+    {"id": "tokat", "name": "Tokat", "country": "TR", "latitude": 40.3167, "longitude": 36.5544, "timezone": "Europe/Istanbul", "qibla_direction": 162.7},
+    {"id": "tunceli", "name": "Tunceli", "country": "TR", "latitude": 39.1079, "longitude": 39.5401, "timezone": "Europe/Istanbul", "qibla_direction": 170.4},
+    {"id": "usak", "name": "Uşak", "country": "TR", "latitude": 38.6823, "longitude": 29.4082, "timezone": "Europe/Istanbul", "qibla_direction": 147.3},
+    {"id": "van", "name": "Van", "country": "TR", "latitude": 38.4891, "longitude": 43.3832, "timezone": "Europe/Istanbul", "qibla_direction": 180.6},
+    {"id": "yalova", "name": "Yalova", "country": "TR", "latitude": 40.6500, "longitude": 29.2667, "timezone": "Europe/Istanbul", "qibla_direction": 148.7},
+    {"id": "yozgat", "name": "Yozgat", "country": "TR", "latitude": 39.8181, "longitude": 34.8147, "timezone": "Europe/Istanbul", "qibla_direction": 158.5},
+    {"id": "zonguldak", "name": "Zonguldak", "country": "TR", "latitude": 41.4564, "longitude": 31.7987, "timezone": "Europe/Istanbul", "qibla_direction": 154.2},
 ]
+
+INTERNATIONAL_CITIES = [
+    # USA
+    {"id": "new_york", "name": "New York", "country": "US", "latitude": 40.7128, "longitude": -74.0060, "timezone": "America/New_York", "qibla_direction": 58.48},
+    {"id": "los_angeles", "name": "Los Angeles", "country": "US", "latitude": 34.0522, "longitude": -118.2437, "timezone": "America/Los_Angeles", "qibla_direction": 23.35},
+    {"id": "chicago", "name": "Chicago", "country": "US", "latitude": 41.8781, "longitude": -87.6298, "timezone": "America/Chicago", "qibla_direction": 48.98},
+    {"id": "houston", "name": "Houston", "country": "US", "latitude": 29.7604, "longitude": -95.3698, "timezone": "America/Chicago", "qibla_direction": 38.52},
+    {"id": "washington_dc", "name": "Washington D.C.", "country": "US", "latitude": 38.9072, "longitude": -77.0369, "timezone": "America/New_York", "qibla_direction": 56.56},
+    # UK
+    {"id": "london", "name": "London", "country": "GB", "latitude": 51.5074, "longitude": -0.1278, "timezone": "Europe/London", "qibla_direction": 118.99},
+    {"id": "birmingham", "name": "Birmingham", "country": "GB", "latitude": 52.4862, "longitude": -1.8904, "timezone": "Europe/London", "qibla_direction": 117.82},
+    {"id": "manchester", "name": "Manchester", "country": "GB", "latitude": 53.4808, "longitude": -2.2426, "timezone": "Europe/London", "qibla_direction": 117.15},
+    # Germany
+    {"id": "berlin", "name": "Berlin", "country": "DE", "latitude": 52.5200, "longitude": 13.4050, "timezone": "Europe/Berlin", "qibla_direction": 136.56},
+    {"id": "frankfurt", "name": "Frankfurt", "country": "DE", "latitude": 50.1109, "longitude": 8.6821, "timezone": "Europe/Berlin", "qibla_direction": 132.45},
+    {"id": "cologne", "name": "Köln", "country": "DE", "latitude": 50.9375, "longitude": 6.9603, "timezone": "Europe/Berlin", "qibla_direction": 130.83},
+    # France
+    {"id": "paris", "name": "Paris", "country": "FR", "latitude": 48.8566, "longitude": 2.3522, "timezone": "Europe/Paris", "qibla_direction": 119.16},
+    # Netherlands
+    {"id": "amsterdam", "name": "Amsterdam", "country": "NL", "latitude": 52.3676, "longitude": 4.9041, "timezone": "Europe/Amsterdam", "qibla_direction": 127.06},
+    # Spain
+    {"id": "madrid", "name": "Madrid", "country": "ES", "latitude": 40.4168, "longitude": -3.7038, "timezone": "Europe/Madrid", "qibla_direction": 100.59},
+    {"id": "barcelona", "name": "Barcelona", "country": "ES", "latitude": 41.3851, "longitude": 2.1734, "timezone": "Europe/Madrid", "qibla_direction": 111.79},
+    # Saudi Arabia
+    {"id": "mecca", "name": "Mekke", "country": "SA", "latitude": 21.3891, "longitude": 39.8579, "timezone": "Asia/Riyadh", "qibla_direction": 0.0},
+    {"id": "medina", "name": "Medine", "country": "SA", "latitude": 24.5247, "longitude": 39.5692, "timezone": "Asia/Riyadh", "qibla_direction": 177.0},
+    {"id": "riyadh", "name": "Riyad", "country": "SA", "latitude": 24.7136, "longitude": 46.6753, "timezone": "Asia/Riyadh", "qibla_direction": 245.32},
+    {"id": "jeddah", "name": "Cidde", "country": "SA", "latitude": 21.4858, "longitude": 39.1925, "timezone": "Asia/Riyadh", "qibla_direction": 135.0},
+    # UAE
+    {"id": "dubai", "name": "Dubai", "country": "AE", "latitude": 25.2048, "longitude": 55.2708, "timezone": "Asia/Dubai", "qibla_direction": 258.72},
+    # Egypt
+    {"id": "cairo", "name": "Kahire", "country": "EG", "latitude": 30.0444, "longitude": 31.2357, "timezone": "Africa/Cairo", "qibla_direction": 136.46},
+    # Malaysia
+    {"id": "kuala_lumpur", "name": "Kuala Lumpur", "country": "MY", "latitude": 3.1390, "longitude": 101.6869, "timezone": "Asia/Kuala_Lumpur", "qibla_direction": 292.63},
+    # Indonesia
+    {"id": "jakarta", "name": "Jakarta", "country": "ID", "latitude": -6.2088, "longitude": 106.8456, "timezone": "Asia/Jakarta", "qibla_direction": 295.15},
+    # Canada
+    {"id": "toronto", "name": "Toronto", "country": "CA", "latitude": 43.6532, "longitude": -79.3832, "timezone": "America/Toronto", "qibla_direction": 54.56},
+    # Australia
+    {"id": "sydney", "name": "Sydney", "country": "AU", "latitude": -33.8688, "longitude": 151.2093, "timezone": "Australia/Sydney", "qibla_direction": 277.50},
+]
+
+ALL_CITIES = TURKISH_CITIES + INTERNATIONAL_CITIES
+
+# Country labels per language
+COUNTRY_LABELS = {
+    "TR": {"tr": "Türkiye", "en": "Turkey", "ar": "تركيا", "es": "Turquía"},
+    "US": {"tr": "ABD", "en": "USA", "ar": "الولايات المتحدة", "es": "EE.UU."},
+    "GB": {"tr": "İngiltere", "en": "United Kingdom", "ar": "المملكة المتحدة", "es": "Reino Unido"},
+    "DE": {"tr": "Almanya", "en": "Germany", "ar": "ألمانيا", "es": "Alemania"},
+    "FR": {"tr": "Fransa", "en": "France", "ar": "فرنسا", "es": "Francia"},
+    "NL": {"tr": "Hollanda", "en": "Netherlands", "ar": "هولندا", "es": "Países Bajos"},
+    "ES": {"tr": "İspanya", "en": "Spain", "ar": "إسبانيا", "es": "España"},
+    "SA": {"tr": "Suudi Arabistan", "en": "Saudi Arabia", "ar": "المملكة العربية السعودية", "es": "Arabia Saudita"},
+    "AE": {"tr": "BAE", "en": "UAE", "ar": "الإمارات", "es": "EAU"},
+    "EG": {"tr": "Mısır", "en": "Egypt", "ar": "مصر", "es": "Egipto"},
+    "MY": {"tr": "Malezya", "en": "Malaysia", "ar": "ماليزيا", "es": "Malasia"},
+    "ID": {"tr": "Endonezya", "en": "Indonesia", "ar": "إندونيسيا", "es": "Indonesia"},
+    "CA": {"tr": "Kanada", "en": "Canada", "ar": "كندا", "es": "Canadá"},
+    "AU": {"tr": "Avustralya", "en": "Australia", "ar": "أستراليا", "es": "Australia"},
+}
+
+# Default country for each language
+LANG_DEFAULT_COUNTRY = {"tr": "TR", "en": "US", "ar": "SA", "es": "ES"}
 
 # ===================== SCHOLARS DATA (HOCALAR) =====================
 
@@ -934,22 +1064,30 @@ async def get_status_checks():
     return [StatusCheck(**status_check) for status_check in status_checks]
 
 # Cities
-@api_router.get("/cities", response_model=List[City])
-async def get_cities():
-    return [City(**city) for city in TURKISH_CITIES]
+@api_router.get("/cities")
+async def get_cities(country: str = None, lang: str = "tr"):
+    """Get cities, optionally filtered by country code"""
+    cities = ALL_CITIES
+    if country:
+        cities = [c for c in ALL_CITIES if c["country"] == country.upper()]
+    result = []
+    for c in cities:
+        country_label = COUNTRY_LABELS.get(c["country"], {}).get(lang, c["country"])
+        result.append({**c, "country_name": country_label})
+    return result
 
-@api_router.get("/cities/{city_id}", response_model=City)
+@api_router.get("/cities/{city_id}")
 async def get_city(city_id: str):
-    for city in TURKISH_CITIES:
+    for city in ALL_CITIES:
         if city["id"] == city_id:
-            return City(**city)
+            return city
     raise HTTPException(status_code=404, detail="City not found")
 
 # Prayer Times
 @api_router.get("/prayer-times/{city_id}")
 async def get_prayer_times(city_id: str, madhab: str = "hanafi"):
     city = None
-    for c in TURKISH_CITIES:
+    for c in ALL_CITIES:
         if c["id"] == city_id:
             city = c
             break
@@ -963,10 +1101,256 @@ async def get_prayer_times(city_id: str, madhab: str = "hanafi"):
     return {
         "city_id": city_id,
         "city_name": city["name"],
+        "country": city["country"],
         "date": today.isoformat(),
         "qibla_direction": city["qibla_direction"],
         **times
     }
+
+
+# ===================== TAFSIR (TEFSİR) SYSTEM =====================
+
+TAFSIR_SCHOLARS = {
+    "ibn_kesir": {"id": "ibn_kesir", "name": "İbn Kesir", "name_ar": "ابن كثير", "name_en": "Ibn Kathir", "era": "1300-1373", "school": "Hanbeli"},
+    "taberi": {"id": "taberi", "name": "Taberi", "name_ar": "الطبري", "name_en": "Al-Tabari", "era": "839-923", "school": "Şafii"},
+    "elmalili": {"id": "elmalili", "name": "Elmalılı Hamdi Yazır", "name_ar": "الملالي حمدي يازر", "name_en": "Elmalılı Hamdi Yazır", "era": "1878-1942", "school": "Hanefi"},
+    "razi": {"id": "razi", "name": "Fahreddin Razi", "name_ar": "فخر الدين الرازي", "name_en": "Fakhr al-Din al-Razi", "era": "1149-1209", "school": "Şafii"},
+}
+
+@api_router.get("/tafsir/scholars")
+async def get_tafsir_scholars():
+    return list(TAFSIR_SCHOLARS.values())
+
+@api_router.get("/tafsir/{surah_number}/{verse_number}")
+async def get_tafsir(surah_number: int, verse_number: int, scholar: str = None, lang: str = "tr"):
+    """Get tafsir for a specific verse from MongoDB or generate via AI"""
+    query = {"surah_number": surah_number, "verse_number": verse_number, "language": lang}
+    if scholar:
+        query["scholar_name"] = scholar
+    
+    # Check cache in MongoDB
+    cached = await db.tafsir.find(query, {"_id": 0}).to_list(length=10)
+    if cached:
+        return cached
+    
+    # Generate via AI if not cached
+    if not EMERGENT_LLM_KEY:
+        return []
+    
+    scholars_to_gen = [scholar] if scholar else list(TAFSIR_SCHOLARS.keys())
+    results = []
+    
+    for s_id in scholars_to_gen:
+        s_info = TAFSIR_SCHOLARS.get(s_id)
+        if not s_info:
+            continue
+        
+        # Get verse text for context
+        verse_text = ""
+        if QURAN_ARABIC and surah_number <= len(QURAN_ARABIC):
+            surah = QURAN_ARABIC[surah_number - 1]
+            for ayah in surah.get('ayahs', []):
+                if ayah.get('numberInSurah') == verse_number:
+                    verse_text = ayah.get('text', '')
+                    break
+        
+        turkish_text = ""
+        if QURAN_TURKISH and surah_number <= len(QURAN_TURKISH):
+            surah_tr = QURAN_TURKISH[surah_number - 1]
+            for ayah in surah_tr.get('ayahs', []):
+                if ayah.get('numberInSurah') == verse_number:
+                    turkish_text = ayah.get('text', '')
+                    break
+        
+        tr_name, _ = TURKISH_SURAH_NAMES.get(surah_number, ("", ""))
+        
+        lang_instruction = {
+            "tr": "Türkçe olarak yaz.",
+            "en": "Write in English.",
+            "ar": "اكتب باللغة العربية.",
+            "es": "Escribe en español."
+        }.get(lang, "Türkçe olarak yaz.")
+        
+        prompt = f"""{s_info['name']} ({s_info['era']}) tefsir ekolünden, {tr_name} suresi {verse_number}. ayetinin tefsirini yaz.
+Ayet (Arapça): {verse_text}
+Ayet (Türkçe): {turkish_text}
+
+Bu alimin bakış açısını, ilmi tarzını ve tefsir metodolojisini yansıt.
+Tefsiri 3-5 paragraf olarak, kapsamlı ve öğretici bir şekilde yaz.
+{lang_instruction}"""
+        
+        try:
+            chat = LlmChat(api_key=EMERGENT_LLM_KEY, model="claude-sonnet-4-20250514")
+            response = await asyncio.to_thread(chat.send_message, UserMessage(content=prompt))
+            tafsir_text = response.content
+            
+            tafsir_doc = {
+                "surah_number": surah_number,
+                "verse_number": verse_number,
+                "scholar_name": s_id,
+                "scholar_display_name": s_info["name"],
+                "tafsir_text": tafsir_text,
+                "language": lang,
+            }
+            # Cache in MongoDB
+            await db.tafsir.insert_one({**tafsir_doc, "created_at": datetime.now(timezone.utc)})
+            tafsir_doc.pop("_id", None)
+            results.append(tafsir_doc)
+        except Exception as e:
+            logger.error(f"Tafsir generation error for {s_id}: {e}")
+    
+    return results
+
+# ===================== LANGUAGE / i18n =====================
+
+UI_TRANSLATIONS = {
+    "tr": {
+        "app_title": "İslami Yaşam Asistanı",
+        "greeting": "Hayırlı günler",
+        "bismillah": "Bismillahirrahmanirrahim",
+        "explore": "Keşfet",
+        "quran": "Kur'an-ı Kerim",
+        "quran_desc": "114 Sure - Arapça & Türkçe Meal",
+        "hadith": "Hadis-i Şerif",
+        "hadith_desc": "Sahih Hadisler & Açıklamaları",
+        "advisor": "İslami Danışman",
+        "advisor_desc": "AI Destekli Sohbet",
+        "scholars": "Hocaların Görüşü",
+        "scholars_desc": "Alimlerin bakış açısı",
+        "quiz": "İslam Quiz",
+        "quiz_desc": "Bilgini Test Et",
+        "daily_verse": "Günün Ayeti",
+        "search_surah": "Sure ara...",
+        "listen_meal": "Türkçe Meal Dinle",
+        "back": "Geri",
+        "surahs": "Sureler",
+        "verses": "ayet",
+        "juz": "Cüz",
+        "settings": "Ayarlar",
+        "city": "Şehir",
+        "language": "Dil",
+        "logout": "Çıkış Yap",
+        "guest": "Misafir",
+        "loading": "Yükleniyor...",
+        "tafsir": "Tefsir",
+        "select_scholar": "Alim Seçin",
+        "open_tafsir": "Tefsir Oku",
+        "prayer_fajr": "İmsak", "prayer_sunrise": "Güneş", "prayer_dhuhr": "Öğle",
+        "prayer_asr": "İkindi", "prayer_maghrib": "Akşam", "prayer_isha": "Yatsı",
+        "home": "Ana Sayfa", "chat": "Sohbet",
+        "send": "Gönder", "ask_question": "Sorunuzu yazın...",
+        "all": "Tümü", "correct": "Doğru!", "wrong": "Yanlış!",
+        "quiz_complete": "Quiz Tamamlandı!", "new_quiz": "Yeni Quiz",
+        "total_score": "Toplam Puan", "success": "Başarı",
+        "next_question": "Sonraki Soru", "see_results": "Sonuçları Gör",
+        "qibla": "Kıble Yönü", "select": "Seçiniz",
+        "country": "Ülke", "all_turkey": "Tüm Türkiye",
+        "international": "Uluslararası",
+        "reciter": "Okuyucu", "full_surah_play": "Tüm Sureyi Dinle",
+        "playing": "Çalınıyor...",
+        "narrator": "Seslendiren",
+    },
+    "en": {
+        "app_title": "Islamic Life Assistant",
+        "greeting": "Peace be upon you",
+        "bismillah": "In the name of God, the Most Gracious, the Most Merciful",
+        "explore": "Explore",
+        "quran": "Holy Quran",
+        "quran_desc": "114 Surahs - Arabic & Translation",
+        "hadith": "Hadith",
+        "hadith_desc": "Authentic Hadiths & Explanations",
+        "advisor": "Islamic Advisor",
+        "advisor_desc": "AI Powered Chat",
+        "scholars": "Scholar Views",
+        "scholars_desc": "Perspectives of Islamic Scholars",
+        "quiz": "Islam Quiz",
+        "quiz_desc": "Test Your Knowledge",
+        "daily_verse": "Verse of the Day",
+        "search_surah": "Search surah...",
+        "listen_meal": "Listen Translation",
+        "back": "Back",
+        "surahs": "Surahs",
+        "verses": "verses",
+        "juz": "Juz",
+        "settings": "Settings",
+        "city": "City",
+        "language": "Language",
+        "logout": "Logout",
+        "guest": "Guest",
+        "loading": "Loading...",
+        "tafsir": "Tafsir",
+        "select_scholar": "Select Scholar",
+        "open_tafsir": "Read Tafsir",
+        "prayer_fajr": "Fajr", "prayer_sunrise": "Sunrise", "prayer_dhuhr": "Dhuhr",
+        "prayer_asr": "Asr", "prayer_maghrib": "Maghrib", "prayer_isha": "Isha",
+        "home": "Home", "chat": "Chat",
+        "send": "Send", "ask_question": "Ask your question...",
+        "all": "All", "correct": "Correct!", "wrong": "Wrong!",
+        "quiz_complete": "Quiz Complete!", "new_quiz": "New Quiz",
+        "total_score": "Total Score", "success": "Success",
+        "next_question": "Next Question", "see_results": "See Results",
+        "qibla": "Qibla Direction", "select": "Select",
+        "country": "Country", "all_turkey": "All Turkey",
+        "international": "International",
+        "reciter": "Reciter", "full_surah_play": "Play Full Surah",
+        "playing": "Playing...",
+        "narrator": "Narrator",
+    },
+    "ar": {
+        "app_title": "مساعد الحياة الإسلامية",
+        "greeting": "السلام عليكم",
+        "bismillah": "بسم الله الرحمن الرحيم",
+        "explore": "اكتشف",
+        "quran": "القرآن الكريم",
+        "quran_desc": "١١٤ سورة - عربي وترجمة",
+        "hadith": "الحديث الشريف",
+        "hadith_desc": "أحاديث صحيحة وشروحها",
+        "advisor": "مستشار إسلامي",
+        "advisor_desc": "محادثة بالذكاء الاصطناعي",
+        "scholars": "آراء العلماء",
+        "scholars_desc": "وجهات نظر العلماء",
+        "quiz": "اختبار إسلامي",
+        "quiz_desc": "اختبر معرفتك",
+        "daily_verse": "آية اليوم",
+        "search_surah": "ابحث عن سورة...",
+        "listen_meal": "استمع للترجمة",
+        "back": "رجوع",
+        "surahs": "السور",
+        "verses": "آية",
+        "juz": "جزء",
+        "settings": "الإعدادات",
+        "city": "المدينة",
+        "language": "اللغة",
+        "logout": "تسجيل الخروج",
+        "guest": "ضيف",
+        "loading": "جاري التحميل...",
+        "tafsir": "التفسير",
+        "select_scholar": "اختر العالم",
+        "open_tafsir": "اقرأ التفسير",
+        "prayer_fajr": "الفجر", "prayer_sunrise": "الشروق", "prayer_dhuhr": "الظهر",
+        "prayer_asr": "العصر", "prayer_maghrib": "المغرب", "prayer_isha": "العشاء",
+        "home": "الرئيسية", "chat": "محادثة",
+        "send": "إرسال", "ask_question": "اكتب سؤالك...",
+        "all": "الكل", "correct": "صحيح!", "wrong": "خطأ!",
+        "quiz_complete": "اكتمل الاختبار!", "new_quiz": "اختبار جديد",
+        "total_score": "المجموع", "success": "النجاح",
+        "next_question": "السؤال التالي", "see_results": "عرض النتائج",
+        "qibla": "اتجاه القبلة", "select": "اختر",
+        "country": "الدولة", "all_turkey": "كل تركيا",
+        "international": "دولي",
+        "reciter": "القارئ", "full_surah_play": "تشغيل السورة كاملة",
+        "playing": "جاري التشغيل...",
+        "narrator": "الراوي",
+    },
+}
+
+@api_router.get("/i18n/{lang}")
+async def get_translations(lang: str):
+    """Get UI translations for a language"""
+    translations = UI_TRANSLATIONS.get(lang, UI_TRANSLATIONS["tr"])
+    default_country = LANG_DEFAULT_COUNTRY.get(lang, "TR")
+    return {"translations": translations, "default_country": default_country}
+
 
 # ===================== SCHOLARS API (HOCALARIN GÖRÜŞÜ) =====================
 

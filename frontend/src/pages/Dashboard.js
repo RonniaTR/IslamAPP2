@@ -2,46 +2,46 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, MessageCircle, Users, Award, ChevronRight, Volume2, Compass } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLang } from '../contexts/LangContext';
 import api from '../api';
-
-const PRAYER_NAMES = {
-  fajr: 'İmsak',
-  sunrise: 'Güneş',
-  dhuhr: 'Öğle',
-  asr: 'İkindi',
-  maghrib: 'Akşam',
-  isha: 'Yatsı',
-};
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loginAsGuest } = useAuth();
+  const { t, selectedCity } = useLang();
   const [prayerTimes, setPrayerTimes] = useState(null);
   const [randomVerse, setRandomVerse] = useState(null);
 
-  useEffect(() => {
-    if (!user) loginAsGuest();
-  }, [user, loginAsGuest]);
+  useEffect(() => { if (!user) loginAsGuest(); }, [user, loginAsGuest]);
 
   useEffect(() => {
-    api.get('/prayer-times/istanbul').then(r => setPrayerTimes(r.data)).catch(() => {});
+    api.get(`/prayer-times/${selectedCity}`).then(r => setPrayerTimes(r.data)).catch(() => {});
     api.get('/quran/random').then(r => setRandomVerse(r.data)).catch(() => {});
-  }, []);
+  }, [selectedCity]);
+
+  const prayerKeys = [
+    { key: 'fajr', label: t.prayer_fajr },
+    { key: 'sunrise', label: t.prayer_sunrise },
+    { key: 'dhuhr', label: t.prayer_dhuhr },
+    { key: 'asr', label: t.prayer_asr },
+    { key: 'maghrib', label: t.prayer_maghrib },
+    { key: 'isha', label: t.prayer_isha },
+  ];
 
   const features = [
-    { icon: BookOpen, label: "Kur'an-ı Kerim", desc: '114 Sure - Arapça & Türkçe Meal', path: '/quran', color: 'from-emerald-500/20 to-emerald-900/10' },
-    { icon: Volume2, label: 'Hadis-i Şerif', desc: 'Sahih Hadisler & Açıklamaları', path: '/hadith', color: 'from-amber-500/20 to-amber-900/10' },
-    { icon: MessageCircle, label: 'İslami Danışman', desc: 'AI Destekli Sohbet', path: '/chat', color: 'from-blue-500/20 to-blue-900/10' },
-    { icon: Users, label: 'Hocaların Görüşü', desc: 'Alimlerin bakış açısı', path: '/scholars', color: 'from-purple-500/20 to-purple-900/10' },
-    { icon: Award, label: 'İslam Quiz', desc: 'Bilgini Test Et', path: '/quiz', color: 'from-rose-500/20 to-rose-900/10' },
+    { icon: BookOpen, label: t.quran, desc: t.quran_desc, path: '/quran', color: 'from-emerald-500/20 to-emerald-900/10' },
+    { icon: Volume2, label: t.hadith, desc: t.hadith_desc, path: '/hadith', color: 'from-amber-500/20 to-amber-900/10' },
+    { icon: MessageCircle, label: t.advisor, desc: t.advisor_desc, path: '/chat', color: 'from-blue-500/20 to-blue-900/10' },
+    { icon: Users, label: t.scholars, desc: t.scholars_desc, path: '/scholars', color: 'from-purple-500/20 to-purple-900/10' },
+    { icon: Award, label: t.quiz, desc: t.quiz_desc, path: '/quiz', color: 'from-rose-500/20 to-rose-900/10' },
   ];
 
   return (
     <div className="animate-fade-in" data-testid="dashboard">
       <div className="bg-gradient-to-b from-emerald-900/40 to-transparent px-5 pt-12 pb-6">
-        <p className="text-emerald-400 text-sm font-medium">Bismillahirrahmanirrahim</p>
-        <h1 className="text-2xl font-bold mt-1 text-white">İslami Yaşam Asistanı</h1>
-        <p className="text-gray-400 text-sm mt-1">Hayırlı günler{user?.name ? `, ${user.name}` : ''}</p>
+        <p className="text-emerald-400 text-sm font-medium">{t.bismillah}</p>
+        <h1 className="text-2xl font-bold mt-1 text-white">{t.app_title}</h1>
+        <p className="text-gray-400 text-sm mt-1">{t.greeting}{user?.name ? `, ${user.name}` : ''}</p>
       </div>
 
       {prayerTimes && (
@@ -54,9 +54,9 @@ export default function Dashboard() {
             <span className="text-xs text-gray-500">{prayerTimes.date}</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {Object.entries(PRAYER_NAMES).map(([key, name]) => (
+            {prayerKeys.map(({ key, label }) => (
               <div key={key} className="text-center py-2 rounded-xl bg-white/5">
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide">{name}</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
                 <p className="text-sm font-bold text-white mt-0.5">{prayerTimes[key]}</p>
               </div>
             ))}
@@ -68,7 +68,7 @@ export default function Dashboard() {
         <div className="mx-4 mb-5 glass rounded-2xl p-4" data-testid="daily-verse">
           <div className="flex items-center gap-2 mb-3">
             <BookOpen size={16} className="text-[#d4a373]" />
-            <span className="text-sm font-semibold text-[#d4a373]">Günün Ayeti</span>
+            <span className="text-sm font-semibold text-[#d4a373]">{t.daily_verse}</span>
             <span className="text-xs text-gray-500 ml-auto">{randomVerse.surah_name} - {randomVerse.verse_number}</span>
           </div>
           <p className="arabic-text text-lg text-white/90 mb-3 leading-loose">{randomVerse.arabic}</p>
@@ -77,7 +77,7 @@ export default function Dashboard() {
       )}
 
       <div className="px-4 mb-6">
-        <h2 className="text-base font-semibold text-white mb-3">Keşfet</h2>
+        <h2 className="text-base font-semibold text-white mb-3">{t.explore}</h2>
         <div className="space-y-3">
           {features.map(({ icon: Icon, label, desc, path, color }) => (
             <button key={path} onClick={() => navigate(path)} data-testid={`feature-${path.slice(1)}`}

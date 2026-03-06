@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Send, Loader2, ArrowLeft } from 'lucide-react';
+import { useLang } from '../contexts/LangContext';
 import api from '../api';
 
 export default function ScholarsPage() {
+  const { t } = useLang();
   const [scholars, setScholars] = useState([]);
   const [selected, setSelected] = useState(null);
   const [question, setQuestion] = useState('');
@@ -10,23 +12,17 @@ export default function ScholarsPage() {
   const [loading, setLoading] = useState(false);
   const [sessionId] = useState(() => `scholar_${Date.now()}`);
 
-  useEffect(() => {
-    api.get('/scholars').then(r => setScholars(r.data)).catch(() => {});
-  }, []);
+  useEffect(() => { api.get('/scholars').then(r => setScholars(r.data)).catch(() => {}); }, []);
 
   const askScholar = async (e) => {
     e.preventDefault();
     if (!question.trim() || !selected || loading) return;
-    setLoading(true);
-    setResponse(null);
+    setLoading(true); setResponse(null);
     try {
       const { data } = await api.post('/scholars/ask', { session_id: sessionId, question: question.trim(), scholar_id: selected.id });
       setResponse(data);
-    } catch {
-      setResponse({ response: 'Bir hata oluştu. Lütfen tekrar deneyin.', scholar_name: selected.name, sources: [] });
-    } finally {
-      setLoading(false);
-    }
+    } catch { setResponse({ response: 'Hata oluştu.', scholar_name: selected.name, sources: [] }); }
+    setLoading(false);
   };
 
   if (selected) {
@@ -34,33 +30,26 @@ export default function ScholarsPage() {
       <div className="animate-fade-in" data-testid="scholar-chat">
         <div className="bg-gradient-to-b from-purple-900/30 to-transparent px-5 pt-10 pb-4">
           <button onClick={() => { setSelected(null); setResponse(null); }} className="flex items-center gap-1 text-purple-400 text-sm mb-3">
-            <ArrowLeft size={18} /> Hocalar
+            <ArrowLeft size={18} /> {t.back}
           </button>
           <h1 className="text-lg font-bold text-white">{selected.name}</h1>
           <p className="text-xs text-gray-400">{selected.title}</p>
-          <p className="text-xs text-gray-500 mt-1">{selected.specialty}</p>
         </div>
         <div className="px-4">
           <form onSubmit={askScholar} className="mb-4">
             <textarea value={question} onChange={e => setQuestion(e.target.value)}
-              placeholder={`${selected.name}'a sorunuzu yazın...`} rows={3}
-              data-testid="scholar-question-input"
+              placeholder={t.ask_question} rows={3} data-testid="scholar-question-input"
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500/50 resize-none" />
             <button type="submit" disabled={loading || !question.trim()} data-testid="scholar-ask-btn"
               className="mt-2 w-full py-2.5 rounded-xl bg-purple-600 text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-40">
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              {loading ? 'Yanıtlanıyor...' : 'Sor'}
+              {loading ? t.loading : t.send}
             </button>
           </form>
           {response && (
             <div className="glass rounded-xl p-4 mb-6" data-testid="scholar-response">
               <p className="text-sm font-semibold text-purple-300 mb-2">{response.scholar_name}</p>
               <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{response.response}</div>
-              {response.sources?.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-white/5">
-                  <p className="text-xs text-gray-500">Kaynaklar: {response.sources.join(', ')}</p>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -73,9 +62,9 @@ export default function ScholarsPage() {
       <div className="bg-gradient-to-b from-purple-900/30 to-transparent px-5 pt-12 pb-4">
         <div className="flex items-center gap-3 mb-2">
           <Users size={24} className="text-purple-400" />
-          <h1 className="text-xl font-bold text-white">Hocaların Görüşü</h1>
+          <h1 className="text-xl font-bold text-white">{t.scholars}</h1>
         </div>
-        <p className="text-sm text-gray-400">Farklı alimlerin bakış açılarını keşfedin</p>
+        <p className="text-sm text-gray-400">{t.scholars_desc}</p>
       </div>
       <div className="px-4 space-y-3 pb-6">
         {scholars.map(s => (
