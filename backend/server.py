@@ -2490,7 +2490,7 @@ Cevaplarını Türkçe ver ve kaynaklara dikkat et."""
         }
 
 # ===================== QUIZ SYSTEM API =====================
-from quiz_data import QUIZ_CATEGORIES, QUIZ_QUESTIONS, get_questions_for_category
+from quiz_data import QUIZ_CATEGORIES, ALL_QUESTIONS, get_questions_for_category, get_categories_with_counts, get_mixed_questions, update_leaderboard, get_leaderboard, solo_sessions
 import random
 
 # Quiz Models
@@ -2518,8 +2518,13 @@ class StartQuizRequest(BaseModel):
 # Quiz Endpoints
 @api_router.get("/quiz/categories")
 async def get_quiz_categories():
-    """Get all quiz categories"""
-    return QUIZ_CATEGORIES
+    """Get all quiz categories with question counts"""
+    return get_categories_with_counts()
+
+@api_router.get("/quiz/leaderboard")
+async def get_quiz_leaderboard(limit: int = 50):
+    """Get global leaderboard"""
+    return get_leaderboard(limit)
 
 @api_router.get("/quiz/questions/{category}")
 async def get_quiz_questions(category: str, count: int = 10):
@@ -3100,6 +3105,30 @@ async def finish_solo_quiz(session_id: str):
         "correct_count": session.get("correct_count", 0),
         "total_questions": len(session.get("questions", [])),
         "questions": session.get("questions", [])
+    }
+
+@api_router.post("/quiz/solo/start-mixed")
+async def start_mixed_quiz(user_id: str, question_count: int = 15):
+    """Start a mixed category quiz"""
+    questions = get_mixed_questions(question_count)
+    session = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "category": "mixed",
+        "questions": questions,
+        "current_question": 0,
+        "score": 0,
+        "correct_count": 0,
+        "answers": [],
+        "status": "playing",
+        "created_at": datetime.now(timezone.utc)
+    }
+    await db.quiz_solo_sessions.insert_one(session)
+    return {
+        "session_id": session["id"],
+        "category": "mixed",
+        "question_count": len(questions),
+        "questions": [{"id": q["id"], "question": q["question"], "options": q["options"], "difficulty": q.get("difficulty", "medium"), "points": q.get("points", 10)} for q in questions]
     }
 
 # ===================== WEBSOCKET QUIZ MANAGER =====================
