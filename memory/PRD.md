@@ -13,45 +13,49 @@ Supports multiple languages (TR/EN/AR), international prayer times, Quran readin
 - **AI**: Anthropic Claude via Emergent LLM Key (chat, scholars, tafsir generation)
 - **Auth**: Emergent Google OAuth + Guest Login
 
-## Core Features
-1. **Google OAuth Login**: Emergent Auth integration, session management, cookie-based auth
-2. **Guest Login**: One-click guest access, name displayed as "Kardeşim"
-3. **Dashboard**: Prayer times, daily verse, feature navigation, user greeting
-4. **Prayer Times**: 81 Turkish provinces + 25 international cities, 6 prayer times, Qibla direction
-5. **Quran Reader**: 114 surahs, Arabic + Turkish, verse audio, 8 reciters
-6. **Tafsir System**: İbn Kesir, Taberi, Elmalılı Hamdi Yazır, Fahreddin Razi
-7. **Turkish Meal Audio**: Mazlum Kiper YouTube (30 cüz)
-8. **Hadith Browser**: 9 categories, Arabic/Turkish/source
-9. **AI Islamic Advisor**: Chat with session management
-10. **Scholar Perspectives**: 7 Islamic scholars Q&A
-11. **Quiz System**: Categories, scoring, animated results
-12. **i18n**: Full TR/EN/AR language support
-13. **Settings**: Language, city, Qibla direction, Logout
+## Design System
+- **Colors**: Dark green (#0A1F14, #0F3D2E), Gold (#D4AF37, #E8C84A), Cream (#F5F5DC)
+- **Fonts**: Playfair Display (headings), Inter (body), Amiri (Arabic text)
+- **Animations**: Splash screen (crescent, stars, mosque silhouette, 3s), fade-in, slide-up, pulse-gold
+- **Components**: card-islamic, glass, glass-dark, arabic-text
 
-## Authentication Flow
-1. User visits app → Redirected to /login if not authenticated
-2. Option A: "Google ile Giriş Yap" → Emergent Google OAuth
-3. Option B: "Misafir Olarak Devam Et" → Instant guest access (name: Kardeşim)
-4. Protected routes check auth via AuthContext
-5. Logout clears session and redirects to /login
+## Core Features
+1. **Splash Screen**: Animated intro with crescent moon, stars, mosque silhouette, slogan "Bilgi ile iman yolculuğu"
+2. **Google OAuth Login**: Emergent Auth integration
+3. **Guest Login**: One-click, name "Kardeşim"
+4. **Dashboard**: Selam greeting, İftar countdown, Namaz vakitleri (6 vakit), Günün Ayeti, Günün Hadisi, 2-column card menu (8 items)
+5. **Ramadan Page**: İftar countdown, Sahur vakti, Bugünün Duası, Bugünün Ayeti, Bugünün Hadisi, Sadaka hatırlatıcısı, Teravih bilgisi
+6. **Voice Command**: Web Speech API, Turkish voice recognition, 9 command categories
+7. **Prayer Times**: 81 Turkish provinces + international cities
+8. **Quran Reader**: 114 surahs, Arabic + Turkish, verse audio
+9. **Tafsir System**: 4 scholars, AI-generated
+10. **Hadith Browser**: 10 hadiths, 9 categories, random endpoint
+11. **AI Islamic Advisor**: Chat with Claude
+12. **Scholar Perspectives**: 7 scholars Q&A
+13. **Quiz System**: Categories, scoring
+14. **i18n**: TR/EN/AR
+15. **Settings**: Language, city, Qibla, Logout
+16. **Accessibility**: aria-labels on all interactive elements
 
 ## Preview URL
 https://quranic-login-1.preview.emergentagent.com
 
 ## Completed Features (as of 2026-03-08)
-- [x] Google OAuth login via Emergent Auth
-- [x] Guest login with "Kardeşim" name
-- [x] Session persistence (httpOnly cookies)
-- [x] Logout functionality
-- [x] User name display on Dashboard
-- [x] Protected routes (redirect to /login)
-- [x] All core Islamic features (Prayer, Quran, Tafsir, Hadith, Quiz, Chat, Scholars)
+- [x] Complete UI redesign (dark green + gold + cream palette)
+- [x] Splash screen with animations
+- [x] Google OAuth + Guest login ("Kardeşim")
+- [x] Dashboard with iftar countdown, prayer times, daily verse/hadith, card menu
+- [x] Ramadan page (7 sections)
+- [x] Voice command system (Web Speech API)
+- [x] Bottom navigation (5 tabs including Ramazan)
+- [x] All Islamic content features
 - [x] i18n (TR/EN/AR)
+- [x] Accessibility labels
 
 ## Backlog
 - P1: Enhanced audio player (background play, playlist mode)
-- P2: Quiz animations (Lottie)
-- P2: Offline caching
+- P1: Text-to-speech for Quran verses and hadith
 - P2: Quran keyword search
-- P3: More hadith data
+- P2: Offline caching
 - P3: Push notifications for prayer times
+- P3: More hadith data
