@@ -964,7 +964,7 @@ async def create_guest_user(response: Response):
     new_user = {
         "user_id": user_id,
         "email": f"{user_id}@guest.local",
-        "name": "Misafir Kullanıcı",
+        "name": "Kardeşim",
         "picture": None,
         "is_guest": True,
         "created_at": datetime.now(timezone.utc),

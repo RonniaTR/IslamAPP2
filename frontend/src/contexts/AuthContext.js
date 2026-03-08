@@ -28,6 +28,16 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, [checkAuth]);
 
+  const loginAsGuest = async () => {
+    try {
+      const { data } = await api.post('/auth/guest');
+      setUser(data);
+      return data;
+    } catch (e) {
+      console.error('Guest login failed:', e);
+    }
+  };
+
   const logout = async () => {
     try {
       await api.post('/auth/logout');
@@ -37,7 +47,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, setUser, loading, loginAsGuest, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

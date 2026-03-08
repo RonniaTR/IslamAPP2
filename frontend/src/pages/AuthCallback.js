@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   const hasProcessed = useRef(false);
 
   useEffect(() => {
@@ -20,14 +22,16 @@ export default function AuthCallback() {
 
     api.post(`/auth/session?session_id=${sessionId}`)
       .then(({ data }) => {
+        // Set user in AuthContext FIRST
+        setUser(data);
         // Clear hash fragment
         window.history.replaceState({}, '', window.location.pathname);
-        navigate('/', { replace: true, state: { user: data } });
+        navigate('/', { replace: true });
       })
       .catch(() => {
         navigate('/login', { replace: true });
       });
-  }, [navigate]);
+  }, [navigate, setUser]);
 
   return (
     <div className="min-h-screen bg-[#0c1222] flex items-center justify-center max-w-[430px] mx-auto" data-testid="auth-callback">

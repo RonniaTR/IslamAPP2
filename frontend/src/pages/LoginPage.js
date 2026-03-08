@@ -1,11 +1,23 @@
 import React from 'react';
-import { BookOpen, Star, Moon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BookOpen, Star, Moon, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const { loginAsGuest } = useAuth();
+
   const handleGoogleLogin = () => {
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + '/';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  };
+
+  const handleGuestLogin = async () => {
+    const user = await loginAsGuest();
+    if (user) {
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -22,7 +34,7 @@ export default function LoginPage() {
       </div>
 
       {/* Logo & Title */}
-      <div className="relative z-10 flex flex-col items-center text-center mb-12 animate-fade-in">
+      <div className="relative z-10 flex flex-col items-center text-center mb-10 animate-fade-in">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
           <BookOpen size={36} className="text-white" />
         </div>
@@ -35,7 +47,7 @@ export default function LoginPage() {
       </div>
 
       {/* Features Preview */}
-      <div className="relative z-10 w-full space-y-3 mb-10 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+      <div className="relative z-10 w-full space-y-3 mb-8 animate-fade-in" style={{ animationDelay: '0.15s' }}>
         {[
           { icon: '📖', text: "Kur'an-ı Kerim & Tefsir" },
           { icon: '🕌', text: 'Namaz Vakitleri & Kıble' },
@@ -48,8 +60,9 @@ export default function LoginPage() {
         ))}
       </div>
 
-      {/* Google Login Button */}
+      {/* Login Buttons */}
       <div className="relative z-10 w-full space-y-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        {/* Google Login */}
         <button
           onClick={handleGoogleLogin}
           data-testid="google-login-btn"
@@ -63,10 +76,20 @@ export default function LoginPage() {
           </svg>
           Google ile Giriş Yap
         </button>
+
+        {/* Guest Login */}
+        <button
+          onClick={handleGuestLogin}
+          data-testid="guest-login-btn"
+          className="w-full flex items-center justify-center gap-3 glass hover:bg-white/10 text-emerald-400 font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 border border-emerald-500/30 active:scale-[0.98]"
+        >
+          <User size={20} />
+          Misafir Olarak Devam Et
+        </button>
       </div>
 
       {/* Footer */}
-      <p className="relative z-10 text-gray-600 text-xs mt-8 text-center animate-fade-in" style={{ animationDelay: '0.45s' }}>
+      <p className="relative z-10 text-gray-600 text-xs mt-6 text-center animate-fade-in" style={{ animationDelay: '0.45s' }}>
         Giriş yaparak kullanım şartlarını kabul etmiş olursunuz
       </p>
     </div>
