@@ -962,9 +962,10 @@ async def root():
 
 # ===================== AUTHENTICATION API =====================
 
-async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)) -> Optional[User]:
+async def get_current_user(request: Request, session_token: Optional[str] = None) -> Optional[User]:
     """Get current authenticated user from cookie or header"""
-    token = session_token
+    # Extract session_token from cookies if not passed
+    token = session_token or request.cookies.get("session_token")
     
     # Fallback to Authorization header
     if not token:
@@ -1306,9 +1307,10 @@ Tefsiri 3-5 paragraf olarak, kapsamlı ve öğretici bir şekilde yaz.
 {lang_instruction}"""
         
         try:
-            chat = LlmChat(api_key=EMERGENT_LLM_KEY, model="claude-sonnet-4-20250514")
-            response = await asyncio.to_thread(chat.send_message, UserMessage(content=prompt))
-            tafsir_text = response.content
+            chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"tafsir_{surah_number}_{verse_number}_{s_id}", system_message="Sen bir İslam alimi ve tefsir uzmanısın.")
+            chat.with_model("anthropic", "claude-sonnet-4-5-20250929")
+            response = await chat.send_message(UserMessage(text=prompt))
+            tafsir_text = response
             
             tafsir_doc = {
                 "surah_number": surah_number,
@@ -1390,8 +1392,9 @@ Kurallar:
 6. Türkçe yaz"""
 
     try:
-        chat = LlmChat(api_key=EMERGENT_LLM_KEY, model="claude-sonnet-4-20250514")
-        response = await asyncio.to_thread(chat.send_message, UserMessage(content=prompt))
+        chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"kissa_{surah_number}_{verse_number}", system_message="Sen İslami hikayeler ve kıssalar anlatan bir hocasın.")
+        chat.with_model("anthropic", "claude-sonnet-4-5-20250929")
+        response = await chat.send_message(UserMessage(text=prompt))
 
         kissa_doc = {
             "surah_number": surah_number,
@@ -1401,7 +1404,7 @@ Kurallar:
             "surah_name": tr_name,
             "verse_turkish": turkish_text,
             "verse_arabic": verse_text,
-            "kissa": response.content,
+            "kissa": response,
         }
         await db.kissa.insert_one({**kissa_doc, "created_at": datetime.now(timezone.utc)})
         kissa_doc.pop("_id", None)
@@ -2450,8 +2453,9 @@ async def ai_compare_religions(topic: str, question: str = None):
     try:
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
-            model="claude-sonnet-4-20250514"
-        )
+            session_id=f"compare_{topic}",
+            system_message="Sen bir karşılaştırmalı dinler uzmanısın."
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
         
         prompt = f"""Sen bir karşılaştırmalı dinler uzmanısın. Aşağıdaki konu hakkında farklı dinlerin görüşlerini karşılaştır:
 
@@ -2469,7 +2473,7 @@ Lütfen şu formatı kullan:
 
 Cevaplarını Türkçe ver ve kaynaklara dikkat et."""
 
-        response = await chat.send_async(UserMessage(text=prompt))
+        response = await chat.send_message(UserMessage(text=prompt))
         
         return {
             "topic": topic,
