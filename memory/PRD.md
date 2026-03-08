@@ -2,76 +2,93 @@
 
 ## Architecture
 - Frontend: React 18 + TailwindCSS (mobile-first 430px)
-- Backend: Python/FastAPI
+- Backend: Python/FastAPI (server.py monolith)
 - Database: MongoDB
 - TTS: OpenAI TTS HD (onyx male voice) via Emergent LLM Key
-- AI: Anthropic Claude Sonnet 4.5 via Emergent LLM Key
+- AI: Anthropic Claude Sonnet 4.5 via Emergent LLM Key (kıssa generation)
 - Auth: Emergent Google OAuth + Guest Login
 
 ## Design: Dark green (#0A1F14) + Gold (#D4AF37) + Cream (#F5F5DC)
 
-## Keşfet Screen (10 Sections)
-1. Mood: 4 horizontal scroll cards → ayet + hadis + dua (TTS + Share)
-2. Günün Ayeti: Arabic + Turkish + TTS (male voice) + Share
-3. Günün Hadisi: Arabic + Turkish + TTS + Share
-4. İslam Bilgi Hazinesi: 8 categories, 108+ items, huge cards, shuffled each visit, Dinle + Paylaş per item
-5. Zikir Sayacı: 8 dhikr types, tap counter
-6. Günlük İbadet Takibi: 4 checkboxes, MongoDB persistence
-7. Ramazan Mini: İftar countdown
-8. Namaz Vakitleri: 6 prayer times
-9. Hocaya Sor: 12 scholars CTA
-10. Sesli Komut: Mic button, Web Speech API
+## Core Features
 
-## Knowledge Card Categories (108+ items)
-- İslam Tarihinde Bugün (14)
-- Peygamberlerden Hikmet (14)
-- İslam Bilgi Serisi (18)
-- Sahabe Hayatı (14)
-- İslam Ahlakı ve Edep (12)
-- Kur'an Mucizeleri (12)
-- İslam Medeniyeti (12)
-- Tasavvuf ve Hikmet (12)
+### Keşfet Screen (Dashboard - 10 Sections)
+1. Mood cards (horizontal scroll + TTS + Share)
+2. Günün Ayeti (Arabic + Turkish + TTS)
+3. Günün Hadisi (Arabic + Turkish + TTS)
+4. İslam Bilgi Hazinesi (108+ items, 8 categories)
+5. Zikir Sayacı (8 dhikr types)
+6. Günlük İbadet Takibi (checkboxes, MongoDB)
+7. Ramazan Mini (iftar countdown)
+8. Namaz Vakitleri (6 prayers)
+9. Hocaya Sor (12 scholars)
+10. Sesli Komut (Web Speech API)
 
-## 12 Turkish Scholars
-Nihat Hatipoğlu, Hayrettin Karaman, Mustafa İslamoğlu, Diyanet, Ömer Nasuhi Bilmen, Elmalılı Hamdi Yazır, Said Nursi, Mehmet Okuyan, Süleyman Ateş, Yaşar Nuri Öztürk, Cübbeli Ahmet, Ali Erbaş
+### Quiz System (Trivia Crack Style) - NEW
+- 300 questions across 10 categories
+- Categories: Kur'an (58), Peygamberler (26), Sahabe (25), Tarih (26), Hadis (25), Namaz (25), Ramazan (20), Fıkıh (20), Medeniyet (20), Genel (55)
+- Quick Play (mixed 15 questions)
+- Timer countdown (15s per question)
+- Streak bonus system
+- Animated feedback (correct/wrong)
+- Confetti on completion
+- Difficulty levels (easy/medium/hard)
+- Score based on difficulty + speed
+- Global leaderboard with Google login names
+- Result screen with A+/A/B/C grading
+
+### Quran Reader
+- 114 surahs with Arabic + Turkish
+- Keyword search across all verses
+- AI Kıssa generation per verse (Claude Sonnet)
+- Tefsir from multiple scholars
+- Per-verse actions: Kıssa, Save, Copy, Share, Play
+
+### Notes System
+- Save favorite ayets and kıssas
+- Filter by type (Tümü/Ayetler/Kıssalar)
+- Copy/Share/Delete actions
+- Navigate to source surah
+
+### Scholars Page
+- 12 Turkish scholars with redesigned UI
+
+### Push Notifications
+- Service worker registered at /sw.js
+- Toggle in Settings page
+- Daily knowledge card notifications
+
+### Voice Commands
+- Web Speech API (Turkish)
+- Commands: kuran, hadis, quiz, namaz, ayar, not
 
 ## API Endpoints
-- POST /api/tts — OpenAI TTS HD, onyx voice, mp3 base64
-- GET /api/mood/{id} — Random mood content
-- GET /api/knowledge-cards — 8 categories
-- GET /api/knowledge-cards/{id} — Card detail
-- GET /api/dhikr — 8 dhikr items
-- POST /api/worship/track — Track daily worship
-- GET /api/worship/today — Today's tracking
-- GET /api/scholars — 12 scholars
-- POST /api/tafsir/kissa — AI-generated kıssa for a verse
-- GET /api/notes — User saved notes
-- POST /api/notes — Save note/favorite
-- DELETE /api/notes/{id} — Delete note
-- GET /api/quran/search?query= — Keyword search in Quran
+- POST /api/auth/guest, POST /api/auth/google
+- GET /api/quiz/categories, GET /api/quiz/leaderboard
+- POST /api/quiz/solo/start, /answer, /finish
+- POST /api/quiz/solo/start-mixed
+- POST /api/tafsir/kissa - AI kıssa generation
+- GET/POST/DELETE /api/notes
+- GET /api/quran/search?query=
+- POST /api/tts
+- GET /api/knowledge-cards, /api/mood, /api/dhikr
 
 ## Completed (2026-03-08)
-- [x] OpenAI TTS HD (onyx male voice) for verse, hadith, mood, knowledge items
-- [x] 108+ Islamic knowledge items across 8 categories
-- [x] Mood cards horizontal scroll with TTS + Share
-- [x] Hadith TTS + Share
-- [x] Knowledge cards HUGE with shuffle + share + TTS
-- [x] All previous features maintained
+- [x] Quiz redesign: 300 questions, 10 categories, Trivia Crack UI
+- [x] Leaderboard with Google login names
+- [x] Timer, streak, scoring, confetti animations
+- [x] Quick play (mixed questions)
 - [x] Quran keyword search (frontend + backend)
 - [x] AI Kıssa generation per verse (Claude Sonnet 4.5)
-- [x] Notes/Favorites system with CRUD
-- [x] NotesPage with filter (Tümü/Ayetler/Kıssalar)
-- [x] Verse action buttons: Kıssa, Save, Copy, Share
+- [x] Notes/Favorites system with CRUD + filters
+- [x] Push notifications (Service Worker + Settings toggle)
+- [x] Voice commands (Web Speech API, Turkish)
 - [x] Fixed LlmChat integration (with_model API)
 - [x] Fixed Notes BSON Cookie serialization bug
-- [x] Bottom nav updated with Notlarım tab
-- [x] ScholarsPage redesigned with 12 scholars
 
 ## Backlog
-- P1: TTS budget recharge needed (user must add balance)
-- P1: Daily knowledge push notifications
-- P2: Functional voice commands (Web Speech API)
-- P2: Offline caching
-- P3: Enhanced Quran audio player
-- P3: Quiz animations
+- P1: TTS budget recharge needed (user must add funds)
+- P2: Add 200+ more quiz questions to reach 500
+- P2: Offline quiz caching
 - P3: server.py refactoring into modules
+- P3: Enhanced Quran audio player with background playback
