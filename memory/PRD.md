@@ -2,60 +2,67 @@
 
 ## Problem Statement
 Comprehensive Digital Islamic Life and Knowledge Assistant as a mobile-first web application.
-Supports multiple languages (TR/EN/AR), international prayer times, Quran reading with tafsir, and more.
 
 ## Architecture
 - **Frontend**: React 18 + TailwindCSS (mobile-first, max-width 430px)
 - **Backend**: Python/FastAPI
-- **Database**: MongoDB (users, sessions, tafsir cache, bookmarks)
-- **Data**: Local JSON for Quran (AR/TR/EN), Hadith, Quiz
-- **Audio**: alquran.cloud API (Arabic recitation), YouTube embeds (Turkish meal)
-- **AI**: Anthropic Claude via Emergent LLM Key (chat, scholars, tafsir generation)
+- **Database**: MongoDB (users, sessions, worship_tracking, tafsir cache)
+- **AI**: Anthropic Claude via Emergent LLM Key
 - **Auth**: Emergent Google OAuth + Guest Login
 
 ## Design System
 - **Colors**: Dark green (#0A1F14, #0F3D2E), Gold (#D4AF37, #E8C84A), Cream (#F5F5DC)
-- **Fonts**: Playfair Display (headings), Inter (body), Amiri (Arabic text)
-- **Animations**: Splash screen (crescent, stars, mosque silhouette, 3s), fade-in, slide-up, pulse-gold
-- **Components**: card-islamic, glass, glass-dark, arabic-text
+- **Fonts**: Playfair Display (headings), Inter (body), Amiri (Arabic)
+- **Components**: card-islamic (glassmorphism, border-radius 20px), fade-in animations
 
-## Core Features
-1. **Splash Screen**: Animated intro with crescent moon, stars, mosque silhouette, slogan "Bilgi ile iman yolculuğu"
-2. **Google OAuth Login**: Emergent Auth integration
-3. **Guest Login**: One-click, name "Kardeşim"
-4. **Dashboard**: Selam greeting, İftar countdown, Namaz vakitleri (6 vakit), Günün Ayeti, Günün Hadisi, 2-column card menu (8 items)
-5. **Ramadan Page**: İftar countdown, Sahur vakti, Bugünün Duası, Bugünün Ayeti, Bugünün Hadisi, Sadaka hatırlatıcısı, Teravih bilgisi
-6. **Voice Command**: Web Speech API, Turkish voice recognition, 9 command categories
-7. **Prayer Times**: 81 Turkish provinces + international cities
-8. **Quran Reader**: 114 surahs, Arabic + Turkish, verse audio
-9. **Tafsir System**: 4 scholars, AI-generated
-10. **Hadith Browser**: 10 hadiths, 9 categories, random endpoint
-11. **AI Islamic Advisor**: Chat with Claude
-12. **Scholar Perspectives**: 7 scholars Q&A
-13. **Quiz System**: Categories, scoring
-14. **i18n**: TR/EN/AR
-15. **Settings**: Language, city, Qibla, Logout
-16. **Accessibility**: aria-labels on all interactive elements
+## Keşfet (Discover) Screen — 10 Sections
+1. **Günün Ruh Hali**: 4 mood buttons (Huzur/Motivasyon/Sabır/Şükür) → shows ayet + hadis + dua
+2. **Günün Ayeti**: Arabic + Turkish + TTS "Dinle" button
+3. **Günün Hadisi**: Arabic + Turkish + Source + Share button
+4. **İslam Bilgi Kartları**: Horizontal scroll (Tarihte Bugün, Peygamber Hikmeti, Bilgi Serisi, Sahabe Hayatı) → detail page
+5. **Zikir Sayacı**: 8 dhikr types, tap counter, vibration feedback
+6. **Günlük İbadet Takibi**: Checkboxes (Namaz/Kuran/Sadaka/Zikir) saved to MongoDB
+7. **Ramazan Mini**: İftar countdown + link to full Ramazan page
+8. **Namaz Vakitleri**: 6 prayer times for selected city
+9. **Hocaya Sor CTA**: 12 scholars, "Soru Sor" button
+10. **Sesli Komut**: Mic button, Web Speech API, 9 Turkish commands
 
-## Preview URL
-https://quranic-login-1.preview.emergentagent.com
+## Scholars (12 total)
+Nihat Hatipoğlu, Hayrettin Karaman, Mustafa İslamoğlu, Diyanet, Ömer Nasuhi Bilmen, Elmalılı Hamdi Yazır, Said Nursi, Mehmet Okuyan, Süleyman Ateş, Yaşar Nuri Öztürk, Cübbeli Ahmet, Ali Erbaş
 
-## Completed Features (as of 2026-03-08)
-- [x] Complete UI redesign (dark green + gold + cream palette)
-- [x] Splash screen with animations
+## Other Pages
+- Ramazan: İftar countdown, Sahur, Dua, Ayet, Hadis, Sadaka, Teravih
+- Kur'an: 114 sure, Arapça+Türkçe, sesli okuma
+- Hadis: 9 kategori, rastgele hadis
+- Quiz: Bilgi yarışması
+- AI Sohbet: Claude ile İslami danışman
+- Ayarlar: Dil (TR/EN/AR), şehir (106+), Kıble, çıkış
+
+## API Endpoints
+- `/api/mood/{id}` - Mood-based content
+- `/api/knowledge-cards` - Knowledge cards
+- `/api/dhikr` - Dhikr list
+- `/api/worship/track` - Track daily worship (POST, auth required)
+- `/api/worship/today` - Get today's worship (GET, auth required)
+- `/api/scholars` - 12 scholars
+- `/api/hadith/random` - Random hadith
+- `/api/quran/random` - Random verse
+- `/api/prayer-times/{city}` - Prayer times
+
+## Completed (2026-03-08)
+- [x] Splash screen with animations (crescent, stars, mosque, slogan)
 - [x] Google OAuth + Guest login ("Kardeşim")
-- [x] Dashboard with iftar countdown, prayer times, daily verse/hadith, card menu
-- [x] Ramadan page (7 sections)
+- [x] 10-section Keşfet screen (mood, verse, hadith, knowledge, dhikr, worship, ramadan, prayer, scholars, voice)
+- [x] Ramazan page (7 sections)
 - [x] Voice command system (Web Speech API)
-- [x] Bottom navigation (5 tabs including Ramazan)
-- [x] All Islamic content features
-- [x] i18n (TR/EN/AR)
-- [x] Accessibility labels
+- [x] 12 Turkish Islamic scholars
+- [x] Worship tracking with MongoDB persistence
+- [x] Knowledge card detail pages
+- [x] TTS for verses, share for hadith
+- [x] All backend APIs tested (17/17 passed)
 
 ## Backlog
-- P1: Enhanced audio player (background play, playlist mode)
-- P1: Text-to-speech for Quran verses and hadith
+- P1: Enhanced audio player
 - P2: Quran keyword search
 - P2: Offline caching
-- P3: Push notifications for prayer times
-- P3: More hadith data
+- P3: Push notifications
