@@ -1,0 +1,26 @@
+{
+  "name": "İslami Yaşam Asistanı",
+  "short_name": "İslam Asistan",
+  "description": "Dijital İslami Bilgi ve Yaşam Asistanı - Kur'an, Quiz, Namaz Vakitleri",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A1F14",
+  "theme_color": "#0A1F14",
+  "categories": ["education", "lifestyle"],
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%230A1F14'/%3E%3Cpath d='M96 24C60 24 32 52 32 88s28 64 64 64c-20-14-30-36-30-64s10-50 30-64z' fill='%23D4AF37'/%3E%3Ccircle cx='120' cy='50' r='6' fill='%23D4AF37'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='64' fill='%230A1F14'/%3E%3Cpath d='M256 64C160 64 80 144 80 240s80 176 176 176c-56-40-84-100-84-176s28-136 84-176z' fill='%23D4AF37'/%3E%3Ccircle cx='320' cy='140' r='16' fill='%23D4AF37'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

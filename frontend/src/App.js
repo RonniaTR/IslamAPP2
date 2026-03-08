@@ -2,9 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LangProvider } from './contexts/LangContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import SplashScreen from './components/SplashScreen';
 import VoiceCommand from './components/VoiceCommand';
+import InstallPrompt from './components/InstallPrompt';
 import Dashboard from './pages/Dashboard';
 import QuranList from './pages/QuranList';
 import SurahDetail from './pages/SurahDetail';
@@ -64,6 +66,7 @@ function AppRouter() {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <AuthenticatedVoice />
+      <InstallPrompt />
     </>
   );
 }
@@ -86,6 +89,7 @@ export default function App() {
   const handleSplashComplete = useCallback(() => setShowSplash(false), []);
 
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <AuthProvider>
         <LangProvider>
@@ -94,5 +98,6 @@ export default function App() {
         </LangProvider>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }
