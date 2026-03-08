@@ -529,7 +529,155 @@ SCHOLARS = [
         "specialty": "İman, Felsefe, Modern Çağ Sorunları",
         "image": "said_nursi.jpg",
         "sources": ["Risale-i Nur Külliyatı", "erisale.com"]
+    },
+    {
+        "id": "mehmet_okuyan",
+        "name": "Prof. Dr. Mehmet Okuyan",
+        "title": "İlahiyat Profesörü",
+        "style": "Kur'an merkezli, akademik, sorgulayıcı, anlaşılır dil",
+        "specialty": "Tefsir, Kur'an Bilimleri, Meal",
+        "image": "mehmet_okuyan.jpg",
+        "sources": ["Kur'an-ı Kerim Meali", "Akademik Tefsir Çalışmaları"]
+    },
+    {
+        "id": "suleyman_ates",
+        "name": "Prof. Dr. Süleyman Ateş",
+        "title": "Eski Diyanet İşleri Başkanı, Müfessir",
+        "style": "Kapsamlı tefsir, rasyonel yaklaşım, mukayeseli analiz",
+        "specialty": "Tefsir, Tasavvuf, İslam Düşüncesi",
+        "image": "suleyman_ates.jpg",
+        "sources": ["Yüce Kur'an'ın Çağdaş Tefsiri", "Tasavvuf Araştırmaları"]
+    },
+    {
+        "id": "yasar_nuri",
+        "name": "Prof. Dr. Yaşar Nuri Öztürk",
+        "title": "İlahiyatçı, Yazar",
+        "style": "Reformist, Kur'an odaklı, geleneksel yorumlara sorgulayıcı, cesur",
+        "specialty": "Kur'an Yorumu, İslam Reformu, Tasavvuf",
+        "image": "yasar_nuri.jpg",
+        "sources": ["Kur'an-ı Kerim Meali", "Din Anlayışımız Üzerine"]
+    },
+    {
+        "id": "cübbeli_ahmet",
+        "name": "Cübbeli Ahmet Hoca",
+        "title": "İlim Adamı, Vaiz",
+        "style": "Geleneksel, hadis odaklı, halk dili, samimi anlatım",
+        "specialty": "Hadis, İlmihal, Günlük İbadetler",
+        "image": "cubbeli.jpg",
+        "sources": ["Sahih Hadis Kaynakları", "Geleneksel İlmihal Kitapları"]
+    },
+    {
+        "id": "ali_erbas",
+        "name": "Prof. Dr. Ali Erbaş",
+        "title": "Diyanet İşleri Başkanı",
+        "style": "Resmi, hutbe tarzı, birleştirici, toplumsal mesajlar",
+        "specialty": "Hutbe, Toplumsal Meseleler, İslami Birlik",
+        "image": "ali_erbas.jpg",
+        "sources": ["Diyanet Hutbeleri", "Cuma Vaazları"]
     }
+]
+
+# ===================== MOOD BASED CONTENT =====================
+
+MOOD_CONTENT = {
+    "huzur": {
+        "label": "Huzur",
+        "ayetler": [
+            {"arabic": "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", "turkish": "Biliniz ki kalpler ancak Allah'ı anmakla huzur bulur.", "sure": "Ra'd 28"},
+            {"arabic": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", "turkish": "Nerede olursanız olun O sizinle beraberdir.", "sure": "Hadid 4"},
+        ],
+        "hadisler": [
+            {"arabic": "إِنَّ اللَّهَ رَفِيقٌ يُحِبُّ الرِّفْقَ", "turkish": "Allah yumuşak huyludur, yumuşaklığı sever.", "source": "Müslim"},
+        ],
+        "dualar": ["Allahım! Kalbime huzur, gönlüme sükûnet ver.", "Rabbim! Beni seninle huzur bulanlardan eyle."],
+    },
+    "motivasyon": {
+        "label": "Motivasyon",
+        "ayetler": [
+            {"arabic": "لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ", "turkish": "Allah'ın rahmetinden ümit kesmeyin.", "sure": "Zümer 53"},
+            {"arabic": "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", "turkish": "Şüphesiz zorlukla beraber kolaylık vardır.", "sure": "İnşirah 5"},
+        ],
+        "hadisler": [
+            {"arabic": "اسْتَعِنْ بِاللَّهِ وَلَا تَعْجَزْ", "turkish": "Allah'tan yardım iste ve aciz kalma.", "source": "Müslim"},
+        ],
+        "dualar": ["Allahım! Bana güç ver, tembellikten koru.", "Rabbim! İşlerimi kolaylaştır, hayırlı kapılar aç."],
+    },
+    "sabir": {
+        "label": "Sabır",
+        "ayetler": [
+            {"arabic": "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", "turkish": "Şüphesiz Allah sabredenlerle beraberdir.", "sure": "Bakara 153"},
+            {"arabic": "وَاصْبِرْ فَإِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ", "turkish": "Sabret! Allah iyilik edenlerin mükafatını zayi etmez.", "sure": "Hud 115"},
+        ],
+        "hadisler": [
+            {"arabic": "مَا أُعْطِيَ أَحَدٌ عَطَاءً خَيْرًا وَأَوْسَعَ مِنَ الصَّبْرِ", "turkish": "Hiç kimseye sabırdan daha hayırlı bir nimet verilmemiştir.", "source": "Buhari"},
+        ],
+        "dualar": ["Allahım! Bana sabır ve metanet ver.", "Rabbim! Zorluklara karşı kalbimi güçlendir."],
+    },
+    "sukur": {
+        "label": "Şükür",
+        "ayetler": [
+            {"arabic": "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ", "turkish": "Şükrederseniz elbette size nimetimi artırırım.", "sure": "İbrahim 7"},
+            {"arabic": "وَقَلِيلٌ مِّنْ عِبَادِيَ الشَّكُورُ", "turkish": "Kullarımdan şükreden çok azdır.", "sure": "Sebe 13"},
+        ],
+        "hadisler": [
+            {"arabic": "مَنْ لَا يَشْكُرُ النَّاسَ لَا يَشْكُرُ اللَّهَ", "turkish": "İnsanlara teşekkür etmeyen, Allah'a şükretmemiştir.", "source": "Tirmizi"},
+        ],
+        "dualar": ["Allahım! Nimetlerinin farkında olmamı nasip et.", "Rabbim! Şükreden bir kul olmamı sağla."],
+    },
+}
+
+# ===================== KNOWLEDGE CARDS =====================
+
+KNOWLEDGE_CARDS = [
+    {
+        "id": "tarihte_bugun",
+        "title": "İslam Tarihinde Bugün",
+        "items": [
+            {"title": "Bedir Savaşı", "content": "Hicretin 2. yılında Müslümanların ilk büyük zaferi. 313 kişilik İslam ordusu, 1000 kişilik Kureyş ordusunu yendi. Bu zafer İslam tarihinin dönüm noktasıdır."},
+            {"title": "Mekke'nin Fethi", "content": "Hicretin 8. yılında Hz. Muhammed (s.a.v.) 10.000 kişilik orduyla Mekke'ye girdi. Kan dökülmeden gerçekleşen bu fetih, İslam'ın barışçıl yayılışının simgesidir."},
+            {"title": "Kudüs'ün Fethi", "content": "Hz. Ömer (r.a.) döneminde 637 yılında Kudüs fethedildi. Hz. Ömer bizzat anahtarları teslim aldı ve diğer dinlerin ibadethanelerine dokunulmamasını emretti."},
+        ]
+    },
+    {
+        "id": "peygamber_hikmeti",
+        "title": "Peygamberlerden Hikmet",
+        "items": [
+            {"title": "Hz. Yusuf'un Sabrı", "content": "Hz. Yusuf kuyuya atıldı, köle olarak satıldı, hapse girdi ama asla Allah'a olan güvenini kaybetmedi. Sonunda Mısır'ın hazine bakanı oldu. Sabır her zaman meyve verir."},
+            {"title": "Hz. İbrahim'in Teslimiyeti", "content": "Hz. İbrahim ateşe atıldığında 'Hasbünallahü ve ni'mel vekil' dedi. Allah ateşi gül bahçesine çevirdi. Teslimiyet en büyük güçtür."},
+            {"title": "Hz. Eyyüb'ün Sabrı", "content": "Hz. Eyyüb yıllarca hastalıkla sınandı ama hiçbir zaman şikayetçi olmadı. 'Bana zarar dokundu, sen merhametlilerin en merhametlisisin' diye dua etti."},
+        ]
+    },
+    {
+        "id": "bilgi_serisi",
+        "title": "İslam Bilgi Serisi",
+        "items": [
+            {"title": "Beş Vakit Namazın Hikmeti", "content": "Sabah namazı uyanıklık ve taze başlangıç, öğle namazı günün ortasında denge, ikindi namazı yorgunlukta yenilenme, akşam namazı şükür, yatsı namazı teslimiyettir."},
+            {"title": "Kur'an'ın Mucizeleri", "content": "Kur'an 23 yılda indi. 114 sure, 6236 ayet içerir. Edebi mucize olmasının yanı sıra bilimsel gerçeklere de işaret eder: embriyoloji, dağların hareketi, evrenin genişlemesi."},
+            {"title": "Zekatın Toplumsal Etkisi", "content": "Zekat sadece bir ibadet değil, sosyal adaleti sağlayan ekonomik bir sistemdir. Zenginlikle fakirlik arasındaki uçurumu kapatır, toplumsal dayanışmayı güçlendirir."},
+        ]
+    },
+    {
+        "id": "sahabe_hayati",
+        "title": "Sahabe Hayatı",
+        "items": [
+            {"title": "Hz. Ebu Bekir (r.a.)", "content": "İslam'ı kabul eden ilk erkek. Tüm malını İslam için harcadı. 'Sıddık' lakabıyla anılır. Peygamberimizin en yakın dostu ve ilk halifedir."},
+            {"title": "Hz. Hatice (r.a.)", "content": "Peygamberimizin ilk eşi ve ilk Müslüman. Tüm malıyla İslam'ı destekledi. Peygamberimiz onu her zaman 'en hayırlı kadın' olarak andı."},
+            {"title": "Hz. Bilal (r.a.)", "content": "İslam'ın ilk müezzini. Köle iken İslam'ı kabul etti, ağır işkencelere maruz kaldı ama 'Ehad, Ehad (Allah bir)' demeye devam etti."},
+        ]
+    },
+]
+
+# ===================== DHIKR (ZİKİR) DATA =====================
+
+DHIKR_LIST = [
+    {"id": "subhanallah", "arabic": "سُبْحَانَ اللَّه", "turkish": "Subhanallah", "meaning": "Allah'ı tüm noksanlıklardan tenzih ederim", "recommended": 33},
+    {"id": "elhamdulillah", "arabic": "الْحَمْدُ لِلَّه", "turkish": "Elhamdülillah", "meaning": "Hamd Allah'a aittir", "recommended": 33},
+    {"id": "allahuekber", "arabic": "اللَّهُ أَكْبَرُ", "turkish": "Allahu Ekber", "meaning": "Allah en büyüktür", "recommended": 33},
+    {"id": "lailaheillallah", "arabic": "لَا إِلَٰهَ إِلَّا اللَّهُ", "turkish": "Lâ ilâhe illallah", "meaning": "Allah'tan başka ilah yoktur", "recommended": 100},
+    {"id": "estağfirullah", "arabic": "أَسْتَغْفِرُ اللَّهَ", "turkish": "Estağfirullah", "meaning": "Allah'tan bağışlanma dilerim", "recommended": 100},
+    {"id": "bismillah", "arabic": "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ", "turkish": "Bismillahirrahmanirrahim", "meaning": "Rahman ve Rahim olan Allah'ın adıyla", "recommended": 0},
+    {"id": "hasbunallah", "arabic": "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", "turkish": "Hasbünallahu ve ni'mel vekil", "meaning": "Allah bize yeter, O ne güzel vekildir", "recommended": 7},
+    {"id": "salavat", "arabic": "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ", "turkish": "Allahümme salli alâ seyyidinâ Muhammed", "meaning": "Allah'ım! Efendimiz Muhammed'e salat et", "recommended": 100},
 ]
 
 # ===================== QURAN DATA (SURELER) =====================
@@ -1361,6 +1509,63 @@ async def get_translations(lang: str):
 
 
 # ===================== SCHOLARS API (HOCALARIN GÖRÜŞÜ) =====================
+
+@api_router.get("/mood/{mood_id}")
+async def get_mood_content(mood_id: str):
+    """Get content for a specific mood"""
+    content = MOOD_CONTENT.get(mood_id)
+    if not content:
+        raise HTTPException(status_code=404, detail="Mood not found")
+    import random
+    ayet = random.choice(content["ayetler"])
+    hadis = random.choice(content["hadisler"])
+    dua = random.choice(content["dualar"])
+    return {"mood": mood_id, "label": content["label"], "ayet": ayet, "hadis": hadis, "dua": dua}
+
+@api_router.get("/knowledge-cards")
+async def get_knowledge_cards():
+    """Get Islamic knowledge cards"""
+    return KNOWLEDGE_CARDS
+
+@api_router.get("/knowledge-cards/{card_id}")
+async def get_knowledge_card(card_id: str):
+    """Get specific knowledge card"""
+    for card in KNOWLEDGE_CARDS:
+        if card["id"] == card_id:
+            return card
+    raise HTTPException(status_code=404, detail="Card not found")
+
+@api_router.get("/dhikr")
+async def get_dhikr_list():
+    """Get list of dhikr"""
+    return DHIKR_LIST
+
+@api_router.post("/worship/track")
+async def track_worship(request: Request, session_token: Optional[str] = Cookie(None)):
+    """Track daily worship"""
+    body = await request.json()
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    today = date.today().isoformat()
+    await db.worship_tracking.update_one(
+        {"user_id": user.user_id, "date": today},
+        {"$set": {**body, "user_id": user.user_id, "date": today, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    return {"status": "ok"}
+
+@api_router.get("/worship/today")
+async def get_today_worship(request: Request, session_token: Optional[str] = Cookie(None)):
+    """Get today's worship tracking"""
+    user = await get_current_user(request, session_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    today = date.today().isoformat()
+    doc = await db.worship_tracking.find_one({"user_id": user.user_id, "date": today}, {"_id": 0})
+    if not doc:
+        return {"namaz": False, "kuran": False, "sadaka": False, "zikir": False}
+    return doc
 
 @api_router.get("/scholars")
 async def get_scholars():

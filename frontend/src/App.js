@@ -15,6 +15,7 @@ import MealAudioPage from './pages/MealAudioPage';
 import QuizPage from './pages/QuizPage';
 import SettingsPage from './pages/SettingsPage';
 import RamadanPage from './pages/RamadanPage';
+import KnowledgeDetail from './pages/KnowledgeDetail';
 import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
 
@@ -55,6 +56,7 @@ function AppRouter() {
           <Route path="/meal-audio" element={<MealAudioPage />} />
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/ramadan" element={<RamadanPage />} />
+          <Route path="/knowledge/:cardId" element={<KnowledgeDetail />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />

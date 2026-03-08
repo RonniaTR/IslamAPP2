@@ -288,6 +288,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE POST-UI REDESIGN BACKEND API TESTING COMPLETED SUCCESSFULLY ✅ Tested all specific endpoints mentioned in review request: 1) POST /api/auth/guest returns user with name 'Kardeşim' ✓ 2) GET /api/auth/me without auth returns 401 ✓ 3) GET /api/hadith/random returns single hadith with all required fields (id, arabic, turkish, source, narrator, category) ✓ 4) Regression testing - all existing endpoints still functional: GET /api/quran/random (returns verse with arabic/turkish) ✓, GET /api/prayer-times/istanbul (returns all 6 prayer times) ✓, GET /api/hadith/all (returns array of 10 hadiths) ✓, GET /api/quran/surahs (returns all 114 surahs) ✓ All authentication flows working correctly with cookie-based sessions. Backend API is production-ready after UI redesign. Created backend_redesign_test.py for comprehensive validation."
 
+  - task: "Keşfet (Discover) Screen Backend APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "KEŞFET BACKEND API TESTING COMPLETED SUCCESSFULLY ✅ All 17 tests passed (100% success rate). Comprehensive validation of: 1) Mood Content endpoints (4 moods with ayet, hadis, dua) ✓ 2) Knowledge Cards endpoints (4 cards with items) ✓ 3) Dhikr endpoint (8 complete dhikr items) ✓ 4) Worship Tracking endpoints with authentication (guest session creation, tracking state management) ✓ 5) Expanded Scholars endpoint (12 scholars including 5 new additions) ✓ 6) Regression testing on existing endpoints ✓ CRITICAL BUG FIXED: worship tracking BSON encoding error resolved. All Keşfet APIs production-ready and fully functional."
+
 frontend:
   - task: "Dashboard with prayer times"
     implemented: true
@@ -397,6 +409,8 @@ agent_communication:
     message: "POST-UI REDESIGN BACKEND TESTING COMPLETED SUCCESSFULLY ✅ Comprehensive testing of all backend API endpoints specified in UI redesign review request. ALL 7 CRITICAL BACKEND TESTS PASSED: 1) POST /api/auth/guest returns user with name 'Kardeşim' ✓ 2) GET /api/auth/me without auth returns 401 ✓ 3) NEW ENDPOINT: GET /api/hadith/random returns single hadith with all required fields (id, arabic, turkish, source, narrator, category) ✓ 4) REGRESSION TESTS: GET /api/quran/random (verse with arabic/turkish) ✓, GET /api/prayer-times/istanbul (all 6 prayer times) ✓, GET /api/hadith/all (array of 10 hadiths) ✓, GET /api/quran/surahs (all 114 surahs) ✓ All authentication flows working with cookie-based sessions. Backend API remains stable and production-ready after UI redesign. Created backend_redesign_test.py for validation. FRONTEND TESTING NOT PERFORMED (per system instructions - testing agent only handles backend). Main agent should perform frontend testing if needed."
   - agent: "testing"
     message: "UI REDESIGN TESTING COMPLETED ✅ Comprehensive mobile UI testing after major redesign at https://quranic-login-1.preview.emergentagent.com (430x844 viewport). CORE FLOWS WORKING: Splash→Login (4s animation) ✓, Guest Login→Dashboard ✓, Ramadan Navigation ✓, Settings Navigation ✓, Logout Flow ✓, Design Colors (dark green, gold #D4AF37, cream #F5F5DC) ✓, Voice Button Visibility ✓. CRITICAL ISSUES FOUND: Dashboard missing prayer-times-card, daily-verse, daily-hadith elements ❌, Ramadan page missing ramadan-verse, ramadan-hadith sections ❌. These suggest API data loading failures. Navigation structure works perfectly with 5-tab bottom nav. Authentication flows working. App loads but dynamic content not displaying properly."
+  - agent: "testing"
+    message: "KEŞFET (DISCOVER) BACKEND API TESTING COMPLETED SUCCESSFULLY ✅ Comprehensive testing of all new Keşfet screen endpoints completed at https://quranic-login-1.preview.emergentagent.com/api. ALL 17 TESTS PASSED (100% success rate): 1) Mood Content APIs: GET /mood/{mood_id} for all 4 moods (huzur, motivasyon, sabir, sukur) returning complete ayet, hadis, dua structure ✓, invalid mood returns 404 ✓ 2) Knowledge Cards APIs: GET /knowledge-cards returns 4 valid cards with items ✓, GET /knowledge-cards/tarihte_bugun returns specific card with 3 items ✓, invalid card returns 404 ✓ 3) Dhikr API: GET /dhikr returns 8 complete dhikr items (subhanallah, elhamdulillah, etc.) with arabic, turkish, meaning fields ✓ 4) Worship Tracking APIs (AUTH REQUIRED): GET /worship/today returns default false state ✓, POST /worship/track updates worship status ✓, subsequent GET shows updated values (namaz=true, zikir=true) ✓ Authentication working perfectly with guest tokens ✓ 5) Expanded Scholars API: GET /scholars returns 12 scholars including all 5 new additions (mehmet_okuyan, suleyman_ates, yasar_nuri, cübbeli_ahmet, ali_erbas) ✓ 6) Regression Testing: All existing endpoints remain functional: GET /quran/random ✓, GET /hadith/random ✓, GET /prayer-times/istanbul ✓, POST /auth/guest returns 'Kardeşim' ✓ CRITICAL BUG FIXED DURING TESTING: worship tracking endpoints had BSON encoding error with Cookie parameter - fixed by adding proper parameter declarations. All new Keşfet backend APIs are production-ready."
 
 test_plan:
   current_focus: []
