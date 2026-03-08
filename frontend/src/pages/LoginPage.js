@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Star, Moon, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
@@ -15,59 +15,65 @@ export default function LoginPage() {
 
   const handleGuestLogin = async () => {
     const user = await loginAsGuest();
-    if (user) {
-      navigate('/', { replace: true });
-    }
+    if (user) navigate('/', { replace: true });
   };
 
   return (
-    <div className="min-h-screen bg-[#0c1222] flex flex-col items-center justify-center max-w-[430px] mx-auto px-6 relative overflow-hidden" data-testid="login-page">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-10 right-8 text-emerald-500/10">
-          <Star size={120} />
-        </div>
-        <div className="absolute bottom-20 left-4 text-emerald-500/5">
-          <Moon size={160} />
-        </div>
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
+    <div className="min-h-screen splash-bg flex flex-col items-center justify-center max-w-[430px] mx-auto px-6 relative overflow-hidden" data-testid="login-page">
+      {/* Background stars */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="absolute w-1 h-1 bg-[#D4AF37] rounded-full animate-twinkle"
+            style={{ top: `${15 + Math.random() * 40}%`, left: `${10 + Math.random() * 80}%`, animationDelay: `${i * 0.3}s` }} />
+        ))}
       </div>
 
-      {/* Logo & Title */}
-      <div className="relative z-10 flex flex-col items-center text-center mb-10 animate-fade-in">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20">
-          <BookOpen size={36} className="text-white" />
-        </div>
-        <h1 className="text-3xl font-bold text-white tracking-tight">
+      {/* Mosque silhouette */}
+      <div className="absolute bottom-0 left-0 right-0 h-28 opacity-10 pointer-events-none">
+        <svg viewBox="0 0 430 100" className="w-full h-full" fill="#D4AF37">
+          <path d="M0,100 L0,70 L50,70 L50,40 L60,15 L70,40 L70,70 L150,70 L150,35 L160,10 L170,35 L170,70 L260,70 L260,40 L270,12 L280,40 L280,70 L360,70 L360,45 L370,20 L380,45 L380,70 L430,70 L430,100 Z" />
+        </svg>
+      </div>
+
+      {/* Crescent Logo */}
+      <div className="relative z-10 mb-8 animate-fade-in animate-float">
+        <svg width="72" height="72" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="moonLogin" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#E8C84A" />
+              <stop offset="100%" stopColor="#D4AF37" />
+            </linearGradient>
+          </defs>
+          <path d="M50 5 C25 5 5 25 5 50 C5 75 25 95 50 95 C35 85 28 68 28 50 C28 32 35 15 50 5Z" fill="url(#moonLogin)" />
+        </svg>
+      </div>
+
+      {/* Title */}
+      <div className="relative z-10 text-center mb-10 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+        <h1 className="text-3xl font-bold text-[#F5F5DC] tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
           İslami Yaşam Asistanı
         </h1>
-        <p className="text-gray-400 text-sm mt-3 max-w-[280px] leading-relaxed">
-          Namaz vakitleri, Kur'an okuma, tefsir ve daha fazlası
-        </p>
+        <p className="text-[#D4AF37] text-sm mt-3 tracking-widest">Bilgi ile iman yolculuğu</p>
       </div>
 
-      {/* Features Preview */}
-      <div className="relative z-10 w-full space-y-3 mb-8 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+      {/* Feature pills */}
+      <div className="relative z-10 w-full space-y-2.5 mb-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
         {[
-          { icon: '📖', text: "Kur'an-ı Kerim & Tefsir" },
-          { icon: '🕌', text: 'Namaz Vakitleri & Kıble' },
-          { icon: '💬', text: 'AI İslami Danışman' },
+          { icon: '\uD83D\uDCD6', text: "Kur'an-ı Kerim & Tefsir" },
+          { icon: '\uD83D\uDD4C', text: 'Namaz Vakitleri & Kıble' },
+          { icon: '\u2728', text: 'Ramazan & Dua' },
         ].map((item, i) => (
           <div key={i} className="glass rounded-xl px-4 py-3 flex items-center gap-3">
             <span className="text-lg">{item.icon}</span>
-            <span className="text-gray-300 text-sm font-medium">{item.text}</span>
+            <span className="text-[#F5F5DC] text-sm font-medium">{item.text}</span>
           </div>
         ))}
       </div>
 
-      {/* Login Buttons */}
-      <div className="relative z-10 w-full space-y-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-        {/* Google Login */}
-        <button
-          onClick={handleGoogleLogin}
-          data-testid="google-login-btn"
-          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-800 font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl active:scale-[0.98]"
-        >
+      {/* Buttons */}
+      <div className="relative z-10 w-full space-y-3 animate-fade-in" style={{ animationDelay: '0.45s' }}>
+        <button onClick={handleGoogleLogin} data-testid="google-login-btn"
+          className="w-full flex items-center justify-center gap-3 bg-[#F5F5DC] hover:bg-[#E8E8C8] text-[#0A1F14] font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-lg active:scale-[0.98]">
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -77,19 +83,14 @@ export default function LoginPage() {
           Google ile Giriş Yap
         </button>
 
-        {/* Guest Login */}
-        <button
-          onClick={handleGuestLogin}
-          data-testid="guest-login-btn"
-          className="w-full flex items-center justify-center gap-3 glass hover:bg-white/10 text-emerald-400 font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 border border-emerald-500/30 active:scale-[0.98]"
-        >
+        <button onClick={handleGuestLogin} data-testid="guest-login-btn"
+          className="w-full flex items-center justify-center gap-3 border border-[#D4AF37]/40 hover:bg-[#D4AF37]/10 text-[#D4AF37] font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 active:scale-[0.98]">
           <User size={20} />
           Misafir Olarak Devam Et
         </button>
       </div>
 
-      {/* Footer */}
-      <p className="relative z-10 text-gray-600 text-xs mt-6 text-center animate-fade-in" style={{ animationDelay: '0.45s' }}>
+      <p className="relative z-10 text-[#A8B5A0] text-xs mt-6 text-center">
         Giriş yaparak kullanım şartlarını kabul etmiş olursunuz
       </p>
     </div>

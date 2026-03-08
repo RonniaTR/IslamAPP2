@@ -8,7 +8,7 @@ import api from '../api';
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { t, lang, setLang, selectedCity, setSelectedCity, defaultCountry, LANGUAGES } = useLang();
+  const { t, lang, setLang, selectedCity, setSelectedCity, LANGUAGES } = useLang();
   const [cities, setCities] = useState([]);
   const [showCities, setShowCities] = useState(false);
   const [showLang, setShowLang] = useState(false);
@@ -23,38 +23,50 @@ export default function SettingsPage() {
 
   return (
     <div className="animate-fade-in" data-testid="settings-page">
-      <div className="bg-gradient-to-b from-gray-800/50 to-transparent px-5 pt-12 pb-4">
+      <div className="px-5 pt-10 pb-4" style={{ background: 'linear-gradient(180deg, rgba(15,61,46,0.4) 0%, transparent 100%)' }}>
         <div className="flex items-center gap-3 mb-2">
-          <Settings size={24} className="text-gray-400" />
-          <h1 className="text-xl font-bold text-white">{t.settings}</h1>
+          <Settings size={24} className="text-[#D4AF37]" />
+          <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{t.settings || 'Ayarlar'}</h1>
         </div>
       </div>
       <div className="px-4 space-y-3 pb-6">
         {user && (
-          <div className="glass rounded-xl p-4" data-testid="user-info">
-            <p className="text-sm font-semibold text-white">{user.name}</p>
-            {user.is_guest && <span className="inline-block mt-1 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">{t.guest}</span>}
+          <div className="card-islamic rounded-xl p-4" data-testid="user-info">
+            <div className="flex items-center gap-3">
+              {user.picture ? (
+                <img src={user.picture} alt="" className="w-10 h-10 rounded-full" />
+              ) : (
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ background: 'rgba(212,175,55,0.15)', color: '#D4AF37' }}>
+                  {(user.name || '?')[0]}
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-semibold text-[#F5F5DC]">{user.name}</p>
+                {user.is_guest && <span className="inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(212,175,55,0.15)', color: '#D4AF37' }}>Misafir</span>}
+              </div>
+            </div>
           </div>
         )}
 
         {/* Language Selection */}
-        <div className="glass rounded-xl p-4">
-          <button onClick={() => setShowLang(!showLang)} className="w-full flex items-center justify-between">
+        <div className="card-islamic rounded-xl p-4">
+          <button onClick={() => setShowLang(!showLang)} className="w-full flex items-center justify-between" aria-label="Dil seçimi">
             <div className="flex items-center gap-3">
-              <Languages size={18} className="text-blue-400" />
+              <Languages size={18} className="text-[#D4AF37]" />
               <div>
-                <p className="text-sm font-medium text-white text-left">{t.language}</p>
-                <p className="text-xs text-gray-500">{LANGUAGES.find(l => l.code === lang)?.name}</p>
+                <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.language || 'Dil'}</p>
+                <p className="text-xs text-[#A8B5A0]">{LANGUAGES.find(l => l.code === lang)?.name}</p>
               </div>
             </div>
-            <ChevronRight size={16} className={`text-gray-500 transition-transform ${showLang ? 'rotate-90' : ''}`} />
+            <ChevronRight size={16} className={`text-[#A8B5A0] transition-transform ${showLang ? 'rotate-90' : ''}`} />
           </button>
           {showLang && (
-            <div className="mt-3 pt-3 border-t border-white/5 space-y-1.5">
+            <div className="mt-3 pt-3 border-t border-[#D4AF37]/10 space-y-1.5">
               {LANGUAGES.map(l => (
                 <button key={l.code} onClick={() => { setLang(l.code); setShowLang(false); }}
                   data-testid={`lang-${l.code}`}
-                  className={`w-full text-left text-sm p-2.5 rounded-lg transition-colors flex items-center gap-2 ${l.code === lang ? 'bg-blue-500/20 text-blue-400' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+                  className={`w-full text-left text-sm p-2.5 rounded-lg transition-colors flex items-center gap-2 ${l.code === lang ? 'text-[#D4AF37]' : 'text-[#A8B5A0] hover:text-[#F5F5DC]'}`}
+                  style={{ background: l.code === lang ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)' }}>
                   <span>{l.flag}</span> {l.name}
                 </button>
               ))}
@@ -63,32 +75,31 @@ export default function SettingsPage() {
         </div>
 
         {/* City Selection */}
-        <div className="glass rounded-xl p-4">
-          <button onClick={() => setShowCities(!showCities)} className="w-full flex items-center justify-between">
+        <div className="card-islamic rounded-xl p-4">
+          <button onClick={() => setShowCities(!showCities)} className="w-full flex items-center justify-between" aria-label="Şehir seçimi">
             <div className="flex items-center gap-3">
-              <MapPin size={18} className="text-emerald-400" />
+              <MapPin size={18} className="text-[#D4AF37]" />
               <div>
-                <p className="text-sm font-medium text-white text-left">{t.city}</p>
-                <p className="text-xs text-gray-500">{cityObj?.name || t.select}</p>
+                <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.city || 'Şehir'}</p>
+                <p className="text-xs text-[#A8B5A0]">{cityObj?.name || t.select || 'Seçiniz'}</p>
               </div>
             </div>
-            <ChevronDown size={16} className={`text-gray-500 transition-transform ${showCities ? 'rotate-180' : ''}`} />
+            <ChevronDown size={16} className={`text-[#A8B5A0] transition-transform ${showCities ? 'rotate-180' : ''}`} />
           </button>
           {showCities && (
-            <div className="mt-3 pt-3 border-t border-white/5">
-              {/* Country filter tabs */}
+            <div className="mt-3 pt-3 border-t border-[#D4AF37]/10">
               <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide pb-1">
-                <button onClick={() => setCountryFilter(null)}
-                  className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium ${!countryFilter ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-gray-500'}`}>
-                  {t.all}
-                </button>
-                <button onClick={() => setCountryFilter('TR')}
-                  className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium ${countryFilter === 'TR' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-gray-500'}`}>
-                  {t.all_turkey}
-                </button>
+                {[{ label: t.all || 'Tümü', val: null }, { label: t.all_turkey || 'Türkiye', val: 'TR' }].map(({ label, val }) => (
+                  <button key={label} onClick={() => setCountryFilter(val)}
+                    className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium ${countryFilter === val ? 'text-[#D4AF37]' : 'text-[#A8B5A0]'}`}
+                    style={{ background: countryFilter === val ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)' }}>
+                    {label}
+                  </button>
+                ))}
                 {['US','GB','DE','SA','AE'].map(cc => (
                   <button key={cc} onClick={() => setCountryFilter(cc)}
-                    className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium ${countryFilter === cc ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-gray-500'}`}>
+                    className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium ${countryFilter === cc ? 'text-[#D4AF37]' : 'text-[#A8B5A0]'}`}
+                    style={{ background: countryFilter === cc ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)' }}>
                     {cities.find(c => c.country === cc)?.country_name || cc}
                   </button>
                 ))}
@@ -97,7 +108,8 @@ export default function SettingsPage() {
                 {cities.map(c => (
                   <button key={c.id} onClick={() => { setSelectedCity(c.id); setShowCities(false); }}
                     data-testid={`city-${c.id}`}
-                    className={`text-left text-xs p-2 rounded-lg transition-colors ${c.id === selectedCity ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+                    className={`text-left text-xs p-2 rounded-lg transition-colors ${c.id === selectedCity ? 'text-[#D4AF37]' : 'text-[#A8B5A0] hover:text-[#F5F5DC]'}`}
+                    style={{ background: c.id === selectedCity ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)' }}>
                     {c.name}
                   </button>
                 ))}
@@ -106,21 +118,22 @@ export default function SettingsPage() {
           )}
         </div>
 
-        {/* Qibla Direction */}
-        <div className="glass rounded-xl p-4">
+        {/* Qibla */}
+        <div className="card-islamic rounded-xl p-4">
           <div className="flex items-center gap-3">
-            <Globe size={18} className="text-amber-400" />
+            <Globe size={18} className="text-[#D4AF37]" />
             <div>
-              <p className="text-sm font-medium text-white">{t.qibla}</p>
-              <p className="text-xs text-gray-500">{cityObj?.qibla_direction?.toFixed(1) || '--'}°</p>
+              <p className="text-sm font-medium text-[#F5F5DC]">{t.qibla || 'Kıble'}</p>
+              <p className="text-xs text-[#A8B5A0]">{cityObj?.qibla_direction?.toFixed(1) || '--'}°</p>
             </div>
           </div>
         </div>
 
         <button onClick={async () => { await logout(); navigate('/login', { replace: true }); }} data-testid="logout-btn"
-          className="w-full glass rounded-xl p-4 flex items-center gap-3 text-red-400 hover:bg-red-500/10 transition-colors">
+          aria-label="Çıkış yap"
+          className="w-full card-islamic rounded-xl p-4 flex items-center gap-3 text-red-400 hover:bg-red-500/10 transition-colors">
           <LogOut size={18} />
-          <span className="text-sm font-medium">{t.logout}</span>
+          <span className="text-sm font-medium">{t.logout || 'Çıkış Yap'}</span>
         </button>
       </div>
     </div>

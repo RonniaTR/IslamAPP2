@@ -1766,6 +1766,12 @@ async def get_hadith_categories():
     """Get hadith categories"""
     return HADITH_CATEGORIES
 
+@api_router.get("/hadith/random")
+async def get_random_hadith():
+    """Get a random hadith"""
+    import random
+    return random.choice(SAMPLE_HADITHS)
+
 @api_router.get("/hadith/all")
 async def get_all_hadiths():
     """Get all hadiths"""
