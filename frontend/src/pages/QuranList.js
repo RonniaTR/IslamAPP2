@@ -21,14 +21,6 @@ export default function QuranList() {
   useEffect(() => {
     if (search.length < 2) { setSearchResults(null); return; }
     const timer = setTimeout(async () => {
-      // Check if it matches a surah — if so, don't do verse search
-      const surahMatch = surahs.some(s =>
-        s.name?.toLowerCase().includes(search.toLowerCase()) ||
-        s.turkish_name?.toLowerCase().includes(search.toLowerCase()) ||
-        String(s.number) === search
-      );
-      if (surahMatch) { setSearchResults(null); return; }
-
       setSearching(true);
       try {
         const { data } = await api.get(`/quran/search?query=${encodeURIComponent(search)}`);
@@ -37,7 +29,7 @@ export default function QuranList() {
       setSearching(false);
     }, 500);
     return () => clearTimeout(timer);
-  }, [search, surahs]);
+  }, [search]);
 
   const filtered = surahs.filter(s =>
     s.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -120,7 +112,10 @@ export default function QuranList() {
           <div className="text-center py-12 text-[#A8B5A0]">Yükleniyor...</div>
         ) : (
           <div className="space-y-1.5">
-            {(!searchResults || searchResults.count === 0) && filtered.map(surah => (
+            {filtered.length > 0 && search.length >= 2 && searchResults && searchResults.count > 0 && (
+              <p className="text-xs text-[#A8B5A0] mb-2">Eşleşen Sureler:</p>
+            )}
+            {filtered.map(surah => (
               <button key={surah.number} onClick={() => navigate(`/quran/${surah.number}`)}
                 data-testid={`surah-item-${surah.number}`}
                 className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#0F3D2E]/50 transition-colors text-left active:bg-[#0F3D2E]/80">

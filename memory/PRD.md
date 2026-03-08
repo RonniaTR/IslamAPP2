@@ -5,7 +5,7 @@
 - Backend: Python/FastAPI
 - Database: MongoDB
 - TTS: OpenAI TTS HD (onyx male voice) via Emergent LLM Key
-- AI: Anthropic Claude via Emergent LLM Key
+- AI: Anthropic Claude Sonnet 4.5 via Emergent LLM Key
 - Auth: Emergent Google OAuth + Guest Login
 
 ## Design: Dark green (#0A1F14) + Gold (#D4AF37) + Cream (#F5F5DC)
@@ -44,6 +44,11 @@ Nihat Hatipoğlu, Hayrettin Karaman, Mustafa İslamoğlu, Diyanet, Ömer Nasuhi 
 - POST /api/worship/track — Track daily worship
 - GET /api/worship/today — Today's tracking
 - GET /api/scholars — 12 scholars
+- POST /api/tafsir/kissa — AI-generated kıssa for a verse
+- GET /api/notes — User saved notes
+- POST /api/notes — Save note/favorite
+- DELETE /api/notes/{id} — Delete note
+- GET /api/quran/search?query= — Keyword search in Quran
 
 ## Completed (2026-03-08)
 - [x] OpenAI TTS HD (onyx male voice) for verse, hadith, mood, knowledge items
@@ -52,8 +57,21 @@ Nihat Hatipoğlu, Hayrettin Karaman, Mustafa İslamoğlu, Diyanet, Ömer Nasuhi 
 - [x] Hadith TTS + Share
 - [x] Knowledge cards HUGE with shuffle + share + TTS
 - [x] All previous features maintained
+- [x] Quran keyword search (frontend + backend)
+- [x] AI Kıssa generation per verse (Claude Sonnet 4.5)
+- [x] Notes/Favorites system with CRUD
+- [x] NotesPage with filter (Tümü/Ayetler/Kıssalar)
+- [x] Verse action buttons: Kıssa, Save, Copy, Share
+- [x] Fixed LlmChat integration (with_model API)
+- [x] Fixed Notes BSON Cookie serialization bug
+- [x] Bottom nav updated with Notlarım tab
+- [x] ScholarsPage redesigned with 12 scholars
 
 ## Backlog
-- P1: Enhanced Quran audio player
-- P2: Quran keyword search
+- P1: TTS budget recharge needed (user must add balance)
+- P1: Daily knowledge push notifications
+- P2: Functional voice commands (Web Speech API)
 - P2: Offline caching
+- P3: Enhanced Quran audio player
+- P3: Quiz animations
+- P3: server.py refactoring into modules
