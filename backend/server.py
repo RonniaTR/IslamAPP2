@@ -1327,6 +1327,130 @@ Tefsiri 3-5 paragraf olarak, kapsamlı ve öğretici bir şekilde yaz.
     
     return results
 
+# ===================== KISSA (Short Story) API =====================
+
+@api_router.post("/tafsir/kissa")
+async def get_tafsir_kissa(request: Request):
+    """Generate a short kıssa (story/lesson) for a verse using AI"""
+    body = await request.json()
+    surah_number = body.get("surah_number")
+    verse_number = body.get("verse_number")
+    scholar_id = body.get("scholar_id", "diyanet")
+
+    if not surah_number or not verse_number:
+        raise HTTPException(status_code=400, detail="surah_number and verse_number required")
+
+    # Check cache
+    cached = await db.kissa.find_one(
+        {"surah_number": surah_number, "verse_number": verse_number, "scholar_id": scholar_id},
+        {"_id": 0}
+    )
+    if cached:
+        return cached
+
+    # Get verse text
+    verse_text, turkish_text = "", ""
+    if QURAN_ARABIC and surah_number <= len(QURAN_ARABIC):
+        surah = QURAN_ARABIC[surah_number - 1]
+        for ayah in surah.get('ayahs', []):
+            if ayah.get('numberInSurah') == verse_number:
+                verse_text = ayah.get('text', '')
+                break
+    if QURAN_TURKISH and surah_number <= len(QURAN_TURKISH):
+        surah_tr = QURAN_TURKISH[surah_number - 1]
+        for ayah in surah_tr.get('ayahs', []):
+            if ayah.get('numberInSurah') == verse_number:
+                turkish_text = ayah.get('text', '')
+                break
+
+    tr_name, _ = TURKISH_SURAH_NAMES.get(surah_number, ("", ""))
+
+    # Find scholar info
+    scholar_info = None
+    for s in SCHOLARS:
+        if s["id"] == scholar_id:
+            scholar_info = s
+            break
+    scholar_name = scholar_info["name"] if scholar_info else "Diyanet İşleri Başkanlığı"
+    scholar_style = scholar_info["style"] if scholar_info else "dengeli, genel kabul görmüş görüşler"
+
+    prompt = f"""{scholar_name} tarzında, {tr_name} suresi {verse_number}. ayeti hakkında kısa bir tefsir ve hayata dair bir kıssa anlat.
+
+Ayet (Arapça): {verse_text}
+Ayet (Türkçe): {turkish_text}
+
+{scholar_name}'nin anlatım tarzı: {scholar_style}
+
+Kurallar:
+1. Önce ayetin kısa bir tefsirini yap (2-3 cümle)
+2. Sonra bu ayetle ilgili hayattan bir kıssa/hikaye anlat (3-4 cümle)
+3. Son olarak bir ders/ibret cümlesi ekle
+4. Toplam 150 kelimeyi geçme
+5. Samimi ve etkileyici bir dil kullan
+6. Türkçe yaz"""
+
+    try:
+        chat = LlmChat(api_key=EMERGENT_LLM_KEY, model="claude-sonnet-4-20250514")
+        response = await asyncio.to_thread(chat.send_message, UserMessage(content=prompt))
+
+        kissa_doc = {
+            "surah_number": surah_number,
+            "verse_number": verse_number,
+            "scholar_id": scholar_id,
+            "scholar_name": scholar_name,
+            "surah_name": tr_name,
+            "verse_turkish": turkish_text,
+            "verse_arabic": verse_text,
+            "kissa": response.content,
+        }
+        await db.kissa.insert_one({**kissa_doc, "created_at": datetime.now(timezone.utc)})
+        kissa_doc.pop("_id", None)
+        return kissa_doc
+    except Exception as e:
+        logger.error(f"Kissa generation error: {e}")
+        raise HTTPException(status_code=500, detail="Kıssa oluşturulamadı")
+
+# ===================== NOTES/FAVORITES API =====================
+
+@api_router.post("/notes")
+async def save_note(request: Request):
+    """Save a note/favorite"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    body = await request.json()
+    note_doc = {
+        "user_id": user.user_id,
+        "type": body.get("type", "kissa"),
+        "surah_number": body.get("surah_number"),
+        "verse_number": body.get("verse_number"),
+        "title": body.get("title", ""),
+        "content": body.get("content", ""),
+        "scholar_name": body.get("scholar_name", ""),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.notes.insert_one(note_doc)
+    note_doc.pop("_id", None)
+    return note_doc
+
+@api_router.get("/notes")
+async def get_notes(request: Request):
+    """Get user's notes"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    notes = await db.notes.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1).to_list(length=100)
+    return notes
+
+@api_router.delete("/notes/{note_id}")
+async def delete_note(note_id: str, request: Request):
+    """Delete a note"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    await db.notes.delete_one({"user_id": user.user_id, "created_at": note_id})
+    return {"status": "ok"}
+
 # ===================== LANGUAGE / i18n =====================
 
 UI_TRANSLATIONS = {
