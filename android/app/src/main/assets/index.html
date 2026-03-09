@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İslam App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1B5E20, #2E7D32, #43A047);
+            color: #fff;
+            text-align: center;
+            padding: 24px;
+        }
+        @media (prefers-color-scheme: dark) {
+            body { background: linear-gradient(135deg, #0D3B12, #1B5E20, #2E7D32); }
+        }
+        .container {
+            max-width: 400px;
+        }
+        .icon {
+            font-size: 72px;
+            margin-bottom: 24px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        p {
+            font-size: 16px;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .info {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        code {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">☪️</div>
+        <h1>İslam App</h1>
+        <p>Uygulama başarıyla çalışıyor!</p>
+        <div class="info">
+            Bu bir yer tutucu sayfadır.<br>
+            React build dosyalarınızı<br>
+            <code>assets/</code> klasörüne kopyalayın.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ana renkler -->
+    <color name="primary">#FF1B5E20</color>
+    <color name="primary_dark">#FF0D3B12</color>
+    <color name="primary_light">#FF4CAF50</color>
+    <color name="accent">#FFFFC107</color>
+
+    <!-- Arkaplan renkleri -->
+    <color name="background_light">#FFF5F5F5</color>
+    <color name="background_dark">#FF121212</color>
+    <color name="splash_background">#FF1B5E20</color>
+
+    <!-- Metin renkleri -->
+    <color name="text_primary_light">#DE000000</color>
+    <color name="text_primary_dark">#DEFFFFFF</color>
+
+    <!-- Yardımcı renkler -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="error">#FFD32F2F</color>
+    <color name="surface_dark">#FF1E1E1E</color>
+</resources>
