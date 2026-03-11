@@ -15,6 +15,7 @@ import math
 import asyncio
 import httpx
 from google import genai
+from openai import OpenAI
 import edge_tts
 import base64
 import io
@@ -153,28 +154,60 @@ mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'islamapp')]
 
-# Gemini API Key (free tier)
+# AI Provider Config (Groq free tier primary, Gemini fallback)
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
+groq_client = OpenAI(
+    api_key=GROQ_API_KEY,
+    base_url="https://api.groq.com/openai/v1"
+) if GROQ_API_KEY else None
+
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
-async def gemini_generate(prompt: str, system_message: str = "") -> str:
+async def _groq_generate(prompt: str, system_message: str = "") -> str:
+    """Generate text using Groq (free Llama 3.3 70B)"""
+    messages = []
+    if system_message:
+        messages.append({"role": "system", "content": system_message})
+    messages.append({"role": "user", "content": prompt})
+    response = await asyncio.to_thread(
+        groq_client.chat.completions.create,
+        model="llama-3.3-70b-versatile",
+        messages=messages,
+        temperature=0.7,
+        max_tokens=2048
+    )
+    return response.choices[0].message.content
+
+async def _gemini_generate(prompt: str, system_message: str = "") -> str:
     """Generate text using Google Gemini (free tier)"""
-    try:
-        if not gemini_client:
-            raise Exception("Gemini API key not configured")
-        config = genai.types.GenerateContentConfig(
-            system_instruction=system_message if system_message else None
-        )
-        response = await asyncio.to_thread(
-            gemini_client.models.generate_content,
-            model="gemini-2.0-flash",
-            contents=prompt,
-            config=config
-        )
-        return response.text
-    except Exception as e:
-        logger.error(f"Gemini API error: {e}")
-        raise
+    config = genai.types.GenerateContentConfig(
+        system_instruction=system_message if system_message else None
+    )
+    response = await asyncio.to_thread(
+        gemini_client.models.generate_content,
+        model="gemini-2.0-flash",
+        contents=prompt,
+        config=config
+    )
+    return response.text
+
+async def gemini_generate(prompt: str, system_message: str = "") -> str:
+    """Generate text using available AI provider (Groq primary, Gemini fallback)"""
+    # Try Groq first (free Llama 3.3 70B - very fast)
+    if groq_client:
+        try:
+            return await _groq_generate(prompt, system_message)
+        except Exception as e:
+            logger.warning(f"Groq API error, trying fallback: {e}")
+    # Fallback to Gemini
+    if gemini_client:
+        try:
+            return await _gemini_generate(prompt, system_message)
+        except Exception as e:
+            logger.error(f"Gemini API error: {e}")
+    raise Exception("No AI provider available. Set GROQ_API_KEY or GEMINI_API_KEY.")
 
 # Auth Config
 EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
