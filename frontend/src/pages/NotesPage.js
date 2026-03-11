@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Trash2, Copy, Share2, Sparkles, BookOpen, Loader2, Check } from 'lucide-react';
+import { Heart, Trash2, Copy, Share2, Sparkles, BookOpen, Loader2, Check, ScrollText } from 'lucide-react';
 import api from '../api';
 
 export default function NotesPage() {
@@ -19,7 +19,7 @@ export default function NotesPage() {
     setLoading(true);
     try {
       const { data } = await api.get('/notes');
-      setNotes(data);
+      setNotes(Array.isArray(data) ? data : []);
     } catch { setNotes([]); }
     setLoading(false);
   };
@@ -55,13 +55,14 @@ export default function NotesPage() {
           <Heart size={20} className="text-[#D4AF37]" />
           <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>Notlarım</h1>
         </div>
-        <p className="text-xs text-[#A8B5A0]">Kaydettiğiniz ayetler ve kıssalar</p>
+        <p className="text-xs text-[#A8B5A0]">Kaydettiğiniz ayetler, kıssalar ve hadisler</p>
 
         <div className="flex gap-2 mt-3">
           {[
             { id: 'all', label: 'Tümü' },
             { id: 'ayah', label: 'Ayetler' },
             { id: 'kissa', label: 'Kıssalar' },
+            { id: 'hadith', label: 'Hadisler' },
           ].map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)} data-testid={`filter-${f.id}`}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
@@ -83,7 +84,7 @@ export default function NotesPage() {
           <div className="text-center py-12">
             <Heart size={40} className="text-[#A8B5A0]/30 mx-auto mb-3" />
             <p className="text-sm text-[#A8B5A0]">Henüz kayıtlı notunuz yok</p>
-            <p className="text-xs text-[#A8B5A0]/60 mt-1">Kur'an okurken favori ayetlerinizi kaydedin</p>
+            <p className="text-xs text-[#A8B5A0]/60 mt-1">Kur'an ve hadis bölümlerinden beğendiğin içerikleri kaydet</p>
             <button onClick={() => navigate('/quran')} data-testid="go-to-quran"
               className="mt-4 px-4 py-2 rounded-xl bg-[#D4AF37]/15 text-[#D4AF37] text-sm font-medium hover:bg-[#D4AF37]/25 transition-colors">
               <BookOpen size={14} className="inline mr-1" /> Kur'an'a Git
@@ -98,6 +99,8 @@ export default function NotesPage() {
                   <div className="flex items-center gap-2">
                     {note.type === 'kissa' ? (
                       <Sparkles size={14} className="text-[#D4AF37] shrink-0" />
+                    ) : note.type === 'hadith' ? (
+                      <ScrollText size={14} className="text-sky-300 shrink-0" />
                     ) : (
                       <BookOpen size={14} className="text-emerald-400 shrink-0" />
                     )}
@@ -109,9 +112,13 @@ export default function NotesPage() {
                     </div>
                   </div>
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
-                    note.type === 'kissa' ? 'bg-[#D4AF37]/15 text-[#D4AF37]' : 'bg-emerald-500/15 text-emerald-400'
+                    note.type === 'kissa'
+                      ? 'bg-[#D4AF37]/15 text-[#D4AF37]'
+                      : note.type === 'hadith'
+                        ? 'bg-sky-400/15 text-sky-300'
+                        : 'bg-emerald-500/15 text-emerald-400'
                   }`}>
-                    {note.type === 'kissa' ? 'Kıssa' : 'Ayet'}
+                    {note.type === 'kissa' ? 'Kıssa' : note.type === 'hadith' ? 'Hadis' : 'Ayet'}
                   </span>
                 </div>
 

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, MapPin, LogOut, Globe, ChevronRight, Languages, ChevronDown, Bell, BellOff } from 'lucide-react';
+import { Settings, MapPin, LogOut, Globe, ChevronRight, Languages, ChevronDown, Bell, BellOff, Palette } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
+import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t, lang, setLang, selectedCity, setSelectedCity, LANGUAGES } = useLang();
+  const { theme, themeId, setTheme, themes } = useTheme();
   const [cities, setCities] = useState([]);
   const [showCities, setShowCities] = useState(false);
   const [showLang, setShowLang] = useState(false);
@@ -38,7 +40,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const q = countryFilter ? `?country=${countryFilter}&lang=${lang}` : `?lang=${lang}`;
-    api.get(`/cities${q}`).then(r => setCities(r.data)).catch(() => {});
+    api.get(`/cities${q}`).then(r => { if (Array.isArray(r.data)) setCities(r.data); }).catch(() => {});
   }, [countryFilter, lang]);
 
   const cityObj = cities.find(c => c.id === selectedCity);
@@ -138,6 +140,30 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Theme Selection */}
+        <div className="card-islamic rounded-xl p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Palette size={18} style={{ color: theme.gold }} />
+            <p className="text-sm font-medium" style={{ color: theme.textPrimary }}>Tema</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.values(themes).map(t => (
+              <button key={t.id} onClick={() => setTheme(t.id)}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all"
+                style={{
+                  background: themeId === t.id ? `${theme.gold}20` : theme.inputBg,
+                  border: `2px solid ${themeId === t.id ? theme.gold : 'transparent'}`,
+                }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
+                  style={{ background: t.bg, border: `2px solid ${t.gold}` }}>
+                  {t.icon}
+                </div>
+                <span className="text-[11px] font-medium" style={{ color: themeId === t.id ? theme.gold : theme.textSecondary }}>{t.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Qibla */}

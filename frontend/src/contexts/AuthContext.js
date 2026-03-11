@@ -34,7 +34,10 @@ export function AuthProvider({ children }) {
       setUser(data);
       return data;
     } catch (e) {
-      console.error('Guest login failed:', e);
+      // Fallback: create local guest session when API is unavailable
+      const guest = { id: 'guest_' + Date.now(), name: 'Misafir', isGuest: true };
+      setUser(guest);
+      return guest;
     }
   };
 

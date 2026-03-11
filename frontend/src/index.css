@@ -14,6 +14,12 @@
   --cream-muted: #D4D4AA;
   --text-primary: #F5F5DC;
   --text-secondary: #A8B5A0;
+  --nav-bg: rgba(10, 31, 20, 0.95);
+  --card-bg: rgba(15, 61, 46, 0.5);
+  --card-border: rgba(212, 175, 55, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(15, 61, 46, 0.5);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,22 +81,32 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 }
 .animate-pulse-gold { animation: pulseGold 2s ease-in-out infinite; }
 
+@keyframes hadithGlow {
+  0%, 100% { box-shadow: 0 20px 60px rgba(5, 16, 11, 0.28); }
+  50% { box-shadow: 0 26px 80px rgba(212, 175, 55, 0.12); }
+}
+
+@keyframes hadithOrbFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
 /* Glass morphism */
 .glass {
-  background: rgba(15, 61, 46, 0.5);
+  background: var(--glass-bg);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--card-border);
 }
 
 .glass-dark {
-  background: rgba(10, 31, 20, 0.8);
+  background: var(--nav-bg);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.08);
+  border: 1px solid var(--card-border);
 }
 
 .card-islamic {
-  background: linear-gradient(135deg, rgba(15, 61, 46, 0.6), rgba(10, 31, 20, 0.8));
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   transition: all 0.3s ease;
 }
 .card-islamic:hover {
@@ -129,6 +145,101 @@ audio::-webkit-media-controls-panel { background: #164A38; }
 /* Mosque silhouette */
 .mosque-silhouette {
   background: linear-gradient(to top, rgba(10, 31, 20, 1) 0%, transparent 100%);
+}
+
+.hadith-shell {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.14), transparent 32%),
+    radial-gradient(circle at top right, rgba(43, 102, 77, 0.32), transparent 28%),
+    linear-gradient(180deg, #07130d 0%, #0a1f14 18%, #10271c 100%);
+}
+
+.hadith-hero {
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+}
+
+.hadith-orb {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f3cf66, #d4af37);
+  animation: hadithOrbFloat 3.2s ease-in-out infinite;
+}
+
+.hadith-stat-card {
+  min-width: 108px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 19, 14, 0.58);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 14px 16px;
+}
+
+.hadith-feature-card,
+.hadith-card,
+.hadith-empty-state {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  background: linear-gradient(180deg, rgba(16, 39, 28, 0.96) 0%, rgba(8, 20, 14, 0.95) 100%);
+  box-shadow: 0 20px 60px rgba(5, 16, 11, 0.28);
+}
+
+.hadith-feature-card {
+  border-radius: 28px;
+  padding: 22px;
+  animation: hadithGlow 5s ease-in-out infinite;
+}
+
+.hadith-card {
+  border-radius: 24px;
+  padding: 20px;
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+.hadith-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.24);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
+}
+
+.hadith-empty-state {
+  border-radius: 24px;
+}
+
+.hadith-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8e1c7;
+  padding: 10px 14px;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.hadith-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hadith-action-btn:disabled {
+  opacity: 0.7;
+}
+
+.hadith-action-btn--accent {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.2);
+  color: #f0cc67;
 }
 
 

@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
+import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
 
 export default function SurahDetail() {
   const { surahNumber } = useParams();
   const navigate = useNavigate();
   const { t, lang } = useLang();
+  const { theme } = useTheme();
   const [surah, setSurah] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reciter, setReciter] = useState('alafasy');
@@ -17,28 +19,25 @@ export default function SurahDetail() {
   const [playingFull, setPlayingFull] = useState(false);
   const [mealVideo, setMealVideo] = useState(null);
   const [showMealVideo, setShowMealVideo] = useState(false);
-  // Tafsir state
   const [tafsirVerse, setTafsirVerse] = useState(null);
   const [tafsirScholar, setTafsirScholar] = useState(null);
   const [tafsirData, setTafsirData] = useState([]);
   const [tafsirLoading, setTafsirLoading] = useState(false);
   const [tafsirScholars, setTafsirScholars] = useState([]);
-  // Audio progress
   const [audioProgress, setAudioProgress] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const audioRef = useRef(new Audio());
   const fullAudioRef = useRef(new Audio());
-  // Kıssa state
   const [kissaVerse, setKissaVerse] = useState(null);
   const [kissaData, setKissaData] = useState({});
   const [kissaLoading, setKissaLoading] = useState(null);
-  // Notes state
   const [savedNotes, setSavedNotes] = useState({});
   const [copiedVerse, setCopiedVerse] = useState(null);
+  const [activeTab, setActiveTab] = useState({});
 
   useEffect(() => {
-    api.get('/quran/reciters').then(r => setReciters(r.data)).catch(() => {});
-    api.get('/tafsir/scholars').then(r => setTafsirScholars(r.data)).catch(() => {});
+    api.get('/quran/reciters').then(r => { if (Array.isArray(r.data)) setReciters(r.data); }).catch(() => {});
+    api.get('/tafsir/scholars').then(r => { if (Array.isArray(r.data)) setTafsirScholars(r.data); }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -95,21 +94,21 @@ export default function SurahDetail() {
     try {
       const params = scholarId ? `?scholar=${scholarId}&lang=${lang}` : `?lang=${lang}`;
       const { data } = await api.get(`/tafsir/${surahNumber}/${verseNum}${params}`);
-      setTafsirData(data);
+      setTafsirData(Array.isArray(data) ? data : []);
     } catch { setTafsirData([]); }
     setTafsirLoading(false);
   };
 
   const generateKissa = async (verse) => {
     const key = `${surahNumber}-${verse.number}`;
-    if (kissaData[key]) { setKissaVerse(kissaVerse === key ? null : key); return; }
+    if (kissaData[key]) { setKissaVerse(key); return; }
     setKissaVerse(key);
     setKissaLoading(key);
     try {
       const { data } = await api.post('/tafsir/kissa', { surah_number: parseInt(surahNumber), verse_number: verse.number });
       setKissaData(prev => ({ ...prev, [key]: data }));
     } catch {
-      setKissaData(prev => ({ ...prev, [key]: { kissa: 'Kıssa oluşturulamadı. Tekrar deneyin.', error: true } }));
+      setKissaData(prev => ({ ...prev, [key]: { kissa: 'Kıssa oluşturulamadı. AI aktif değil veya bir hata oluştu.', error: true } }));
     }
     setKissaLoading(null);
   };
@@ -142,25 +141,30 @@ export default function SurahDetail() {
     else copyVerse(verse);
   };
 
-  if (loading) return <div className="flex items-center justify-center h-screen text-gray-500">{t.loading}</div>;
-  if (!surah) return <div className="flex items-center justify-center h-screen text-gray-500">Sure bulunamadı</div>;
+  const getVerseTab = (verseNum) => activeTab[verseNum] || null;
+  const setVerseTab = (verseNum, tab) => {
+    setActiveTab(prev => ({ ...prev, [verseNum]: prev[verseNum] === tab ? null : tab }));
+    if (tab === 'tafsir') loadTafsir(verseNum, tafsirScholar);
+  };
+
+  if (loading) return <div className="flex items-center justify-center h-screen" style={{ color: theme.textSecondary }}>{t.loading}</div>;
+  if (!surah) return <div className="flex items-center justify-center h-screen" style={{ color: theme.textSecondary }}>Sure bulunamadı</div>;
 
   return (
     <div className="animate-fade-in pb-4" data-testid="surah-detail">
-      <div className="bg-gradient-to-b from-emerald-900/40 to-transparent px-4 pt-10 pb-4">
-        <button onClick={() => navigate('/quran')} className="flex items-center gap-1 text-emerald-400 text-sm mb-3" data-testid="back-to-quran">
+      <div className="px-4 pt-10 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface}90 0%, transparent 100%)` }}>
+        <button onClick={() => navigate('/quran')} className="flex items-center gap-1 text-sm mb-3" style={{ color: theme.gold }} data-testid="back-to-quran">
           <ArrowLeft size={18} /> {t.surahs}
         </button>
         <div className="text-center">
-          <p className="font-arabic text-3xl text-emerald-300/90 mb-1">{surah.arabic_name}</p>
-          <h1 className="text-lg font-bold text-white">{surah.name}</h1>
-          <p className="text-xs text-gray-400 mt-1">{surah.meaning} · {surah.total_verses} {t.verses} · {surah.revelation}</p>
+          <p className="font-arabic text-3xl mb-1" style={{ color: `${theme.gold}cc` }}>{surah.arabic_name}</p>
+          <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>{surah.name}</h1>
+          <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>{surah.meaning} · {surah.total_verses} {t.verses} · {surah.revelation}</p>
         </div>
 
-        {/* Audio Controls */}
-        <div className="mt-4 glass rounded-xl p-3">
+        <div className="glass rounded-xl p-3 mt-4">
           <div className="flex items-center justify-between mb-2">
-            <button onClick={() => setShowReciters(!showReciters)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-white">
+            <button onClick={() => setShowReciters(!showReciters)} className="flex items-center gap-1 text-xs" style={{ color: theme.textSecondary }}>
               <Volume2 size={14} />
               <span>{reciters.find(r => r.id === reciter)?.name || reciter}</span>
               <ChevronDown size={12} />
@@ -170,7 +174,8 @@ export default function SurahDetail() {
             <div className="mb-3 grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto scrollbar-hide">
               {reciters.map(r => (
                 <button key={r.id} onClick={() => { setReciter(r.id); setShowReciters(false); }}
-                  className={`text-left text-xs p-2 rounded-lg transition-colors ${r.id === reciter ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
+                  className="text-left text-xs p-2 rounded-lg transition-colors"
+                  style={{ background: r.id === reciter ? `${theme.gold}20` : theme.inputBg, color: r.id === reciter ? theme.gold : theme.textSecondary }}>
                   {r.name}
                 </button>
               ))}
@@ -178,34 +183,33 @@ export default function SurahDetail() {
           )}
           <div className="flex items-center justify-center gap-4">
             <button onClick={playFullSurah} data-testid="play-full-surah"
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${playingFull ? 'bg-emerald-500 text-white' : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'}`}>
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+              style={{ background: playingFull ? theme.gold : `${theme.gold}30`, color: playingFull ? '#fff' : theme.gold }}>
               {playingFull ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
             </button>
           </div>
-          <p className="text-center text-[10px] text-gray-500 mt-2">{playingFull ? t.playing : t.full_surah_play}</p>
-          {/* Progress bar for verse audio */}
+          <p className="text-center text-[10px] mt-2" style={{ color: theme.textSecondary }}>{playingFull ? t.playing : t.full_surah_play}</p>
           {playingVerse && audioDuration > 0 && (
             <div className="mt-2 cursor-pointer" onClick={seekAudio}>
-              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${(audioProgress / audioDuration) * 100}%` }} />
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: theme.inputBg }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${(audioProgress / audioDuration) * 100}%`, background: theme.gold }} />
               </div>
             </div>
           )}
         </div>
 
-        {/* Mazlum Kiper Turkish Meal */}
         {mealVideo && (
           <div className="mt-3 glass rounded-xl overflow-hidden" data-testid="meal-audio-section">
             <button onClick={() => setShowMealVideo(!showMealVideo)}
-              className="w-full flex items-center gap-3 p-3 text-left hover:bg-white/5 transition-colors" data-testid="meal-video-toggle">
+              className="w-full flex items-center gap-3 p-3 text-left transition-colors" data-testid="meal-video-toggle">
               <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
                 <Youtube size={20} className="text-red-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">{t.listen_meal}</p>
-                <p className="text-[11px] text-gray-400">Mazlum Kiper · {mealVideo.juz}. {t.juz}</p>
+                <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{t.listen_meal}</p>
+                <p className="text-[11px]" style={{ color: theme.textSecondary }}>Mazlum Kiper · {mealVideo.juz}. {t.juz}</p>
               </div>
-              <ChevronDown size={16} className={`text-gray-500 transition-transform ${showMealVideo ? 'rotate-180' : ''}`} />
+              <ChevronDown size={16} className={`transition-transform ${showMealVideo ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
             </button>
             {showMealVideo && (
               <div className="px-3 pb-3">
@@ -219,125 +223,172 @@ export default function SurahDetail() {
         )}
       </div>
 
-      {/* Bismillah */}
       {surah.number !== 1 && surah.number !== 9 && (
         <div className="text-center py-4">
-          <p className="font-arabic text-xl text-emerald-300/70">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+          <p className="font-arabic text-xl" style={{ color: `${theme.gold}99` }}>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
         </div>
       )}
 
-      {/* Verses */}
       <div className="px-4 space-y-4">
-        {surah.verses.map(verse => {
+        {(Array.isArray(surah.verses) ? surah.verses : []).map(verse => {
           const kissaKey = `${surahNumber}-${verse.number}`;
+          const currentTab = getVerseTab(verse.number);
           return (
           <div key={verse.number} data-testid={`verse-${verse.number}`}
-            className={`rounded-xl p-4 transition-all ${playingVerse === verse.number ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-white/[0.02] border border-white/5'}`}>
+            className="rounded-xl p-4 transition-all"
+            style={{
+              background: playingVerse === verse.number ? `${theme.gold}15` : theme.inputBg,
+              border: `1px solid ${playingVerse === verse.number ? `${theme.gold}40` : theme.cardBorder}`,
+            }}>
             <div className="flex items-start justify-between mb-3">
-              <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xs font-bold shrink-0">{verse.number}</div>
-              <div className="flex items-center gap-1.5">
-                <button onClick={() => loadTafsir(verse.number, tafsirScholar)} data-testid={`tafsir-verse-${verse.number}`}
-                  className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-amber-400 hover:bg-amber-500/10 transition-all" title="Tefsir">
-                  <BookMarked size={14} />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                style={{ background: `${theme.gold}15`, color: theme.gold }}>
+                {verse.number}
+              </div>
+              <div className="flex items-center gap-1">
+                <button onClick={() => playVerse(verse)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                  style={{ background: playingVerse === verse.number ? theme.gold : theme.inputBg, color: playingVerse === verse.number ? '#fff' : theme.textSecondary }}>
+                  {playingVerse === verse.number ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
                 </button>
-                <button onClick={() => generateKissa(verse)} data-testid={`kissa-verse-${verse.number}`}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${kissaData[kissaKey] ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-white/5 text-[#D4AF37]/60 hover:bg-[#D4AF37]/10'}`} title="Kıssa">
-                  {kissaLoading === kissaKey ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                <button onClick={() => copyVerse(verse)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                  style={{ background: theme.inputBg, color: copiedVerse === verse.number ? '#22c55e' : theme.textSecondary }}>
+                  {copiedVerse === verse.number ? <Check size={14} /> : <Copy size={14} />}
                 </button>
-                <button onClick={() => saveToNotes(verse, kissaData[kissaKey])} data-testid={`save-verse-${verse.number}`}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${savedNotes[kissaKey] ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-gray-400 hover:text-red-400 hover:bg-red-500/10'}`} title="Kaydet">
-                  <Heart size={14} fill={savedNotes[kissaKey] ? 'currentColor' : 'none'} />
-                </button>
-                <button onClick={() => copyVerse(verse)} data-testid={`copy-verse-${verse.number}`}
-                  className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-gray-400 hover:text-white transition-all" title="Kopyala">
-                  {copiedVerse === verse.number ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
-                </button>
-                <button onClick={() => shareVerse(verse)} data-testid={`share-verse-${verse.number}`}
-                  className="w-8 h-8 rounded-full flex items-center justify-center bg-white/5 text-gray-400 hover:text-white transition-all" title="Paylaş">
+                <button onClick={() => shareVerse(verse)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                  style={{ background: theme.inputBg, color: theme.textSecondary }}>
                   <Share2 size={14} />
                 </button>
-                <button onClick={() => playVerse(verse)} data-testid={`play-verse-${verse.number}`}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${playingVerse === verse.number ? 'bg-emerald-500 text-white' : 'bg-white/5 text-gray-400 hover:text-white'}`}>
-                  {playingVerse === verse.number ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+                <button onClick={() => saveToNotes(verse, kissaData[kissaKey])}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+                  style={{ background: theme.inputBg, color: savedNotes[kissaKey] ? '#ef4444' : theme.textSecondary }}>
+                  <Heart size={14} fill={savedNotes[kissaKey] ? 'currentColor' : 'none'} />
                 </button>
               </div>
             </div>
-            <p className="arabic-text text-xl text-white/90 mb-4 leading-[2.5]">{verse.arabic}</p>
+
+            <p className="arabic-text text-xl mb-4 leading-[2.5]" style={{ color: `${theme.textPrimary}ee` }}>{verse.arabic}</p>
+
             {verse.turkish && (
-              <p className="text-sm text-gray-300 leading-relaxed border-t border-white/5 pt-3">
-                <span className="text-emerald-400 font-medium">{verse.number}.</span> {verse.turkish}
+              <p className="text-sm leading-relaxed pt-3" style={{ color: theme.textSecondary, borderTop: `1px solid ${theme.cardBorder}` }}>
+                <span className="font-medium" style={{ color: theme.gold }}>{verse.number}.</span> {verse.turkish}
               </p>
             )}
 
-            {/* Kıssa Panel */}
-            {kissaVerse === kissaKey && kissaData[kissaKey] && (
-              <div className="mt-3 pt-3 border-t border-[#D4AF37]/20 animate-fade-in" data-testid={`kissa-panel-${verse.number}`}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles size={14} className="text-[#D4AF37]" />
-                  <span className="text-xs font-semibold text-[#D4AF37]">Kıssa & Tefsir</span>
-                  {kissaData[kissaKey].scholar_name && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37]/80">{kissaData[kissaKey].scholar_name}</span>
-                  )}
-                  <button onClick={() => setKissaVerse(null)} className="ml-auto text-[10px] text-gray-500 hover:text-white">✕</button>
+            <div className="flex gap-1 mt-3 pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+              {[
+                { id: 'meal', label: 'Meal', icon: BookOpen, color: '#3b82f6' },
+                { id: 'tafsir', label: 'Tefsir', icon: BookMarked, color: '#f59e0b' },
+                { id: 'kissa', label: 'Kıssa', icon: Sparkles, color: theme.gold },
+              ].map(tab => (
+                <button key={tab.id}
+                  onClick={() => { setVerseTab(verse.number, tab.id); if (tab.id === 'kissa') generateKissa(verse); }}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all"
+                  style={{
+                    background: currentTab === tab.id ? `${tab.color}20` : theme.inputBg,
+                    color: currentTab === tab.id ? tab.color : theme.textSecondary,
+                    border: `1px solid ${currentTab === tab.id ? `${tab.color}40` : 'transparent'}`,
+                  }}>
+                  <tab.icon size={12} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {currentTab === 'meal' && (
+              <div className="mt-3 animate-fade-in rounded-lg p-3" style={{ background: '#3b82f610' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <BookOpen size={14} style={{ color: '#3b82f6' }} />
+                  <span className="text-xs font-semibold" style={{ color: '#3b82f6' }}>Türkçe Meal</span>
+                  <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
                 </div>
-                <div className="bg-[#D4AF37]/5 rounded-lg p-3">
-                  <p className="text-sm text-[#F5F5DC]/85 leading-relaxed whitespace-pre-wrap">{kissaData[kissaKey].kissa}</p>
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <button onClick={() => saveToNotes(verse, kissaData[kissaKey])} data-testid={`save-kissa-${verse.number}`}
-                    className="flex items-center gap-1 text-[10px] text-[#D4AF37] px-2 py-1 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 transition-colors">
-                    <Heart size={10} fill={savedNotes[kissaKey] ? 'currentColor' : 'none'} /> {savedNotes[kissaKey] ? 'Kaydedildi' : 'Kaydet'}
-                  </button>
-                  <button onClick={() => { navigator.clipboard.writeText(kissaData[kissaKey].kissa).catch(() => {}); }}
-                    className="flex items-center gap-1 text-[10px] text-[#D4AF37] px-2 py-1 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 transition-colors">
-                    <Copy size={10} /> Kopyala
-                  </button>
-                  <button onClick={() => {
-                    const text = `${kissaData[kissaKey].kissa}\n\n— ${surah?.name} ${verse.number}. Ayet\n— İslami Yaşam Asistanı`;
-                    if (navigator.share) navigator.share({ title: 'Kıssa', text }).catch(() => {});
-                    else navigator.clipboard.writeText(text).catch(() => {});
-                  }}
-                    className="flex items-center gap-1 text-[10px] text-[#D4AF37] px-2 py-1 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 transition-colors">
-                    <Share2 size={10} /> Paylaş
-                  </button>
-                </div>
+                <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{verse.turkish || 'Meal verisi bulunamadı.'}</p>
+                {verse.english && (
+                  <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+                    <p className="text-[10px] font-medium mb-1" style={{ color: '#3b82f6' }}>English</p>
+                    <p className="text-xs leading-relaxed" style={{ color: theme.textSecondary }}>{verse.english}</p>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Tafsir Panel */}
-            {tafsirVerse === verse.number && (
-              <div className="mt-3 pt-3 border-t border-amber-500/20" data-testid={`tafsir-panel-${verse.number}`}>
-                <div className="flex items-center gap-2 mb-3">
-                  <BookMarked size={14} className="text-amber-400" />
-                  <span className="text-xs font-semibold text-amber-400">{t.tafsir}</span>
-                  <button onClick={() => setTafsirVerse(null)} className="ml-auto text-[10px] text-gray-500 hover:text-white">✕</button>
+            {currentTab === 'tafsir' && (
+              <div className="mt-3 animate-fade-in rounded-lg p-3" style={{ background: '#f59e0b10' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <BookMarked size={14} style={{ color: '#f59e0b' }} />
+                  <span className="text-xs font-semibold" style={{ color: '#f59e0b' }}>{t.tafsir}</span>
+                  <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
                 </div>
-                <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide pb-1">
                   {tafsirScholars.map(s => (
                     <button key={s.id} onClick={() => loadTafsir(verse.number, s.id)}
-                      className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors ${
-                        tafsirScholar === s.id ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-white/5 text-gray-500 border border-white/10'
-                      }`}>
+                      className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                      style={{
+                        background: tafsirScholar === s.id ? '#f59e0b20' : theme.inputBg,
+                        color: tafsirScholar === s.id ? '#f59e0b' : theme.textSecondary,
+                        border: `1px solid ${tafsirScholar === s.id ? '#f59e0b40' : theme.cardBorder}`,
+                      }}>
                       {s.name}
                     </button>
                   ))}
                 </div>
                 {tafsirLoading ? (
                   <div className="flex items-center gap-2 py-4 justify-center">
-                    <Loader2 size={16} className="animate-spin text-amber-400" />
-                    <span className="text-xs text-gray-500">{t.loading}</span>
+                    <Loader2 size={16} className="animate-spin" style={{ color: '#f59e0b' }} />
+                    <span className="text-xs" style={{ color: theme.textSecondary }}>{t.loading}</span>
                   </div>
                 ) : tafsirData.length > 0 ? (
                   <div className="space-y-3">
                     {tafsirData.map((td, i) => (
-                      <div key={i} className="bg-amber-500/5 rounded-lg p-3">
-                        <p className="text-[11px] font-semibold text-amber-300 mb-1">{td.scholar_display_name}</p>
-                        <p className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{td.tafsir_text}</p>
+                      <div key={i} className="rounded-lg p-3" style={{ background: '#f59e0b08' }}>
+                        <p className="text-[11px] font-semibold mb-1" style={{ color: '#f59e0b' }}>{td.scholar_display_name}</p>
+                        <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{td.tafsir_text}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500 py-2">{t.select_scholar}</p>
+                  <p className="text-xs py-2" style={{ color: theme.textSecondary }}>
+                    {tafsirScholars.length > 0 ? 'Bir tefsir hocası seçerek başlayın' : 'AI aktif değil. Tefsir için Gemini API key gereklidir.'}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {currentTab === 'kissa' && (
+              <div className="mt-3 animate-fade-in rounded-lg p-3" style={{ background: `${theme.gold}10` }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={14} style={{ color: theme.gold }} />
+                  <span className="text-xs font-semibold" style={{ color: theme.gold }}>Kıssa & Hikaye</span>
+                  {kissaData[kissaKey]?.scholar_name && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}15`, color: theme.gold }}>{kissaData[kissaKey].scholar_name}</span>
+                  )}
+                  <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
+                </div>
+                {kissaLoading === kissaKey ? (
+                  <div className="flex items-center gap-2 py-4 justify-center">
+                    <Loader2 size={16} className="animate-spin" style={{ color: theme.gold }} />
+                    <span className="text-xs" style={{ color: theme.textSecondary }}>Kıssa oluşturuluyor...</span>
+                  </div>
+                ) : kissaData[kissaKey] ? (
+                  <>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{kissaData[kissaKey].kissa}</p>
+                    <div className="flex gap-2 mt-2 pt-2" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+                      <button onClick={() => saveToNotes(verse, kissaData[kissaKey])}
+                        className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg transition-colors"
+                        style={{ background: `${theme.gold}15`, color: theme.gold }}>
+                        <Heart size={10} fill={savedNotes[kissaKey] ? 'currentColor' : 'none'} /> {savedNotes[kissaKey] ? 'Kaydedildi' : 'Kaydet'}
+                      </button>
+                      <button onClick={() => { navigator.clipboard.writeText(kissaData[kissaKey].kissa).catch(() => {}); }}
+                        className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg transition-colors"
+                        style={{ background: `${theme.gold}15`, color: theme.gold }}>
+                        <Copy size={10} /> Kopyala
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs py-2" style={{ color: theme.textSecondary }}>AI aktif değil. Kıssa için Gemini API key gereklidir.</p>
                 )}
               </div>
             )}

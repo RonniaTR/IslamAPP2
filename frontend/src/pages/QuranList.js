@@ -14,7 +14,7 @@ export default function QuranList() {
   const [searching, setSearching] = useState(false);
 
   useEffect(() => {
-    api.get('/quran/surahs').then(r => { setSurahs(r.data); setLoading(false); }).catch(() => setLoading(false));
+    api.get('/quran/surahs').then(r => { if (Array.isArray(r.data)) setSurahs(r.data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
   // Debounced verse search
@@ -85,7 +85,7 @@ export default function QuranList() {
               "{searchResults.query}" için {searchResults.count} ayet bulundu
             </p>
             <div className="space-y-2">
-              {searchResults.results.slice(0, 20).map((r, i) => (
+              {(Array.isArray(searchResults.results) ? searchResults.results : []).slice(0, 20).map((r, i) => (
                 <button key={i} onClick={() => navigate(`/quran/${r.surah_number}`)}
                   data-testid={`search-result-${i}`}
                   className="w-full text-left card-islamic rounded-xl p-3 transition-all active:scale-[0.98]">

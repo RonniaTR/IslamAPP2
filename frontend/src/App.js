@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LangProvider } from './contexts/LangContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import SplashScreen from './components/SplashScreen';
@@ -28,7 +29,7 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A1F14] flex items-center justify-center max-w-[430px] mx-auto">
+      <div className="min-h-screen bg-[#0A1F14] flex items-center justify-center max-w-[520px] md:max-w-[768px] lg:max-w-[520px] mx-auto">
         <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -95,8 +96,10 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <LangProvider>
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-          <AppRouter />
+          <ThemeProvider>
+            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+            <AppRouter />
+          </ThemeProvider>
         </LangProvider>
       </AuthProvider>
     </BrowserRouter>

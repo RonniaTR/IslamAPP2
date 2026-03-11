@@ -23,9 +23,9 @@ export default function RamadanPage() {
   const todayDua = DAILY_DUAS[dayOfYear % DAILY_DUAS.length];
 
   useEffect(() => {
-    api.get(`/prayer-times/${selectedCity}`).then(r => setPrayerTimes(r.data)).catch(() => {});
-    api.get('/quran/random').then(r => setRandomVerse(r.data)).catch(() => {});
-    api.get('/hadith/random').then(r => setRandomHadith(r.data)).catch(() => {});
+    api.get(`/prayer-times/${selectedCity}`).then(r => { if (r.data && typeof r.data === 'object') setPrayerTimes(r.data); }).catch(() => {});
+    api.get('/quran/random').then(r => { if (r.data && typeof r.data === 'object') setRandomVerse(r.data); }).catch(() => {});
+    api.get('/hadith/random').then(r => { if (r.data && typeof r.data === 'object') setRandomHadith(r.data); }).catch(() => {});
   }, [selectedCity]);
 
   useEffect(() => {

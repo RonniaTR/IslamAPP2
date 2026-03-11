@@ -14,8 +14,10 @@ from datetime import datetime, date, timedelta, timezone
 import math
 import asyncio
 import httpx
-from emergentintegrations.llm.chat import LlmChat, UserMessage
-from emergentintegrations.llm.openai import OpenAITextToSpeech
+import google.generativeai as genai
+import edge_tts
+import base64
+import io
 from comparative_religions import COMPARATIVE_TEXTS, TOPICS, get_comparative_data, get_all_topics, search_comparative
 
 ROOT_DIR = Path(__file__).parent
@@ -147,12 +149,27 @@ def load_quran_data():
 load_quran_data()
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'islamapp')]
 
-# LLM Key
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+# Gemini API Key (free tier)
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
+async def gemini_generate(prompt: str, system_message: str = "") -> str:
+    """Generate text using Google Gemini (free tier)"""
+    try:
+        model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=system_message if system_message else None
+        )
+        response = await asyncio.to_thread(model.generate_content, prompt)
+        return response.text
+    except Exception as e:
+        logger.error(f"Gemini API error: {e}")
+        raise
 
 # Auth Config
 EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
@@ -817,6 +834,43 @@ SAMPLE_HADITHS = [
     }
 ]
 
+def load_hadith_catalog():
+    """Load hadith catalog from JSON and derive category metadata."""
+    hadiths_file = ROOT_DIR / "data" / "hadiths.json"
+    hadiths = SAMPLE_HADITHS
+
+    if hadiths_file.exists():
+        try:
+            with open(hadiths_file, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            if isinstance(loaded, list) and loaded:
+                hadiths = loaded
+        except Exception as e:
+            logger.warning(f"Failed to load hadith catalog from JSON: {e}")
+
+    categories = {}
+    normalized = []
+    for hadith in hadiths:
+        item = dict(hadith)
+        category_name = item.get("category") or "Genel"
+        category_id = item.get("categoryId") or category_name.lower().replace(" ", "-")
+        item["categoryId"] = category_id
+        item["authenticity"] = item.get("authenticity") or item.get("grade") or "Sahih"
+        item["explanation"] = item.get("explanation") or f"Bu hadis {category_name.lower()} başlığında rehberlik sunar."
+        normalized.append(item)
+
+        if category_id not in categories:
+            categories[category_id] = {
+                "id": category_id,
+                "name": category_name,
+                "description": f"{category_name} başlığındaki hadisler"
+            }
+
+    return normalized, list(categories.values())
+
+HADITH_LIBRARY, HADITH_CATEGORIES = load_hadith_catalog()
+SAMPLE_HADITHS = HADITH_LIBRARY
+
 # ===================== BADGES DATA =====================
 
 BADGES = [
@@ -1242,6 +1296,10 @@ TAFSIR_SCHOLARS = {
     "taberi": {"id": "taberi", "name": "Taberi", "name_ar": "الطبري", "name_en": "Al-Tabari", "era": "839-923", "school": "Şafii"},
     "elmalili": {"id": "elmalili", "name": "Elmalılı Hamdi Yazır", "name_ar": "الملالي حمدي يازر", "name_en": "Elmalılı Hamdi Yazır", "era": "1878-1942", "school": "Hanefi"},
     "razi": {"id": "razi", "name": "Fahreddin Razi", "name_ar": "فخر الدين الرازي", "name_en": "Fakhr al-Din al-Razi", "era": "1149-1209", "school": "Şafii"},
+    "kurtubi": {"id": "kurtubi", "name": "İmam Kurtubi", "name_ar": "الإمام القرطبي", "name_en": "Al-Qurtubi", "era": "1214-1273", "school": "Maliki"},
+    "mevdudi": {"id": "mevdudi", "name": "Mevdudi", "name_ar": "المودودي", "name_en": "Maududi", "era": "1903-1979", "school": "Modern"},
+    "diyanet": {"id": "diyanet", "name": "Diyanet İşleri", "name_ar": "رئاسة الشؤون الدينية", "name_en": "Diyanet", "era": "Güncel", "school": "Hanefi"},
+    "suyuti": {"id": "suyuti", "name": "İmam Suyuti", "name_ar": "الإمام السيوطي", "name_en": "Al-Suyuti", "era": "1445-1505", "school": "Şafii"},
 }
 
 @api_router.get("/tafsir/scholars")
@@ -1261,7 +1319,7 @@ async def get_tafsir(surah_number: int, verse_number: int, scholar: str = None, 
         return cached
     
     # Generate via AI if not cached
-    if not EMERGENT_LLM_KEY:
+    if not GEMINI_API_KEY:
         return []
     
     scholars_to_gen = [scholar] if scholar else list(TAFSIR_SCHOLARS.keys())
@@ -1307,9 +1365,7 @@ Tefsiri 3-5 paragraf olarak, kapsamlı ve öğretici bir şekilde yaz.
 {lang_instruction}"""
         
         try:
-            chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"tafsir_{surah_number}_{verse_number}_{s_id}", system_message="Sen bir İslam alimi ve tefsir uzmanısın.")
-            chat.with_model("anthropic", "claude-sonnet-4-5-20250929")
-            response = await chat.send_message(UserMessage(text=prompt))
+            response = await gemini_generate(prompt, system_message="Sen bir İslam alimi ve tefsir uzmanısın.")
             tafsir_text = response
             
             tafsir_doc = {
@@ -1392,9 +1448,7 @@ Kurallar:
 6. Türkçe yaz"""
 
     try:
-        chat = LlmChat(api_key=EMERGENT_LLM_KEY, session_id=f"kissa_{surah_number}_{verse_number}", system_message="Sen İslami hikayeler ve kıssalar anlatan bir hocasın.")
-        chat.with_model("anthropic", "claude-sonnet-4-5-20250929")
-        response = await chat.send_message(UserMessage(text=prompt))
+        response = await gemini_generate(prompt, system_message="Sen İslami hikayeler ve kıssalar anlatan bir hocasın.")
 
         kissa_doc = {
             "surah_number": surah_number,
@@ -1623,21 +1677,20 @@ async def get_mood_content(mood_id: str):
 
 @api_router.post("/tts")
 async def text_to_speech(request: Request):
-    """Convert text to speech using OpenAI TTS - male voice"""
+    """Convert text to speech using Edge TTS - natural Turkish male voice"""
     try:
         body = await request.json()
         text = body.get("text", "")
         if not text or len(text) > 4096:
             raise HTTPException(status_code=400, detail="Text required (max 4096 chars)")
 
-        tts = OpenAITextToSpeech(api_key=os.environ.get("EMERGENT_LLM_KEY"))
-        audio_base64 = await tts.generate_speech_base64(
-            text=text,
-            model="tts-1-hd",
-            voice="onyx",
-            speed=0.95,
-            response_format="mp3"
-        )
+        communicate = edge_tts.Communicate(text, "tr-TR-AhmetNeural")
+        audio_buffer = io.BytesIO()
+        async for chunk in communicate.stream():
+            if chunk["type"] == "audio":
+                audio_buffer.write(chunk["data"])
+        audio_buffer.seek(0)
+        audio_base64 = base64.b64encode(audio_buffer.read()).decode('utf-8')
         return {"audio": audio_base64, "format": "mp3"}
     except Exception as e:
         logger.error(f"TTS error: {e}")
@@ -1743,16 +1796,8 @@ CEVAP FORMATI:
 💡 ÖNERİ: (Kitap/kaynak önerisi)
 """
 
-        # Initialize LLM chat
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"scholar_{request.scholar_id}_{request.session_id}",
-            system_message=system_message
-        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
-        
-        # Send message
-        user_message = UserMessage(text=request.question)
-        response = await chat.send_message(user_message)
+        # Initialize Gemini chat
+        response = await gemini_generate(request.question, system_message=system_message)
         
         # Store the interaction
         await db.scholar_questions.insert_one({
@@ -2096,23 +2141,27 @@ async def get_hadith_categories():
 async def get_random_hadith():
     """Get a random hadith"""
     import random
-    return random.choice(SAMPLE_HADITHS)
+    return random.choice(HADITH_LIBRARY)
 
 @api_router.get("/hadith/all")
 async def get_all_hadiths():
     """Get all hadiths"""
-    return SAMPLE_HADITHS
+    return HADITH_LIBRARY
 
 @api_router.get("/hadith/category/{category_id}")
 async def get_hadiths_by_category(category_id: str):
     """Get hadiths by category"""
-    filtered = [h for h in SAMPLE_HADITHS if h["category"] == category_id]
+    category_lower = category_id.lower()
+    filtered = [
+        h for h in HADITH_LIBRARY
+        if h.get("categoryId", "").lower() == category_lower or h.get("category", "").lower() == category_lower
+    ]
     return filtered
 
 @api_router.get("/hadith/{hadith_id}")
 async def get_hadith(hadith_id: str):
     """Get specific hadith"""
-    for hadith in SAMPLE_HADITHS:
+    for hadith in HADITH_LIBRARY:
         if hadith["id"] == hadith_id:
             return hadith
     raise HTTPException(status_code=404, detail="Hadith not found")
@@ -2121,7 +2170,13 @@ async def get_hadith(hadith_id: str):
 async def search_hadiths(query: str):
     """Search hadiths"""
     query_lower = query.lower()
-    results = [h for h in SAMPLE_HADITHS if query_lower in h["turkish"].lower() or query_lower in h["explanation"].lower()]
+    results = [
+        h for h in HADITH_LIBRARY
+        if query_lower in h.get("turkish", "").lower()
+        or query_lower in h.get("explanation", "").lower()
+        or query_lower in h.get("theme", "").lower()
+        or query_lower in h.get("bookTr", "").lower()
+    ]
     return results
 
 # ===================== GAMIFICATION API =====================
@@ -2316,15 +2371,8 @@ async def ai_chat(request: ChatRequest):
         system_message = ISLAMIC_ADVISOR_SYSTEM_PROMPT + f"\n\nSohbet geçmişi:\n{context}"
         
         import asyncio
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"advisor_{request.session_id}",
-            system_message=system_message
-        )
-        chat.with_model("anthropic", "claude-sonnet-4-5-20250929")
-        
         response = await asyncio.wait_for(
-            chat.send_message(UserMessage(text=request.message)),
+            gemini_generate(request.message, system_message=system_message),
             timeout=30
         )
         
@@ -2457,22 +2505,17 @@ async def ai_compare_religions(topic: str, question: str = None):
     """AI-powered comparative analysis using Claude"""
     topic_data = get_comparative_data(topic)
     
-    if not EMERGENT_LLM_KEY:
+    if not GEMINI_API_KEY:
         # Return static comparison if no API key
         if topic_data:
             return {
                 "topic": topic,
                 "comparison": topic_data,
-                "ai_analysis": "AI analizi için EMERGENT_LLM_KEY gereklidir."
+                "ai_analysis": "AI analizi için GEMINI_API_KEY gereklidir."
             }
         raise HTTPException(status_code=400, detail="Topic not found")
     
     try:
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"compare_{topic}",
-            system_message="Sen bir karşılaştırmalı dinler uzmanısın."
-        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
         
         prompt = f"""Sen bir karşılaştırmalı dinler uzmanısın. Aşağıdaki konu hakkında farklı dinlerin görüşlerini karşılaştır:
 
@@ -2490,13 +2533,13 @@ Lütfen şu formatı kullan:
 
 Cevaplarını Türkçe ver ve kaynaklara dikkat et."""
 
-        response = await chat.send_message(UserMessage(text=prompt))
+        response = await gemini_generate(prompt, system_message="Sen bir karşılaştırmalı dinler uzmanısın.")
         
         return {
             "topic": topic,
             "question": question,
             "static_data": topic_data,
-            "ai_analysis": response.text
+            "ai_analysis": response
         }
     except Exception as e:
         logger.error(f"AI comparison error: {e}")
@@ -3422,6 +3465,20 @@ async def quiz_websocket(websocket: WebSocket, room_id: str, user_id: str):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         quiz_ws_manager.disconnect(room_id, user_id)
+
+# ===================== HADITH API =====================
+@api_router.get("/hadiths")
+async def get_hadith_catalog():
+    """Get all authentic hadiths from database"""
+    return HADITH_LIBRARY
+
+@api_router.get("/hadiths/{hadith_id}")
+async def get_hadith_by_id(hadith_id: str):
+    """Get a specific hadith by ID"""
+    hadith = next((h for h in HADITH_LIBRARY if h["id"] == hadith_id), None)
+    if not hadith:
+        raise HTTPException(status_code=404, detail="Hadith not found")
+    return hadith
 
 # Include router
 app.include_router(api_router)

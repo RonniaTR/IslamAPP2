@@ -27,6 +27,7 @@ next-env.d.ts
 
 # Production builds
 /build
+frontend/build/
 dist/
 dist
 
@@ -97,3 +98,8 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+
+# Firebase service account keys
+sa-key.json
+*.firebase-adminsdk*.json
+backend/data/islamapp-5942a-*.json

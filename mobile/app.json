@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "İslam App",
+    "slug": "islam-app",
+    "scheme": "islamapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B5E20"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Namaz vakitlerini ve kıble yönünü belirlemek için konumunuza ihtiyaç duyuyoruz."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1B5E20",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "Islam App",
+      "shortName": "IslamApp",
+      "lang": "tr",
+      "themeColor": "#1B5E20",
+      "backgroundColor": "#FAFAF5",
+      "display": "standalone"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Namaz vakitlerini ve kıble yönünü belirlemek için konumunuza ihtiyaç duyuyoruz."
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "Kıble pusulası için hareket sensörüne ihtiyaç duyuyoruz."
+        }
+      ],
+      "expo-web-browser"
+    ]
+  }
+}

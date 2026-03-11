@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Volume2, Moon, Compass, Heart, Share2, ChevronRight, Check, Users, Copy, Play, Pause, Loader } from 'lucide-react';
+import { BookOpen, Volume2, Moon, Compass, Heart, Share2, ChevronRight, Check, Users, Copy, Play, Pause, Loader, Trophy, Navigation, Headphones } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import api from '../api';
@@ -182,7 +182,7 @@ function KnowledgeCards() {
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
 
-  useEffect(() => { api.get('/knowledge-cards').then(r => setCards(r.data)).catch(() => {}); }, []);
+  useEffect(() => { api.get('/knowledge-cards').then(r => { if (Array.isArray(r.data)) setCards(r.data); }).catch(() => {}); }, []);
   if (!cards.length) return null;
 
   return (
@@ -219,7 +219,7 @@ function DhikrWidget() {
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => { api.get('/dhikr').then(r => setDhikrList(r.data)).catch(() => {}); }, []);
+  useEffect(() => { api.get('/dhikr').then(r => { if (Array.isArray(r.data)) setDhikrList(r.data); }).catch(() => {}); }, []);
   const current = dhikrList[activeIdx];
 
   const handleCount = () => {
@@ -277,7 +277,7 @@ function DhikrWidget() {
 function WorshipTracker() {
   const [items, setItems] = useState({ namaz: false, kuran: false, sadaka: false, zikir: false });
 
-  useEffect(() => { api.get('/worship/today').then(r => setItems(prev => ({ ...prev, ...r.data }))).catch(() => {}); }, []);
+  useEffect(() => { api.get('/worship/today').then(r => { if (r.data && typeof r.data === 'object' && !Array.isArray(r.data)) setItems(prev => ({ ...prev, ...r.data })); }).catch(() => {}); }, []);
 
   const toggle = async (key) => {
     const updated = { ...items, [key]: !items[key] };
@@ -354,23 +354,30 @@ function RamadanMini({ prayerTimes }) {
   );
 }
 
-// ─── Scholar CTA ───
-function ScholarCTA() {
+// ─── Quick Access Grid ───
+function QuickAccess() {
   const navigate = useNavigate();
+  const items = [
+    { path: '/quiz', icon: Trophy, label: 'Quiz', desc: 'Bilgini test et', color: '#E8C84A' },
+    { path: '/qibla', icon: Navigation, label: 'Kıble', desc: 'Kıble yönünü bul', color: '#4ADE80' },
+    { path: '/meal-audio', icon: Headphones, label: 'Meal Dinle', desc: 'Türkçe meal seslendirme', color: '#60A5FA' },
+    { path: '/scholars', icon: Users, label: 'Hocaya Sor', desc: '12 alimden görüş al', color: '#D4AF37' },
+  ];
   return (
-    <div className="mx-4 mb-5 card-islamic rounded-2xl p-4 animate-fade-in" data-testid="scholar-cta">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'rgba(212,175,55,0.15)' }}>
-          <Users size={22} className="text-[#D4AF37]" />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-[#F5F5DC]">Hocaya Sor</p>
-          <p className="text-[11px] text-[#A8B5A0]">12 farklı hocadan görüş al</p>
-        </div>
-        <button onClick={() => navigate('/scholars')} data-testid="scholar-ask-btn" aria-label="Hocaya sor"
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#0A1F14] bg-[#D4AF37] hover:bg-[#E8C84A] transition-colors active:scale-95">
-          Soru Sor
-        </button>
+    <div className="mx-4 mb-5 animate-fade-in" data-testid="quick-access">
+      <h2 className="text-sm font-semibold text-[#D4AF37] mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>Hızlı Erişim</h2>
+      <div className="grid grid-cols-2 gap-3">
+        {items.map(({ path, icon: Icon, label, desc, color }) => (
+          <button key={path} onClick={() => navigate(path)} data-testid={`quick-${path.slice(1)}`}
+            className="rounded-2xl p-4 text-left transition-all active:scale-[0.97]"
+            style={{ background: 'rgba(15,61,46,0.5)', border: `1px solid ${color}20` }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{ background: `${color}18` }}>
+              <Icon size={18} style={{ color }} />
+            </div>
+            <p className="text-sm font-semibold text-[#F5F5DC]">{label}</p>
+            <p className="text-[10px] text-[#A8B5A0] mt-0.5">{desc}</p>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -385,9 +392,9 @@ export default function Dashboard() {
   const [randomHadith, setRandomHadith] = useState(null);
 
   useEffect(() => {
-    api.get(`/prayer-times/${selectedCity}`).then(r => setPrayerTimes(r.data)).catch(() => {});
-    api.get('/quran/random').then(r => setRandomVerse(r.data)).catch(() => {});
-    api.get('/hadith/random').then(r => setRandomHadith(r.data)).catch(() => {});
+    api.get(`/prayer-times/${selectedCity}`).then(r => { if (r.data && typeof r.data === 'object') setPrayerTimes(r.data); }).catch(() => {});
+    api.get('/quran/random').then(r => { if (r.data && typeof r.data === 'object') setRandomVerse(r.data); }).catch(() => {});
+    api.get('/hadith/random').then(r => { if (r.data && typeof r.data === 'object') setRandomHadith(r.data); }).catch(() => {});
   }, [selectedCity]);
 
   const prayerKeys = [
@@ -435,7 +442,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <ScholarCTA />
+      <QuickAccess />
     </div>
   );
 }

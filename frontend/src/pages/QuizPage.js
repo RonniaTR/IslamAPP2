@@ -47,8 +47,8 @@ export default function QuizPage() {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    api.get('/quiz/categories').then(r => setCategories(r.data)).catch(() => {});
-    api.get('/quiz/leaderboard').then(r => setLeaderboard(r.data)).catch(() => {});
+    api.get('/quiz/categories').then(r => { if (Array.isArray(r.data)) setCategories(r.data); }).catch(() => {});
+    api.get('/quiz/leaderboard').then(r => { if (Array.isArray(r.data)) setLeaderboard(r.data); }).catch(() => {});
   }, []);
 
   // Timer countdown
@@ -97,12 +97,12 @@ export default function QuizPage() {
   }, [selected, session, qi, timer, bestStreak]);
 
   const nextQuestion = () => {
-    if (qi + 1 >= session.questions.length) {
+    if (!session?.questions || qi + 1 >= session.questions.length) {
       api.post(`/quiz/solo/${session.session_id}/finish`).catch(() => {});
       setView('result');
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
-      api.get('/quiz/leaderboard').then(r => setLeaderboard(r.data)).catch(() => {});
+      api.get('/quiz/leaderboard').then(r => { if (Array.isArray(r.data)) setLeaderboard(r.data); }).catch(() => {});
       return;
     }
     setQi(prev => prev + 1); setSelected(null); setResult(null);

@@ -43,6 +43,7 @@ export default function KnowledgeDetail() {
 
   useEffect(() => {
     api.get(`/knowledge-cards/${cardId}`).then(r => {
+      if (!r.data || !Array.isArray(r.data.items)) return;
       setCard(r.data);
       // Shuffle items for variety each visit
       const items = [...r.data.items];
@@ -87,7 +88,7 @@ export default function KnowledgeDetail() {
           <span className="text-2xl">{card.icon || '📖'}</span>
           <div>
             <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{card.title}</h1>
-            <p className="text-xs text-[#A8B5A0]">{card.items.length} konu</p>
+            <p className="text-xs text-[#A8B5A0]">{card.items?.length || 0} konu</p>
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@ export default function MealAudioPage() {
   const [juzList, setJuzList] = useState([]);
   const [activeJuz, setActiveJuz] = useState(null);
 
-  useEffect(() => { api.get('/quran/meal-audio').then(r => setJuzList(r.data)).catch(() => {}); }, []);
+  useEffect(() => { api.get('/quran/meal-audio').then(r => { if (Array.isArray(r.data)) setJuzList(r.data); }).catch(() => {}); }, []);
 
   return (
     <div className="animate-fade-in" data-testid="meal-audio-page">

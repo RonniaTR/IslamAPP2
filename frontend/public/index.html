@@ -29,10 +29,21 @@
 <body>
   <div id="root"></div>
   <script>
-    // Register Service Worker for PWA
+    // Force clean slate: unregister old SWs, clear old caches, then register fresh
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').catch(function() {});
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          var p = regs.map(function(r) { return r.unregister(); });
+          return Promise.all(p);
+        }).then(function() {
+          return caches.keys();
+        }).then(function(keys) {
+          return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+        }).then(function() {
+          navigator.serviceWorker.register('/sw.js');
+        }).catch(function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
       });
     }
   </script>
