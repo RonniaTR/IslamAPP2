@@ -14,7 +14,7 @@ from datetime import datetime, date, timedelta, timezone
 import math
 import asyncio
 import httpx
-import google.generativeai as genai
+from google import genai
 import edge_tts
 import base64
 import io
@@ -155,17 +155,22 @@ db = client[os.environ.get('DB_NAME', 'islamapp')]
 
 # Gemini API Key (free tier)
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 async def gemini_generate(prompt: str, system_message: str = "") -> str:
     """Generate text using Google Gemini (free tier)"""
     try:
-        model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
+        if not gemini_client:
+            raise Exception("Gemini API key not configured")
+        config = genai.types.GenerateContentConfig(
             system_instruction=system_message if system_message else None
         )
-        response = await asyncio.to_thread(model.generate_content, prompt)
+        response = await asyncio.to_thread(
+            gemini_client.models.generate_content,
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config=config
+        )
         return response.text
     except Exception as e:
         logger.error(f"Gemini API error: {e}")
