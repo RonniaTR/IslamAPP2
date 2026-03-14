@@ -3,41 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, Volume2, Moon, Compass, Heart, Share2, ChevronRight, Check, Users, Copy, Play, Pause, Loader, Trophy, Navigation, Headphones } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
+import { useTTS, shareOrCopy } from '../hooks/useShared';
 import api from '../api';
-
-// ─── TTS Hook ───
-function useTTS() {
-  const [playing, setPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const audioRef = useRef(null);
-
-  const speak = useCallback(async (text) => {
-    if (playing && audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlaying(false); return; }
-    setLoading(true);
-    try {
-      const { data } = await api.post('/tts', { text });
-      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
-      audioRef.current = audio;
-      audio.onended = () => { setPlaying(false); audioRef.current = null; };
-      audio.onerror = () => { setPlaying(false); audioRef.current = null; };
-      await audio.play();
-      setPlaying(true);
-    } catch { setPlaying(false); }
-    setLoading(false);
-  }, [playing]);
-
-  return { speak, playing, loading };
-}
-
-// ─── Share Helper ───
-function shareOrCopy(title, text) {
-  const full = `${title}\n\n${text}\n\n— İslami Yaşam Asistanı`;
-  if (navigator.share) {
-    navigator.share({ title, text: full }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(full).then(() => {}).catch(() => {});
-  }
-}
 
 // ─── Mood Section (horizontal scroll) ───
 function MoodSection() {

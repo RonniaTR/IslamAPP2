@@ -15,9 +15,13 @@ const QUICK_QUESTIONS = [
   { q: "Peygamberimizin hayatı", icon: "⭐", cat: "Siyer" },
 ];
 
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function formatAIResponse(text) {
   if (!text) return text;
-  return text
+  return escapeHtml(text)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/^### (.*$)/gm, '<h3 class="text-sm font-bold mt-2 mb-1">$1</h3>')

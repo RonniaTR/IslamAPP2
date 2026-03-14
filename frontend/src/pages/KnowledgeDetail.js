@@ -1,38 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Share2, Volume2, Play, Pause, Loader, RefreshCw } from 'lucide-react';
+import { useTTS, shareOrCopy } from '../hooks/useShared';
 import api from '../api';
-
-function useTTS() {
-  const [playing, setPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const audioRef = React.useRef(null);
-
-  const speak = useCallback(async (text) => {
-    if (playing && audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlaying(false); return; }
-    setLoading(true);
-    try {
-      const { data } = await api.post('/tts', { text });
-      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`);
-      audioRef.current = audio;
-      audio.onended = () => { setPlaying(false); audioRef.current = null; };
-      await audio.play();
-      setPlaying(true);
-    } catch { setPlaying(false); }
-    setLoading(false);
-  }, [playing]);
-
-  return { speak, playing, loading };
-}
-
-function shareOrCopy(title, text) {
-  const full = `${title}\n\n${text}\n\n— İslami Yaşam Asistanı`;
-  if (navigator.share) {
-    navigator.share({ title, text: full }).catch(() => {});
-  } else {
-    navigator.clipboard.writeText(full).then(() => {}).catch(() => {});
-  }
-}
 
 export default function KnowledgeDetail() {
   const { cardId } = useParams();

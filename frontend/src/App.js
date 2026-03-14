@@ -23,6 +23,12 @@ import KnowledgeDetail from './pages/KnowledgeDetail';
 import NotesPage from './pages/NotesPage';
 import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
+import ProfilePage from './pages/ProfilePage';
+import MultiplayerQuiz from './pages/MultiplayerQuiz';
+import ComparativePage from './pages/ComparativePage';
+import PomodoroPage from './pages/PomodoroPage';
+import BookmarksPage from './pages/BookmarksPage';
+import DiscoverPage from './pages/DiscoverPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -65,6 +71,12 @@ function AppRouter() {
           <Route path="/knowledge/:cardId" element={<KnowledgeDetail />} />
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/multiplayer" element={<MultiplayerQuiz />} />
+          <Route path="/comparative" element={<ComparativePage />} />
+          <Route path="/pomodoro" element={<PomodoroPage />} />
+          <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

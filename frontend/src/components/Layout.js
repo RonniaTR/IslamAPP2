@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, MessageCircle, Heart, Settings, ScrollText, Trophy } from 'lucide-react';
+import { Home, BookOpen, MessageCircle, Compass, Settings, ScrollText, Trophy } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -17,7 +17,7 @@ export default function Layout() {
     { path: '/quran', icon: BookOpen, label: t.quran || "Kur'an" },
     { path: '/hadith', icon: ScrollText, label: t.hadith || 'Hadis' },
     { path: '/quiz', icon: Trophy, label: t.quiz || 'Quiz' },
-    { path: '/notes', icon: Heart, label: t.notes || 'Notlarım' },
+    { path: '/discover', icon: Compass, label: t.explore || 'Keşfet' },
     { path: '/chat', icon: MessageCircle, label: t.chat || 'Sohbet' },
     { path: '/settings', icon: Settings, label: t.settings || 'Ayarlar' },
   ];
