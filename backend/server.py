@@ -217,6 +217,32 @@ SESSION_EXPIRY_DAYS = 7
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# ===================== SELF-PING (Render free tier uyku önleme) =====================
+_keep_alive_task = None
+
+async def _keep_alive():
+    """Her 13 dakikada /api/health'e ping atarak Render free tier'ın uyumasını engelle"""
+    import aiohttp
+    render_url = os.environ.get('RENDER_EXTERNAL_URL', '')
+    if not render_url:
+        logger.info("RENDER_EXTERNAL_URL not set, keep-alive disabled")
+        return
+    health_url = f"{render_url}/api/health"
+    logger.info(f"Keep-alive started: pinging {health_url} every 13 minutes")
+    async with aiohttp.ClientSession() as session:
+        while True:
+            await asyncio.sleep(780)  # 13 dakika
+            try:
+                async with session.get(health_url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
+                    logger.debug(f"Keep-alive ping: {resp.status}")
+            except Exception as e:
+                logger.warning(f"Keep-alive ping failed: {e}")
+
+@app.on_event("startup")
+async def startup_event():
+    global _keep_alive_task
+    _keep_alive_task = asyncio.create_task(_keep_alive())
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -3521,14 +3547,25 @@ async def get_hadith_by_id(hadith_id: str):
 # Include router
 app.include_router(api_router)
 
+# Allowed frontend origins
+_allowed_origins = [
+    "https://islamapp-5942a.web.app",
+    "https://islamapp-5942a.firebaseapp.com",
+    "http://localhost:3000",
+    "http://localhost:3334",
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    global _keep_alive_task
+    if _keep_alive_task:
+        _keep_alive_task.cancel()
     client.close()
