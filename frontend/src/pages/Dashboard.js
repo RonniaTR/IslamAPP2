@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Volume2, Moon, Compass, Heart, Share2, ChevronRight, Check, Users, Copy, Play, Pause, Loader, Trophy, Navigation, Headphones } from 'lucide-react';
+import { BookOpen, Volume2, Moon, Compass, Heart, Share2, ChevronRight, Check, Users, Copy, Play, Pause, Loader, Trophy, Navigation, Headphones, X, ScrollText } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { useTTS, shareOrCopy } from '../hooks/useShared';
 import api from '../api';
 
@@ -112,39 +113,91 @@ function DailyVerse({ verse }) {
   );
 }
 
-// ─── Daily Hadith Card ───
-function DailyHadith({ hadith }) {
+// ─── Hadith Overlay Modal ───
+function HadithModal({ hadith, onClose }) {
   const tts = useTTS();
+  const navigate = useNavigate();
   if (!hadith) return null;
   return (
-    <div className="mx-4 mb-4 card-islamic rounded-2xl p-4 animate-fade-in" data-testid="daily-hadith">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Volume2 size={16} className="text-[#E8C84A]" />
-          <span className="text-sm font-semibold text-[#E8C84A]">Günün Hadisi</span>
+    <div className="fixed inset-0 z-[100] flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="relative w-full max-w-[520px] mx-auto animate-slide-up" onClick={e => e.stopPropagation()}
+        style={{ background: 'linear-gradient(180deg, #0F3D2E 0%, #0A1F14 100%)', borderRadius: '24px 24px 0 0', maxHeight: '85vh', overflow: 'auto' }}>
+        {/* Handle bar */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-white/20" />
         </div>
-        <span className="text-xs text-[#A8B5A0]">{hadith.source}</span>
-      </div>
-      <p className="arabic-text text-base text-[#F5F5DC]/90 mb-2">{hadith.arabic}</p>
-      <p className="text-sm text-[#A8B5A0] leading-relaxed mb-3">{hadith.turkish}</p>
-      <div className="flex gap-2 pt-2 border-t border-[#D4AF37]/10">
-        <button onClick={() => tts.speak(hadith.turkish)} data-testid="hadith-listen-btn" aria-label="Hadisi dinle"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-[#E8C84A] transition-colors"
-          style={{ background: 'rgba(232,200,74,0.1)' }}>
-          {tts.loading ? <Loader size={12} className="animate-spin" /> : tts.playing ? <Pause size={12} /> : <Volume2 size={12} />}
-          {tts.loading ? 'Yükleniyor...' : tts.playing ? 'Durdur' : 'Dinle'}
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <X size={16} className="text-[#A8B5A0]" />
         </button>
-        <button onClick={() => shareOrCopy('Günün Hadisi', `${hadith.arabic}\n\n${hadith.turkish}\n— ${hadith.source}`)} data-testid="hadith-share-btn"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-[#E8C84A] transition-colors"
-          style={{ background: 'rgba(232,200,74,0.1)' }}>
-          <Share2 size={12} /> Paylaş
-        </button>
+        <div className="px-6 pt-2 pb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <ScrollText size={18} className="text-[#E8C84A]" />
+            <span className="text-sm font-semibold text-[#E8C84A]">Hadis-i Şerif</span>
+          </div>
+          {/* Arabic text */}
+          <div className="p-4 rounded-2xl mb-4" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.12)' }}>
+            <p className="arabic-text text-lg text-[#F5F5DC]/90 leading-loose text-center">{hadith.arabic}</p>
+          </div>
+          {/* Turkish meaning */}
+          <p className="text-sm text-[#F5F5DC]/90 leading-relaxed mb-2">{hadith.turkish}</p>
+          <p className="text-[11px] text-[#D4AF37] mb-5">— {hadith.source}</p>
+          {/* Actions */}
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => tts.speak(hadith.turkish)}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium text-[#E8C84A]"
+              style={{ background: 'rgba(232,200,74,0.1)', border: '1px solid rgba(232,200,74,0.2)' }}>
+              {tts.loading ? <Loader size={14} className="animate-spin" /> : tts.playing ? <Pause size={14} /> : <Volume2 size={14} />}
+              {tts.loading ? 'Yükleniyor...' : tts.playing ? 'Durdur' : 'Dinle'}
+            </button>
+            <button onClick={() => shareOrCopy('Hadis-i Şerif', `${hadith.arabic}\n\n${hadith.turkish}\n— ${hadith.source}`)}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium text-[#E8C84A]"
+              style={{ background: 'rgba(232,200,74,0.1)', border: '1px solid rgba(232,200,74,0.2)' }}>
+              <Share2 size={14} /> Paylaş
+            </button>
+          </div>
+          <button onClick={() => { onClose(); navigate('/hadith'); }}
+            className="w-full py-3 rounded-xl text-sm font-semibold text-[#0A1F14] flex items-center justify-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #D4AF37, #E8C84A)' }}>
+            <ScrollText size={16} /> Hadis Koleksiyonuna Git
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Knowledge Cards (HUGE, horizontal scroll) ───
+// ─── Daily Hadith Card (Compact - opens modal) ───
+function DailyHadith({ hadith }) {
+  const [showModal, setShowModal] = useState(false);
+  if (!hadith) return null;
+  // Truncate Turkish text for preview
+  const preview = hadith.turkish?.length > 80 ? hadith.turkish.slice(0, 80) + '...' : hadith.turkish;
+  return (
+    <>
+      <button onClick={() => setShowModal(true)} className="mx-4 mb-4 w-[calc(100%-2rem)] text-left card-islamic rounded-2xl p-4 animate-fade-in transition-all active:scale-[0.98]" data-testid="daily-hadith">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(232,200,74,0.15)' }}>
+              <ScrollText size={14} className="text-[#E8C84A]" />
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-[#E8C84A] block">Günün Hadisi</span>
+              <span className="text-[10px] text-[#A8B5A0]">{hadith.source}</span>
+            </div>
+          </div>
+          <div className="px-2 py-1 rounded-lg text-[10px] font-medium text-[#E8C84A]" style={{ background: 'rgba(232,200,74,0.1)' }}>
+            Oku →
+          </div>
+        </div>
+        <p className="text-sm text-[#F5F5DC]/80 leading-relaxed line-clamp-2">{preview}</p>
+      </button>
+      {showModal && <HadithModal hadith={hadith} onClose={() => setShowModal(false)} />}
+    </>
+  );
+}
+
+// ─── Knowledge Cards (Enhanced with categories) ───
 function KnowledgeCards() {
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
@@ -152,28 +205,44 @@ function KnowledgeCards() {
   useEffect(() => { api.get('/knowledge-cards').then(r => { if (Array.isArray(r.data)) setCards(r.data); }).catch(() => {}); }, []);
   if (!cards.length) return null;
 
+  const totalItems = cards.reduce((s, c) => s + c.items.length, 0);
+
   return (
     <div className="mb-5 animate-fade-in" data-testid="knowledge-cards">
       <div className="flex items-center justify-between px-4 mb-3">
-        <h2 className="text-lg font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>İslam Bilgi Hazinesi</h2>
-        <span className="text-[10px] px-2 py-0.5 rounded-full text-[#D4AF37]" style={{ background: 'rgba(212,175,55,0.15)' }}>
-          {cards.reduce((s, c) => s + c.items.length, 0)}+ bilgi
+        <div>
+          <h2 className="text-lg font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>İslam Bilgi Hazinesi</h2>
+          <p className="text-[10px] text-[#A8B5A0] mt-0.5">{cards.length} kategori, {totalItems}+ konu</p>
+        </div>
+        <span className="text-[10px] px-2.5 py-1 rounded-full text-[#D4AF37] font-semibold flex items-center gap-1" style={{ background: 'rgba(212,175,55,0.15)' }}>
+          🏆 Puanlı
         </span>
       </div>
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4 pb-3">
-        {cards.map(card => (
-          <button key={card.id} onClick={() => navigate(`/knowledge/${card.id}`)} data-testid={`knowledge-${card.id}`}
-            className="shrink-0 w-56 rounded-2xl p-5 text-left transition-all active:scale-[0.97]"
-            style={{ background: `linear-gradient(135deg, rgba(15,61,46,0.7), rgba(10,31,20,0.9))`, border: `1px solid ${card.color || '#D4AF37'}30`, minHeight: '160px' }}>
-            <span className="text-3xl block mb-3">{card.icon || '📖'}</span>
-            <p className="text-base font-bold text-[#F5F5DC] mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>{card.title}</p>
-            <p className="text-xs text-[#A8B5A0] mb-3">{card.items.length} konu</p>
-            <div className="flex items-center gap-1 text-xs font-medium" style={{ color: card.color || '#D4AF37' }}>
-              <span>Keşfet</span>
-              <ChevronRight size={14} />
-            </div>
-          </button>
-        ))}
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-3">
+        {cards.map(card => {
+          const basicCount = card.items.filter(i => i.level === 'basic' || !i.level).length;
+          const deepCount = card.items.filter(i => i.level === 'deep').length;
+          return (
+            <button key={card.id} onClick={() => navigate(`/knowledge/${card.id}`)} data-testid={`knowledge-${card.id}`}
+              className="shrink-0 w-52 rounded-2xl p-4 text-left transition-all active:scale-[0.97] relative overflow-hidden"
+              style={{ background: `linear-gradient(135deg, rgba(15,61,46,0.8), rgba(10,31,20,0.95))`, border: `1px solid ${card.color || '#D4AF37'}25` }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: card.color || '#D4AF37', transform: 'translate(30%, -30%)' }} />
+              <span className="text-2xl block mb-2">{card.icon || '📖'}</span>
+              <p className="text-sm font-bold text-[#F5F5DC] mb-0.5" style={{ fontFamily: 'Playfair Display, serif' }}>{card.title}</p>
+              <p className="text-[10px] text-[#A8B5A0] mb-2">{card.items.length} konu</p>
+              {deepCount > 0 && (
+                <div className="flex gap-1 mb-2">
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full text-[#4ADE80]" style={{ background: 'rgba(74,222,128,0.12)' }}>Temel: {basicCount}</span>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full text-[#818CF8]" style={{ background: 'rgba(129,140,248,0.12)' }}>Derin: {deepCount}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1 text-[11px] font-medium" style={{ color: card.color || '#D4AF37' }}>
+                <span>İncele</span>
+                <ChevronRight size={12} />
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -1022,6 +1022,7 @@ POINTS_CONFIG = {
     "scholar_question": 8,
     "chat": 3,
     "daily_login": 5,
+    "knowledge_quiz": 50,
 }
 
 def calculate_level(points: int) -> int:
@@ -2412,6 +2413,65 @@ async def health_check():
     except:
         db_ok = False
     return {"status": "ok", "db": db_ok, "version": "2.0"}
+
+class KnowledgeQuizRequest(BaseModel):
+    topic_title: str
+    topic_content: str
+
+@api_router.post("/ai/knowledge-quiz")
+async def generate_knowledge_quiz(request: KnowledgeQuizRequest):
+    """Generate an AI quiz question based on a knowledge topic"""
+    try:
+        import asyncio
+        prompt = f"""Aşağıdaki İslami bilgi konusu hakkında Türkçe bir çoktan seçmeli soru oluştur.
+
+Konu Başlığı: {request.topic_title}
+Konu İçeriği: {request.topic_content}
+
+KURALLARIN:
+1. Soru direkt konu içeriğinden olsun
+2. 4 şık olsun (A, B, C, D)
+3. Sadece 1 doğru cevap olsun
+4. Şıklar makul ve yanıltıcı olsun
+
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+{{"question": "soru metni", "options": ["A şıkkı", "B şıkkı", "C şıkkı", "D şıkkı"], "correct": 0, "explanation": "doğru cevabın kısa açıklaması"}}
+
+correct değeri 0-3 arası bir sayı olmalı (doğru şıkkın index'i)."""
+
+        response = await asyncio.wait_for(
+            gemini_generate(prompt, system_message="Sen İslami bilgi yarışması hazırlayan bir eğitimcisin. SADECE JSON formatında yanıt ver."),
+            timeout=30
+        )
+
+        import json as json_module
+        # Extract JSON from response
+        response = response.strip()
+        if response.startswith("```"):
+            response = response.split("\n", 1)[1] if "\n" in response else response[3:]
+            response = response.rsplit("```", 1)[0]
+        response = response.strip()
+
+        quiz_data = json_module.loads(response)
+
+        # Validate structure
+        if not all(k in quiz_data for k in ("question", "options", "correct", "explanation")):
+            raise ValueError("Invalid quiz format")
+        if not isinstance(quiz_data["options"], list) or len(quiz_data["options"]) != 4:
+            raise ValueError("Need exactly 4 options")
+        if not isinstance(quiz_data["correct"], int) or quiz_data["correct"] not in range(4):
+            raise ValueError("correct must be 0-3")
+
+        return quiz_data
+
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail="AI yanıt süresi aşıldı")
+    except (json_module.JSONDecodeError, ValueError) as e:
+        logger.error(f"Quiz parse error: {e}, response: {response[:200] if 'response' in dir() else 'N/A'}")
+        raise HTTPException(status_code=502, detail="AI geçersiz format döndürdü, tekrar deneyin")
+    except Exception as e:
+        logger.error(f"Knowledge quiz error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Soru oluşturulamadı")
 
 @api_router.post("/ai/chat", response_model=ChatResponse)
 async def ai_chat(request: ChatRequest):
