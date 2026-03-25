@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { BookOpen, Search, Sparkles, ChevronDown, ChevronUp, Loader, Globe, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, Search, Sparkles, ChevronDown, ChevronUp, Loader, Loader2, Globe, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LangContext';
 import api from '../api';
 
 const RELIGION_COLORS = {
@@ -18,10 +20,20 @@ const RELIGION_LABELS = {
   'hadith': { name: 'Hadis', icon: '📖', source: 'Hadis-i Şerif' },
 };
 
+const CATEGORY_LABELS = {
+  inanc: { label: 'İnanç Esasları', icon: '🕌' },
+  ibadet: { label: 'İbadet', icon: '🤲' },
+  ahlak: { label: 'Ahlak & Değerler', icon: '💚' },
+  toplum: { label: 'Toplum & Yaşam', icon: '🏛️' },
+};
+
 export default function ComparativePage() {
   const { theme } = useTheme();
+  const { lang } = useLang();
   const navigate = useNavigate();
   const [topics, setTopics] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [topicData, setTopicData] = useState(null);
   const [aiAnalysis, setAiAnalysis] = useState('');
@@ -31,12 +43,35 @@ export default function ComparativePage() {
   const [expandedReligion, setExpandedReligion] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Load Phase 3 topics (50 topics) with categories fallback to Phase 1 topics
   useEffect(() => {
-    api.get('/comparative/topics').then(r => {
-      setTopics(Array.isArray(r.data) ? r.data : []);
+    Promise.all([
+      api.get('/comparative/v2/topics').catch(() => ({ data: [] })),
+      api.get('/comparative/v2/categories').catch(() => ({ data: [] })),
+      api.get('/comparative/topics').catch(() => ({ data: [] })),
+    ]).then(([v2Topics, v2Cats, v1Topics]) => {
+      const t2 = Array.isArray(v2Topics.data) ? v2Topics.data : [];
+      const t1 = Array.isArray(v1Topics.data) ? v1Topics.data : [];
+      setTopics(t2.length > 0 ? t2 : t1);
+      setCategories(Array.isArray(v2Cats.data) ? v2Cats.data : []);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    });
   }, []);
+
+  const filteredTopics = useMemo(() => {
+    let filtered = topics;
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(t => t.category === selectedCategory);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter(t =>
+        (t.name || t.title || '').toLowerCase().includes(q) ||
+        (t.name_en || '').toLowerCase().includes(q)
+      );
+    }
+    return filtered;
+  }, [topics, selectedCategory, searchQuery]);
 
   const loadTopic = async (topicId) => {
     setSelectedTopic(topicId);
@@ -44,27 +79,31 @@ export default function ComparativePage() {
     setAiAnalysis('');
     setExpandedReligion(null);
     try {
-      const { data } = await api.get(`/comparative/topic/${topicId}`);
+      // Try Phase 3 endpoint first
+      const { data } = await api.get(`/comparative/v2/topic/${topicId}?lang=${lang}`);
       setTopicData(data);
-    } catch {}
+    } catch {
+      try {
+        const { data } = await api.get(`/comparative/topic/${topicId}`);
+        setTopicData(data);
+      } catch {}
+    }
   };
 
   const getAiAnalysis = async () => {
     if (!selectedTopic || aiLoading) return;
     setAiLoading(true);
     try {
-      const { data } = await api.post('/comparative/ai-compare', { topic_id: selectedTopic });
+      // Try Phase 3 deep analysis first
+      const { data } = await api.post('/comparative/v2/ai-analyze', { topic_id: selectedTopic, language: lang });
       setAiAnalysis(data.analysis || data.response || '');
-    } catch { setAiAnalysis('AI analizi şu an kullanılamıyor.'); }
+    } catch {
+      try {
+        const { data } = await api.post('/comparative/ai-compare', { topic_id: selectedTopic });
+        setAiAnalysis(data.analysis || data.response || '');
+      } catch { setAiAnalysis('AI analizi şu an kullanılamıyor.'); }
+    }
     setAiLoading(false);
-  };
-
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    try {
-      const { data } = await api.get(`/comparative/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchResults(data);
-    } catch { setSearchResults(null); }
   };
 
   const formatText = (text) => {
@@ -84,61 +123,77 @@ export default function ComparativePage() {
           </button>
           <div>
             <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>Karşılaştırmalı Dinler</h1>
-            <p className="text-xs" style={{ color: theme.textSecondary }}>Kur'an, İncil ve Tevrat'ta ortak konular</p>
+            <p className="text-xs" style={{ color: theme.textSecondary }}>
+              {topics.length} konu · Kur'an, İncil ve Tevrat'ta ortak konular
+            </p>
           </div>
           <Globe size={24} className="ml-auto" style={{ color: theme.gold }} />
         </div>
 
         {/* Search */}
-        <div className="flex gap-2 mt-3">
-          <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            placeholder="Konu veya ayet ara..."
-            className="flex-1 rounded-xl px-3 py-2.5 text-sm outline-none"
+        <div className="relative mt-3">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: theme.textSecondary }} />
+          <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Konu ara..."
+            className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm outline-none"
             style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
-          <button onClick={handleSearch} className="p-2.5 rounded-xl" style={{ background: theme.gold }}>
-            <Search size={18} color="#000" />
-          </button>
         </div>
       </div>
 
-      {/* Search Results */}
-      {searchResults && (
-        <div className="px-4 mt-3">
-          <h3 className="text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>Arama Sonuçları</h3>
-          {(searchResults.results || []).length === 0 ? (
-            <p className="text-xs" style={{ color: theme.textSecondary }}>Sonuç bulunamadı</p>
-          ) : (
-            <div className="space-y-2">
-              {(searchResults.results || []).map((r, i) => (
-                <div key={i} className="rounded-xl p-3 border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
-                  <div className="text-xs font-medium" style={{ color: theme.gold }}>{r.topic}</div>
-                  <div className="text-xs mt-1" style={{ color: theme.textPrimary }}>{r.text?.substring(0, 150)}...</div>
-                </div>
-              ))}
-            </div>
-          )}
+      {/* Category tabs */}
+      <div className="px-4 mt-3 mb-3 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 pb-1">
+          <button onClick={() => setSelectedCategory('all')}
+            className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+            style={selectedCategory === 'all'
+              ? { background: `${theme.gold}20`, color: theme.gold, border: `1px solid ${theme.gold}30` }
+              : { background: theme.inputBg, color: theme.textSecondary, border: `1px solid ${theme.inputBorder}` }}>
+            Tümü ({topics.length})
+          </button>
+          {Object.entries(CATEGORY_LABELS).map(([id, cat]) => {
+            const count = topics.filter(t => t.category === id).length;
+            if (count === 0) return null;
+            return (
+              <button key={id} onClick={() => setSelectedCategory(id)}
+                className="shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+                style={selectedCategory === id
+                  ? { background: `${theme.gold}20`, color: theme.gold, border: `1px solid ${theme.gold}30` }
+                  : { background: theme.inputBg, color: theme.textSecondary, border: `1px solid ${theme.inputBorder}` }}>
+                {cat.icon} {cat.label} ({count})
+              </button>
+            );
+          })}
         </div>
-      )}
+      </div>
 
       {/* Topics Grid */}
-      <div className="px-4 mt-4">
-        <h3 className="text-sm font-semibold mb-3" style={{ color: theme.textPrimary }}>Konular</h3>
+      <div className="px-4">
         {loading ? (
           <div className="flex justify-center py-8"><Loader className="animate-spin" style={{ color: theme.gold }} /></div>
+        ) : filteredTopics.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-sm" style={{ color: theme.textSecondary }}>Konu bulunamadı</p>
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {topics.map(topic => {
-              const topicIcons = { 'creation': '🌍', 'monotheism': '☝️', 'prayer': '🤲', 'charity': '💝', 'fasting': '🌙', 'afterlife': '⭐', 'prophets': '📜', 'justice': '⚖️', 'mercy': '💚', 'patience': '🕊️' };
-              return (
-                <button key={topic.id} onClick={() => loadTopic(topic.id)}
-                  className="rounded-xl p-4 border text-left transition-all hover:scale-[1.02]"
-                  style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
-                  <div className="text-2xl mb-2">{topicIcons[topic.id] || '📖'}</div>
-                  <div className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{topic.name || topic.title}</div>
-                  <div className="text-[11px] mt-1" style={{ color: theme.textSecondary }}>{topic.description || '3 din karşılaştırması'}</div>
-                </button>
-              );
-            })}
+            {filteredTopics.map((topic, i) => (
+              <motion.button key={topic.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.02 }} whileTap={{ scale: 0.97 }}
+                onClick={() => loadTopic(topic.id)}
+                className="rounded-xl p-3 border text-left"
+                style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
+                <div className="text-xl mb-1.5">{topic.icon || '📖'}</div>
+                <div className="text-sm font-semibold leading-tight" style={{ color: theme.textPrimary }}>
+                  {topic.name || topic.title}
+                </div>
+                {topic.category && CATEGORY_LABELS[topic.category] && (
+                  <div className="text-[9px] mt-1 px-1.5 py-0.5 rounded-full inline-block"
+                    style={{ background: `${theme.gold}10`, color: theme.textSecondary }}>
+                    {CATEGORY_LABELS[topic.category].label}
+                  </div>
+                )}
+              </motion.button>
+            ))}
           </div>
         )}
       </div>
@@ -184,39 +239,40 @@ export default function ComparativePage() {
                   </div>
                   {isExpanded ? <ChevronUp size={16} style={{ color: theme.textSecondary }} /> : <ChevronDown size={16} style={{ color: theme.textSecondary }} />}
                 </button>
-                {isExpanded && (
-                  <div className="p-4 space-y-3" style={{ background: theme.cardBg }}>
-                    {/* Original text */}
-                    {data.original && (
-                      <div className="rounded-lg p-3" style={{ background: theme.inputBg }}>
-                        <div className="text-[10px] font-medium mb-1" style={{ color }}>Orijinal Metin</div>
-                        <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary, fontFamily: key === 'islam' ? 'Amiri, serif' : 'inherit', direction: (key === 'islam' || key === 'judaism') ? 'rtl' : 'ltr' }}>
-                          {data.original}
-                        </p>
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden">
+                      <div className="p-4 space-y-3" style={{ background: theme.cardBg }}>
+                        {data.original && (
+                          <div className="rounded-lg p-3" style={{ background: theme.inputBg }}>
+                            <div className="text-[10px] font-medium mb-1" style={{ color }}>Orijinal Metin</div>
+                            <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary, fontFamily: key === 'islam' ? 'Amiri, serif' : 'inherit', direction: (key === 'islam' || key === 'judaism') ? 'rtl' : 'ltr' }}>
+                              {data.original}
+                            </p>
+                          </div>
+                        )}
+                        {data.translation && (
+                          <div>
+                            <div className="text-[10px] font-medium mb-1" style={{ color: theme.textSecondary }}>Türkçe Çeviri</div>
+                            <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{data.translation}</p>
+                          </div>
+                        )}
+                        {data.reference && (
+                          <div className="text-[11px] pt-2 border-t" style={{ color: theme.textSecondary, borderColor: theme.cardBorder }}>
+                            📍 {data.reference}
+                          </div>
+                        )}
+                        {typeof data === 'string' && (
+                          <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{data}</p>
+                        )}
+                        {data.text && (
+                          <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{data.text}</p>
+                        )}
                       </div>
-                    )}
-                    {/* Translation */}
-                    {data.translation && (
-                      <div>
-                        <div className="text-[10px] font-medium mb-1" style={{ color: theme.textSecondary }}>Türkçe Çeviri</div>
-                        <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{data.translation}</p>
-                      </div>
-                    )}
-                    {/* Source reference */}
-                    {data.reference && (
-                      <div className="text-[11px] pt-2 border-t" style={{ color: theme.textSecondary, borderColor: theme.cardBorder }}>
-                        📍 {data.reference}
-                      </div>
-                    )}
-                    {/* Text content if simple structure */}
-                    {typeof data === 'string' && (
-                      <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{data}</p>
-                    )}
-                    {data.text && (
-                      <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{data.text}</p>
-                    )}
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             );
           })}
@@ -231,7 +287,7 @@ export default function ComparativePage() {
               <button onClick={getAiAnalysis} disabled={aiLoading}
                 className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all"
                 style={{ background: `${theme.gold}20`, color: theme.gold }}>
-                {aiLoading ? <><Loader size={14} className="animate-spin" /> Analiz ediliyor...</> : <><Sparkles size={14} /> Bu konuyu AI ile analiz et</>}
+                {aiLoading ? <><Loader2 size={14} className="animate-spin" /> Analiz ediliyor...</> : <><Sparkles size={14} /> Bu konuyu AI ile analiz et</>}
               </button>
             ) : (
               <div className="text-sm leading-relaxed mt-2" style={{ color: theme.textPrimary }}

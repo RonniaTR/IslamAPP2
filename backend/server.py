@@ -21,6 +21,11 @@ import base64
 import io
 from comparative_religions import COMPARATIVE_TEXTS, TOPICS, get_comparative_data, get_all_topics, search_comparative
 from phase2 import setup_phase2_routes
+from phase3_ai import setup_phase3_ai_routes
+from phase3_tafsir import setup_phase3_tafsir_routes
+from phase3_hadith import setup_phase3_hadith_routes
+from phase3_comparative import setup_phase3_comparative_routes
+from phase3_i18n import setup_phase3_i18n_routes
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -3610,6 +3615,13 @@ app.include_router(api_router)
 
 # Register Phase 2 routes (AI Mufti, Premium, Gamification v2, Social, Analytics)
 setup_phase2_routes(api_router, db, gemini_generate)
+
+# Register Phase 3 routes (Multi-bot AI, Enhanced Tafsir, Hadith v2, Comparative 50, i18n, Offline)
+setup_phase3_ai_routes(api_router, db, gemini_generate)
+setup_phase3_tafsir_routes(api_router, db, gemini_generate)
+setup_phase3_hadith_routes(api_router, db, gemini_generate)
+setup_phase3_comparative_routes(api_router, db, gemini_generate)
+setup_phase3_i18n_routes(api_router, db, gemini_generate)
 
 # Allowed frontend origins
 _allowed_origins = [

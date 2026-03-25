@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen, Shield, Languages, GitCompare } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
@@ -34,10 +35,22 @@ export default function SurahDetail() {
   const [savedNotes, setSavedNotes] = useState({});
   const [copiedVerse, setCopiedVerse] = useState(null);
   const [activeTab, setActiveTab] = useState({});
+  // Phase 3: Enhanced tafsir states
+  const [tafsirV2Scholars, setTafsirV2Scholars] = useState([]);
+  const [tafsirDetailLevel, setTafsirDetailLevel] = useState('ozet');
+  const [tafsirV2Data, setTafsirV2Data] = useState({}); // { `${verse}-${scholar}-${detail}`: data }
+  const [tafsirV2Loading, setTafsirV2Loading] = useState(false);
+  const [compareData, setCompareData] = useState({}); // { verse: data }
+  const [compareLoading, setCompareLoading] = useState(null);
+  const [linguisticData, setLinguisticData] = useState({}); // { verse: data }
+  const [linguisticLoading, setLinguisticLoading] = useState(null);
+  const [activeSubTab, setActiveSubTab] = useState({}); // { verse: 'scholars'|'compare'|'linguistic' }
 
   useEffect(() => {
     api.get('/quran/reciters').then(r => { if (Array.isArray(r.data)) setReciters(r.data); }).catch(() => {});
     api.get('/tafsir/scholars').then(r => { if (Array.isArray(r.data)) setTafsirScholars(r.data); }).catch(() => {});
+    // Phase 3: Load enhanced scholars
+    api.get('/tafsir/v2/scholars').then(r => { if (Array.isArray(r.data)) setTafsirV2Scholars(r.data); }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -97,6 +110,40 @@ export default function SurahDetail() {
       setTafsirData(Array.isArray(data) ? data : []);
     } catch { setTafsirData([]); }
     setTafsirLoading(false);
+  };
+
+  // Phase 3: Enhanced tafsir with scholars + detail levels
+  const loadTafsirV2 = async (verseNum, scholarId, detail) => {
+    const key = `${verseNum}-${scholarId}-${detail}`;
+    if (tafsirV2Data[key]) return;
+    setTafsirV2Loading(true);
+    try {
+      const { data } = await api.get(`/tafsir/v2/${surahNumber}/${verseNum}?scholar=${scholarId}&detail=${detail}&lang=${lang}`);
+      setTafsirV2Data(prev => ({ ...prev, [key]: data }));
+    } catch {}
+    setTafsirV2Loading(false);
+  };
+
+  // Phase 3: Compare scholars
+  const loadCompare = async (verseNum) => {
+    if (compareData[verseNum]) return;
+    setCompareLoading(verseNum);
+    try {
+      const { data } = await api.get(`/tafsir/v2/${surahNumber}/${verseNum}/compare?lang=${lang}`);
+      setCompareData(prev => ({ ...prev, [verseNum]: data }));
+    } catch {}
+    setCompareLoading(null);
+  };
+
+  // Phase 3: Linguistic analysis
+  const loadLinguistic = async (verseNum) => {
+    if (linguisticData[verseNum]) return;
+    setLinguisticLoading(verseNum);
+    try {
+      const { data } = await api.get(`/tafsir/v2/${surahNumber}/${verseNum}/linguistic?lang=${lang}`);
+      setLinguisticData(prev => ({ ...prev, [verseNum]: data }));
+    } catch {}
+    setLinguisticLoading(null);
   };
 
   const generateKissa = async (verse) => {
@@ -321,37 +368,159 @@ export default function SurahDetail() {
                   <span className="text-xs font-semibold" style={{ color: '#f59e0b' }}>{t.tafsir}</span>
                   <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
                 </div>
-                <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide pb-1">
-                  {tafsirScholars.map(s => (
-                    <button key={s.id} onClick={() => loadTafsir(verse.number, s.id)}
-                      className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+
+                {/* Sub-tabs: Scholars | Compare | Linguistic */}
+                <div className="flex gap-1 mb-3">
+                  {[
+                    { id: 'scholars', label: 'Alimler', icon: '📗' },
+                    { id: 'compare', label: 'Karşılaştır', icon: '⚖️' },
+                    { id: 'linguistic', label: 'Dilbilim', icon: '🔤' },
+                  ].map(st => (
+                    <button key={st.id}
+                      onClick={() => {
+                        setActiveSubTab(prev => ({ ...prev, [verse.number]: st.id }));
+                        if (st.id === 'compare') loadCompare(verse.number);
+                        if (st.id === 'linguistic') loadLinguistic(verse.number);
+                      }}
+                      className="px-2 py-1 rounded-lg text-[10px] font-medium transition-all"
                       style={{
-                        background: tafsirScholar === s.id ? '#f59e0b20' : theme.inputBg,
-                        color: tafsirScholar === s.id ? '#f59e0b' : theme.textSecondary,
-                        border: `1px solid ${tafsirScholar === s.id ? '#f59e0b40' : theme.cardBorder}`,
+                        background: (activeSubTab[verse.number] || 'scholars') === st.id ? '#f59e0b20' : theme.inputBg,
+                        color: (activeSubTab[verse.number] || 'scholars') === st.id ? '#f59e0b' : theme.textSecondary,
                       }}>
-                      {s.name}
+                      {st.icon} {st.label}
                     </button>
                   ))}
                 </div>
-                {tafsirLoading ? (
-                  <div className="flex items-center gap-2 py-4 justify-center">
-                    <Loader2 size={16} className="animate-spin" style={{ color: '#f59e0b' }} />
-                    <span className="text-xs" style={{ color: theme.textSecondary }}>{t.loading}</span>
-                  </div>
-                ) : tafsirData.length > 0 ? (
-                  <div className="space-y-3">
-                    {tafsirData.map((td, i) => (
-                      <div key={i} className="rounded-lg p-3" style={{ background: '#f59e0b08' }}>
-                        <p className="text-[11px] font-semibold mb-1" style={{ color: '#f59e0b' }}>{td.scholar_display_name}</p>
-                        <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{td.tafsir_text}</p>
+
+                {/* Detail Level */}
+                <div className="flex items-center gap-1.5 mb-3">
+                  <span className="text-[9px]" style={{ color: theme.textSecondary }}>Detay:</span>
+                  {[{ id: 'ozet', label: 'Özet' }, { id: 'sadele', label: 'Sadeleştirilmiş' }, { id: 'akademik', label: 'Akademik' }].map(dl => (
+                    <button key={dl.id} onClick={() => setTafsirDetailLevel(dl.id)}
+                      className="px-1.5 py-0.5 rounded-full text-[8px] font-medium transition-all"
+                      style={tafsirDetailLevel === dl.id ? { background: '#f59e0b', color: '#fff' } : { background: theme.inputBg, color: theme.textSecondary }}>
+                      {dl.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Scholars sub-tab */}
+                {(activeSubTab[verse.number] || 'scholars') === 'scholars' && (
+                  <>
+                    <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide pb-1">
+                      {(tafsirV2Scholars.length > 0 ? tafsirV2Scholars : tafsirScholars).map(s => (
+                        <button key={s.id} onClick={() => {
+                          if (tafsirV2Scholars.length > 0) {
+                            loadTafsirV2(verse.number, s.id, tafsirDetailLevel);
+                          } else {
+                            loadTafsir(verse.number, s.id);
+                          }
+                          setTafsirScholar(s.id);
+                        }}
+                          className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                          style={{
+                            background: tafsirScholar === s.id ? '#f59e0b20' : theme.inputBg,
+                            color: tafsirScholar === s.id ? '#f59e0b' : theme.textSecondary,
+                            border: `1px solid ${tafsirScholar === s.id ? '#f59e0b40' : theme.cardBorder}`,
+                          }}>
+                          {s.icon || '📗'} {s.name}
+                          {s.premium && <span className="ml-0.5 text-[7px]">★</span>}
+                        </button>
+                      ))}
+                    </div>
+                    {(tafsirLoading || tafsirV2Loading) ? (
+                      <div className="flex items-center gap-2 py-4 justify-center">
+                        <Loader2 size={16} className="animate-spin" style={{ color: '#f59e0b' }} />
+                        <span className="text-xs" style={{ color: theme.textSecondary }}>{t.loading}</span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs py-2" style={{ color: theme.textSecondary }}>
-                    {tafsirScholars.length > 0 ? 'Bir tefsir hocası seçerek başlayın' : 'AI aktif değil. Tefsir için Gemini API key gereklidir.'}
-                  </p>
+                    ) : (() => {
+                      const v2Key = `${verse.number}-${tafsirScholar}-${tafsirDetailLevel}`;
+                      const v2 = tafsirV2Data[v2Key];
+                      if (v2) return (
+                        <div className="rounded-lg p-3" style={{ background: '#f59e0b08' }}>
+                          <p className="text-[11px] font-semibold mb-1" style={{ color: '#f59e0b' }}>
+                            {v2.scholar_name} <span className="text-[9px] font-normal">({v2.school || ''})</span>
+                          </p>
+                          <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{v2.tafsir}</p>
+                          {v2.confidence && (
+                            <div className="flex items-center gap-1 mt-2">
+                              <Shield size={9} style={{ color: v2.confidence.level === 'high' ? '#10B981' : '#F59E0B' }} />
+                              <span className="text-[8px]" style={{ color: theme.textSecondary }}>
+                                Güven: {v2.confidence.level === 'high' ? 'Yüksek' : v2.confidence.level === 'medium' ? 'Orta' : 'Düşük'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                      if (tafsirData.length > 0) return (
+                        <div className="space-y-3">
+                          {tafsirData.map((td, i) => (
+                            <div key={i} className="rounded-lg p-3" style={{ background: '#f59e0b08' }}>
+                              <p className="text-[11px] font-semibold mb-1" style={{ color: '#f59e0b' }}>{td.scholar_display_name}</p>
+                              <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{td.tafsir_text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                      return (
+                        <p className="text-xs py-2" style={{ color: theme.textSecondary }}>
+                          {tafsirScholars.length > 0 || tafsirV2Scholars.length > 0 ? 'Bir müfessir seçerek başlayın' : 'AI aktif değil.'}
+                        </p>
+                      );
+                    })()}
+                  </>
+                )}
+
+                {/* Compare sub-tab */}
+                {activeSubTab[verse.number] === 'compare' && (
+                  compareLoading === verse.number ? (
+                    <div className="flex items-center gap-2 py-4 justify-center">
+                      <Loader2 size={16} className="animate-spin" style={{ color: '#f59e0b' }} />
+                      <span className="text-xs" style={{ color: theme.textSecondary }}>Karşılaştırma hazırlanıyor...</span>
+                    </div>
+                  ) : compareData[verse.number] ? (
+                    <div className="space-y-2">
+                      {(compareData[verse.number].comparisons || []).map((c, i) => (
+                        <div key={i} className="rounded-lg p-2.5" style={{ background: '#f59e0b06', border: `1px solid ${theme.cardBorder}` }}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="text-sm">{c.icon || '📗'}</span>
+                            <span className="text-[10px] font-bold" style={{ color: '#f59e0b' }}>{c.scholar_name}</span>
+                            <span className="text-[8px]" style={{ color: theme.textSecondary }}>{c.school}</span>
+                          </div>
+                          <p className="text-[11px] leading-relaxed" style={{ color: theme.textPrimary }}>{c.summary}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs py-2" style={{ color: theme.textSecondary }}>Karşılaştırma verisi yüklenmedi.</p>
+                  )
+                )}
+
+                {/* Linguistic sub-tab */}
+                {activeSubTab[verse.number] === 'linguistic' && (
+                  linguisticLoading === verse.number ? (
+                    <div className="flex items-center gap-2 py-4 justify-center">
+                      <Loader2 size={16} className="animate-spin" style={{ color: '#f59e0b' }} />
+                      <span className="text-xs" style={{ color: theme.textSecondary }}>Dilbilim analizi...</span>
+                    </div>
+                  ) : linguisticData[verse.number] ? (
+                    <div className="space-y-2">
+                      {['nahiv', 'sarf', 'belagat', 'semantik'].map(section => (
+                        linguisticData[verse.number].analysis?.[section] && (
+                          <div key={section} className="rounded-lg p-2.5" style={{ background: '#f59e0b06' }}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#f59e0b' }}>
+                              {section === 'nahiv' ? '🔤 Nahiv (Sentaks)' : section === 'sarf' ? '📝 Sarf (Morfoloji)' : section === 'belagat' ? '✨ Belagat (Retorik)' : '🎯 Semantik'}
+                            </p>
+                            <p className="text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>
+                              {linguisticData[verse.number].analysis[section]}
+                            </p>
+                          </div>
+                        )
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs py-2" style={{ color: theme.textSecondary }}>Dilbilim analizi yüklenmedi.</p>
+                  )
                 )}
               </div>
             )}

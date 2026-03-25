@@ -38,6 +38,7 @@ const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
 const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
 const PremiumPage = lazy(() => import('./pages/PremiumPage'));
 const GamificationPage = lazy(() => import('./pages/GamificationPage'));
+const OfflinePacksPage = lazy(() => import('./pages/OfflinePacksPage'));
 
 // Initialize offline sync on app start
 initOfflineSync(api);
@@ -105,6 +106,7 @@ function AppRouter() {
               <Route path="/discover" element={<PageTransition><DiscoverPage /></PageTransition>} />
               <Route path="/premium" element={<PageTransition><PremiumPage /></PageTransition>} />
               <Route path="/achievements" element={<PageTransition><GamificationPage /></PageTransition>} />
+              <Route path="/offline-packs" element={<PageTransition><OfflinePacksPage /></PageTransition>} />
             </Route>
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

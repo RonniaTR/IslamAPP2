@@ -4,9 +4,9 @@ import api from '../api';
 const LangContext = createContext(null);
 
 const LANGUAGES = [
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷', dir: 'ltr' },
+  { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' },
+  { code: 'ar', name: 'العربية', flag: '🇸🇦', dir: 'rtl' },
 ];
 
 export function LangProvider({ children }) {
@@ -14,14 +14,31 @@ export function LangProvider({ children }) {
   const [t, setT] = useState({});
   const [defaultCountry, setDefaultCountry] = useState('TR');
   const [selectedCity, setSelectedCityState] = useState(() => localStorage.getItem('app_city') || 'istanbul');
+  const [direction, setDirection] = useState('ltr');
 
   const loadTranslations = useCallback(async (langCode) => {
     try {
-      const { data } = await api.get(`/i18n/${langCode}`);
+      // Try Phase 3 v2 translations first (deeper coverage)
+      const { data } = await api.get(`/i18n/v2/${langCode}`);
       setT(data.translations);
-      setDefaultCountry(data.default_country);
+      setDefaultCountry(data.default_country || (langCode === 'ar' ? 'SA' : langCode === 'en' ? 'US' : 'TR'));
+      setDirection(data.direction || 'ltr');
+      document.documentElement.dir = data.direction || 'ltr';
+      if (data.font_family) {
+        document.documentElement.style.setProperty('--app-font', data.font_family);
+      }
     } catch {
-      setT({});
+      try {
+        // Fallback to Phase 1 translations
+        const { data } = await api.get(`/i18n/${langCode}`);
+        setT(data.translations);
+        setDefaultCountry(data.default_country);
+        const dir = langCode === 'ar' ? 'rtl' : 'ltr';
+        setDirection(dir);
+        document.documentElement.dir = dir;
+      } catch {
+        setT({});
+      }
     }
   }, []);
 
@@ -38,7 +55,7 @@ export function LangProvider({ children }) {
   };
 
   return (
-    <LangContext.Provider value={{ lang, setLang, t, defaultCountry, selectedCity, setSelectedCity, LANGUAGES }}>
+    <LangContext.Provider value={{ lang, setLang, t, defaultCountry, selectedCity, setSelectedCity, LANGUAGES, direction }}>
       {children}
     </LangContext.Provider>
   );
