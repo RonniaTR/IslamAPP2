@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LangProvider } from './contexts/LangContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -8,27 +9,35 @@ import Layout from './components/Layout';
 import SplashScreen from './components/SplashScreen';
 import VoiceCommand from './components/VoiceCommand';
 import InstallPrompt from './components/InstallPrompt';
-import Dashboard from './pages/Dashboard';
-import QuranList from './pages/QuranList';
-import SurahDetail from './pages/SurahDetail';
-import HadithPage from './pages/HadithPage';
-import AiChat from './pages/AiChat';
-import ScholarsPage from './pages/ScholarsPage';
-import QiblaPage from './pages/QiblaPage';
-import MealAudioPage from './pages/MealAudioPage';
-import QuizPage from './pages/QuizPage';
-import SettingsPage from './pages/SettingsPage';
-import RamadanPage from './pages/RamadanPage';
-import KnowledgeDetail from './pages/KnowledgeDetail';
-import NotesPage from './pages/NotesPage';
-import LoginPage from './pages/LoginPage';
-import AuthCallback from './pages/AuthCallback';
-import ProfilePage from './pages/ProfilePage';
-import MultiplayerQuiz from './pages/MultiplayerQuiz';
-import ComparativePage from './pages/ComparativePage';
-import PomodoroPage from './pages/PomodoroPage';
-import BookmarksPage from './pages/BookmarksPage';
-import DiscoverPage from './pages/DiscoverPage';
+import PageTransition from './components/PageTransition';
+import { initOfflineSync } from './services/offlineSync';
+import api from './api';
+
+// Lazy-load all pages for code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const QuranList = lazy(() => import('./pages/QuranList'));
+const SurahDetail = lazy(() => import('./pages/SurahDetail'));
+const HadithPage = lazy(() => import('./pages/HadithPage'));
+const AiChat = lazy(() => import('./pages/AiChat'));
+const ScholarsPage = lazy(() => import('./pages/ScholarsPage'));
+const QiblaPage = lazy(() => import('./pages/QiblaPage'));
+const MealAudioPage = lazy(() => import('./pages/MealAudioPage'));
+const QuizPage = lazy(() => import('./pages/QuizPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const RamadanPage = lazy(() => import('./pages/RamadanPage'));
+const KnowledgeDetail = lazy(() => import('./pages/KnowledgeDetail'));
+const NotesPage = lazy(() => import('./pages/NotesPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const MultiplayerQuiz = lazy(() => import('./pages/MultiplayerQuiz'));
+const ComparativePage = lazy(() => import('./pages/ComparativePage'));
+const PomodoroPage = lazy(() => import('./pages/PomodoroPage'));
+const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
+const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
+
+// Initialize offline sync on app start
+initOfflineSync(api);
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -45,41 +54,57 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+// Suspense fallback for lazy-loaded pages
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-[#A8B5A0]">Yükleniyor...</p>
+      </div>
+    </div>
+  );
+}
+
 function AppRouter() {
   const location = useLocation();
 
   // CRITICAL: Check URL fragment for session_id synchronously during render
   if (location.hash?.includes('session_id=')) {
-    return <AuthCallback />;
+    return <Suspense fallback={<PageLoader />}><AuthCallback /></Suspense>;
   }
 
   return (
     <>
-      <Routes>
-        <Route path="/login" element={<LoginRoute />} />
-        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/quran" element={<QuranList />} />
-          <Route path="/quran/:surahNumber" element={<SurahDetail />} />
-          <Route path="/hadith" element={<HadithPage />} />
-          <Route path="/chat" element={<AiChat />} />
-          <Route path="/scholars" element={<ScholarsPage />} />
-          <Route path="/qibla" element={<QiblaPage />} />
-          <Route path="/meal-audio" element={<MealAudioPage />} />
-          <Route path="/quiz" element={<QuizPage />} />
-          <Route path="/ramadan" element={<RamadanPage />} />
-          <Route path="/knowledge/:cardId" element={<KnowledgeDetail />} />
-          <Route path="/notes" element={<NotesPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/multiplayer" element={<MultiplayerQuiz />} />
-          <Route path="/comparative" element={<ComparativePage />} />
-          <Route path="/pomodoro" element={<PomodoroPage />} />
-          <Route path="/bookmarks" element={<BookmarksPage />} />
-          <Route path="/discover" element={<DiscoverPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/login" element={<LoginRoute />} />
+            <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+              <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
+              <Route path="/quran" element={<PageTransition><QuranList /></PageTransition>} />
+              <Route path="/quran/:surahNumber" element={<PageTransition><SurahDetail /></PageTransition>} />
+              <Route path="/hadith" element={<PageTransition><HadithPage /></PageTransition>} />
+              <Route path="/chat" element={<PageTransition><AiChat /></PageTransition>} />
+              <Route path="/scholars" element={<PageTransition><ScholarsPage /></PageTransition>} />
+              <Route path="/qibla" element={<PageTransition><QiblaPage /></PageTransition>} />
+              <Route path="/meal-audio" element={<PageTransition><MealAudioPage /></PageTransition>} />
+              <Route path="/quiz" element={<PageTransition><QuizPage /></PageTransition>} />
+              <Route path="/ramadan" element={<PageTransition><RamadanPage /></PageTransition>} />
+              <Route path="/knowledge/:cardId" element={<PageTransition><KnowledgeDetail /></PageTransition>} />
+              <Route path="/notes" element={<PageTransition><NotesPage /></PageTransition>} />
+              <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+              <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+              <Route path="/multiplayer" element={<PageTransition><MultiplayerQuiz /></PageTransition>} />
+              <Route path="/comparative" element={<PageTransition><ComparativePage /></PageTransition>} />
+              <Route path="/pomodoro" element={<PageTransition><PomodoroPage /></PageTransition>} />
+              <Route path="/bookmarks" element={<PageTransition><BookmarksPage /></PageTransition>} />
+              <Route path="/discover" element={<PageTransition><DiscoverPage /></PageTransition>} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </AnimatePresence>
+      </Suspense>
       <AuthenticatedVoice />
       <InstallPrompt />
     </>
@@ -94,9 +119,9 @@ function AuthenticatedVoice() {
 
 function LoginRoute() {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <PageLoader />;
   if (user) return <Navigate to="/" replace />;
-  return <LoginPage />;
+  return <PageTransition><LoginPage /></PageTransition>;
 }
 
 export default function App() {

@@ -1,25 +1,132 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Volume2, Moon, Compass, Heart, Share2, ChevronRight, Check, Users, Copy, Play, Pause, Loader, Trophy, Navigation, Headphones, X, ScrollText } from 'lucide-react';
+import { BookOpen, Volume2, Moon, Compass, Heart, Share2, ChevronRight, Check, Users, Copy, Play, Pause, Loader, Trophy, Navigation, Headphones, X, ScrollText, Clock, Bell, Wifi, WifiOff } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTTS, shareOrCopy } from '../hooks/useShared';
+import { fetchWithCache } from '../services/cache';
+import notifications from '../services/notifications';
+import logger from '../services/logger';
 import api from '../api';
 
+// ─── Online Status Hook ───
+function useOnlineStatus() {
+  const [online, setOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  return online;
+}
+
+// ─── Prayer Countdown Widget ───
+const PrayerCountdown = memo(function PrayerCountdown({ prayerTimes, theme }) {
+  const [next, setNext] = useState(null);
+  const [countdown, setCountdown] = useState('');
+
+  const prayerNames = useMemo(() => ({
+    fajr: 'İmsak', sunrise: 'Güneş', dhuhr: 'Öğle', asr: 'İkindi', maghrib: 'Akşam', isha: 'Yatsı',
+  }), []);
+
+  useEffect(() => {
+    if (!prayerTimes) return;
+    const update = () => {
+      const now = new Date();
+      const keys = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+      let nextPrayer = null;
+      for (const key of keys) {
+        if (!prayerTimes[key]) continue;
+        const [h, m] = prayerTimes[key].split(':').map(Number);
+        const t = new Date(now); t.setHours(h, m, 0, 0);
+        if (t > now) { nextPrayer = { key, time: t, label: prayerNames[key] }; break; }
+      }
+      if (!nextPrayer) { setNext(null); setCountdown(''); return; }
+      setNext(nextPrayer);
+      const diff = nextPrayer.time - now;
+      const hh = String(Math.floor(diff / 3600000)).padStart(2, '0');
+      const mm = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+      const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+      setCountdown(`${hh}:${mm}:${ss}`);
+    };
+    update();
+    const iv = setInterval(update, 1000);
+    return () => clearInterval(iv);
+  }, [prayerTimes, prayerNames]);
+
+  if (!next || !prayerTimes) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+      className="mx-4 mb-4 rounded-2xl p-4 relative overflow-hidden"
+      style={{ background: `linear-gradient(135deg, ${theme.surface}, ${theme.bg})`, border: `1px solid ${theme.cardBorder}` }}>
+      <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-10" style={{ background: theme.gold }} />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: `${theme.gold}15` }}>
+            <Clock size={20} style={{ color: theme.gold }} />
+          </div>
+          <div>
+            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Sonraki Vakit</p>
+            <p className="text-base font-bold" style={{ color: theme.textPrimary }}>{next.label}</p>
+            <p className="text-[10px]" style={{ color: theme.textSecondary }}>{prayerTimes[next.key]}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl font-bold tabular-nums" style={{ color: theme.gold, fontFamily: 'Inter, monospace' }}>{countdown}</p>
+          <p className="text-[9px]" style={{ color: theme.textSecondary }}>kalan süre</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+// ─── Quick Widgets Panel ───
+const QuickWidgets = memo(function QuickWidgets({ theme, prayerTimes, lastRead }) {
+  const navigate = useNavigate();
+
+  const widgets = useMemo(() => [
+    { icon: '📖', label: lastRead ? 'Devam Et' : "Kur'an Oku", sub: lastRead ? `Sure ${lastRead.surah}` : 'Son kaldığın yer', path: lastRead ? `/quran/${lastRead.surah}` : '/quran' },
+    { icon: '📿', label: 'Zikir', sub: 'Hızlı zikir sayacı', path: '/#dhikr' },
+    { icon: '🧭', label: 'Kıble', sub: 'Kıble yönünü bul', path: '/qibla' },
+    { icon: '📝', label: 'Notlar', sub: 'Kayıtlı notların', path: '/notes' },
+  ], [lastRead]);
+
+  return (
+    <div className="px-4 mb-4">
+      <div className="grid grid-cols-4 gap-2">
+        {widgets.map((w, i) => (
+          <motion.button key={w.path} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.05 * i }}
+            onClick={() => navigate(w.path)}
+            className="rounded-xl p-2.5 text-center transition-all active:scale-95"
+            style={{ background: `${theme.gold}08`, border: `1px solid ${theme.cardBorder}` }}>
+            <span className="text-xl block">{w.icon}</span>
+            <p className="text-[10px] font-medium mt-1" style={{ color: theme.textPrimary }}>{w.label}</p>
+          </motion.button>
+        ))}
+      </div>
+    </div>
+  );
+});
+
 // ─── Mood Section (horizontal scroll) ───
-function MoodSection() {
+const MoodSection = memo(function MoodSection({ theme }) {
   const [selected, setSelected] = useState(null);
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(false);
   const tts = useTTS();
 
-  const moods = [
+  const moods = useMemo(() => [
     { id: 'huzur', label: 'Huzur', icon: '☮️', desc: 'İç huzur ve sükûnet' },
     { id: 'motivasyon', label: 'Motivasyon', icon: '🔥', desc: 'Güç ve azim' },
     { id: 'sabir', label: 'Sabır', icon: '🌿', desc: 'Dayanma gücü' },
     { id: 'sukur', label: 'Şükür', icon: '✨', desc: 'Nimete şükretmek' },
-  ];
+  ], []);
 
   const handleMood = async (id) => {
     setSelected(id);
@@ -33,176 +140,185 @@ function MoodSection() {
 
   return (
     <div className="mb-5 animate-fade-in" data-testid="mood-section">
-      <p className="text-sm text-[#D4AF37] mb-3 px-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+      <p className="text-sm mb-3 px-4" style={{ fontFamily: 'Playfair Display, serif', color: theme.gold }}>
         Bugün kalbin neye ihtiyaç duyuyor?
       </p>
       {/* Horizontal scroll mood cards */}
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
         {moods.map(m => (
-          <button key={m.id} onClick={() => handleMood(m.id)} data-testid={`mood-${m.id}`}
+          <motion.button key={m.id} whileTap={{ scale: 0.95 }} onClick={() => handleMood(m.id)} data-testid={`mood-${m.id}`}
             className={`shrink-0 w-28 rounded-2xl py-3 px-2 text-center transition-all duration-300 ${selected === m.id ? 'scale-[1.03]' : ''}`}
-            style={{ background: selected === m.id ? 'rgba(212,175,55,0.2)' : 'rgba(15,61,46,0.5)', border: `1px solid ${selected === m.id ? 'rgba(212,175,55,0.4)' : 'rgba(212,175,55,0.08)'}` }}>
+            style={{ background: selected === m.id ? `${theme.gold}30` : theme.cardBg, border: `1px solid ${selected === m.id ? `${theme.gold}60` : theme.cardBorder}` }}>
             <span className="text-2xl block mb-1">{m.icon}</span>
-            <span className="text-xs font-semibold text-[#F5F5DC] block">{m.label}</span>
-            <span className="text-[9px] text-[#A8B5A0] mt-0.5 block">{m.desc}</span>
-          </button>
+            <span className="text-xs font-semibold block" style={{ color: theme.textPrimary }}>{m.label}</span>
+            <span className="text-[9px] mt-0.5 block" style={{ color: theme.textSecondary }}>{m.desc}</span>
+          </motion.button>
         ))}
       </div>
-      {loading && <div className="text-center py-4"><div className="w-5 h-5 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto" /></div>}
+      {loading && <div className="text-center py-4"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: theme.gold, borderTopColor: 'transparent' }} /></div>}
       {content && !loading && (
-        <div className="mx-4 mt-3 card-islamic rounded-2xl p-4 animate-fade-in" data-testid="mood-content">
-          <p className="arabic-text text-base text-[#F5F5DC]/90 mb-1">{content.ayet.arabic}</p>
-          <p className="text-sm text-[#A8B5A0] mb-1">{content.ayet.turkish}</p>
-          <p className="text-[10px] text-[#D4AF37] mb-3">— {content.ayet.sure}</p>
-          <div className="border-t border-[#D4AF37]/10 pt-3 mb-3">
-            <p className="text-sm text-[#F5F5DC]/80 italic">"{content.hadis.turkish}"</p>
-            <p className="text-[10px] text-[#A8B5A0] mt-1">— {content.hadis.source}</p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mt-3 rounded-2xl p-4" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}
+          data-testid="mood-content">
+          <p className="arabic-text text-base mb-1" style={{ color: `${theme.textPrimary}e6` }}>{content.ayet.arabic}</p>
+          <p className="text-sm mb-1" style={{ color: theme.textSecondary }}>{content.ayet.turkish}</p>
+          <p className="text-[10px] mb-3" style={{ color: theme.gold }}>— {content.ayet.sure}</p>
+          <div className="pt-3 mb-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+            <p className="text-sm italic" style={{ color: `${theme.textPrimary}cc` }}>"{content.hadis.turkish}"</p>
+            <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>— {content.hadis.source}</p>
           </div>
-          <div className="border-t border-[#D4AF37]/10 pt-3">
-            <p className="text-[10px] text-[#D4AF37] uppercase tracking-wider mb-1">Dua</p>
-            <p className="text-sm text-[#F5F5DC]/80">{content.dua}</p>
+          <div className="pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+            <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: theme.gold }}>Dua</p>
+            <p className="text-sm" style={{ color: `${theme.textPrimary}cc` }}>{content.dua}</p>
           </div>
-          <div className="flex gap-2 mt-3 pt-3 border-t border-[#D4AF37]/10">
+          <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
             <button onClick={() => tts.speak(`${content.ayet.turkish}. ${content.hadis.turkish}. ${content.dua}`)} data-testid="mood-tts"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-[#D4AF37] transition-colors"
-              style={{ background: 'rgba(212,175,55,0.1)' }}>
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
+              style={{ background: `${theme.gold}15`, color: theme.gold }}>
               {tts.loading ? <Loader size={12} className="animate-spin" /> : tts.playing ? <Pause size={12} /> : <Play size={12} />}
               {tts.loading ? 'Yükleniyor' : tts.playing ? 'Durdur' : 'Dinle'}
             </button>
             <button onClick={() => shareOrCopy(content.label, `${content.ayet.turkish}\n(${content.ayet.sure})\n\n"${content.hadis.turkish}" — ${content.hadis.source}\n\nDua: ${content.dua}`)} data-testid="mood-share"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-[#D4AF37] transition-colors"
-              style={{ background: 'rgba(212,175,55,0.1)' }}>
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
+              style={{ background: `${theme.gold}15`, color: theme.gold }}>
               <Share2 size={12} /> Paylaş
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
-}
+});
 
 // ─── Daily Verse Card ───
-function DailyVerse({ verse }) {
+const DailyVerse = memo(function DailyVerse({ verse, theme }) {
   const tts = useTTS();
   if (!verse) return null;
   return (
-    <div className="mx-4 mb-4 card-islamic rounded-2xl p-4 animate-fade-in" data-testid="daily-verse">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+      className="mx-4 mb-4 rounded-2xl p-4" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}
+      data-testid="daily-verse">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <BookOpen size={16} className="text-[#D4AF37]" />
-          <span className="text-sm font-semibold text-[#D4AF37]">Günün Ayeti</span>
+          <BookOpen size={16} style={{ color: theme.gold }} />
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>Günün Ayeti</span>
         </div>
-        <span className="text-xs text-[#A8B5A0]">{verse.surah_name} - {verse.verse_number}</span>
+        <span className="text-xs" style={{ color: theme.textSecondary }}>{verse.surah_name} - {verse.verse_number}</span>
       </div>
-      <p className="arabic-text text-lg text-[#F5F5DC]/90 mb-3 leading-loose">{verse.arabic}</p>
-      <p className="text-sm text-[#A8B5A0] leading-relaxed mb-3">{verse.turkish}</p>
-      <div className="flex gap-2 pt-2 border-t border-[#D4AF37]/10">
+      <p className="arabic-text text-lg mb-3 leading-loose" style={{ color: `${theme.textPrimary}e6` }}>{verse.arabic}</p>
+      <p className="text-sm leading-relaxed mb-3" style={{ color: theme.textSecondary }}>{verse.turkish}</p>
+      <div className="flex gap-2 pt-2" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
         <button onClick={() => tts.speak(verse.turkish)} data-testid="verse-listen-btn" aria-label="Ayeti dinle"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-[#D4AF37] transition-colors"
-          style={{ background: 'rgba(212,175,55,0.1)' }}>
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
+          style={{ background: `${theme.gold}15`, color: theme.gold }}>
           {tts.loading ? <Loader size={12} className="animate-spin" /> : tts.playing ? <Pause size={12} /> : <Volume2 size={12} />}
           {tts.loading ? 'Yükleniyor...' : tts.playing ? 'Durdur' : 'Dinle'}
         </button>
         <button onClick={() => shareOrCopy('Günün Ayeti', `${verse.arabic}\n\n${verse.turkish}\n— ${verse.surah_name} ${verse.verse_number}`)} data-testid="verse-share-btn"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium text-[#D4AF37] transition-colors"
-          style={{ background: 'rgba(212,175,55,0.1)' }}>
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
+          style={{ background: `${theme.gold}15`, color: theme.gold }}>
           <Share2 size={12} /> Paylaş
         </button>
       </div>
-    </div>
+    </motion.div>
   );
-}
+});
 
 // ─── Hadith Overlay Modal ───
-function HadithModal({ hadith, onClose }) {
+function HadithModal({ hadith, onClose, theme }) {
   const tts = useTTS();
   const navigate = useNavigate();
   if (!hadith) return null;
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="relative w-full max-w-[520px] mx-auto animate-slide-up" onClick={e => e.stopPropagation()}
-        style={{ background: 'linear-gradient(180deg, #0F3D2E 0%, #0A1F14 100%)', borderRadius: '24px 24px 0 0', maxHeight: '85vh', overflow: 'auto' }}>
-        {/* Handle bar */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="relative w-full max-w-[520px] mx-auto" onClick={e => e.stopPropagation()}
+        style={{ background: `linear-gradient(180deg, ${theme.surface}, ${theme.bg})`, borderRadius: '24px 24px 0 0', maxHeight: '85vh', overflow: 'auto' }}>
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
+          <div className="w-10 h-1 rounded-full" style={{ background: `${theme.textSecondary}30` }} />
         </div>
-        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
-          <X size={16} className="text-[#A8B5A0]" />
+        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full" style={{ background: `${theme.textSecondary}15` }}>
+          <X size={16} style={{ color: theme.textSecondary }} />
         </button>
         <div className="px-6 pt-2 pb-8">
           <div className="flex items-center gap-2 mb-4">
-            <ScrollText size={18} className="text-[#E8C84A]" />
-            <span className="text-sm font-semibold text-[#E8C84A]">Hadis-i Şerif</span>
+            <ScrollText size={18} style={{ color: theme.goldLight || theme.gold }} />
+            <span className="text-sm font-semibold" style={{ color: theme.goldLight || theme.gold }}>Hadis-i Şerif</span>
           </div>
-          {/* Arabic text */}
-          <div className="p-4 rounded-2xl mb-4" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.12)' }}>
-            <p className="arabic-text text-lg text-[#F5F5DC]/90 leading-loose text-center">{hadith.arabic}</p>
+          <div className="p-4 rounded-2xl mb-4" style={{ background: `${theme.gold}08`, border: `1px solid ${theme.gold}15` }}>
+            <p className="arabic-text text-lg leading-loose text-center" style={{ color: `${theme.textPrimary}e6` }}>{hadith.arabic}</p>
           </div>
-          {/* Turkish meaning */}
-          <p className="text-sm text-[#F5F5DC]/90 leading-relaxed mb-2">{hadith.turkish}</p>
-          <p className="text-[11px] text-[#D4AF37] mb-5">— {hadith.source}</p>
-          {/* Actions */}
+          <p className="text-sm leading-relaxed mb-2" style={{ color: `${theme.textPrimary}e6` }}>{hadith.turkish}</p>
+          <p className="text-[11px] mb-5" style={{ color: theme.gold }}>— {hadith.source}</p>
           <div className="flex gap-2 mb-4">
             <button onClick={() => tts.speak(hadith.turkish)}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium text-[#E8C84A]"
-              style={{ background: 'rgba(232,200,74,0.1)', border: '1px solid rgba(232,200,74,0.2)' }}>
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium"
+              style={{ background: `${theme.gold}12`, color: theme.gold, border: `1px solid ${theme.gold}25` }}>
               {tts.loading ? <Loader size={14} className="animate-spin" /> : tts.playing ? <Pause size={14} /> : <Volume2 size={14} />}
               {tts.loading ? 'Yükleniyor...' : tts.playing ? 'Durdur' : 'Dinle'}
             </button>
             <button onClick={() => shareOrCopy('Hadis-i Şerif', `${hadith.arabic}\n\n${hadith.turkish}\n— ${hadith.source}`)}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium text-[#E8C84A]"
-              style={{ background: 'rgba(232,200,74,0.1)', border: '1px solid rgba(232,200,74,0.2)' }}>
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium"
+              style={{ background: `${theme.gold}12`, color: theme.gold, border: `1px solid ${theme.gold}25` }}>
               <Share2 size={14} /> Paylaş
             </button>
           </div>
           <button onClick={() => { onClose(); navigate('/hadith'); }}
-            className="w-full py-3 rounded-xl text-sm font-semibold text-[#0A1F14] flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg, #D4AF37, #E8C84A)' }}>
+            className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+            style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight || theme.gold})`, color: theme.bg }}>
             <ScrollText size={16} /> Hadis Koleksiyonuna Git
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
 // ─── Daily Hadith Card (Compact - opens modal) ───
-function DailyHadith({ hadith }) {
+const DailyHadith = memo(function DailyHadith({ hadith, theme }) {
   const [showModal, setShowModal] = useState(false);
   if (!hadith) return null;
-  // Truncate Turkish text for preview
   const preview = hadith.turkish?.length > 80 ? hadith.turkish.slice(0, 80) + '...' : hadith.turkish;
   return (
     <>
-      <button onClick={() => setShowModal(true)} className="mx-4 mb-4 w-[calc(100%-2rem)] text-left card-islamic rounded-2xl p-4 animate-fade-in transition-all active:scale-[0.98]" data-testid="daily-hadith">
+      <motion.button whileTap={{ scale: 0.98 }} onClick={() => setShowModal(true)}
+        className="mx-4 mb-4 w-[calc(100%-2rem)] text-left rounded-2xl p-4 transition-all"
+        style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}
+        data-testid="daily-hadith">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(232,200,74,0.15)' }}>
-              <ScrollText size={14} className="text-[#E8C84A]" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${theme.gold}18` }}>
+              <ScrollText size={14} style={{ color: theme.goldLight || theme.gold }} />
             </div>
             <div>
-              <span className="text-xs font-semibold text-[#E8C84A] block">Günün Hadisi</span>
-              <span className="text-[10px] text-[#A8B5A0]">{hadith.source}</span>
+              <span className="text-xs font-semibold block" style={{ color: theme.goldLight || theme.gold }}>Günün Hadisi</span>
+              <span className="text-[10px] block" style={{ color: theme.textSecondary }}>{hadith.source}</span>
             </div>
           </div>
-          <div className="px-2 py-1 rounded-lg text-[10px] font-medium text-[#E8C84A]" style={{ background: 'rgba(232,200,74,0.1)' }}>
+          <div className="px-2 py-1 rounded-lg text-[10px] font-medium" style={{ background: `${theme.gold}12`, color: theme.goldLight || theme.gold }}>
             Oku →
           </div>
         </div>
-        <p className="text-sm text-[#F5F5DC]/80 leading-relaxed line-clamp-2">{preview}</p>
-      </button>
-      {showModal && <HadithModal hadith={hadith} onClose={() => setShowModal(false)} />}
+        <p className="text-sm leading-relaxed line-clamp-2" style={{ color: `${theme.textPrimary}cc` }}>{preview}</p>
+      </motion.button>
+      <AnimatePresence>
+        {showModal && <HadithModal hadith={hadith} theme={theme} onClose={() => setShowModal(false)} />}
+      </AnimatePresence>
     </>
   );
-}
+});
 
 // ─── Knowledge Cards (Enhanced with categories) ───
-function KnowledgeCards() {
+const KnowledgeCards = memo(function KnowledgeCards({ theme }) {
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
 
-  useEffect(() => { api.get('/knowledge-cards').then(r => { if (Array.isArray(r.data)) setCards(r.data); }).catch(() => {}); }, []);
+  useEffect(() => {
+    fetchWithCache('knowledge_cards', () => api.get('/knowledge-cards').then(r => r.data), { ttl: 60 * 60 * 1000 })
+      .then(({ data }) => { if (Array.isArray(data)) setCards(data); })
+      .catch(() => {});
+  }, []);
   if (!cards.length) return null;
 
   const totalItems = cards.reduce((s, c) => s + c.items.length, 0);
@@ -211,51 +327,57 @@ function KnowledgeCards() {
     <div className="mb-5 animate-fade-in" data-testid="knowledge-cards">
       <div className="flex items-center justify-between px-4 mb-3">
         <div>
-          <h2 className="text-lg font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>İslam Bilgi Hazinesi</h2>
-          <p className="text-[10px] text-[#A8B5A0] mt-0.5">{cards.length} kategori, {totalItems}+ konu</p>
+          <h2 className="text-lg font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>İslam Bilgi Hazinesi</h2>
+          <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{cards.length} kategori, {totalItems}+ konu</p>
         </div>
-        <span className="text-[10px] px-2.5 py-1 rounded-full text-[#D4AF37] font-semibold flex items-center gap-1" style={{ background: 'rgba(212,175,55,0.15)' }}>
+        <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold flex items-center gap-1" style={{ background: `${theme.gold}18`, color: theme.gold }}>
           🏆 Puanlı
         </span>
       </div>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-3">
-        {cards.map(card => {
-          const basicCount = card.items.filter(i => i.level === 'basic' || !i.level).length;
-          const deepCount = card.items.filter(i => i.level === 'deep').length;
+        {cards.map((card, i) => {
+          const basicCount = card.items.filter(it => it.level === 'basic' || !it.level).length;
+          const deepCount = card.items.filter(it => it.level === 'deep').length;
           return (
-            <button key={card.id} onClick={() => navigate(`/knowledge/${card.id}`)} data-testid={`knowledge-${card.id}`}
-              className="shrink-0 w-52 rounded-2xl p-4 text-left transition-all active:scale-[0.97] relative overflow-hidden"
-              style={{ background: `linear-gradient(135deg, rgba(15,61,46,0.8), rgba(10,31,20,0.95))`, border: `1px solid ${card.color || '#D4AF37'}25` }}>
-              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: card.color || '#D4AF37', transform: 'translate(30%, -30%)' }} />
+            <motion.button key={card.id} whileTap={{ scale: 0.97 }}
+              initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+              onClick={() => navigate(`/knowledge/${card.id}`)} data-testid={`knowledge-${card.id}`}
+              className="shrink-0 w-52 rounded-2xl p-4 text-left transition-all relative overflow-hidden"
+              style={{ background: `linear-gradient(135deg, ${theme.surface}, ${theme.bg})`, border: `1px solid ${card.color || theme.gold}25` }}>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: card.color || theme.gold, transform: 'translate(30%, -30%)' }} />
               <span className="text-2xl block mb-2">{card.icon || '📖'}</span>
-              <p className="text-sm font-bold text-[#F5F5DC] mb-0.5" style={{ fontFamily: 'Playfair Display, serif' }}>{card.title}</p>
-              <p className="text-[10px] text-[#A8B5A0] mb-2">{card.items.length} konu</p>
+              <p className="text-sm font-bold mb-0.5" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{card.title}</p>
+              <p className="text-[10px] mb-2" style={{ color: theme.textSecondary }}>{card.items.length} konu</p>
               {deepCount > 0 && (
                 <div className="flex gap-1 mb-2">
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-full text-[#4ADE80]" style={{ background: 'rgba(74,222,128,0.12)' }}>Temel: {basicCount}</span>
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-full text-[#818CF8]" style={{ background: 'rgba(129,140,248,0.12)' }}>Derin: {deepCount}</span>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}>Temel: {basicCount}</span>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(129,140,248,0.12)', color: '#818CF8' }}>Derin: {deepCount}</span>
                 </div>
               )}
-              <div className="flex items-center gap-1 text-[11px] font-medium" style={{ color: card.color || '#D4AF37' }}>
+              <div className="flex items-center gap-1 text-[11px] font-medium" style={{ color: card.color || theme.gold }}>
                 <span>İncele</span>
                 <ChevronRight size={12} />
               </div>
-            </button>
+            </motion.button>
           );
         })}
       </div>
     </div>
   );
-}
+});
 
 // ─── Dhikr Counter Widget ───
-function DhikrWidget() {
+const DhikrWidget = memo(function DhikrWidget({ theme }) {
   const [dhikrList, setDhikrList] = useState([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => { api.get('/dhikr').then(r => { if (Array.isArray(r.data)) setDhikrList(r.data); }).catch(() => {}); }, []);
+  useEffect(() => {
+    fetchWithCache('dhikr_list', () => api.get('/dhikr').then(r => r.data), { ttl: 24 * 60 * 60 * 1000 })
+      .then(({ data }) => { if (Array.isArray(data)) setDhikrList(data); })
+      .catch(() => {});
+  }, []);
   const current = dhikrList[activeIdx];
 
   const handleCount = () => {
@@ -268,49 +390,50 @@ function DhikrWidget() {
   return (
     <div className="mx-4 mb-5 animate-fade-in" data-testid="dhikr-widget">
       {!open ? (
-        <button onClick={() => setOpen(true)} data-testid="dhikr-start-btn"
-          className="w-full card-islamic rounded-2xl p-4 flex items-center gap-3 text-left">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(212,175,55,0.15)' }}>
+        <motion.button whileTap={{ scale: 0.98 }} onClick={() => setOpen(true)} data-testid="dhikr-start-btn"
+          className="w-full rounded-2xl p-4 flex items-center gap-3 text-left"
+          style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${theme.gold}18` }}>
             <span className="text-lg">📿</span>
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#F5F5DC]">Zikir Sayacı</p>
-            <p className="text-[11px] text-[#A8B5A0]">Zikir başlat</p>
+            <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Zikir Sayacı</p>
+            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Zikir başlat</p>
           </div>
-          <ChevronRight size={16} className="text-[#D4AF37] ml-auto" />
-        </button>
+          <ChevronRight size={16} style={{ color: theme.gold }} className="ml-auto" />
+        </motion.button>
       ) : (
-        <div className="card-islamic rounded-2xl p-5 text-center" data-testid="dhikr-counter">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-2xl p-5 text-center" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }} data-testid="dhikr-counter">
           <div className="flex gap-1.5 overflow-x-auto scrollbar-hide mb-4 pb-1 justify-center flex-wrap">
             {dhikrList.map((d, i) => (
               <button key={d.id} onClick={() => { setActiveIdx(i); setCount(0); }}
-                className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all ${i === activeIdx ? 'text-[#0A1F14] bg-[#D4AF37]' : 'text-[#A8B5A0]'}`}
-                style={i !== activeIdx ? { background: 'rgba(255,255,255,0.05)' } : {}}>
+                className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-medium transition-all"
+                style={i === activeIdx ? { background: theme.gold, color: theme.bg } : { background: `${theme.textSecondary}15`, color: theme.textSecondary }}>
                 {d.turkish}
               </button>
             ))}
           </div>
           {current && (
             <>
-              <p className="arabic-text text-xl text-[#F5F5DC] mb-1">{current.arabic}</p>
-              <p className="text-xs text-[#A8B5A0] mb-4">{current.meaning}</p>
-              <button onClick={handleCount} data-testid="dhikr-tap-btn"
-                className="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-3xl font-bold text-[#E8C84A] transition-all active:scale-90 animate-pulse-gold"
-                style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05))', border: '2px solid rgba(212,175,55,0.3)' }}>
+              <p className="arabic-text text-xl mb-1" style={{ color: theme.textPrimary }}>{current.arabic}</p>
+              <p className="text-xs mb-4" style={{ color: theme.textSecondary }}>{current.meaning}</p>
+              <motion.button whileTap={{ scale: 0.9 }} onClick={handleCount} data-testid="dhikr-tap-btn"
+                className="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-3xl font-bold transition-all"
+                style={{ color: theme.gold, background: `linear-gradient(135deg, ${theme.gold}33, ${theme.gold}0D)`, border: `2px solid ${theme.gold}4D` }}>
                 {count}
-              </button>
-              {current.recommended > 0 && <p className="text-[10px] text-[#A8B5A0] mt-2">Hedef: {current.recommended}</p>}
-              <button onClick={() => { setOpen(false); setCount(0); }} className="text-xs text-[#D4AF37] mt-3 hover:underline">Kapat</button>
+              </motion.button>
+              {current.recommended > 0 && <p className="text-[10px] mt-2" style={{ color: theme.textSecondary }}>Hedef: {current.recommended}</p>}
+              <button onClick={() => { setOpen(false); setCount(0); }} className="text-xs mt-3 hover:underline" style={{ color: theme.gold }}>Kapat</button>
             </>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );
-}
+});
 
 // ─── Worship Tracker ───
-function WorshipTracker() {
+const WorshipTracker = memo(function WorshipTracker({ theme }) {
   const [items, setItems] = useState({ namaz: false, kuran: false, sadaka: false, zikir: false });
 
   useEffect(() => { api.get('/worship/today').then(r => { if (r.data && typeof r.data === 'object' && !Array.isArray(r.data)) setItems(prev => ({ ...prev, ...r.data })); }).catch(() => {}); }, []);
@@ -321,40 +444,41 @@ function WorshipTracker() {
     api.post('/worship/track', { namaz: updated.namaz, kuran: updated.kuran, sadaka: updated.sadaka, zikir: updated.zikir }).catch(() => {});
   };
 
-  const labels = [
+  const labels = useMemo(() => [
     { key: 'namaz', label: 'Namaz kılındı', icon: '🕌' },
     { key: 'kuran', label: "Kur'an okundu", icon: '📖' },
     { key: 'sadaka', label: 'Sadaka verildi', icon: '💰' },
     { key: 'zikir', label: 'Zikir yapıldı', icon: '📿' },
-  ];
+  ], []);
   const done = Object.values(items).filter(Boolean).length;
 
   return (
-    <div className="mx-4 mb-5 card-islamic rounded-2xl p-4 animate-fade-in" data-testid="worship-tracker">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+      className="mx-4 mb-5 rounded-2xl p-4" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }} data-testid="worship-tracker">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-[#D4AF37]" style={{ fontFamily: 'Playfair Display, serif' }}>Günlük İbadet Takibi</p>
-        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(212,175,55,0.15)', color: '#D4AF37' }}>{done}/4</span>
+        <p className="text-sm font-semibold" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>Günlük İbadet Takibi</p>
+        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}26`, color: theme.gold }}>{done}/4</span>
       </div>
       <div className="space-y-2">
         {labels.map(({ key, label, icon }) => (
-          <button key={key} onClick={() => toggle(key)} data-testid={`worship-${key}`}
+          <motion.button key={key} whileTap={{ scale: 0.98 }} onClick={() => toggle(key)} data-testid={`worship-${key}`}
             className="w-full flex items-center gap-3 p-2.5 rounded-xl transition-all"
-            style={{ background: items[key] ? 'rgba(212,175,55,0.1)' : 'rgba(255,255,255,0.02)' }}>
+            style={{ background: items[key] ? `${theme.gold}1A` : `${theme.textSecondary}08` }}>
             <span className="text-base">{icon}</span>
-            <span className={`text-sm flex-1 text-left ${items[key] ? 'text-[#D4AF37] line-through' : 'text-[#F5F5DC]'}`}>{label}</span>
-            <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${items[key] ? 'bg-[#D4AF37]' : ''}`}
-              style={!items[key] ? { border: '1.5px solid rgba(212,175,55,0.3)' } : {}}>
-              {items[key] && <Check size={12} className="text-[#0A1F14]" />}
+            <span className={`text-sm flex-1 text-left ${items[key] ? 'line-through' : ''}`} style={{ color: items[key] ? theme.gold : theme.textPrimary }}>{label}</span>
+            <div className="w-5 h-5 rounded-md flex items-center justify-center transition-all"
+              style={items[key] ? { background: theme.gold } : { border: `1.5px solid ${theme.gold}4D` }}>
+              {items[key] && <Check size={12} style={{ color: theme.bg }} />}
             </div>
-          </button>
+          </motion.button>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
-}
+});
 
 // ─── Ramadan Mini Card ───
-function RamadanMini({ prayerTimes }) {
+const RamadanMini = memo(function RamadanMini({ prayerTimes, theme }) {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(null);
 
@@ -374,111 +498,142 @@ function RamadanMini({ prayerTimes }) {
   }, [prayerTimes]);
 
   return (
-    <button onClick={() => navigate('/ramadan')} data-testid="ramadan-mini"
-      className="mx-4 mb-5 w-[calc(100%-2rem)] rounded-2xl p-4 text-left animate-fade-in transition-all active:scale-[0.98]"
-      style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))', border: '1px solid rgba(212,175,55,0.25)' }}>
+    <motion.button whileTap={{ scale: 0.98 }} onClick={() => navigate('/ramadan')} data-testid="ramadan-mini"
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+      className="mx-4 mb-5 w-[calc(100%-2rem)] rounded-2xl p-4 text-left transition-all"
+      style={{ background: `linear-gradient(135deg, ${theme.gold}26, ${theme.gold}0D)`, border: `1px solid ${theme.gold}40` }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Moon size={18} className="text-[#D4AF37]" />
-          <span className="text-sm font-semibold text-[#D4AF37]">Ramazan</span>
+          <Moon size={18} style={{ color: theme.gold }} />
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>Ramazan</span>
         </div>
-        {countdown && <span className="text-lg font-bold text-[#E8C84A]" style={{ fontFamily: 'Inter, monospace' }}>{countdown}</span>}
-        <ChevronRight size={16} className="text-[#D4AF37]" />
+        {countdown && <span className="text-lg font-bold" style={{ color: theme.gold, fontFamily: 'Inter, monospace' }}>{countdown}</span>}
+        <ChevronRight size={16} style={{ color: theme.gold }} />
       </div>
-      {countdown && <p className="text-[10px] text-[#A8B5A0] mt-1">İftara kalan süre</p>}
-    </button>
+      {countdown && <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>İftara kalan süre</p>}
+    </motion.button>
   );
-}
+});
 
 // ─── Quick Access Grid ───
-function QuickAccess() {
+const QuickAccess = memo(function QuickAccess({ theme }) {
   const navigate = useNavigate();
-  const items = [
+  const items = useMemo(() => [
     { path: '/quiz', icon: Trophy, label: 'Quiz', desc: 'Bilgini test et', color: '#E8C84A' },
     { path: '/qibla', icon: Navigation, label: 'Kıble', desc: 'Kıble yönünü bul', color: '#4ADE80' },
     { path: '/meal-audio', icon: Headphones, label: 'Meal Dinle', desc: 'Türkçe meal seslendirme', color: '#60A5FA' },
     { path: '/scholars', icon: Users, label: 'Hocaya Sor', desc: '12 alimden görüş al', color: '#D4AF37' },
-  ];
+  ], []);
   return (
-    <div className="mx-4 mb-5 animate-fade-in" data-testid="quick-access">
-      <h2 className="text-sm font-semibold text-[#D4AF37] mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>Hızlı Erişim</h2>
+    <div className="mx-4 mb-5" data-testid="quick-access">
+      <h2 className="text-sm font-semibold mb-3" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>Hızlı Erişim</h2>
       <div className="grid grid-cols-2 gap-3">
-        {items.map(({ path, icon: Icon, label, desc, color }) => (
-          <button key={path} onClick={() => navigate(path)} data-testid={`quick-${path.slice(1)}`}
-            className="rounded-2xl p-4 text-left transition-all active:scale-[0.97]"
-            style={{ background: 'rgba(15,61,46,0.5)', border: `1px solid ${color}20` }}>
+        {items.map(({ path, icon: Icon, label, desc, color }, i) => (
+          <motion.button key={path} whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}
+            onClick={() => navigate(path)} data-testid={`quick-${path.slice(1)}`}
+            className="rounded-2xl p-4 text-left transition-all"
+            style={{ background: theme.surface, border: `1px solid ${color}20` }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{ background: `${color}18` }}>
               <Icon size={18} style={{ color }} />
             </div>
-            <p className="text-sm font-semibold text-[#F5F5DC]">{label}</p>
-            <p className="text-[10px] text-[#A8B5A0] mt-0.5">{desc}</p>
-          </button>
+            <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{label}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{desc}</p>
+          </motion.button>
         ))}
       </div>
     </div>
   );
-}
+});
 
 // ─── Main Dashboard ───
 export default function Dashboard() {
   const { user } = useAuth();
   const { selectedCity } = useLang();
+  const { theme } = useTheme();
+  const online = useOnlineStatus();
   const [prayerTimes, setPrayerTimes] = useState(null);
   const [randomVerse, setRandomVerse] = useState(null);
   const [randomHadith, setRandomHadith] = useState(null);
 
   useEffect(() => {
-    api.get(`/prayer-times/${selectedCity}`).then(r => { if (r.data && typeof r.data === 'object') setPrayerTimes(r.data); }).catch(() => {});
-    api.get('/quran/random').then(r => { if (r.data && typeof r.data === 'object') setRandomVerse(r.data); }).catch(() => {});
-    api.get('/hadith/random').then(r => { if (r.data && typeof r.data === 'object') setRandomHadith(r.data); }).catch(() => {});
+    fetchWithCache(`/prayer-times/${selectedCity}`, { ttl: 30 * 60 * 1000 }).then(d => { if (d && typeof d === 'object') setPrayerTimes(d); }).catch(() => {});
+    fetchWithCache('/quran/random', { ttl: 10 * 60 * 1000 }).then(d => { if (d && typeof d === 'object') setRandomVerse(d); }).catch(() => {});
+    fetchWithCache('/hadith/random', { ttl: 10 * 60 * 1000 }).then(d => { if (d && typeof d === 'object') setRandomHadith(d); }).catch(() => {});
+    logger.info('Dashboard loaded', { city: selectedCity });
   }, [selectedCity]);
 
-  const prayerKeys = [
+  // Schedule prayer notifications when times load
+  useEffect(() => {
+    if (prayerTimes) {
+      const prefs = notifications.getPreferences();
+      if (prefs.prayer) {
+        ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].forEach(key => {
+          if (prayerTimes[key]) notifications.schedulePrayerReminder(key, prayerTimes[key]);
+        });
+      }
+    }
+  }, [prayerTimes]);
+
+  const prayerKeys = useMemo(() => [
     { key: 'fajr', label: 'İmsak' }, { key: 'sunrise', label: 'Güneş' },
     { key: 'dhuhr', label: 'Öğle' }, { key: 'asr', label: 'İkindi' },
     { key: 'maghrib', label: 'Akşam' }, { key: 'isha', label: 'Yatsı' },
-  ];
+  ], []);
 
   return (
-    <div className="pb-4" data-testid="dashboard">
+    <div className="pb-4" style={{ background: theme.bg }} data-testid="dashboard">
+      {/* Offline Banner */}
+      <AnimatePresence>
+        {!online && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-medium"
+            style={{ background: `${theme.gold}26`, color: theme.gold }}>
+            <WifiOff size={12} /> Çevrimdışı mod — veriler önbellekten yükleniyor
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
-      <div className="px-5 pt-10 pb-4" style={{ background: 'linear-gradient(180deg, rgba(15,61,46,0.5) 0%, transparent 100%)' }}>
-        <p className="text-[#D4AF37] text-xs tracking-widest uppercase">Bismillahirrahmanirrahim</p>
-        <h1 className="text-2xl font-bold mt-1 text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>
+      <div className="px-5 pt-10 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
+        <p className="text-xs tracking-widest uppercase" style={{ color: theme.gold }}>Bismillahirrahmanirrahim</p>
+        <h1 className="text-2xl font-bold mt-1" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
           Selam{user?.name ? `, ${user.name}` : ''}
         </h1>
       </div>
 
-      <MoodSection />
-      <DailyVerse verse={randomVerse} />
-      <DailyHadith hadith={randomHadith} />
-      <KnowledgeCards />
-      <DhikrWidget />
-      <WorshipTracker />
-      <RamadanMini prayerTimes={prayerTimes} />
+      <PrayerCountdown prayerTimes={prayerTimes} theme={theme} />
+      <MoodSection theme={theme} />
+      <DailyVerse verse={randomVerse} theme={theme} />
+      <DailyHadith hadith={randomHadith} theme={theme} />
+      <KnowledgeCards theme={theme} />
+      <DhikrWidget theme={theme} />
+      <WorshipTracker theme={theme} />
+      <RamadanMini prayerTimes={prayerTimes} theme={theme} />
 
       {/* Prayer Times */}
       {prayerTimes && (
-        <div className="mx-4 mb-5 card-islamic rounded-2xl p-4 animate-fade-in" data-testid="prayer-times-card">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="mx-4 mb-5 rounded-2xl p-4" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }} data-testid="prayer-times-card">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Compass size={16} className="text-[#D4AF37]" />
-              <span className="text-sm font-semibold text-[#F5F5DC]">{prayerTimes.city_name}</span>
+              <Compass size={16} style={{ color: theme.gold }} />
+              <span className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{prayerTimes.city_name}</span>
             </div>
-            <span className="text-xs text-[#A8B5A0]">{prayerTimes.date}</span>
+            <span className="text-xs" style={{ color: theme.textSecondary }}>{prayerTimes.date}</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {prayerKeys.map(({ key, label }) => (
-              <div key={key} className="text-center py-2 rounded-xl" style={{ background: 'rgba(212,175,55,0.06)' }}>
-                <p className="text-[10px] text-[#D4AF37] uppercase tracking-wide">{label}</p>
-                <p className="text-sm font-bold text-[#F5F5DC] mt-0.5">{prayerTimes[key]}</p>
+              <div key={key} className="text-center py-2 rounded-xl" style={{ background: `${theme.gold}0F` }}>
+                <p className="text-[10px] uppercase tracking-wide" style={{ color: theme.gold }}>{label}</p>
+                <p className="text-sm font-bold mt-0.5" style={{ color: theme.textPrimary }}>{prayerTimes[key]}</p>
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
-      <QuickAccess />
+      <QuickAccess theme={theme} />
     </div>
   );
 }
