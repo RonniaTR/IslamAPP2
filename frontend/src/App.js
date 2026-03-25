@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LangProvider } from './contexts/LangContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { PremiumProvider } from './contexts/PremiumContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import SplashScreen from './components/SplashScreen';
@@ -35,6 +36,8 @@ const ComparativePage = lazy(() => import('./pages/ComparativePage'));
 const PomodoroPage = lazy(() => import('./pages/PomodoroPage'));
 const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
 const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
+const PremiumPage = lazy(() => import('./pages/PremiumPage'));
+const GamificationPage = lazy(() => import('./pages/GamificationPage'));
 
 // Initialize offline sync on app start
 initOfflineSync(api);
@@ -100,6 +103,8 @@ function AppRouter() {
               <Route path="/pomodoro" element={<PageTransition><PomodoroPage /></PageTransition>} />
               <Route path="/bookmarks" element={<PageTransition><BookmarksPage /></PageTransition>} />
               <Route path="/discover" element={<PageTransition><DiscoverPage /></PageTransition>} />
+              <Route path="/premium" element={<PageTransition><PremiumPage /></PageTransition>} />
+              <Route path="/achievements" element={<PageTransition><GamificationPage /></PageTransition>} />
             </Route>
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
@@ -134,8 +139,10 @@ export default function App() {
       <AuthProvider>
         <LangProvider>
           <ThemeProvider>
+            <PremiumProvider>
             {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
             <AppRouter />
+            </PremiumProvider>
           </ThemeProvider>
         </LangProvider>
       </AuthProvider>

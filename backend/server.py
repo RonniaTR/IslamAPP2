@@ -20,6 +20,7 @@ import edge_tts
 import base64
 import io
 from comparative_religions import COMPARATIVE_TEXTS, TOPICS, get_comparative_data, get_all_topics, search_comparative
+from phase2 import setup_phase2_routes
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -3606,6 +3607,9 @@ async def get_hadith_by_id(hadith_id: str):
 
 # Include router
 app.include_router(api_router)
+
+# Register Phase 2 routes (AI Mufti, Premium, Gamification v2, Social, Analytics)
+setup_phase2_routes(api_router, db, gemini_generate)
 
 # Allowed frontend origins
 _allowed_origins = [
