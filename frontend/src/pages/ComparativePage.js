@@ -95,8 +95,8 @@ export default function ComparativePage() {
     setAiLoading(true);
     try {
       // Try Phase 3 deep analysis first
-      const { data } = await api.post('/comparative/v2/ai-analyze', { topic_id: selectedTopic, language: lang });
-      setAiAnalysis(data.analysis || data.response || '');
+      const { data } = await api.post(`/comparative/v2/ai-analyze?topic_id=${selectedTopic}&lang=${lang}`);
+      setAiAnalysis(data.deep_analysis || data.analysis || data.response || '');
     } catch {
       try {
         const { data } = await api.post('/comparative/ai-compare', { topic_id: selectedTopic });
@@ -201,7 +201,10 @@ export default function ComparativePage() {
   );
 
   // ─── TOPIC DETAIL ───
-  const religions = topicData?.religions || topicData?.sources || {};
+  const topicName = topicData?.topic?.name || topicData?.name || topicData?.title || 'Konu';
+  const comparisonText = topicData?.comparison || topicData?.response || '';
+  const religions = topicData?.sources || {};
+  const hasStructuredData = Object.keys(religions).length > 0;
 
   return (
     <div className="min-h-screen pb-4" style={{ background: theme.bg }}>
@@ -211,7 +214,7 @@ export default function ComparativePage() {
             <ArrowLeft size={18} style={{ color: theme.textPrimary }} />
           </button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>{topicData?.name || topicData?.title || 'Konu'}</h1>
+            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>{topicName}</h1>
             <p className="text-xs" style={{ color: theme.textSecondary }}>Karşılaştırmalı inceleme</p>
           </div>
         </div>
@@ -221,8 +224,20 @@ export default function ComparativePage() {
         <div className="flex justify-center py-12"><Loader className="animate-spin" style={{ color: theme.gold }} /></div>
       ) : (
         <div className="px-4 mt-4 space-y-3">
-          {/* Religion Cards */}
-          {Object.entries(religions).map(([key, data]) => {
+          {/* Comparison Text (from AI v2 response) */}
+          {comparisonText && !hasStructuredData && (
+            <div className="rounded-xl border p-4" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Globe size={16} style={{ color: theme.gold }} />
+                <h3 className="text-sm font-semibold" style={{ color: theme.gold }}>Karşılaştırmalı Analiz</h3>
+              </div>
+              <div className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}
+                dangerouslySetInnerHTML={{ __html: formatText(comparisonText) }} />
+            </div>
+          )}
+
+          {/* Religion Cards (structured data from v1) */}
+          {hasStructuredData && Object.entries(religions).map(([key, data]) => {
             const rel = RELIGION_LABELS[key] || { name: key, icon: '📖', source: key };
             const color = RELIGION_COLORS[key] || theme.gold;
             const isExpanded = expandedReligion === key;

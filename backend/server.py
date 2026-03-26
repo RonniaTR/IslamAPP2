@@ -1377,7 +1377,7 @@ TAFSIR_SCHOLARS = {
 async def get_tafsir_scholars():
     return list(TAFSIR_SCHOLARS.values())
 
-@api_router.get("/tafsir/{surah_number}/{verse_number}")
+@api_router.get("/tafsir/v1/{surah_number}/{verse_number}")
 async def get_tafsir(surah_number: int, verse_number: int, scholar: str = None, lang: str = "tr"):
     """Get tafsir for a specific verse from MongoDB or generate via AI"""
     query = {"surah_number": surah_number, "verse_number": verse_number, "language": lang}
@@ -3610,9 +3610,6 @@ async def get_hadith_by_id(hadith_id: str):
         raise HTTPException(status_code=404, detail="Hadith not found")
     return hadith
 
-# Include router
-app.include_router(api_router)
-
 # Register Phase 2 routes (AI Mufti, Premium, Gamification v2, Social, Analytics)
 setup_phase2_routes(api_router, db, gemini_generate)
 
@@ -3622,6 +3619,9 @@ setup_phase3_tafsir_routes(api_router, db, gemini_generate)
 setup_phase3_hadith_routes(api_router, db, gemini_generate)
 setup_phase3_comparative_routes(api_router, db, gemini_generate)
 setup_phase3_i18n_routes(api_router, db, gemini_generate)
+
+# Include router AFTER all routes are registered
+app.include_router(api_router)
 
 # Allowed frontend origins
 _allowed_origins = [

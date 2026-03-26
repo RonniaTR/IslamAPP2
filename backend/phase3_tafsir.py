@@ -39,7 +39,7 @@ Yöntem: Dirayet tefsiri, Arapça kelime köklerinin analizini ön plana çıkar
         "era": "1300-1373",
         "work": "Tefsîru'l-Kur'âni'l-Azîm",
         "school": "Şafii",
-        "premium": True,
+        "premium": False,
         "icon": "📕",
         "style_prompt": """Sen İbn Kesîr'sin. "Tefsîru'l-Kur'âni'l-Azîm" eserinin müellifisin.
 Üslup: Rivayet tefsiri ağırlıklı, hadis ve sahabe sözleriyle desteklersin.
@@ -54,7 +54,7 @@ Yöntem: Kur'an'ı Kur'an ile tefsir edersin (Kur'an'ın Kur'an'la açıklanmas�
         "era": "839-923",
         "work": "Câmiu'l-Beyân",
         "school": "Müctehid",
-        "premium": True,
+        "premium": False,
         "icon": "📙",
         "style_prompt": """Sen İmam Taberî'sin. "Câmiu'l-Beyân an Te'vîli Âyi'l-Kur'ân" eserinin müellifisin.
 Üslup: Ansiklopedik, tüm rivayetleri sened ile aktarırsın. Farklı görüşleri sıralarsın.
@@ -69,7 +69,7 @@ Yöntem: Sahabe ve tâbiîn'den gelen tüm rivayetleri toplar, senedlerini verir
         "era": "1149-1209",
         "work": "Mefâtîhu'l-Gayb (Tefsîr-i Kebîr)",
         "school": "Şafii-Eşari",
-        "premium": True,
+        "premium": False,
         "icon": "📘",
         "style_prompt": """Sen Fahreddin Râzî'sin. "Mefâtîhu'l-Gayb" (Tefsîr-i Kebîr) eserinin müellifisin.
 Üslup: Kelam ve felsefe ağırlıklı, aklî istidlaller yaparsın. Derin mantıksal analizler sunarsın.
@@ -84,7 +84,7 @@ Yöntem: Aklî ve naklî delilleri birlikte kullanır, mu'tezile ve diğer mezhe
         "era": "1214-1273",
         "work": "el-Câmi' li Ahkâmi'l-Kur'ân",
         "school": "Maliki",
-        "premium": True,
+        "premium": False,
         "icon": "📓",
         "style_prompt": """Sen İmam Kurtubî'sin. "el-Câmi' li Ahkâmi'l-Kur'ân" eserinin müellifisin.
 Üslup: Ahkam (hukuk) ağırlıklı, ayetlerden fıkhi hükümler çıkarırsın.
@@ -148,17 +148,6 @@ def setup_phase3_tafsir_routes(router: APIRouter, db, gemini_generate):
             raise HTTPException(status_code=400, detail="Invalid detail level")
 
         scholar_info = TAFSIR_SCHOLARS_V2[scholar]
-
-        # Premium check
-        if scholar_info["premium"] and user_id:
-            sub = await db.subscriptions.find_one({"user_id": user_id, "status": "active"})
-            is_prem = sub is not None and sub.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) > datetime.now(timezone.utc)
-            if not is_prem:
-                return {
-                    "premium_required": True,
-                    "scholar": scholar_info["name"],
-                    "message": f"{scholar_info['name']} tefsiri premium üyelik gerektirir."
-                }
 
         # Cache key
         cache_key = hashlib.md5(f"tafsir_v2:{surah}:{verse}:{scholar}:{detail}:{lang}".encode()).hexdigest()
@@ -248,21 +237,9 @@ Sadece şu JSON formatında cevap ver:
         if not scholar_ids:
             raise HTTPException(status_code=400, detail="No valid scholars specified")
 
-        # Check premium for premium scholars
-        is_prem = False
-        if user_id:
-            sub = await db.subscriptions.find_one({"user_id": user_id, "status": "active"})
-            is_prem = sub is not None and sub.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) > datetime.now(timezone.utc)
-
         results = []
         for sid in scholar_ids:
             s_info = TAFSIR_SCHOLARS_V2[sid]
-            if s_info["premium"] and not is_prem:
-                results.append({
-                    "scholar": {"id": sid, "name": s_info["name"], "icon": s_info["icon"]},
-                    "premium_required": True,
-                })
-                continue
 
             # Try cache
             cache_key = hashlib.md5(f"tafsir_v2:{surah}:{verse}:{sid}:{detail}:{lang}".encode()).hexdigest()

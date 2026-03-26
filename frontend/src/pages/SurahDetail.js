@@ -154,7 +154,7 @@ export default function SurahDetail() {
     setTafsirVerse(verseNum); setTafsirScholar(scholarId); setTafsirLoading(true);
     try {
       const params = scholarId ? `?scholar=${scholarId}&lang=${lang}` : `?lang=${lang}`;
-      const { data } = await api.get(`/tafsir/${surahNumber}/${verseNum}${params}`);
+      const { data } = await api.get(`/tafsir/v1/${surahNumber}/${verseNum}${params}`);
       setTafsirData(Array.isArray(data) ? data : []);
     } catch { setTafsirData([]); }
     setTafsirLoading(false);
@@ -170,9 +170,28 @@ export default function SurahDetail() {
     setTafsirV2Loading(true);
     try {
       const { data } = await api.get(`/tafsir/v2/${surahNumber}/${verseNum}?scholar=${scholarId}&detail=${detail}&lang=${lang}`);
-      setTafsirV2Data(prev => ({ ...prev, [key]: data }));
-      await setCachedTafsir(cacheKey, data);
-    } catch {}
+      if (data && data.tafsir_text) {
+        setTafsirV2Data(prev => ({ ...prev, [key]: data }));
+        await setCachedTafsir(cacheKey, data);
+      } else if (data && data.premium_required) {
+        setTafsirV2Data(prev => ({ ...prev, [key]: { error: true, message: data.message || 'Premium gerekli' } }));
+      }
+    } catch (err) {
+      console.error('Tafsir V2 error:', err);
+      // Fallback to v1 endpoint
+      try {
+        const { data } = await api.get(`/tafsir/v1/${surahNumber}/${verseNum}?scholar=${scholarId}&lang=${lang}`);
+        if (Array.isArray(data) && data.length > 0) {
+          const fallback = {
+            scholar: { id: scholarId, name: data[0].scholar_display_name || scholarId },
+            tafsir_text: data[0].tafsir_text,
+            detail_level: detail,
+          };
+          setTafsirV2Data(prev => ({ ...prev, [key]: fallback }));
+          await setCachedTafsir(cacheKey, fallback);
+        }
+      } catch {}
+    }
     setTafsirV2Loading(false);
   };
 
@@ -645,7 +664,12 @@ export default function SurahDetail() {
                         ) : (() => {
                           const v2Key = `${verse.number}-${tafsirScholar}-${tafsirDetailLevel}`;
                           const v2 = tafsirV2Data[v2Key];
-                          if (v2) return (
+                          if (v2 && v2.error) return (
+                            <div className="rounded-xl p-3.5" style={{ background: '#ef444406', border: '1px solid #ef44440a' }}>
+                              <p className="text-xs text-center" style={{ color: '#ef4444' }}>{v2.message || txt.noData}</p>
+                            </div>
+                          );
+                          if (v2 && v2.tafsir_text) return (
                             <div className="rounded-xl p-3.5" style={{ background: '#f59e0b06', border: '1px solid #f59e0b0a' }}>
                               <p className="text-[11px] font-bold mb-1.5" style={{ color: '#f59e0b' }}>
                                 {v2.scholar?.name} <span className="text-[9px] font-normal" style={{ color: theme.textSecondary }}>({v2.scholar?.school || ''})</span>
