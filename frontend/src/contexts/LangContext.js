@@ -20,7 +20,9 @@ export function LangProvider({ children }) {
     try {
       // Try Phase 3 v2 translations first (deeper coverage)
       const { data } = await api.get(`/i18n/v2/${langCode}`);
-      setT(data.translations);
+      // v2 may return flat translations or wrapped {translations: {...}}
+      const translations = data.translations || data;
+      setT(translations);
       setDefaultCountry(data.default_country || (langCode === 'ar' ? 'SA' : langCode === 'en' ? 'US' : 'TR'));
       setDirection(data.direction || 'ltr');
       document.documentElement.dir = data.direction || 'ltr';
@@ -31,8 +33,9 @@ export function LangProvider({ children }) {
       try {
         // Fallback to Phase 1 translations
         const { data } = await api.get(`/i18n/${langCode}`);
-        setT(data.translations);
-        setDefaultCountry(data.default_country);
+        const translations = data.translations || data;
+        setT(translations);
+        setDefaultCountry(data.default_country || 'TR');
         const dir = langCode === 'ar' ? 'rtl' : 'ltr';
         setDirection(dir);
         document.documentElement.dir = dir;
