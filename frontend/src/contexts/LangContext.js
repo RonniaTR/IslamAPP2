@@ -17,32 +17,33 @@ export function LangProvider({ children }) {
   const [direction, setDirection] = useState('ltr');
 
   const loadTranslations = useCallback(async (langCode) => {
+    let base = {};
+    // Always load v1 first (has basic keys: home, quran, hadith, etc.)
     try {
-      // Try Phase 3 v2 translations first (deeper coverage)
-      const { data } = await api.get(`/i18n/v2/${langCode}`);
-      // v2 may return flat translations or wrapped {translations: {...}}
-      const translations = data.translations || data;
-      setT(translations);
+      const { data } = await api.get(`/i18n/${langCode}`);
+      base = data.translations || data || {};
       setDefaultCountry(data.default_country || (langCode === 'ar' ? 'SA' : langCode === 'en' ? 'US' : 'TR'));
-      setDirection(data.direction || 'ltr');
-      document.documentElement.dir = data.direction || 'ltr';
+      const dir = langCode === 'ar' ? 'rtl' : 'ltr';
+      setDirection(dir);
+      document.documentElement.dir = dir;
+    } catch { /* v1 failed, continue */ }
+
+    // Then overlay v2 keys (premium, gamification, tafsir, etc.)
+    try {
+      const { data } = await api.get(`/i18n/v2/${langCode}`);
+      const v2 = data.translations || data || {};
+      base = { ...base, ...v2 };
+      if (data.direction) {
+        setDirection(data.direction);
+        document.documentElement.dir = data.direction;
+      }
+      if (data.default_country) setDefaultCountry(data.default_country);
       if (data.font_family) {
         document.documentElement.style.setProperty('--app-font', data.font_family);
       }
-    } catch {
-      try {
-        // Fallback to Phase 1 translations
-        const { data } = await api.get(`/i18n/${langCode}`);
-        const translations = data.translations || data;
-        setT(translations);
-        setDefaultCountry(data.default_country || 'TR');
-        const dir = langCode === 'ar' ? 'rtl' : 'ltr';
-        setDirection(dir);
-        document.documentElement.dir = dir;
-      } catch {
-        setT({});
-      }
-    }
+    } catch { /* v2 failed, use v1 only */ }
+
+    setT(base);
   }, []);
 
   useEffect(() => { loadTranslations(lang); }, [lang, loadTranslations]);

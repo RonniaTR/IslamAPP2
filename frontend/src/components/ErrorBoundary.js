@@ -27,7 +27,17 @@ export class ErrorBoundary extends React.Component {
           <p className="text-sm text-[#A8B5A0] mb-2">Uygulama beklenmedik bir hata ile karşılaştı.</p>
           {this.state.errorMsg && <p className="text-xs text-red-400/70 mb-4 break-all max-w-xs">{this.state.errorMsg}</p>}
           <button
-            onClick={() => { this.setState({ hasError: false }); window.location.href = '/'; }}
+            onClick={async () => {
+              try {
+                // Clear all caches
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+                // Unregister service workers
+                const regs = await navigator.serviceWorker?.getRegistrations();
+                if (regs) await Promise.all(regs.map(r => r.unregister()));
+              } catch {}
+              window.location.replace('/');
+            }}
             className="px-6 py-3 rounded-xl text-sm font-bold text-[#0A1F14]"
             style={{ background: 'linear-gradient(135deg, #D4AF37, #B8860B)' }}
             data-testid="error-retry">

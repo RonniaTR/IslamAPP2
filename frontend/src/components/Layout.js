@@ -24,15 +24,16 @@ export default memo(function Layout() {
   const hideNav = pathname.match(/\/quran\/\d+/);
   const isRtl = lang === 'ar';
 
+  const safeT = t || {};
   const tabs = useMemo(() => [
-    { path: '/', icon: Home, label: t.home || 'Ana Sayfa' },
-    { path: '/quran', icon: BookOpen, label: t.quran || "Kur'an" },
-    { path: '/hadith', icon: ScrollText, label: t.hadith || 'Hadis' },
-    { path: '/quiz', icon: Trophy, label: t.quiz || 'Quiz' },
-    { path: '/discover', icon: Compass, label: t.explore || 'Keşfet' },
-    { path: '/chat', icon: MessageCircle, label: t.chat || 'Sohbet' },
-    { path: '/settings', icon: Settings, label: t.settings || 'Ayarlar' },
-  ], [t]);
+    { path: '/', icon: Home, label: safeT.home || 'Ana Sayfa' },
+    { path: '/quran', icon: BookOpen, label: safeT.quran || "Kur'an" },
+    { path: '/hadith', icon: ScrollText, label: safeT.hadith || 'Hadis' },
+    { path: '/quiz', icon: Trophy, label: safeT.quiz || 'Quiz' },
+    { path: '/discover', icon: Compass, label: safeT.explore || 'Keşfet' },
+    { path: '/chat', icon: MessageCircle, label: safeT.chat || 'Sohbet' },
+    { path: '/settings', icon: Settings, label: safeT.settings || 'Ayarlar' },
+  ], [safeT]);
 
   return (
     <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[768px] lg:max-w-[520px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
