@@ -1,16 +1,38 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen, Shield, Languages, GitCompare, Star, Bookmark } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen, Shield, Languages, GitCompare, Star, Bookmark, Download, CheckCircle } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import PreReadingDua from '../components/PreReadingDua';
 import api from '../api';
+import { openDB } from 'idb';
+
+const TAFSIR_DB_NAME = 'tafsir-offline';
+const TAFSIR_STORE = 'tafsir-data';
+async function getTafsirDB() {
+  return openDB(TAFSIR_DB_NAME, 1, {
+    upgrade(db) { if (!db.objectStoreNames.contains(TAFSIR_STORE)) db.createObjectStore(TAFSIR_STORE); },
+  });
+}
+async function getCachedTafsir(key) {
+  try { const db = await getTafsirDB(); return await db.get(TAFSIR_STORE, key); } catch { return null; }
+}
+async function setCachedTafsir(key, data) {
+  try { const db = await getTafsirDB(); await db.put(TAFSIR_STORE, data, key); } catch {}
+}
+async function isSurahDownloaded(surah, scholar, detail, lang) {
+  try {
+    const db = await getTafsirDB();
+    const key = `downloaded:${surah}:${scholar}:${detail}:${lang}`;
+    return !!(await db.get(TAFSIR_STORE, key));
+  } catch { return false; }
+}
 
 const surahI18n = {
-  tr: { back: 'Sureler', verses: 'ayet', playing: 'Oynatılıyor...', fullPlay: 'Tüm sureyi dinle', listenMeal: 'Türkçe Meal Dinle', juz: 'Cüz', meal: 'Meal', tafsir: 'Tefsir', kissa: 'Kıssa', scholars: 'Alimler', compare: 'Karşılaştır', linguistic: 'Dilbilim', detail: 'Detay', summary: 'Özet', simplified: 'Sadeleştirilmiş', academic: 'Akademik', selectScholar: 'Bir müfessir seçerek başlayın', aiOff: 'AI aktif değil.', generating: 'Kıssa oluşturuluyor...', saved: 'Kaydedildi', save: 'Kaydet', copy: 'Kopyala', noData: 'Veri bulunamadı.', preparing: 'Hazırlanıyor...', noTafsir: 'Tefsir verisi bulunamadı.', loading: 'Yükleniyor...', surahNotFound: 'Sure bulunamadı', tMeal: 'Türkçe Meal', english: 'English', confidence: 'Güven', high: 'Yüksek', medium: 'Orta', low: 'Düşük', kissaTitle: 'Kıssa & Hikaye', kissaAiOff: 'AI aktif değil. Kıssa için Gemini API key gereklidir.', nahiv: 'Nahiv (Sentaks)', sarf: 'Sarf (Morfoloji)', belagat: 'Belagat (Retorik)', semantik: 'Semantik', lingLoading: 'Dilbilim analizi...', compLoading: 'Karşılaştırma hazırlanıyor...', noLing: 'Dilbilim analizi yüklenmedi.', noComp: 'Karşılaştırma verisi yüklenmedi.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ' },
-  en: { back: 'Surahs', verses: 'verses', playing: 'Playing...', fullPlay: 'Listen full surah', listenMeal: 'Listen Translation', juz: 'Juz', meal: 'Translation', tafsir: 'Tafsir', kissa: 'Story', scholars: 'Scholars', compare: 'Compare', linguistic: 'Linguistic', detail: 'Detail', summary: 'Summary', simplified: 'Simplified', academic: 'Academic', selectScholar: 'Select a scholar to begin', aiOff: 'AI is not active.', generating: 'Generating story...', saved: 'Saved', save: 'Save', copy: 'Copy', noData: 'No data found.', preparing: 'Preparing...', noTafsir: 'No tafsir data found.', loading: 'Loading...', surahNotFound: 'Surah not found', tMeal: 'Translation', english: 'English', confidence: 'Confidence', high: 'High', medium: 'Medium', low: 'Low', kissaTitle: 'Story & Narrative', kissaAiOff: 'AI not active. Gemini API key required.', nahiv: 'Nahw (Syntax)', sarf: 'Sarf (Morphology)', belagat: 'Balagha (Rhetoric)', semantik: 'Semantics', lingLoading: 'Linguistic analysis...', compLoading: 'Preparing comparison...', noLing: 'Linguistic data not loaded.', noComp: 'Comparison data not loaded.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ' },
-  ar: { back: 'السور', verses: 'آيات', playing: 'قيد التشغيل...', fullPlay: 'استمع للسورة كاملة', listenMeal: 'استمع للترجمة', juz: 'جزء', meal: 'الترجمة', tafsir: 'التفسير', kissa: 'القصة', scholars: 'العلماء', compare: 'مقارنة', linguistic: 'لغوي', detail: 'التفصيل', summary: 'ملخص', simplified: 'مبسط', academic: 'أكاديمي', selectScholar: 'اختر مفسرًا للبدء', aiOff: 'الذكاء الاصطناعي غير نشط.', generating: 'جاري إنشاء القصة...', saved: 'تم الحفظ', save: 'حفظ', copy: 'نسخ', noData: 'لا توجد بيانات.', preparing: 'جاري التحضير...', noTafsir: 'لا توجد بيانات تفسير.', loading: 'جاري التحميل...', surahNotFound: 'لم يتم العثور على السورة', tMeal: 'الترجمة', english: 'English', confidence: 'الثقة', high: 'عالية', medium: 'متوسطة', low: 'منخفضة', kissaTitle: 'القصة والرواية', kissaAiOff: 'الذكاء الاصطناعي غير نشط.', nahiv: 'النحو', sarf: 'الصرف', belagat: 'البلاغة', semantik: 'الدلالة', lingLoading: 'تحليل لغوي...', compLoading: 'جاري تحضير المقارنة...', noLing: 'لم يتم تحميل التحليل اللغوي.', noComp: 'لم يتم تحميل بيانات المقارنة.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ' },
+  tr: { back: 'Sureler', verses: 'ayet', playing: 'Oynatılıyor...', fullPlay: 'Tüm sureyi dinle', listenMeal: 'Türkçe Meal Dinle', juz: 'Cüz', meal: 'Meal', tafsir: 'Tefsir', kissa: 'Kıssa', scholars: 'Alimler', compare: 'Karşılaştır', linguistic: 'Dilbilim', detail: 'Detay', summary: 'Özet', simplified: 'Sadeleştirilmiş', academic: 'Akademik', selectScholar: 'Bir müfessir seçerek başlayın', aiOff: 'AI aktif değil.', generating: 'Kıssa oluşturuluyor...', saved: 'Kaydedildi', save: 'Kaydet', copy: 'Kopyala', noData: 'Veri bulunamadı.', preparing: 'Hazırlanıyor...', noTafsir: 'Tefsir verisi bulunamadı.', loading: 'Yükleniyor...', surahNotFound: 'Sure bulunamadı', tMeal: 'Türkçe Meal', english: 'English', confidence: 'Güven', high: 'Yüksek', medium: 'Orta', low: 'Düşük', kissaTitle: 'Kıssa & Hikaye', kissaAiOff: 'AI aktif değil. Kıssa için Gemini API key gereklidir.', nahiv: 'Nahiv (Sentaks)', sarf: 'Sarf (Morfoloji)', belagat: 'Belagat (Retorik)', semantik: 'Semantik', lingLoading: 'Dilbilim analizi...', compLoading: 'Karşılaştırma hazırlanıyor...', noLing: 'Dilbilim analizi yüklenmedi.', noComp: 'Karşılaştırma verisi yüklenmedi.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'Çevrimdışı İndir', downloading: 'İndiriliyor...', downloaded: 'İndirildi ✓', downloadFail: 'İndirme başarısız' },
+  en: { back: 'Surahs', verses: 'verses', playing: 'Playing...', fullPlay: 'Listen full surah', listenMeal: 'Listen Translation', juz: 'Juz', meal: 'Translation', tafsir: 'Tafsir', kissa: 'Story', scholars: 'Scholars', compare: 'Compare', linguistic: 'Linguistic', detail: 'Detail', summary: 'Summary', simplified: 'Simplified', academic: 'Academic', selectScholar: 'Select a scholar to begin', aiOff: 'AI is not active.', generating: 'Generating story...', saved: 'Saved', save: 'Save', copy: 'Copy', noData: 'No data found.', preparing: 'Preparing...', noTafsir: 'No tafsir data found.', loading: 'Loading...', surahNotFound: 'Surah not found', tMeal: 'Translation', english: 'English', confidence: 'Confidence', high: 'High', medium: 'Medium', low: 'Low', kissaTitle: 'Story & Narrative', kissaAiOff: 'AI not active. Gemini API key required.', nahiv: 'Nahw (Syntax)', sarf: 'Sarf (Morphology)', belagat: 'Balagha (Rhetoric)', semantik: 'Semantics', lingLoading: 'Linguistic analysis...', compLoading: 'Preparing comparison...', noLing: 'Linguistic data not loaded.', noComp: 'Comparison data not loaded.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'Download Offline', downloading: 'Downloading...', downloaded: 'Downloaded ✓', downloadFail: 'Download failed' },
+  ar: { back: 'السور', verses: 'آيات', playing: 'قيد التشغيل...', fullPlay: 'استمع للسورة كاملة', listenMeal: 'استمع للترجمة', juz: 'جزء', meal: 'الترجمة', tafsir: 'التفسير', kissa: 'القصة', scholars: 'العلماء', compare: 'مقارنة', linguistic: 'لغوي', detail: 'التفصيل', summary: 'ملخص', simplified: 'مبسط', academic: 'أكاديمي', selectScholar: 'اختر مفسرًا للبدء', aiOff: 'الذكاء الاصطناعي غير نشط.', generating: 'جاري إنشاء القصة...', saved: 'تم الحفظ', save: 'حفظ', copy: 'نسخ', noData: 'لا توجد بيانات.', preparing: 'جاري التحضير...', noTafsir: 'لا توجد بيانات تفسير.', loading: 'جاري التحميل...', surahNotFound: 'لم يتم العثور على السورة', tMeal: 'الترجمة', english: 'English', confidence: 'الثقة', high: 'عالية', medium: 'متوسطة', low: 'منخفضة', kissaTitle: 'القصة والرواية', kissaAiOff: 'الذكاء الاصطناعي غير نشط.', nahiv: 'النحو', sarf: 'الصرف', belagat: 'البلاغة', semantik: 'الدلالة', lingLoading: 'تحليل لغوي...', compLoading: 'جاري تحضير المقارنة...', noLing: 'لم يتم تحميل التحليل اللغوي.', noComp: 'لم يتم تحميل بيانات المقارنة.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'تحميل بلا إنترنت', downloading: 'جاري التحميل...', downloaded: 'تم التحميل ✓', downloadFail: 'فشل التحميل' },
 };
 
 export default function SurahDetail() {
@@ -45,7 +67,7 @@ export default function SurahDetail() {
   const [copiedVerse, setCopiedVerse] = useState(null);
   const [activeTab, setActiveTab] = useState({});
   const [tafsirV2Scholars, setTafsirV2Scholars] = useState([]);
-  const [tafsirDetailLevel, setTafsirDetailLevel] = useState('ozet');
+  const [tafsirDetailLevel, setTafsirDetailLevel] = useState('simplified');
   const [tafsirV2Data, setTafsirV2Data] = useState({});
   const [tafsirV2Loading, setTafsirV2Loading] = useState(false);
   const [compareData, setCompareData] = useState({});
@@ -54,6 +76,9 @@ export default function SurahDetail() {
   const [linguisticLoading, setLinguisticLoading] = useState(null);
   const [activeSubTab, setActiveSubTab] = useState({});
   const [showDua, setShowDua] = useState(false);
+  const [downloadingTafsir, setDownloadingTafsir] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [surahDownloaded, setSurahDownloaded] = useState({});
 
   useEffect(() => {
     api.get('/quran/reciters').then(r => { if (Array.isArray(r.data)) setReciters(r.data); }).catch(() => {});
@@ -63,7 +88,20 @@ export default function SurahDetail() {
     if (!sessionStorage.getItem('quran_dua_seen')) {
       setShowDua(true);
     }
-  }, []);
+    // Check offline download status for all scholars
+    (async () => {
+      const scholars = ['elmalili', 'ibn_kesir', 'taberi', 'razi', 'kurtubi'];
+      const details = ['summary', 'simplified', 'academic'];
+      const dlStatus = {};
+      for (const s of scholars) {
+        for (const d of details) {
+          const isDL = await isSurahDownloaded(surahNumber, s, d, lang);
+          if (isDL) dlStatus[`${s}-${d}`] = true;
+        }
+      }
+      setSurahDownloaded(dlStatus);
+    })();
+  }, [surahNumber, lang]);
 
   useEffect(() => {
     setLoading(true);
@@ -125,12 +163,43 @@ export default function SurahDetail() {
   const loadTafsirV2 = async (verseNum, scholarId, detail) => {
     const key = `${verseNum}-${scholarId}-${detail}`;
     if (tafsirV2Data[key]) return;
+    // Check IDB cache first
+    const cacheKey = `tafsir:${surahNumber}:${verseNum}:${scholarId}:${detail}:${lang}`;
+    const cached = await getCachedTafsir(cacheKey);
+    if (cached) { setTafsirV2Data(prev => ({ ...prev, [key]: cached })); return; }
     setTafsirV2Loading(true);
     try {
       const { data } = await api.get(`/tafsir/v2/${surahNumber}/${verseNum}?scholar=${scholarId}&detail=${detail}&lang=${lang}`);
       setTafsirV2Data(prev => ({ ...prev, [key]: data }));
+      await setCachedTafsir(cacheKey, data);
     } catch {}
     setTafsirV2Loading(false);
+  };
+
+  const downloadSurahTafsir = async (scholarId) => {
+    if (!surah || downloadingTafsir) return;
+    setDownloadingTafsir(true); setDownloadProgress(0);
+    try {
+      const totalVerses = surah.total_verses || surah.verses?.length || 7;
+      const { data } = await api.get(`/tafsir/v2/${surahNumber}/download?scholar=${scholarId}&detail=${tafsirDetailLevel}&lang=${lang}&total_verses=${totalVerses}`);
+      if (data.tafsirs) {
+        for (let i = 0; i < data.tafsirs.length; i++) {
+          const t = data.tafsirs[i];
+          if (!t.error) {
+            const cacheKey = `tafsir:${surahNumber}:${t.verse}:${scholarId}:${tafsirDetailLevel}:${lang}`;
+            await setCachedTafsir(cacheKey, t);
+            const stateKey = `${t.verse}-${scholarId}-${tafsirDetailLevel}`;
+            setTafsirV2Data(prev => ({ ...prev, [stateKey]: t }));
+          }
+          setDownloadProgress(Math.round(((i + 1) / data.tafsirs.length) * 100));
+        }
+        const dlKey = `downloaded:${surahNumber}:${scholarId}:${tafsirDetailLevel}:${lang}`;
+        const db = await getTafsirDB();
+        await db.put(TAFSIR_STORE, true, dlKey);
+        setSurahDownloaded(prev => ({ ...prev, [`${scholarId}-${tafsirDetailLevel}`]: true }));
+      }
+    } catch {}
+    setDownloadingTafsir(false);
   };
 
   const loadCompare = async (verseNum) => {
@@ -511,7 +580,7 @@ export default function SurahDetail() {
                     {/* Detail Level */}
                     <div className="flex items-center gap-1.5 mb-3">
                       <span className="text-[9px]" style={{ color: theme.textSecondary }}>{txt.detail}:</span>
-                      {[{ id: 'ozet', label: txt.summary }, { id: 'sadele', label: txt.simplified }, { id: 'akademik', label: txt.academic }].map(dl => (
+                      {[{ id: 'summary', label: txt.summary }, { id: 'simplified', label: txt.simplified }, { id: 'academic', label: txt.academic }].map(dl => (
                         <button key={dl.id} onClick={() => setTafsirDetailLevel(dl.id)}
                           className="px-2 py-0.5 rounded-full text-[9px] font-semibold transition-all"
                           style={tafsirDetailLevel === dl.id
@@ -543,6 +612,31 @@ export default function SurahDetail() {
                             </button>
                           ))}
                         </div>
+
+                        {/* Offline Download Button */}
+                        {tafsirScholar && (
+                          <div className="mb-3">
+                            {surahDownloaded[`${tafsirScholar}-${tafsirDetailLevel}`] ? (
+                              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px]" style={{ background: '#10B98115', color: '#10B981', border: '1px solid #10B98125' }}>
+                                <CheckCircle size={12} /> {txt.downloaded}
+                              </div>
+                            ) : downloadingTafsir ? (
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px]" style={{ background: `${theme.gold}10`, color: theme.gold, border: `1px solid ${theme.gold}20` }}>
+                                <Loader2 size={12} className="animate-spin" />
+                                <span>{txt.downloading} %{downloadProgress}</span>
+                                <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: `${theme.gold}15` }}>
+                                  <div className="h-full rounded-full transition-all" style={{ width: `${downloadProgress}%`, background: theme.gold }} />
+                                </div>
+                              </div>
+                            ) : (
+                              <button onClick={() => downloadSurahTafsir(tafsirScholar)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold transition-all active:scale-95"
+                                style={{ background: `${theme.gold}10`, color: theme.gold, border: `1px solid ${theme.gold}20` }}>
+                                <Download size={12} /> {txt.downloadOffline}
+                              </button>
+                            )}
+                          </div>
+                        )}
                         {(tafsirLoading || tafsirV2Loading) ? (
                           <div className="flex items-center gap-2 py-4 justify-center">
                             <Loader2 size={16} className="animate-spin" style={{ color: '#f59e0b' }} />
@@ -554,14 +648,14 @@ export default function SurahDetail() {
                           if (v2) return (
                             <div className="rounded-xl p-3.5" style={{ background: '#f59e0b06', border: '1px solid #f59e0b0a' }}>
                               <p className="text-[11px] font-bold mb-1.5" style={{ color: '#f59e0b' }}>
-                                {v2.scholar_name} <span className="text-[9px] font-normal" style={{ color: theme.textSecondary }}>({v2.school || ''})</span>
+                                {v2.scholar?.name} <span className="text-[9px] font-normal" style={{ color: theme.textSecondary }}>({v2.scholar?.school || ''})</span>
                               </p>
-                              <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{v2.tafsir}</p>
+                              <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{v2.tafsir_text}</p>
                               {v2.confidence && (
                                 <div className="flex items-center gap-1.5 mt-2 pt-2" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
-                                  <Shield size={10} style={{ color: v2.confidence.level === 'high' ? '#10B981' : '#F59E0B' }} />
+                                  <Shield size={10} style={{ color: (v2.confidence.score || 0) >= 7 ? '#10B981' : '#F59E0B' }} />
                                   <span className="text-[9px]" style={{ color: theme.textSecondary }}>
-                                    {txt.confidence}: {v2.confidence.level === 'high' ? txt.high : v2.confidence.level === 'medium' ? txt.medium : txt.low}
+                                    {txt.confidence}: {(v2.confidence.score || 0) >= 7 ? txt.high : (v2.confidence.score || 0) >= 4 ? txt.medium : txt.low} ({v2.confidence.score}/10)
                                   </span>
                                 </div>
                               )}
@@ -598,11 +692,17 @@ export default function SurahDetail() {
                           {(compareData[verse.number].comparisons || []).map((c, i) => (
                             <div key={i} className="rounded-xl p-3" style={{ background: '#f59e0b05', border: `1px solid ${theme.cardBorder}` }}>
                               <div className="flex items-center gap-1.5 mb-1.5">
-                                <span className="text-sm">{c.icon || '📗'}</span>
-                                <span className="text-[10px] font-bold" style={{ color: '#f59e0b' }}>{c.scholar_name}</span>
-                                <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: `${theme.gold}08`, color: theme.textSecondary }}>{c.school}</span>
+                                <span className="text-sm">{c.scholar?.icon || '📗'}</span>
+                                <span className="text-[10px] font-bold" style={{ color: '#f59e0b' }}>{c.scholar?.name}</span>
+                                <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: `${theme.gold}08`, color: theme.textSecondary }}>{c.scholar?.school || ''}</span>
                               </div>
-                              <p className="text-[11px] leading-relaxed" style={{ color: theme.textPrimary }}>{c.summary}</p>
+                              {c.premium_required ? (
+                                <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>Premium üyelik gerektirir</p>
+                              ) : c.error ? (
+                                <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>{txt.noData}</p>
+                              ) : (
+                                <p className="text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{c.tafsir_text}</p>
+                              )}
                             </div>
                           ))}
                         </div>

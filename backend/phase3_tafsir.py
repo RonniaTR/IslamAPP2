@@ -279,7 +279,7 @@ Sadece şu JSON formatında cevap ver:
             try:
                 response = await gemini_generate(prompt, s_info["style_prompt"])
                 item = {
-                    "scholar": {"id": sid, "name": s_info["name"], "icon": s_info["icon"], "era": s_info["era"], "work": s_info["work"]},
+                    "scholar": {"id": sid, "name": s_info["name"], "icon": s_info["icon"], "era": s_info["era"], "work": s_info["work"], "school": s_info["school"]},
                     "detail_level": detail,
                     "tafsir_text": response,
                     "language": lang,
@@ -307,20 +307,32 @@ Sadece şu JSON formatında cevap ver:
         lang_map = {"tr": "Türkçe", "en": "English", "ar": "العربية"}
         prompt = f"""Sure {surah}, Ayet {verse} için derin dil analizi yap.
 
-Şu başlıklarda cevap ver:
-1. **Kelime Kök Analizi**: Her önemli Arapça kelimenin kökü (sülasi/rubai), babı, kalıbı ve anlamı
-2. **Gramer (Nahiv)**: Cümle yapısı, i'rab (kelime çekimi)
-3. **Belagat**: Mecaz, teşbih, istiare, kinaye, cinas gibi edebi sanatlar
-4. **Sarf**: Kelime kalıpları ve türemeleri
-5. **Semantik Alan**: Kelimelerin diğer kullanımlarıyla karşılaştırma
+Yanıtını MUTLAKA aşağıdaki JSON formatında ver. Başka bir şey yazma, sadece JSON:
+{{
+  "nahiv": "Nahiv (sentaks/gramer) analizi metni",
+  "sarf": "Sarf (morfoloji/kelime yapısı) analizi metni",
+  "belagat": "Belagat (retorik/edebi sanatlar) analizi metni",
+  "semantik": "Semantik (anlam) analizi metni"
+}}
 
-{lang_map.get(lang, 'Türkçe')} dilinde cevap ver."""
+Her alan için detaylı açıklama yap. {lang_map.get(lang, 'Türkçe')} dilinde yaz."""
 
-        system = "Sen bir Arapça dil bilgini ve Kur'an belagatı uzmanısın. Nahiv, sarf ve belagat ilimlerinde mütehasıssın."
+        system = "Sen bir Arapça dil bilgini ve Kur'an belagatı uzmanısın. Nahiv, sarf ve belagat ilimlerinde mütehasıssın. SADECE JSON döndür."
 
         try:
+            import re, json
             response = await gemini_generate(prompt, system)
-            result = {"surah": surah, "verse": verse, "analysis": response, "language": lang}
+            # Parse JSON from response
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                try:
+                    analysis = json.loads(json_match.group())
+                except json.JSONDecodeError:
+                    analysis = {"nahiv": response, "sarf": "", "belagat": "", "semantik": ""}
+            else:
+                analysis = {"nahiv": response, "sarf": "", "belagat": "", "semantik": ""}
+
+            result = {"surah": surah, "verse": verse, "analysis": analysis, "language": lang}
             await db.linguistic_cache.update_one(
                 {"key": cache_key},
                 {"$set": {"key": cache_key, "data": result, "created_at": datetime.now(timezone.utc)}},
@@ -330,3 +342,77 @@ Sadece şu JSON formatında cevap ver:
         except Exception as e:
             logger.error(f"Linguistic analysis failed: {e}")
             raise HTTPException(status_code=500, detail="Dil analizi oluşturulamadı")
+
+    @router.get("/tafsir/v2/{surah}/download")
+    async def download_surah_tafsir(
+        surah: int,
+        scholar: str = "elmalili",
+        detail: str = "simplified",
+        lang: str = "tr",
+        total_verses: int = Query(default=7, ge=1, le=286),
+    ):
+        """Batch download tafsir for entire surah (for offline use)"""
+        if scholar not in TAFSIR_SCHOLARS_V2:
+            raise HTTPException(status_code=400, detail="Invalid scholar")
+        if detail not in DETAIL_LEVELS:
+            raise HTTPException(status_code=400, detail="Invalid detail level")
+
+        scholar_info = TAFSIR_SCHOLARS_V2[scholar]
+        lang_map = {"tr": "Türkçe", "en": "English", "ar": "العربية"}
+        detail_info = DETAIL_LEVELS[detail]
+        results = []
+
+        for verse in range(1, total_verses + 1):
+            cache_key = hashlib.md5(f"tafsir_v2:{surah}:{verse}:{scholar}:{detail}:{lang}".encode()).hexdigest()
+            cached = await db.tafsir_v2_cache.find_one({"key": cache_key})
+            if cached and (datetime.now(timezone.utc) - cached.get("created_at", datetime.min.replace(tzinfo=timezone.utc))).days < 30:
+                results.append(cached["data"])
+                continue
+
+            prompt = f"""Sure {surah}, Ayet {verse} tefsirini yaz.
+
+{detail_info['instruction']}
+
+Ayrıca şunları ekle:
+- Nüzul sebebi (varsa)
+- Arapça kelimelerin kısa kök analizi
+- İlgili diğer ayetlere referans (münasebet)
+
+Cevabını {lang_map.get(lang, 'Türkçe')} dilinde ver."""
+
+            try:
+                response = await gemini_generate(prompt, scholar_info["style_prompt"])
+                item = {
+                    "surah": surah,
+                    "verse": verse,
+                    "scholar": {
+                        "id": scholar_info["id"],
+                        "name": scholar_info["name"],
+                        "era": scholar_info["era"],
+                        "work": scholar_info["work"],
+                        "school": scholar_info["school"],
+                        "icon": scholar_info["icon"],
+                    },
+                    "detail_level": detail,
+                    "tafsir_text": response,
+                    "confidence": {"score": 7, "note": "Batch generated"},
+                    "language": lang,
+                }
+                results.append(item)
+                await db.tafsir_v2_cache.update_one(
+                    {"key": cache_key},
+                    {"$set": {"key": cache_key, "data": item, "created_at": datetime.now(timezone.utc)}},
+                    upsert=True
+                )
+            except Exception as e:
+                logger.error(f"Batch tafsir verse {verse} failed: {e}")
+                results.append({"surah": surah, "verse": verse, "error": True})
+
+        return {
+            "surah": surah,
+            "scholar": scholar_info["id"],
+            "detail_level": detail,
+            "language": lang,
+            "total": len(results),
+            "tafsirs": results,
+        }
