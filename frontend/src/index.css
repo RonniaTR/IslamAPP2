@@ -243,6 +243,171 @@ audio::-webkit-media-controls-panel { background: #164A38; }
 }
 
 
+/* Quran Section - Islamic Geometric & Premium Animations */
+@keyframes quranShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.quran-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: quranShimmer 3s ease-in-out infinite;
+}
+
+@keyframes verseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 4px 20px rgba(0,0,0,0.2); }
+  50% { box-shadow: 0 0 20px 2px rgba(212,175,55,0.08), 0 8px 30px rgba(0,0,0,0.25); }
+}
+.animate-verse-glow { animation: verseGlow 4s ease-in-out infinite; }
+
+@keyframes geometricSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-geometric-spin { animation: geometricSpin 60s linear infinite; }
+
+@keyframes starPulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.15); }
+}
+.animate-star-pulse { animation: starPulse 4s ease-in-out infinite; }
+
+@keyframes duaFadeIn {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-dua-enter { animation: duaFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@keyframes surahCardEnter {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-surah-card { animation: surahCardEnter 0.4s ease-out both; }
+
+@keyframes borderGoldFlow {
+  0% { border-color: rgba(212,175,55,0.08); }
+  50% { border-color: rgba(212,175,55,0.25); }
+  100% { border-color: rgba(212,175,55,0.08); }
+}
+.animate-border-flow { animation: borderGoldFlow 3s ease-in-out infinite; }
+
+@keyframes verseBadgePulse {
+  0%, 100% { background: rgba(212,175,55,0.12); }
+  50% { background: rgba(212,175,55,0.22); }
+}
+
+.quran-verse-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.08);
+  background: linear-gradient(165deg, rgba(15,61,46,0.6) 0%, rgba(10,31,20,0.8) 100%);
+  backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.quran-verse-card:hover {
+  border-color: rgba(212,175,55,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(212,175,55,0.06);
+}
+
+.quran-header-bg {
+  position: relative;
+  background: linear-gradient(180deg, rgba(10,31,20,0.95) 0%, rgba(10,31,20,0.3) 100%);
+  overflow: hidden;
+}
+.quran-header-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(212,175,55,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(212,175,55,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.quran-surah-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.06);
+  background: linear-gradient(165deg, rgba(15,61,46,0.45) 0%, rgba(10,31,20,0.65) 100%);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 14px 16px;
+  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.quran-surah-card:hover {
+  border-color: rgba(212,175,55,0.2);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25), 0 0 20px rgba(212,175,55,0.04);
+}
+.quran-surah-card:active {
+  transform: scale(0.98);
+}
+.quran-surah-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+}
+
+.quran-number-badge {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  font-size: 13px; font-weight: 700;
+  color: #D4AF37;
+}
+.quran-number-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(212,175,55,0.1);
+  border-radius: 12px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(212,175,55,0.15);
+  transition: all 0.3s ease;
+}
+.quran-surah-card:hover .quran-number-badge::before {
+  background: rgba(212,175,55,0.18);
+  transform: rotate(45deg) scale(1.08);
+}
+
+.quran-dua-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5,15,10,0.85);
+  backdrop-filter: blur(12px);
+}
+
+.quran-scholar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(212,175,55,0.12);
+  background: rgba(212,175,55,0.06);
+  color: #A8B5A0;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.quran-scholar-chip:hover,
+.quran-scholar-chip.active {
+  background: rgba(212,175,55,0.15);
+  border-color: rgba(212,175,55,0.3);
+  color: #D4AF37;
+}
+
 /* Quiz Animations */
 @keyframes confetti-fall {
   0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
