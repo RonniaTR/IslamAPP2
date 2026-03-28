@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = 'islamic-v8-20260326d';
+const CACHE_NAME = 'islamic-v9-20260328';
 const API_CACHE_NAME = 'islamic-api-v1';
 const APP_SHELL = '/';
 
