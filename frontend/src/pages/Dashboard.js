@@ -25,13 +25,13 @@ function useOnlineStatus() {
 }
 
 // ─── Prayer Countdown Widget ───
-const PrayerCountdown = memo(function PrayerCountdown({ prayerTimes, theme }) {
+const PrayerCountdown = memo(function PrayerCountdown({ prayerTimes, theme, t }) {
   const [next, setNext] = useState(null);
   const [countdown, setCountdown] = useState('');
 
   const prayerNames = useMemo(() => ({
-    fajr: 'İmsak', sunrise: 'Güneş', dhuhr: 'Öğle', asr: 'İkindi', maghrib: 'Akşam', isha: 'Yatsı',
-  }), []);
+    fajr: t.prayer_fajr || 'İmsak', sunrise: t.prayer_sunrise || 'Güneş', dhuhr: t.prayer_dhuhr || 'Öğle', asr: t.prayer_asr || 'İkindi', maghrib: t.prayer_maghrib || 'Akşam', isha: t.prayer_isha || 'Yatsı',
+  }), [t]);
 
   useEffect(() => {
     if (!prayerTimes) return;
@@ -71,14 +71,14 @@ const PrayerCountdown = memo(function PrayerCountdown({ prayerTimes, theme }) {
             <Clock size={20} style={{ color: theme.gold }} />
           </div>
           <div>
-            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Sonraki Vakit</p>
+            <p className="text-[11px]" style={{ color: theme.textSecondary }}>{t.next_prayer || 'Sonraki Vakit'}</p>
             <p className="text-base font-bold" style={{ color: theme.textPrimary }}>{next.label}</p>
             <p className="text-[10px]" style={{ color: theme.textSecondary }}>{prayerTimes[next.key]}</p>
           </div>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold tabular-nums" style={{ color: theme.gold, fontFamily: 'Inter, monospace' }}>{countdown}</p>
-          <p className="text-[9px]" style={{ color: theme.textSecondary }}>kalan süre</p>
+          <p className="text-[9px]" style={{ color: theme.textSecondary }}>{t.remaining_time || 'kalan süre'}</p>
         </div>
       </div>
     </motion.div>
@@ -86,15 +86,15 @@ const PrayerCountdown = memo(function PrayerCountdown({ prayerTimes, theme }) {
 });
 
 // ─── Quick Widgets Panel ───
-const QuickWidgets = memo(function QuickWidgets({ theme, prayerTimes, lastRead }) {
+const QuickWidgets = memo(function QuickWidgets({ theme, prayerTimes, lastRead, t }) {
   const navigate = useNavigate();
 
   const widgets = useMemo(() => [
-    { icon: '📖', label: lastRead ? 'Devam Et' : "Kur'an Oku", sub: lastRead ? `Sure ${lastRead.surah}` : 'Son kaldığın yer', path: lastRead ? `/quran/${lastRead.surah}` : '/quran' },
-    { icon: '📿', label: 'Zikir', sub: 'Hızlı zikir sayacı', path: '/#dhikr' },
-    { icon: '🧭', label: 'Kıble', sub: 'Kıble yönünü bul', path: '/qibla' },
-    { icon: '📝', label: 'Notlar', sub: 'Kayıtlı notların', path: '/notes' },
-  ], [lastRead]);
+    { icon: '📖', label: lastRead ? (t.continue_reading || 'Devam Et') : (t.read_quran || "Kur'an Oku"), sub: lastRead ? `${t.surah || 'Sure'} ${lastRead.surah}` : (t.last_position || 'Son kaldığın yer'), path: lastRead ? `/quran/${lastRead.surah}` : '/quran' },
+    { icon: '📿', label: t.dhikr || 'Zikir', sub: t.dhikr_desc || 'Hızlı zikir sayacı', path: '/#dhikr' },
+    { icon: '🧭', label: t.qibla_short || 'Kıble', sub: t.qibla_find || 'Kıble yönünü bul', path: '/qibla' },
+    { icon: '📝', label: t.my_notes || 'Notlar', sub: t.saved_notes || 'Kayıtlı notların', path: '/notes' },
+  ], [lastRead, t]);
 
   return (
     <div className="px-4 mb-4">
@@ -115,18 +115,18 @@ const QuickWidgets = memo(function QuickWidgets({ theme, prayerTimes, lastRead }
 });
 
 // ─── Mood Section (horizontal scroll) ───
-const MoodSection = memo(function MoodSection({ theme }) {
+const MoodSection = memo(function MoodSection({ theme, t }) {
   const [selected, setSelected] = useState(null);
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(false);
   const tts = useTTS();
 
   const moods = useMemo(() => [
-    { id: 'huzur', label: 'Huzur', icon: '☮️', desc: 'İç huzur ve sükûnet' },
-    { id: 'motivasyon', label: 'Motivasyon', icon: '🔥', desc: 'Güç ve azim' },
-    { id: 'sabir', label: 'Sabır', icon: '🌿', desc: 'Dayanma gücü' },
-    { id: 'sukur', label: 'Şükür', icon: '✨', desc: 'Nimete şükretmek' },
-  ], []);
+    { id: 'huzur', label: t.mood_peace || 'Huzur', icon: '☮️', desc: t.mood_peace_desc || 'İç huzur ve sükûnet' },
+    { id: 'motivasyon', label: t.mood_motivation || 'Motivasyon', icon: '🔥', desc: t.mood_motivation_desc || 'Güç ve azim' },
+    { id: 'sabir', label: t.mood_patience || 'Sabır', icon: '🌿', desc: t.mood_patience_desc || 'Dayanma gücü' },
+    { id: 'sukur', label: t.mood_gratitude || 'Şükür', icon: '✨', desc: t.mood_gratitude_desc || 'Nimete şükretmek' },
+  ], [t]);
 
   const handleMood = async (id) => {
     setSelected(id);
@@ -141,7 +141,7 @@ const MoodSection = memo(function MoodSection({ theme }) {
   return (
     <div className="mb-5 animate-fade-in" data-testid="mood-section">
       <p className="text-sm mb-3 px-4" style={{ fontFamily: 'Playfair Display, serif', color: theme.gold }}>
-        Bugün kalbin neye ihtiyaç duyuyor?
+        {t.mood_question || 'Bugün kalbin neye ihtiyaç duyuyor?'}
       </p>
       {/* Horizontal scroll mood cards */}
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
@@ -168,7 +168,7 @@ const MoodSection = memo(function MoodSection({ theme }) {
             <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>— {content.hadis.source}</p>
           </div>
           <div className="pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
-            <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: theme.gold }}>Dua</p>
+            <p className="text-[10px] uppercase tracking-wider mb-1" style={{ color: theme.gold }}>{t.dua || 'Dua'}</p>
             <p className="text-sm" style={{ color: `${theme.textPrimary}cc` }}>{content.dua}</p>
           </div>
           <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
@@ -176,12 +176,12 @@ const MoodSection = memo(function MoodSection({ theme }) {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
               style={{ background: `${theme.gold}15`, color: theme.gold }}>
               {tts.loading ? <Loader size={12} className="animate-spin" /> : tts.playing ? <Pause size={12} /> : <Play size={12} />}
-              {tts.loading ? 'Yükleniyor' : tts.playing ? 'Durdur' : 'Dinle'}
+              {tts.loading ? (t.listen_loading || 'Yükleniyor') : tts.playing ? (t.stop || 'Durdur') : (t.listen || 'Dinle')}
             </button>
             <button onClick={() => shareOrCopy(content.label, `${content.ayet.turkish}\n(${content.ayet.sure})\n\n"${content.hadis.turkish}" — ${content.hadis.source}\n\nDua: ${content.dua}`)} data-testid="mood-share"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
               style={{ background: `${theme.gold}15`, color: theme.gold }}>
-              <Share2 size={12} /> Paylaş
+              <Share2 size={12} /> {t.share || 'Paylaş'}
             </button>
           </div>
         </motion.div>
@@ -191,7 +191,7 @@ const MoodSection = memo(function MoodSection({ theme }) {
 });
 
 // ─── Daily Verse Card ───
-const DailyVerse = memo(function DailyVerse({ verse, theme }) {
+const DailyVerse = memo(function DailyVerse({ verse, theme, t }) {
   const tts = useTTS();
   if (!verse) return null;
   return (
@@ -201,7 +201,7 @@ const DailyVerse = memo(function DailyVerse({ verse, theme }) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <BookOpen size={16} style={{ color: theme.gold }} />
-          <span className="text-sm font-semibold" style={{ color: theme.gold }}>Günün Ayeti</span>
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.verse_of_day || 'Günün Ayeti'}</span>
         </div>
         <span className="text-xs" style={{ color: theme.textSecondary }}>{verse.surah_name} - {verse.verse_number}</span>
       </div>
@@ -212,12 +212,12 @@ const DailyVerse = memo(function DailyVerse({ verse, theme }) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
           style={{ background: `${theme.gold}15`, color: theme.gold }}>
           {tts.loading ? <Loader size={12} className="animate-spin" /> : tts.playing ? <Pause size={12} /> : <Volume2 size={12} />}
-          {tts.loading ? 'Yükleniyor...' : tts.playing ? 'Durdur' : 'Dinle'}
+          {tts.loading ? (t.listen_loading || 'Yükleniyor...') : tts.playing ? (t.stop || 'Durdur') : (t.listen || 'Dinle')}
         </button>
-        <button onClick={() => shareOrCopy('Günün Ayeti', `${verse.arabic}\n\n${verse.turkish}\n— ${verse.surah_name} ${verse.verse_number}`)} data-testid="verse-share-btn"
+        <button onClick={() => shareOrCopy(t.verse_of_day || 'Günün Ayeti', `${verse.arabic}\n\n${verse.turkish}\n— ${verse.surah_name} ${verse.verse_number}`)} data-testid="verse-share-btn"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors"
           style={{ background: `${theme.gold}15`, color: theme.gold }}>
-          <Share2 size={12} /> Paylaş
+          <Share2 size={12} /> {t.share || 'Paylaş'}
         </button>
       </div>
     </motion.div>
@@ -225,7 +225,7 @@ const DailyVerse = memo(function DailyVerse({ verse, theme }) {
 });
 
 // ─── Hadith Overlay Modal ───
-function HadithModal({ hadith, onClose, theme }) {
+function HadithModal({ hadith, onClose, theme, t }) {
   const tts = useTTS();
   const navigate = useNavigate();
   if (!hadith) return null;
@@ -244,7 +244,7 @@ function HadithModal({ hadith, onClose, theme }) {
         <div className="px-6 pt-2 pb-8">
           <div className="flex items-center gap-2 mb-4">
             <ScrollText size={18} style={{ color: theme.goldLight || theme.gold }} />
-            <span className="text-sm font-semibold" style={{ color: theme.goldLight || theme.gold }}>Hadis-i Şerif</span>
+            <span className="text-sm font-semibold" style={{ color: theme.goldLight || theme.gold }}>{t.hadith_sherif || 'Hadis-i Şerif'}</span>
           </div>
           <div className="p-4 rounded-2xl mb-4" style={{ background: `${theme.gold}08`, border: `1px solid ${theme.gold}15` }}>
             <p className="arabic-text text-lg leading-loose text-center" style={{ color: `${theme.textPrimary}e6` }}>{hadith.arabic}</p>
@@ -256,18 +256,18 @@ function HadithModal({ hadith, onClose, theme }) {
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium"
               style={{ background: `${theme.gold}12`, color: theme.gold, border: `1px solid ${theme.gold}25` }}>
               {tts.loading ? <Loader size={14} className="animate-spin" /> : tts.playing ? <Pause size={14} /> : <Volume2 size={14} />}
-              {tts.loading ? 'Yükleniyor...' : tts.playing ? 'Durdur' : 'Dinle'}
+              {tts.loading ? (t.listen_loading || 'Yükleniyor...') : tts.playing ? (t.stop || 'Durdur') : (t.listen || 'Dinle')}
             </button>
-            <button onClick={() => shareOrCopy('Hadis-i Şerif', `${hadith.arabic}\n\n${hadith.turkish}\n— ${hadith.source}`)}
+            <button onClick={() => shareOrCopy(t.hadith_sherif || 'Hadis-i Şerif', `${hadith.arabic}\n\n${hadith.turkish}\n— ${hadith.source}`)}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium"
               style={{ background: `${theme.gold}12`, color: theme.gold, border: `1px solid ${theme.gold}25` }}>
-              <Share2 size={14} /> Paylaş
+              <Share2 size={14} /> {t.share || 'Paylaş'}
             </button>
           </div>
           <button onClick={() => { onClose(); navigate('/hadith'); }}
             className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
             style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight || theme.gold})`, color: theme.bg }}>
-            <ScrollText size={16} /> Hadis Koleksiyonuna Git
+            <ScrollText size={16} /> {t.hadith_collection_go || 'Hadis Koleksiyonuna Git'}
           </button>
         </div>
       </motion.div>
@@ -276,7 +276,7 @@ function HadithModal({ hadith, onClose, theme }) {
 }
 
 // ─── Daily Hadith Card (Compact - opens modal) ───
-const DailyHadith = memo(function DailyHadith({ hadith, theme }) {
+const DailyHadith = memo(function DailyHadith({ hadith, theme, t }) {
   const [showModal, setShowModal] = useState(false);
   if (!hadith) return null;
   const preview = hadith.turkish?.length > 80 ? hadith.turkish.slice(0, 80) + '...' : hadith.turkish;
@@ -292,25 +292,25 @@ const DailyHadith = memo(function DailyHadith({ hadith, theme }) {
               <ScrollText size={14} style={{ color: theme.goldLight || theme.gold }} />
             </div>
             <div>
-              <span className="text-xs font-semibold block" style={{ color: theme.goldLight || theme.gold }}>Günün Hadisi</span>
+              <span className="text-xs font-semibold block" style={{ color: theme.goldLight || theme.gold }}>{t.hadith_of_day || 'Günün Hadisi'}</span>
               <span className="text-[10px] block" style={{ color: theme.textSecondary }}>{hadith.source}</span>
             </div>
           </div>
           <div className="px-2 py-1 rounded-lg text-[10px] font-medium" style={{ background: `${theme.gold}12`, color: theme.goldLight || theme.gold }}>
-            Oku →
+            {t.read_btn || 'Oku'} →
           </div>
         </div>
         <p className="text-sm leading-relaxed line-clamp-2" style={{ color: `${theme.textPrimary}cc` }}>{preview}</p>
       </motion.button>
       <AnimatePresence>
-        {showModal && <HadithModal hadith={hadith} theme={theme} onClose={() => setShowModal(false)} />}
+        {showModal && <HadithModal hadith={hadith} theme={theme} onClose={() => setShowModal(false)} t={t} />}
       </AnimatePresence>
     </>
   );
 });
 
 // ─── Knowledge Cards (Enhanced with categories) ───
-const KnowledgeCards = memo(function KnowledgeCards({ theme }) {
+const KnowledgeCards = memo(function KnowledgeCards({ theme, t }) {
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
 
@@ -327,11 +327,11 @@ const KnowledgeCards = memo(function KnowledgeCards({ theme }) {
     <div className="mb-5 animate-fade-in" data-testid="knowledge-cards">
       <div className="flex items-center justify-between px-4 mb-3">
         <div>
-          <h2 className="text-lg font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>İslam Bilgi Hazinesi</h2>
-          <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{cards.length} kategori, {totalItems}+ konu</p>
+          <h2 className="text-lg font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{t.knowledge_treasure || 'İslam Bilgi Hazinesi'}</h2>
+          <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{cards.length} {t.topics || 'kategori'}, {totalItems}+ {t.topics || 'konu'}</p>
         </div>
         <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold flex items-center gap-1" style={{ background: `${theme.gold}18`, color: theme.gold }}>
-          🏆 Puanlı
+          🏆 {t.scored || 'Puanlı'}
         </span>
       </div>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-3">
@@ -347,15 +347,15 @@ const KnowledgeCards = memo(function KnowledgeCards({ theme }) {
               <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-10" style={{ background: card.color || theme.gold, transform: 'translate(30%, -30%)' }} />
               <span className="text-2xl block mb-2">{card.icon || '📖'}</span>
               <p className="text-sm font-bold mb-0.5" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{card.title}</p>
-              <p className="text-[10px] mb-2" style={{ color: theme.textSecondary }}>{card.items.length} konu</p>
+              <p className="text-[10px] mb-2" style={{ color: theme.textSecondary }}>{card.items.length} {t.topics || 'konu'}</p>
               {deepCount > 0 && (
                 <div className="flex gap-1 mb-2">
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}>Temel: {basicCount}</span>
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(129,140,248,0.12)', color: '#818CF8' }}>Derin: {deepCount}</span>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}>{t.basic || 'Temel'}: {basicCount}</span>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(129,140,248,0.12)', color: '#818CF8' }}>{t.deep || 'Derin'}: {deepCount}</span>
                 </div>
               )}
               <div className="flex items-center gap-1 text-[11px] font-medium" style={{ color: card.color || theme.gold }}>
-                <span>İncele</span>
+                <span>{t.explore_it || 'İncele'}</span>
                 <ChevronRight size={12} />
               </div>
             </motion.button>
@@ -367,7 +367,7 @@ const KnowledgeCards = memo(function KnowledgeCards({ theme }) {
 });
 
 // ─── Dhikr Counter Widget ───
-const DhikrWidget = memo(function DhikrWidget({ theme }) {
+const DhikrWidget = memo(function DhikrWidget({ theme, t }) {
   const [dhikrList, setDhikrList] = useState([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [count, setCount] = useState(0);
@@ -397,8 +397,8 @@ const DhikrWidget = memo(function DhikrWidget({ theme }) {
             <span className="text-lg">📿</span>
           </div>
           <div>
-            <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Zikir Sayacı</p>
-            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Zikir başlat</p>
+            <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{t.dhikr_counter || 'Zikir Sayacı'}</p>
+            <p className="text-[11px]" style={{ color: theme.textSecondary }}>{t.start_dhikr || 'Zikir başlat'}</p>
           </div>
           <ChevronRight size={16} style={{ color: theme.gold }} className="ml-auto" />
         </motion.button>
@@ -422,7 +422,7 @@ const DhikrWidget = memo(function DhikrWidget({ theme }) {
                 style={{ color: theme.gold, background: `linear-gradient(135deg, ${theme.gold}33, ${theme.gold}0D)`, border: `2px solid ${theme.gold}4D` }}>
                 {count}
               </motion.button>
-              {current.recommended > 0 && <p className="text-[10px] mt-2" style={{ color: theme.textSecondary }}>Hedef: {current.recommended}</p>}
+              {current.recommended > 0 && <p className="text-[10px] mt-2" style={{ color: theme.textSecondary }}>{t.target || 'Hedef'}: {current.recommended}</p>}
               <button onClick={() => { setOpen(false); setCount(0); }} className="text-xs mt-3 hover:underline" style={{ color: theme.gold }}>Kapat</button>
             </>
           )}
@@ -433,7 +433,7 @@ const DhikrWidget = memo(function DhikrWidget({ theme }) {
 });
 
 // ─── Worship Tracker ───
-const WorshipTracker = memo(function WorshipTracker({ theme }) {
+const WorshipTracker = memo(function WorshipTracker({ theme, t }) {
   const [items, setItems] = useState({ namaz: false, kuran: false, sadaka: false, zikir: false });
 
   useEffect(() => { api.get('/worship/today').then(r => { if (r.data && typeof r.data === 'object' && !Array.isArray(r.data)) setItems(prev => ({ ...prev, ...r.data })); }).catch(() => {}); }, []);
@@ -445,18 +445,18 @@ const WorshipTracker = memo(function WorshipTracker({ theme }) {
   };
 
   const labels = useMemo(() => [
-    { key: 'namaz', label: 'Namaz kılındı', icon: '🕌' },
-    { key: 'kuran', label: "Kur'an okundu", icon: '📖' },
-    { key: 'sadaka', label: 'Sadaka verildi', icon: '💰' },
-    { key: 'zikir', label: 'Zikir yapıldı', icon: '📿' },
-  ], []);
+    { key: 'namaz', label: t.prayer_done || 'Namaz kılındı', icon: '🕌' },
+    { key: 'kuran', label: t.quran_read || "Kur'an okundu", icon: '📖' },
+    { key: 'sadaka', label: t.charity_given || 'Sadaka verildi', icon: '💰' },
+    { key: 'zikir', label: t.dhikr_done || 'Zikir yapıldı', icon: '📿' },
+  ], [t]);
   const done = Object.values(items).filter(Boolean).length;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
       className="mx-4 mb-5 rounded-2xl p-4" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }} data-testid="worship-tracker">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>Günlük İbadet Takibi</p>
+        <p className="text-sm font-semibold" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>{t.daily_worship || 'Günlük İbadet Takibi'}</p>
         <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}26`, color: theme.gold }}>{done}/4</span>
       </div>
       <div className="space-y-2">
@@ -478,7 +478,7 @@ const WorshipTracker = memo(function WorshipTracker({ theme }) {
 });
 
 // ─── Ramadan Mini Card ───
-const RamadanMini = memo(function RamadanMini({ prayerTimes, theme }) {
+const RamadanMini = memo(function RamadanMini({ prayerTimes, theme, t }) {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(null);
 
@@ -505,28 +505,28 @@ const RamadanMini = memo(function RamadanMini({ prayerTimes, theme }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Moon size={18} style={{ color: theme.gold }} />
-          <span className="text-sm font-semibold" style={{ color: theme.gold }}>Ramazan</span>
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.ramadan || 'Ramazan'}</span>
         </div>
         {countdown && <span className="text-lg font-bold" style={{ color: theme.gold, fontFamily: 'Inter, monospace' }}>{countdown}</span>}
         <ChevronRight size={16} style={{ color: theme.gold }} />
       </div>
-      {countdown && <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>İftara kalan süre</p>}
+      {countdown && <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>{t.iftar_countdown || 'İftara kalan süre'}</p>}
     </motion.button>
   );
 });
 
 // ─── Quick Access Grid ───
-const QuickAccess = memo(function QuickAccess({ theme }) {
+const QuickAccess = memo(function QuickAccess({ theme, t }) {
   const navigate = useNavigate();
   const items = useMemo(() => [
-    { path: '/quiz', icon: Trophy, label: 'Quiz', desc: 'Bilgini test et', color: '#E8C84A' },
-    { path: '/qibla', icon: Navigation, label: 'Kıble', desc: 'Kıble yönünü bul', color: '#4ADE80' },
-    { path: '/meal-audio', icon: Headphones, label: 'Meal Dinle', desc: 'Türkçe meal seslendirme', color: '#60A5FA' },
-    { path: '/scholars', icon: Users, label: 'Hocaya Sor', desc: '12 alimden görüş al', color: '#D4AF37' },
-  ], []);
+    { path: '/quiz', icon: Trophy, label: t.test_knowledge || 'Quiz', desc: t.test_knowledge || 'Bilgini test et', color: '#E8C84A' },
+    { path: '/qibla', icon: Navigation, label: t.qibla_short || 'Kıble', desc: t.find_qibla || 'Kıble yönünü bul', color: '#4ADE80' },
+    { path: '/meal-audio', icon: Headphones, label: t.listen_meal_short || 'Meal Dinle', desc: t.listen_translation || 'Türkçe meal seslendirme', color: '#60A5FA' },
+    { path: '/scholars', icon: Users, label: t.ask_scholar_short || 'Hocaya Sor', desc: t.ask_scholar || '12 alimden görüş al', color: '#D4AF37' },
+  ], [t]);
   return (
     <div className="mx-4 mb-5" data-testid="quick-access">
-      <h2 className="text-sm font-semibold mb-3" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>Hızlı Erişim</h2>
+      <h2 className="text-sm font-semibold mb-3" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>{t.quick_access || 'Hızlı Erişim'}</h2>
       <div className="grid grid-cols-2 gap-3">
         {items.map(({ path, icon: Icon, label, desc, color }, i) => (
           <motion.button key={path} whileTap={{ scale: 0.97 }}
@@ -549,7 +549,7 @@ const QuickAccess = memo(function QuickAccess({ theme }) {
 // ─── Main Dashboard ───
 export default function Dashboard() {
   const { user } = useAuth();
-  const { selectedCity } = useLang();
+  const { t, selectedCity } = useLang();
   const { theme } = useTheme();
   const online = useOnlineStatus();
   const [prayerTimes, setPrayerTimes] = useState(null);
@@ -576,10 +576,10 @@ export default function Dashboard() {
   }, [prayerTimes]);
 
   const prayerKeys = useMemo(() => [
-    { key: 'fajr', label: 'İmsak' }, { key: 'sunrise', label: 'Güneş' },
-    { key: 'dhuhr', label: 'Öğle' }, { key: 'asr', label: 'İkindi' },
-    { key: 'maghrib', label: 'Akşam' }, { key: 'isha', label: 'Yatsı' },
-  ], []);
+    { key: 'fajr', label: t.prayer_fajr || 'İmsak' }, { key: 'sunrise', label: t.prayer_sunrise || 'Güneş' },
+    { key: 'dhuhr', label: t.prayer_dhuhr || 'Öğle' }, { key: 'asr', label: t.prayer_asr || 'İkindi' },
+    { key: 'maghrib', label: t.prayer_maghrib || 'Akşam' }, { key: 'isha', label: t.prayer_isha || 'Yatsı' },
+  ], [t]);
 
   return (
     <div className="pb-4" style={{ background: theme.bg }} data-testid="dashboard">
@@ -589,7 +589,7 @@ export default function Dashboard() {
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             className="flex items-center justify-center gap-2 py-2 px-4 text-xs font-medium"
             style={{ background: `${theme.gold}26`, color: theme.gold }}>
-            <WifiOff size={12} /> Çevrimdışı mod — veriler önbellekten yükleniyor
+            <WifiOff size={12} /> {t.offline_banner || 'Çevrimdışı mod — veriler önbellekten yükleniyor'}
           </motion.div>
         )}
       </AnimatePresence>
@@ -598,18 +598,18 @@ export default function Dashboard() {
       <div className="px-5 pt-10 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
         <p className="text-xs tracking-widest uppercase" style={{ color: theme.gold }}>Bismillahirrahmanirrahim</p>
         <h1 className="text-2xl font-bold mt-1" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
-          Selam{user?.name ? `, ${user.name}` : ''}
+          {t.greeting_hello || 'Selam'}{user?.name ? `, ${user.name}` : ''}
         </h1>
       </div>
 
-      <PrayerCountdown prayerTimes={prayerTimes} theme={theme} />
-      <MoodSection theme={theme} />
-      <DailyVerse verse={randomVerse} theme={theme} />
-      <DailyHadith hadith={randomHadith} theme={theme} />
-      <KnowledgeCards theme={theme} />
-      <DhikrWidget theme={theme} />
-      <WorshipTracker theme={theme} />
-      <RamadanMini prayerTimes={prayerTimes} theme={theme} />
+      <PrayerCountdown prayerTimes={prayerTimes} theme={theme} t={t} />
+      <MoodSection theme={theme} t={t} />
+      <DailyVerse verse={randomVerse} theme={theme} t={t} />
+      <DailyHadith hadith={randomHadith} theme={theme} t={t} />
+      <KnowledgeCards theme={theme} t={t} />
+      <DhikrWidget theme={theme} t={t} />
+      <WorshipTracker theme={theme} t={t} />
+      <RamadanMini prayerTimes={prayerTimes} theme={theme} t={t} />
 
       {/* Prayer Times */}
       {prayerTimes && (
@@ -633,7 +633,7 @@ export default function Dashboard() {
         </motion.div>
       )}
 
-      <QuickAccess theme={theme} />
+      <QuickAccess theme={theme} t={t} />
     </div>
   );
 }

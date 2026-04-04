@@ -413,6 +413,41 @@ Cevabını {lang_full} dilinde ver."""
             for b in BOT_PROFILES.values()
         ]
 
+    @router.get("/ai/usage/{user_id}")
+    async def get_ai_usage(user_id: str):
+        """Get AI usage stats for a user"""
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        usage = await db.ai_usage.find_one({"user_id": user_id, "date": today})
+        sub = await db.subscriptions.find_one({"user_id": user_id, "status": "active"})
+        is_premium = sub is not None and sub.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) > datetime.now(timezone.utc)
+        return {
+            "used": usage.get("count", 0) if usage else 0,
+            "limit": 0 if is_premium else 10,
+            "premium": is_premium,
+            "date": today,
+        }
+
+    class AIContextRequest(BaseModel):
+        user_id: str
+        level: str = "orta"
+        madhab: str = "hanefi"
+        language: str = "tr"
+
+    @router.post("/ai/context")
+    async def set_ai_context(req: AIContextRequest):
+        """Save user AI preferences"""
+        await db.ai_context.update_one(
+            {"user_id": req.user_id},
+            {"$set": {
+                "level": req.level,
+                "madhab": req.madhab,
+                "language": req.language,
+                "updated_at": datetime.now(timezone.utc),
+            }},
+            upsert=True,
+        )
+        return {"status": "ok"}
+
     @router.post("/ai/classify")
     async def classify_question(req: BotSelectRequest):
         """Classify a question to determine which bot(s) should answer"""

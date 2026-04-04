@@ -5,11 +5,11 @@ export default function SplashScreen({ onComplete }) {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase(1), 200),
-      setTimeout(() => setPhase(2), 800),
-      setTimeout(() => setPhase(3), 1400),
-      setTimeout(() => setPhase(4), 2000),
-      setTimeout(() => onComplete(), 3200),
+      setTimeout(() => setPhase(1), 100),
+      setTimeout(() => setPhase(2), 350),
+      setTimeout(() => setPhase(3), 600),
+      setTimeout(() => setPhase(4), 850),
+      setTimeout(() => onComplete(), 1500),
     ];
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);

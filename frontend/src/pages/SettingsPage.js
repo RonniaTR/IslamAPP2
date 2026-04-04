@@ -146,7 +146,7 @@ export default function SettingsPage() {
         <div className="card-islamic rounded-xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <Palette size={18} style={{ color: theme.gold }} />
-            <p className="text-sm font-medium" style={{ color: theme.textPrimary }}>Tema</p>
+            <p className="text-sm font-medium" style={{ color: theme.textPrimary }}>{t.theme || 'Tema'}</p>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {Object.values(themes).map(t => (
@@ -184,8 +184,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 {notifEnabled ? <Bell size={18} className="text-[#D4AF37]" /> : <BellOff size={18} className="text-[#A8B5A0]" />}
                 <div>
-                  <p className="text-sm font-medium text-[#F5F5DC] text-left">Günlük Bildirimler</p>
-                  <p className="text-xs text-[#A8B5A0]">{notifEnabled ? 'Açık' : 'Kapalı'}</p>
+                  <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.daily_notifications || 'Günlük Bildirimler'}</p>
+                  <p className="text-xs text-[#A8B5A0]">{notifEnabled ? (t.notif_on || 'Açık') : (t.notif_off || 'Kapalı')}</p>
                 </div>
               </div>
               <div className={`w-10 h-6 rounded-full flex items-center p-0.5 transition-colors ${notifEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'}`}>
