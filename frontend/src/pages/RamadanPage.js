@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Moon, Sun, BookOpen, Heart, Volume2, Star } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
+import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
 
 const DAILY_DUAS = [
@@ -12,7 +13,8 @@ const DAILY_DUAS = [
 ];
 
 export default function RamadanPage() {
-  const { selectedCity } = useLang();
+  const { selectedCity, t } = useLang();
+  const { theme } = useTheme();
   const [prayerTimes, setPrayerTimes] = useState(null);
   const [randomVerse, setRandomVerse] = useState(null);
   const [randomHadith, setRandomHadith] = useState(null);
@@ -61,22 +63,22 @@ export default function RamadanPage() {
       {/* Header */}
       <div className="px-5 pt-10 pb-4" style={{ background: 'linear-gradient(180deg, rgba(212,175,55,0.12) 0%, transparent 100%)' }}>
         <div className="flex items-center gap-2 mb-1">
-          <Moon size={20} className="text-[#D4AF37]" />
-          <p className="text-[#D4AF37] text-xs tracking-widest uppercase">Ramazan Mübarek</p>
+          <Moon size={20} style={{ color: theme.gold }} />
+          <p className="text-xs tracking-widest uppercase" style={{ color: theme.gold }}>{t.ramadan_mubarak || 'Ramazan Mübarek'}</p>
         </div>
-        <h1 className="text-2xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>Ramazan</h1>
+        <h1 className="text-2xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{t.ramadan || 'Ramazan'}</h1>
       </div>
 
       {/* Iftar Countdown */}
       {iftarCountdown && (
         <div className="mx-4 mb-4 rounded-2xl p-5 text-center animate-pulse-gold" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))', border: '1px solid rgba(212,175,55,0.25)' }} data-testid="ramadan-iftar">
-          <Moon size={24} className="text-[#D4AF37] mx-auto mb-2" />
-          <p className="text-[#D4AF37] text-xs tracking-widest mb-2">İFTARA KALAN SÜRE</p>
+          <Moon size={24} style={{ color: theme.gold }} className="mx-auto mb-2" />
+          <p className="text-xs tracking-widest mb-2" style={{ color: theme.gold }}>{(t.iftar_remaining || 'İftara Kalan Süre').toUpperCase()}</p>
           <div className="flex justify-center gap-3">
-            {[{ v: iftarCountdown.h, l: 'Saat' }, { v: iftarCountdown.m, l: 'Dk' }, { v: iftarCountdown.s, l: 'Sn' }].map(({ v, l }) => (
+            {[{ v: iftarCountdown.h, l: t.hour_short || 'Saat' }, { v: iftarCountdown.m, l: t.min_short || 'Dk' }, { v: iftarCountdown.s, l: t.sec_short || 'Sn' }].map(({ v, l }) => (
               <div key={l} className="text-center">
-                <p className="text-3xl font-bold text-[#E8C84A]" style={{ fontFamily: 'Inter, monospace' }}>{pad(v)}</p>
-                <p className="text-[10px] text-[#A8B5A0] mt-1">{l}</p>
+                <p className="text-3xl font-bold" style={{ color: theme.gold, fontFamily: 'Inter, monospace' }}>{pad(v)}</p>
+                <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>{l}</p>
               </div>
             ))}
           </div>
@@ -86,31 +88,31 @@ export default function RamadanPage() {
       {/* Sahur Time */}
       <div className="mx-4 mb-4 card-islamic rounded-2xl p-4" data-testid="ramadan-sahur">
         <div className="flex items-center gap-2 mb-2">
-          <Sun size={16} className="text-[#E8C84A]" />
-          <span className="text-sm font-semibold text-[#E8C84A]">Sahur Vakti</span>
+          <Sun size={16} style={{ color: theme.gold }} />
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.sahur_time || 'Sahur Vakti'}</span>
         </div>
-        <p className="text-xl font-bold text-[#F5F5DC]">{prayerTimes?.fajr || '--:--'}</p>
-        {sahurCountdown && <p className="text-xs text-[#A8B5A0] mt-1">Kalan: {pad(sahurCountdown.h)}:{pad(sahurCountdown.m)}:{pad(sahurCountdown.s)}</p>}
+        <p className="text-xl font-bold" style={{ color: theme.textPrimary }}>{prayerTimes?.fajr || '--:--'}</p>
+        {sahurCountdown && <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>{t.remaining || 'Kalan'}: {pad(sahurCountdown.h)}:{pad(sahurCountdown.m)}:{pad(sahurCountdown.s)}</p>}
       </div>
 
       {/* Today's Dua */}
       <div className="mx-4 mb-4 card-islamic rounded-2xl p-4" data-testid="ramadan-dua">
         <div className="flex items-center gap-2 mb-3">
-          <Star size={16} className="text-[#D4AF37]" />
-          <span className="text-sm font-semibold text-[#D4AF37]">Bugünün Duası</span>
+          <Star size={16} style={{ color: theme.gold }} />
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.today_dua || 'Bugünün Duası'}</span>
         </div>
-        <p className="text-sm text-[#F5F5DC] leading-relaxed italic">"{todayDua}"</p>
+        <p className="text-sm leading-relaxed italic" style={{ color: theme.textPrimary }}>"{todayDua}"</p>
       </div>
 
       {/* Today's Verse */}
       {randomVerse && (
         <div className="mx-4 mb-4 card-islamic rounded-2xl p-4" data-testid="ramadan-verse">
           <div className="flex items-center gap-2 mb-3">
-            <BookOpen size={16} className="text-[#D4AF37]" />
-            <span className="text-sm font-semibold text-[#D4AF37]">Bugünün Ayeti</span>
+            <BookOpen size={16} style={{ color: theme.gold }} />
+            <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.today_verse || 'Bugünün Ayeti'}</span>
           </div>
-          <p className="arabic-text text-base text-[#F5F5DC]/90 mb-2">{randomVerse.arabic}</p>
-          <p className="text-sm text-[#A8B5A0] leading-relaxed">{randomVerse.turkish}</p>
+          <p className="arabic-text text-base mb-2" style={{ color: theme.textPrimary, opacity: 0.9 }}>{randomVerse.arabic}</p>
+          <p className="text-sm leading-relaxed" style={{ color: theme.textSecondary }}>{randomVerse.turkish}</p>
         </div>
       )}
 
@@ -118,31 +120,31 @@ export default function RamadanPage() {
       {randomHadith && (
         <div className="mx-4 mb-4 card-islamic rounded-2xl p-4" data-testid="ramadan-hadith">
           <div className="flex items-center gap-2 mb-3">
-            <Volume2 size={16} className="text-[#E8C84A]" />
-            <span className="text-sm font-semibold text-[#E8C84A]">Bugünün Hadisi</span>
+            <Volume2 size={16} style={{ color: theme.gold }} />
+            <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.today_hadith || 'Bugünün Hadisi'}</span>
           </div>
-          <p className="arabic-text text-sm text-[#F5F5DC]/90 mb-2">{randomHadith.arabic}</p>
-          <p className="text-sm text-[#A8B5A0]">{randomHadith.turkish}</p>
+          <p className="arabic-text text-sm mb-2" style={{ color: theme.textPrimary, opacity: 0.9 }}>{randomHadith.arabic}</p>
+          <p className="text-sm" style={{ color: theme.textSecondary }}>{randomHadith.turkish}</p>
         </div>
       )}
 
       {/* Sadaka Reminder */}
       <div className="mx-4 mb-4 rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.08), rgba(15,61,46,0.5))', border: '1px solid rgba(212,175,55,0.12)' }} data-testid="ramadan-sadaka">
         <div className="flex items-center gap-2 mb-2">
-          <Heart size={16} className="text-[#D4AF37]" />
-          <span className="text-sm font-semibold text-[#D4AF37]">Sadaka Hatırlatıcısı</span>
+          <Heart size={16} style={{ color: theme.gold }} />
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.sadaka_reminder || 'Sadaka Hatırlatıcısı'}</span>
         </div>
-        <p className="text-sm text-[#A8B5A0] leading-relaxed">"Sadaka verin; çünkü sadaka kıyamet günü sahibine gölge olur." - Hz. Muhammed (s.a.v.)</p>
+        <p className="text-sm leading-relaxed" style={{ color: theme.textSecondary }}>{t.sadaka_hadith || '"Sadaka verin; çünkü sadaka kıyamet günü sahibine gölge olur." - Hz. Muhammed (s.a.v.)'}</p>
       </div>
 
       {/* Teravih Info */}
       <div className="mx-4 mb-6 card-islamic rounded-2xl p-4" data-testid="ramadan-teravih">
         <div className="flex items-center gap-2 mb-2">
-          <Moon size={16} className="text-[#D4AF37]" />
-          <span className="text-sm font-semibold text-[#D4AF37]">Teravih Namazı</span>
+          <Moon size={16} style={{ color: theme.gold }} />
+          <span className="text-sm font-semibold" style={{ color: theme.gold }}>{t.teravih_prayer || 'Teravih Namazı'}</span>
         </div>
-        <p className="text-sm text-[#A8B5A0] leading-relaxed">Teravih namazı yatsı namazından sonra kılınır. 20 veya 8 rekat olarak kılınabilir. Her 4 rekatta bir dinlenme (teravih) yapılır.</p>
-        {prayerTimes?.isha && <p className="text-xs text-[#D4AF37] mt-2">Yatsı Namazı: {prayerTimes.isha}</p>}
+        <p className="text-sm leading-relaxed" style={{ color: theme.textSecondary }}>{t.teravih_desc || 'Teravih namazı yatsı namazından sonra kılınır. 20 veya 8 rekat olarak kılınabilir. Her 4 rekatta bir dinlenme (teravih) yapılır.'}</p>
+        {prayerTimes?.isha && <p className="text-xs mt-2" style={{ color: theme.gold }}>{t.isha_prayer || 'Yatsı Namazı'}: {prayerTimes.isha}</p>}
       </div>
     </div>
   );

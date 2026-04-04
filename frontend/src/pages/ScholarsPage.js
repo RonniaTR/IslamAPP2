@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageCircle, BookOpen, Star, Send, Loader2, ChevronDown } from 'lucide-react';
+import { useLang } from '../contexts/LangContext';
+import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
 
 const SCHOLARS = [
@@ -20,6 +22,8 @@ const SCHOLARS = [
 
 export default function ScholarsPage() {
   const navigate = useNavigate();
+  const { t } = useLang();
+  const { theme } = useTheme();
   const [selectedScholar, setSelectedScholar] = useState(null);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
@@ -81,7 +85,7 @@ export default function ScholarsPage() {
               </div>
               <p className="text-sm text-[#F5F5DC] font-medium">{selectedScholar.name}</p>
               <p className="text-xs text-[#A8B5A0] mt-1">{selectedScholar.title} · {selectedScholar.specialty}</p>
-              <p className="text-xs text-[#A8B5A0]/60 mt-3 max-w-xs mx-auto">Bu hocaya İslami konularda sorular sorabilirsiniz. Cevaplar AI tarafından o hocanın tarzında üretilir.</p>
+              <p className="text-xs text-[#A8B5A0]/60 mt-3 max-w-xs mx-auto">{t.scholar_desc || 'Bu hocaya İslami konularda sorular sorabilirsiniz. Cevaplar AI tarafından o hocanın tarzında üretilir.'}</p>
             </div>
           )}
           {history.map((msg, i) => (
@@ -102,7 +106,7 @@ export default function ScholarsPage() {
             <div className="flex justify-start animate-fade-in">
               <div className="bg-white/[0.04] rounded-2xl rounded-bl-md px-4 py-3 border border-white/5 flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin" style={{ color: selectedScholar.color }} />
-                <span className="text-xs text-[#A8B5A0]">Yanıt hazırlanıyor...</span>
+                <span className="text-xs text-[#A8B5A0]">{t.thinking || 'Yanıt hazırlanıyor...'}</span>
               </div>
             </div>
           )}
@@ -134,8 +138,8 @@ export default function ScholarsPage() {
             <ArrowLeft size={14} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>Hocalara Sor</h1>
-            <p className="text-xs text-[#A8B5A0]">12 alimden birine soru sorun</p>
+            <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{t.ask_scholars || 'Hocalara Sor'}</h1>
+            <p className="text-xs text-[#A8B5A0]">{SCHOLARS.length} {t.scholars_count || 'alimden birine soru sorun'}</p>
           </div>
         </div>
       </div>

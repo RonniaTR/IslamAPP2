@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Zap, Star, ArrowRight, RotateCw, Crown, Timer, BookOpen, Users, Clock, Scroll, Moon, Sunrise, Scale, Building, ChevronRight, Award, Target, Flame, ArrowLeft, Share2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LangContext';
 import api from '../api';
 
 const ICONS = { 'book-open': BookOpen, star: Star, users: Users, clock: Clock, scroll: Scroll, moon: Moon, sunrise: Sunrise, scale: Scale, building: Building, zap: Zap };
@@ -29,6 +31,8 @@ function Confetti({ show }) {
 export default function QuizPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { t } = useLang();
   const [view, setView] = useState('home'); // home, game, result, leaderboard
   const [categories, setCategories] = useState([]);
   const [session, setSession] = useState(null);
@@ -121,8 +125,8 @@ export default function QuizPage() {
               <Trophy size={24} className="text-[#0A1F14]" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>İslam Quiz</h1>
-              <p className="text-xs text-[#A8B5A0]">300+ soru ile bilgini test et!</p>
+              <h1 className="text-2xl font-black" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{t.quiz_title || 'İslam Quiz'}</h1>
+              <p className="text-xs" style={{ color: theme.textSecondary }}>{t.quiz_subtitle || '300+ soru ile bilgini test et!'}</p>
             </div>
           </div>
         </div>
@@ -135,8 +139,8 @@ export default function QuizPage() {
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%221%22%20fill%3D%22rgba(255%2C255%2C255%2C0.1)%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-lg font-bold text-[#0A1F14]">Hızlı Oyun</p>
-                <p className="text-xs text-[#0A1F14]/70">Karışık 15 soru ile yarış!</p>
+                <p className="text-lg font-bold text-[#0A1F14]">{t.quick_play || 'Hızlı Oyun'}</p>
+                <p className="text-xs text-[#0A1F14]/70">{t.quick_play_desc || 'Karışık 15 soru ile yarış!'}</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
                 <Zap size={24} className="text-[#0A1F14]" />
@@ -151,10 +155,10 @@ export default function QuizPage() {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1.5">
                 <Crown size={14} className="text-[#D4AF37]" />
-                <span className="text-sm font-bold text-[#F5F5DC]">Sıralama</span>
+                <span className="text-sm font-bold" style={{ color: theme.textPrimary }}>{t.ranking || 'Sıralama'}</span>
               </div>
               <button onClick={() => setView('leaderboard')} data-testid="view-leaderboard"
-                className="text-[10px] text-[#D4AF37] flex items-center gap-0.5">Tümünü Gör <ChevronRight size={12} /></button>
+                className="text-[10px] flex items-center gap-0.5" style={{ color: theme.gold }}>{t.see_all || 'Tümünü Gör'} <ChevronRight size={12} /></button>
             </div>
             <div className="flex gap-2">
               {topThree.map((p, i) => (
@@ -165,7 +169,7 @@ export default function QuizPage() {
                     {i === 0 ? '1' : i === 1 ? '2' : '3'}
                   </div>
                   <p className="text-[10px] text-[#F5F5DC] truncate font-medium">{p.username}</p>
-                  <p className="text-[10px] text-[#D4AF37]">{p.total_points} puan</p>
+                  <p className="text-[10px] text-[#D4AF37]">{p.total_points} {t.points || 'puan'}</p>
                 </div>
               ))}
             </div>
@@ -176,8 +180,8 @@ export default function QuizPage() {
         <div className="px-4">
           <div className="flex items-center gap-1.5 mb-3">
             <Target size={14} className="text-emerald-400" />
-            <span className="text-sm font-bold text-[#F5F5DC]">Kategoriler</span>
-            <span className="text-[10px] text-[#A8B5A0] ml-1">({categories.length} kategori)</span>
+            <span className="text-sm font-bold" style={{ color: theme.textPrimary }}>{t.categories || 'Kategoriler'}</span>
+            <span className="text-[10px] ml-1" style={{ color: theme.textSecondary }}>({categories.length} {t.category || 'kategori'})</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {categories.map(c => {
@@ -191,7 +195,7 @@ export default function QuizPage() {
                     <Icon size={16} style={{ color: c.color }} />
                   </div>
                   <p className="text-xs font-bold text-[#F5F5DC] leading-tight">{c.name}</p>
-                  <p className="text-[9px] text-[#A8B5A0] mt-0.5">{c.question_count} soru</p>
+                  <p className="text-[9px] mt-0.5" style={{ color: theme.textSecondary }}>{c.question_count} {t.question || 'soru'}</p>
                 </button>
               );
             })}
@@ -211,8 +215,8 @@ export default function QuizPage() {
               <ArrowLeft size={16} />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-[#F5F5DC]">Sıralama Tablosu</h1>
-              <p className="text-xs text-[#A8B5A0]">En iyi oyuncular</p>
+              <h1 className="text-xl font-bold" style={{ color: theme.textPrimary }}>{t.leaderboard || 'Sıralama Tablosu'}</h1>
+              <p className="text-xs" style={{ color: theme.textSecondary }}>{t.best_players || 'En iyi oyuncular'}</p>
             </div>
           </div>
         </div>
@@ -220,8 +224,8 @@ export default function QuizPage() {
           {leaderboard.length === 0 ? (
             <div className="text-center py-12">
               <Trophy size={40} className="text-[#A8B5A0]/30 mx-auto mb-3" />
-              <p className="text-sm text-[#A8B5A0]">Henüz sıralama yok</p>
-              <p className="text-xs text-[#A8B5A0]/60 mt-1">İlk quiz'i oynayarak sıralamaya gir!</p>
+              <p className="text-sm" style={{ color: theme.textSecondary }}>{t.no_ranking || 'Henüz sıralama yok'}</p>
+              <p className="text-xs mt-1" style={{ color: theme.textSecondary, opacity: 0.6 }}>{t.play_first || 'İlk quiz\'i oynayarak sıralamaya gir!'}</p>
             </div>
           ) : leaderboard.map((p, i) => (
             <div key={p.user_id} data-testid={`lb-row-${i}`}
@@ -235,11 +239,11 @@ export default function QuizPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#F5F5DC] truncate">{p.username}</p>
-                <p className="text-[10px] text-[#A8B5A0]">{p.games_played} oyun · %{p.accuracy} doğru</p>
+                <p className="text-[10px]" style={{ color: theme.textSecondary }}>{p.games_played} {t.games || 'oyun'} · %{p.accuracy} {t.correct_pct || 'doğru'}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-[#D4AF37]">{p.total_points}</p>
-                <p className="text-[9px] text-[#A8B5A0]">puan</p>
+                <p className="text-[9px]" style={{ color: theme.textSecondary }}>{t.points || 'puan'}</p>
               </div>
             </div>
           ))}
@@ -252,10 +256,10 @@ export default function QuizPage() {
   if (view === 'result' && session) {
     const total = session.questions.length;
     const pct = Math.round((correct / total) * 100);
-    const grade = pct >= 90 ? { label: 'Muhteşem!', emoji: 'A+', color: '#D4AF37' } :
-                  pct >= 70 ? { label: 'Harika!', emoji: 'A', color: '#10b981' } :
-                  pct >= 50 ? { label: 'İyi!', emoji: 'B', color: '#f59e0b' } :
-                              { label: 'Tekrar Dene', emoji: 'C', color: '#ef4444' };
+    const grade = pct >= 90 ? { label: t.grade_excellent || 'Muhteşem!', emoji: 'A+', color: '#D4AF37' } :
+                  pct >= 70 ? { label: t.grade_great || 'Harika!', emoji: 'A', color: '#10b981' } :
+                  pct >= 50 ? { label: t.grade_good || 'İyi!', emoji: 'B', color: '#f59e0b' } :
+                              { label: t.try_again || 'Tekrar Dene', emoji: 'C', color: '#ef4444' };
     return (
       <div className="animate-fade-in px-5 pt-12 pb-24 text-center" data-testid="quiz-result">
         <Confetti show={showConfetti} />
@@ -275,25 +279,25 @@ export default function QuizPage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-black text-[#F5F5DC] mb-1" style={{ fontFamily: 'Playfair Display, serif' }}>{grade.label}</h2>
-        <p className="text-sm text-[#A8B5A0] mb-6">{correct}/{total} doğru cevap</p>
+        <h2 className="text-2xl font-black mb-1" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{grade.label}</h2>
+        <p className="text-sm mb-6" style={{ color: theme.textSecondary }}>{correct}/{total} {t.correct_answers || 'doğru cevap'}</p>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-2 mb-6">
           <div className="card-islamic rounded-xl p-3">
             <Trophy size={16} className="text-[#D4AF37] mx-auto mb-1" />
             <p className="text-lg font-black text-[#D4AF37]">{score}</p>
-            <p className="text-[9px] text-[#A8B5A0]">Toplam Puan</p>
+            <p className="text-[9px]" style={{ color: theme.textSecondary }}>{t.total_points || 'Toplam Puan'}</p>
           </div>
           <div className="card-islamic rounded-xl p-3">
             <Flame size={16} className="text-orange-400 mx-auto mb-1" />
             <p className="text-lg font-black text-orange-400">{bestStreak}</p>
-            <p className="text-[9px] text-[#A8B5A0]">En İyi Seri</p>
+            <p className="text-[9px]" style={{ color: theme.textSecondary }}>{t.best_streak || 'En İyi Seri'}</p>
           </div>
           <div className="card-islamic rounded-xl p-3">
             <Timer size={16} className="text-emerald-400 mx-auto mb-1" />
             <p className="text-lg font-black text-emerald-400">{pct}%</p>
-            <p className="text-[9px] text-[#A8B5A0]">Başarı</p>
+            <p className="text-[9px]" style={{ color: theme.textSecondary }}>{t.success || 'Başarı'}</p>
           </div>
         </div>
 
@@ -301,12 +305,12 @@ export default function QuizPage() {
         <div className="flex gap-3">
           <button onClick={() => { setView('home'); setSession(null); }} data-testid="quiz-back-home"
             className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F5DC] font-medium text-sm flex items-center justify-center gap-2">
-            <ArrowLeft size={16} /> Ana Menü
+            <ArrowLeft size={16} /> {t.main_menu || 'Ana Menü'}
           </button>
           <button onClick={() => startQuiz(session.category)} data-testid="quiz-restart"
             className="flex-1 py-3 rounded-xl text-[#0A1F14] font-bold text-sm flex items-center justify-center gap-2"
             style={{ background: 'linear-gradient(135deg, #D4AF37, #B8860B)' }}>
-            <RotateCw size={16} /> Tekrar Oyna
+            <RotateCw size={16} /> {t.play_again || 'Tekrar Oyna'}
           </button>
         </div>
       </div>
@@ -370,7 +374,7 @@ export default function QuizPage() {
               q.difficulty === 'easy' ? 'bg-emerald-500/20 text-emerald-400' :
               q.difficulty === 'hard' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'
             }`}>
-              {q.difficulty === 'easy' ? 'Kolay' : q.difficulty === 'hard' ? 'Zor' : 'Orta'} · {q.points}p
+              {q.difficulty === 'easy' ? (t.easy || 'Kolay') : q.difficulty === 'hard' ? (t.hard || 'Zor') : (t.medium || 'Orta')} · {q.points}p
             </span>
           </div>
           <p className="text-base font-semibold text-[#F5F5DC] leading-relaxed pr-16" data-testid="quiz-question">{q.question}</p>
@@ -420,11 +424,11 @@ export default function QuizPage() {
           } animate-fade-in`} data-testid="quiz-feedback">
             <div className="flex items-center gap-2 mb-1.5">
               {result.correct ? <Star size={14} className="text-emerald-400" /> : <Target size={14} className="text-red-400" />}
-              <span className="font-bold">{result.correct ? `Doğru! +${result.points_earned}` : 'Yanlış!'}</span>
+              <span className="font-bold">{result.correct ? `${t.correct || 'Doğru'}! +${result.points_earned}` : `${t.wrong || 'Yanlış'}!`}</span>
               {streak >= 3 && result.correct && <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full">{streak}x seri!</span>}
             </div>
             <p className="text-[11px] text-[#A8B5A0] leading-relaxed">{result.explanation}</p>
-            {result.source && <p className="text-[9px] text-[#A8B5A0]/60 mt-1">Kaynak: {result.source}</p>}
+            {result.source && <p className="text-[9px] text-[#A8B5A0]/60 mt-1">{t.source || 'Kaynak'}: {result.source}</p>}
           </div>
         )}
 
@@ -433,7 +437,7 @@ export default function QuizPage() {
           <button onClick={nextQuestion} data-testid="quiz-next"
             className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-[#0A1F14] animate-fade-in"
             style={{ background: 'linear-gradient(135deg, #D4AF37, #B8860B)' }}>
-            {qi + 1 >= total ? 'Sonuçları Gör' : 'Sonraki Soru'} <ArrowRight size={16} />
+            {qi + 1 >= total ? (t.see_results || 'Sonuçları Gör') : (t.next_question || 'Sonraki Soru')} <ArrowRight size={16} />
           </button>
         )}
       </div>
