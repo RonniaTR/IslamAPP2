@@ -45,8 +45,9 @@ function formatAIResponse(text) {
     .replace(/^\d+\. (.*$)/gm, '<li class="ml-3 text-sm">$1</li>');
 }
 
-const ChatBubble = memo(function ChatBubble({ msg, theme, index }) {
+const ChatBubble = memo(function ChatBubble({ msg, theme, index, t, onRetry }) {
   const isUser = msg.role === 'user';
+  const isError = !isUser && msg.isError;
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
@@ -60,7 +61,7 @@ const ChatBubble = memo(function ChatBubble({ msg, theme, index }) {
           color: '#fff',
           borderBottomRightRadius: '4px',
         } : {
-          background: theme.cardBg,
+          background: isError ? `${theme.cardBg}` : theme.cardBg,
           color: theme.textPrimary,
           borderBottomLeftRadius: '4px',
           border: `1px solid ${theme.cardBorder}`,
@@ -103,6 +104,13 @@ const ChatBubble = memo(function ChatBubble({ msg, theme, index }) {
             <Crown size={12} style={{ color: theme.gold }} />
             <span className="text-[10px]" style={{ color: theme.gold }}>{t.ai_premium_upgrade || "Premium'a geçerek sınırsız soru sorun"}</span>
           </motion.div>
+        )}
+        {isError && onRetry && (
+          <motion.button whileTap={{ scale: 0.95 }} onClick={onRetry}
+            className="mt-2 flex items-center gap-1.5 text-[10px] font-medium px-3 py-1.5 rounded-lg transition-all"
+            style={{ background: `${theme.gold}15`, color: theme.gold, border: `1px solid ${theme.gold}25` }}>
+            <Zap size={10} /> {t.ai_retry || 'Tekrar Dene'}
+          </motion.button>
         )}
       </div>
     </motion.div>
@@ -156,6 +164,7 @@ export default function AiChat() {
   const sendMessage = useCallback(async (msg) => {
     const text = msg || input.trim();
     if (!text || loading) return;
+    if (text.length > 2000) return;
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setLoading(true);
@@ -164,7 +173,6 @@ export default function AiChat() {
     try {
       let data;
       if (mode === 'expert' && selectedBot) {
-        // Direct expert bot query
         const res = await api.post(`/ai/expert/${selectedBot}`, {
           session_id: sessionId, message: text,
           user_id: user?.user_id || 'anonymous', language: lang,
@@ -172,7 +180,6 @@ export default function AiChat() {
         data = res.data;
         data.bots_used = [data.bot];
       } else {
-        // Orchestrator auto-route
         const res = await api.post('/ai/orchestrator', {
           session_id: sessionId, message: text,
           user_id: user?.user_id || 'anonymous', language: lang,
@@ -188,9 +195,29 @@ export default function AiChat() {
         limit_reached: data.limit_reached,
       }]);
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', content: t.ai_connection_error || 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.' }]);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: t.ai_connection_error || 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
+        isError: true,
+        _retryText: text,
+      }]);
     } finally { setLoading(false); }
-  }, [input, loading, mode, selectedBot, sessionId, user, lang]);
+  }, [input, loading, mode, selectedBot, sessionId, user, lang, t]);
+
+  const retryLastMessage = useCallback(() => {
+    setMessages(prev => {
+      const without = prev.filter((_, i) => i < prev.length - 1);
+      const lastUser = [...without].reverse().find(m => m.role === 'user');
+      if (lastUser) {
+        // Remove the error message
+        const cleaned = without;
+        // resend
+        setTimeout(() => sendMessage(lastUser.content), 50);
+        return cleaned;
+      }
+      return prev;
+    });
+  }, [sendMessage]);
 
   const clearChat = () => {
     api.delete(`/ai/history/${sessionId}`).catch(() => {});
@@ -344,7 +371,8 @@ export default function AiChat() {
         )}
 
         {messages.map((msg, i) => (
-          <ChatBubble key={i} msg={msg} theme={theme} index={i} />
+          <ChatBubble key={i} msg={msg} theme={theme} index={i} t={t}
+            onRetry={msg.isError ? retryLastMessage : undefined} />
         ))}
 
         {loading && (
@@ -386,12 +414,18 @@ export default function AiChat() {
         )}
         <div className="flex items-center gap-2 rounded-xl px-3 py-2 transition-colors"
           style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}` }}>
-          <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)}
+          <input ref={inputRef} type="text" value={input}
+            onChange={e => { if (e.target.value.length <= 2000) setInput(e.target.value); }}
             placeholder={limitReached ? (t.ai_premium_unlock || "Premium'a geçin...") : (t.ask_question || "Sorunuzu yazın...")}
             disabled={limitReached}
             data-testid="chat-input"
             className="flex-1 bg-transparent text-sm focus:outline-none disabled:opacity-50"
             style={{ color: theme.textPrimary }} />
+          {input.length > 1500 && (
+            <span className="text-[9px] shrink-0" style={{ color: input.length > 1900 ? '#ef4444' : theme.textSecondary }}>
+              {input.length}/2000
+            </span>
+          )}
           <motion.button whileTap={{ scale: 0.9 }} type="submit" disabled={loading || !input.trim() || limitReached}
             data-testid="chat-send-btn"
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-20"

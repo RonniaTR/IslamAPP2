@@ -172,6 +172,44 @@ groq_client = OpenAI(
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 AI_TIMEOUT_SECONDS = 25  # Max time for AI generation before timeout
+AI_MAX_INPUT_LENGTH = 2000  # Max user input chars
+AI_RETRY_ATTEMPTS = 2  # Retry count per provider
+
+# ── Circuit Breaker State ──
+_ai_circuit = {
+    "groq_failures": 0,
+    "gemini_failures": 0,
+    "groq_open_until": None,   # datetime when circuit should re-close
+    "gemini_open_until": None,
+}
+_CIRCUIT_THRESHOLD = 3       # failures before opening circuit
+_CIRCUIT_COOLDOWN = 120      # seconds to wait before retrying a broken provider
+
+
+def _is_circuit_open(provider: str) -> bool:
+    """Check if a provider's circuit breaker is open (too many failures)"""
+    key = f"{provider}_open_until"
+    open_until = _ai_circuit.get(key)
+    if open_until and datetime.now(timezone.utc) < open_until:
+        return True
+    if open_until:
+        # Circuit cooldown expired, reset
+        _ai_circuit[f"{provider}_failures"] = 0
+        _ai_circuit[key] = None
+    return False
+
+
+def _record_failure(provider: str):
+    _ai_circuit[f"{provider}_failures"] += 1
+    if _ai_circuit[f"{provider}_failures"] >= _CIRCUIT_THRESHOLD:
+        _ai_circuit[f"{provider}_open_until"] = datetime.now(timezone.utc) + timedelta(seconds=_CIRCUIT_COOLDOWN)
+        logger.warning(f"Circuit breaker OPEN for {provider} — cooling down {_CIRCUIT_COOLDOWN}s")
+
+
+def _record_success(provider: str):
+    _ai_circuit[f"{provider}_failures"] = 0
+    _ai_circuit[f"{provider}_open_until"] = None
+
 
 async def _groq_generate(prompt: str, system_message: str = "") -> str:
     """Generate text using Groq (free Llama 3.3 70B)"""
@@ -208,24 +246,37 @@ async def _gemini_generate(prompt: str, system_message: str = "") -> str:
     return response.text
 
 async def gemini_generate(prompt: str, system_message: str = "") -> str:
-    """Generate text using available AI provider (Groq primary, Gemini fallback)"""
-    # Try Groq first (free Llama 3.3 70B - very fast)
-    if groq_client:
-        try:
-            return await _groq_generate(prompt, system_message)
-        except asyncio.TimeoutError:
-            logger.warning("Groq API timed out, trying fallback")
-        except Exception as e:
-            logger.warning(f"Groq API error, trying fallback: {e}")
-    # Fallback to Gemini
-    if gemini_client:
-        try:
-            return await _gemini_generate(prompt, system_message)
-        except asyncio.TimeoutError:
-            logger.error("Gemini API timed out")
-        except Exception as e:
-            logger.error(f"Gemini API error: {e}")
-    raise Exception("No AI provider available or all providers timed out.")
+    """Generate text with retry + circuit breaker: Groq → Gemini → Groq(retry) → Gemini(retry)"""
+    providers = []
+    if groq_client and not _is_circuit_open("groq"):
+        providers.append(("groq", _groq_generate))
+    if gemini_client and not _is_circuit_open("gemini"):
+        providers.append(("gemini", _gemini_generate))
+
+    if not providers:
+        # All circuits open — force-try both anyway as last resort
+        if groq_client:
+            providers.append(("groq", _groq_generate))
+        if gemini_client:
+            providers.append(("gemini", _gemini_generate))
+
+    last_error = None
+    for attempt in range(AI_RETRY_ATTEMPTS):
+        for name, fn in providers:
+            try:
+                result = await fn(prompt, system_message)
+                _record_success(name)
+                return result
+            except asyncio.TimeoutError:
+                logger.warning(f"{name} timed out (attempt {attempt + 1})")
+                _record_failure(name)
+                last_error = f"{name} timeout"
+            except Exception as e:
+                logger.warning(f"{name} error (attempt {attempt + 1}): {e}")
+                _record_failure(name)
+                last_error = str(e)
+
+    raise Exception(f"All AI providers failed after {AI_RETRY_ATTEMPTS} attempts. Last: {last_error}")
 
 # Auth Config
 EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
@@ -1259,11 +1310,30 @@ async def create_guest_user(response: Response):
     return new_user
 
 @api_router.get("/auth/me")
-async def get_current_user_info(request: Request, session_token: Optional[str] = Cookie(None)):
-    """Get current authenticated user info"""
+async def get_current_user_info(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
+    """Get current authenticated user info + auto-refresh session"""
     user = await get_current_user(request, session_token)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # Auto-refresh session: extend expiry on every /auth/me call
+    token = session_token
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    if token:
+        new_expiry = datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS)
+        await db.user_sessions.update_one(
+            {"session_token": token},
+            {"$set": {"expires_at": new_expiry}}
+        )
+        response.set_cookie(
+            key="session_token", value=token,
+            httponly=True, secure=True, samesite="none",
+            path="/", max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
+        )
+
     return user.dict()
 
 @api_router.post("/auth/logout")
@@ -2433,10 +2503,10 @@ async def health_check():
     return {
         "status": "ok",
         "db": db_ok,
-        "version": "2.0",
+        "version": "3.0",
         "ai": {
-            "groq": bool(groq_client),
-            "gemini": bool(gemini_client),
+            "groq": {"available": bool(groq_client), "circuit_open": _is_circuit_open("groq")},
+            "gemini": {"available": bool(gemini_client), "circuit_open": _is_circuit_open("gemini")},
         },
     }
 

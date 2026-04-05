@@ -132,7 +132,9 @@ function LoginRoute() {
 }
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  // Skip splash for returning users (have cached auth)
+  const hasCache = !!localStorage.getItem('islamapp_user_cache');
+  const [showSplash, setShowSplash] = useState(!hasCache);
   const handleSplashComplete = useCallback(() => setShowSplash(false), []);
 
   return (

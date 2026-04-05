@@ -329,7 +329,12 @@ Cevabını {lang_full} dilinde ver."""
         valid_responses = [r for r in responses if r.get("response") and not r.get("error")]
 
         if not valid_responses:
-            return {"merged": "Üzgünüm, şu an cevap üretilemedi. Lütfen tekrar deneyin.", "confidence": 0}
+            error_msg = {
+                "tr": "Üzgünüm, AI servisleri şu an meşgul. Lütfen birkaç saniye sonra tekrar deneyin.",
+                "en": "Sorry, AI services are currently busy. Please try again in a few seconds.",
+                "ar": "عذراً، خدمات الذكاء الاصطناعي مشغولة حالياً. يرجى المحاولة مرة أخرى بعد قليل.",
+            }
+            return {"merged": error_msg.get(lang, error_msg["tr"]), "confidence": 0, "bots_used": []}
 
         if len(valid_responses) == 1:
             resp = valid_responses[0]
@@ -463,6 +468,10 @@ Cevabını {lang_full} dilinde ver."""
         """Ask a specific expert bot directly"""
         if bot_id not in BOT_PROFILES:
             raise HTTPException(status_code=404, detail="Bot not found")
+        if not req.message or not req.message.strip():
+            raise HTTPException(status_code=400, detail="Message cannot be empty")
+        if len(req.message) > 2000:
+            raise HTTPException(status_code=400, detail="Message too long (max 2000 chars)")
 
         context = await _get_context_history(req.session_id)
 
@@ -496,6 +505,12 @@ Cevabını {lang_full} dilinde ver."""
     @router.post("/ai/orchestrator")
     async def orchestrator_query(req: MultiBotRequest):
         """Main orchestrator: classify → route to experts → merge responses"""
+        # Input validation
+        if not req.message or not req.message.strip():
+            raise HTTPException(status_code=400, detail="Message cannot be empty")
+        if len(req.message) > 2000:
+            raise HTTPException(status_code=400, detail="Message too long (max 2000 chars)")
+
         # Check AI usage limits
         if req.user_id:
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
