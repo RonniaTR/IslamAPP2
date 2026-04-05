@@ -189,8 +189,12 @@ export default function SurahDetail() {
           };
           setTafsirV2Data(prev => ({ ...prev, [key]: fallback }));
           await setCachedTafsir(cacheKey, fallback);
+        } else {
+          setTafsirV2Data(prev => ({ ...prev, [key]: { error: true, message: txt.noTafsir } }));
         }
-      } catch {}
+      } catch {
+        setTafsirV2Data(prev => ({ ...prev, [key]: { error: true, message: txt.aiOff } }));
+      }
     }
     setTafsirV2Loading(false);
   };
@@ -227,7 +231,9 @@ export default function SurahDetail() {
     try {
       const { data } = await api.get(`/tafsir/v2/${surahNumber}/${verseNum}/compare?lang=${lang}`);
       setCompareData(prev => ({ ...prev, [verseNum]: data }));
-    } catch {}
+    } catch {
+      setCompareData(prev => ({ ...prev, [verseNum]: { comparisons: [], error: true } }));
+    }
     setCompareLoading(null);
   };
 
@@ -237,7 +243,9 @@ export default function SurahDetail() {
     try {
       const { data } = await api.get(`/tafsir/v2/${surahNumber}/${verseNum}/linguistic?lang=${lang}`);
       setLinguisticData(prev => ({ ...prev, [verseNum]: data }));
-    } catch {}
+    } catch {
+      setLinguisticData(prev => ({ ...prev, [verseNum]: { analysis: null, error: true } }));
+    }
     setLinguisticLoading(null);
   };
 
@@ -712,6 +720,9 @@ export default function SurahDetail() {
                           <span className="text-xs" style={{ color: theme.textSecondary }}>{txt.compLoading}</span>
                         </div>
                       ) : compareData[verse.number] ? (
+                        compareData[verse.number].error ? (
+                          <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>{txt.aiOff}</p>
+                        ) : (
                         <div className="space-y-2">
                           {(compareData[verse.number].comparisons || []).map((c, i) => (
                             <div key={i} className="rounded-xl p-3" style={{ background: '#f59e0b05', border: `1px solid ${theme.cardBorder}` }}>
@@ -730,6 +741,7 @@ export default function SurahDetail() {
                             </div>
                           ))}
                         </div>
+                        )
                       ) : (
                         <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>{txt.noComp}</p>
                       )
@@ -743,6 +755,9 @@ export default function SurahDetail() {
                           <span className="text-xs" style={{ color: theme.textSecondary }}>{txt.lingLoading}</span>
                         </div>
                       ) : linguisticData[verse.number] ? (
+                        linguisticData[verse.number].error ? (
+                          <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>{txt.aiOff}</p>
+                        ) : (
                         <div className="space-y-2">
                           {[
                             { key: 'nahiv', label: `🔤 ${txt.nahiv}` },
@@ -760,6 +775,7 @@ export default function SurahDetail() {
                             )
                           ))}
                         </div>
+                        )
                       ) : (
                         <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>{txt.noLing}</p>
                       )

@@ -171,18 +171,23 @@ groq_client = OpenAI(
 
 gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
+AI_TIMEOUT_SECONDS = 25  # Max time for AI generation before timeout
+
 async def _groq_generate(prompt: str, system_message: str = "") -> str:
     """Generate text using Groq (free Llama 3.3 70B)"""
     messages = []
     if system_message:
         messages.append({"role": "system", "content": system_message})
     messages.append({"role": "user", "content": prompt})
-    response = await asyncio.to_thread(
-        groq_client.chat.completions.create,
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-        temperature=0.7,
-        max_tokens=2048
+    response = await asyncio.wait_for(
+        asyncio.to_thread(
+            groq_client.chat.completions.create,
+            model="llama-3.3-70b-versatile",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=2048
+        ),
+        timeout=AI_TIMEOUT_SECONDS
     )
     return response.choices[0].message.content
 
@@ -191,11 +196,14 @@ async def _gemini_generate(prompt: str, system_message: str = "") -> str:
     config = genai.types.GenerateContentConfig(
         system_instruction=system_message if system_message else None
     )
-    response = await asyncio.to_thread(
-        gemini_client.models.generate_content,
-        model="gemini-2.0-flash",
-        contents=prompt,
-        config=config
+    response = await asyncio.wait_for(
+        asyncio.to_thread(
+            gemini_client.models.generate_content,
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config=config
+        ),
+        timeout=AI_TIMEOUT_SECONDS
     )
     return response.text
 
@@ -205,15 +213,19 @@ async def gemini_generate(prompt: str, system_message: str = "") -> str:
     if groq_client:
         try:
             return await _groq_generate(prompt, system_message)
+        except asyncio.TimeoutError:
+            logger.warning("Groq API timed out, trying fallback")
         except Exception as e:
             logger.warning(f"Groq API error, trying fallback: {e}")
     # Fallback to Gemini
     if gemini_client:
         try:
             return await _gemini_generate(prompt, system_message)
+        except asyncio.TimeoutError:
+            logger.error("Gemini API timed out")
         except Exception as e:
             logger.error(f"Gemini API error: {e}")
-    raise Exception("No AI provider available. Set GROQ_API_KEY or GEMINI_API_KEY.")
+    raise Exception("No AI provider available or all providers timed out.")
 
 # Auth Config
 EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
@@ -2418,7 +2430,15 @@ async def health_check():
         db_ok = True
     except:
         db_ok = False
-    return {"status": "ok", "db": db_ok, "version": "2.0"}
+    return {
+        "status": "ok",
+        "db": db_ok,
+        "version": "2.0",
+        "ai": {
+            "groq": bool(groq_client),
+            "gemini": bool(gemini_client),
+        },
+    }
 
 class KnowledgeQuizRequest(BaseModel):
     topic_title: str
