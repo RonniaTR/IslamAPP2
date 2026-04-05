@@ -5,94 +5,95 @@ export default function SplashScreen({ onComplete }) {
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setPhase(1), 50),
-      setTimeout(() => setPhase(2), 150),
-      setTimeout(() => setPhase(3), 300),
-      setTimeout(() => setPhase(4), 450),
-      setTimeout(() => onComplete(), 700),
+      setTimeout(() => setPhase(1), 80),
+      setTimeout(() => setPhase(2), 250),
+      setTimeout(() => setPhase(3), 500),
+      setTimeout(() => setPhase(4), 700),
+      setTimeout(() => onComplete(), 1000),
     ];
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-[100] splash-bg flex flex-col items-center justify-center max-w-[430px] mx-auto" data-testid="splash-screen">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: 'radial-gradient(ellipse at 50% 60%, #111D30 0%, #070D18 70%)' }}
+      data-testid="splash-screen">
+
+      {/* Radial light behind crescent */}
+      <div className="absolute w-80 h-80 rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(200,165,90,0.12) 0%, transparent 70%)',
+          opacity: phase >= 1 ? 1 : 0,
+          transition: 'opacity 1s ease',
+        }} />
+
       {/* Stars */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-[#D4AF37] rounded-full"
+        {[...Array(20)].map((_, i) => (
+          <div key={i} className="absolute rounded-full"
             style={{
-              top: `${10 + Math.random() * 50}%`,
-              left: `${10 + Math.random() * 80}%`,
-              opacity: phase >= 2 ? 1 : 0,
-              transition: `opacity 0.8s ease ${i * 0.1}s`,
-              animation: phase >= 2 ? `twinkle ${1.5 + Math.random()}s ease-in-out ${Math.random()}s infinite` : 'none',
-            }}
-          />
+              width: i < 5 ? '3px' : i < 12 ? '2px' : '1px',
+              height: i < 5 ? '3px' : i < 12 ? '2px' : '1px',
+              background: i < 5 ? '#C8A55A' : '#7E8A9E',
+              top: `${5 + Math.random() * 85}%`,
+              left: `${5 + Math.random() * 90}%`,
+              opacity: phase >= 2 ? (i < 5 ? 0.8 : 0.4) : 0,
+              transition: `opacity 0.8s ease ${i * 0.08}s`,
+              animation: phase >= 2 ? `twinkle ${2 + Math.random() * 2}s ease-in-out ${Math.random() * 2}s infinite` : 'none',
+            }} />
         ))}
       </div>
 
-      {/* Mosque silhouette at bottom */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-32"
-        style={{
-          opacity: phase >= 2 ? 0.15 : 0,
-          transition: 'opacity 1s ease',
-        }}
-      >
-        <svg viewBox="0 0 430 120" className="w-full h-full" fill="#D4AF37">
-          <path d="M0,120 L0,90 L30,90 L30,60 L35,40 L40,60 L40,90 L70,90 L70,70 L80,50 L90,70 L90,90 L130,90 L130,50 L140,20 L150,50 L150,90 L190,90 L190,80 L200,60 L205,30 L210,60 L220,80 L220,90 L260,90 L260,55 L270,25 L275,10 L280,25 L290,55 L290,90 L330,90 L330,70 L340,50 L350,70 L350,90 L380,90 L380,60 L385,40 L390,60 L390,90 L430,90 L430,120 Z" opacity="0.6" />
-          <rect x="138" y="10" width="4" height="80" opacity="0.4" />
-          <circle cx="140" cy="8" r="3" opacity="0.5" />
-          <rect x="273" y="5" width="4" height="85" opacity="0.4" />
-          <circle cx="275" cy="3" r="3" opacity="0.5" />
-        </svg>
-      </div>
-
-      {/* Crescent Moon */}
-      <div
-        className="relative mb-6"
-        style={{
-          opacity: phase >= 1 ? 1 : 0,
-          transform: phase >= 1 ? 'scale(1)' : 'scale(0.5)',
-          transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        }}
-      >
-        <svg width="80" height="80" viewBox="0 0 100 100" className="animate-crescent">
+      {/* Crescent Moon — larger & more elegant */}
+      <div style={{
+        opacity: phase >= 1 ? 1 : 0,
+        transform: phase >= 1 ? 'scale(1) rotate(0deg)' : 'scale(0.3) rotate(-30deg)',
+        transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}>
+        <svg width="100" height="100" viewBox="0 0 100 100" className="animate-crescent">
           <defs>
-            <linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#E8C84A" />
-              <stop offset="100%" stopColor="#D4AF37" />
+            <linearGradient id="splashMoon" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#E0C47A" />
+              <stop offset="50%" stopColor="#C8A55A" />
+              <stop offset="100%" stopColor="#9E8530" />
             </linearGradient>
           </defs>
-          <path d="M50 5 C25 5 5 25 5 50 C5 75 25 95 50 95 C35 85 28 68 28 50 C28 32 35 15 50 5Z" fill="url(#moonGrad)" />
+          <path d="M50 5 C25 5 5 25 5 50 C5 75 25 95 50 95 C35 85 28 68 28 50 C28 32 35 15 50 5Z" fill="url(#splashMoon)" />
+          <circle cx="60" cy="18" r="2" fill="#E0C47A" opacity="0.6" />
         </svg>
       </div>
 
-      {/* App title */}
-      <h1
-        className="text-2xl font-bold text-[#F5F5DC] tracking-wide mb-2"
+      {/* App name */}
+      <h1 className="mt-8 text-3xl font-black tracking-wide"
         style={{
           fontFamily: 'Playfair Display, serif',
+          color: '#EBE5D8',
           opacity: phase >= 3 ? 1 : 0,
-          transform: phase >= 3 ? 'translateY(0)' : 'translateY(20px)',
-          transition: 'all 0.6s ease',
-        }}
-      >
+          transform: phase >= 3 ? 'translateY(0)' : 'translateY(24px)',
+          transition: 'all 0.7s cubic-bezier(0.16,1,0.3,1)',
+        }}>
         İslami Yaşam Asistanı
       </h1>
 
-      {/* Slogan */}
-      <p
-        className="text-sm tracking-widest"
+      {/* Decorative line */}
+      <div className="mt-4 flex items-center gap-3"
         style={{
-          color: '#D4AF37',
           opacity: phase >= 4 ? 1 : 0,
-          transform: phase >= 4 ? 'translateY(0)' : 'translateY(10px)',
+          transition: 'opacity 0.6s ease',
+        }}>
+        <div className="w-12 h-px" style={{ background: 'linear-gradient(to right, transparent, #C8A55A)' }} />
+        <span style={{ color: '#C8A55A', fontSize: '10px' }}>✦</span>
+        <div className="w-12 h-px" style={{ background: 'linear-gradient(to left, transparent, #C8A55A)' }} />
+      </div>
+
+      {/* Slogan */}
+      <p className="mt-3 text-sm tracking-[0.25em] uppercase"
+        style={{
+          color: '#7E8A9E',
+          opacity: phase >= 4 ? 1 : 0,
+          transform: phase >= 4 ? 'translateY(0)' : 'translateY(12px)',
           transition: 'all 0.6s ease',
-        }}
-      >
+        }}>
         Bilgi ile iman yolculuğu
       </p>
     </div>

@@ -4,22 +4,14 @@ import { Home, BookOpen, MessageCircle, Compass, Settings, ScrollText, Trophy } 
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const NavTab = memo(function NavTab({ icon: Icon, label, active, theme, onClick }) {
+const NavTab = memo(function NavTab({ path, icon: Icon, label, active, theme, onClick }) {
   return (
     <button onClick={onClick}
       aria-label={label}
-      className="relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-2xl transition-all duration-300"
-      style={{
-        color: active ? theme.gold : theme.textSecondary,
-        background: active ? `${theme.gold}10` : 'transparent',
-      }}>
-      {active && (
-        <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"
-          style={{ background: theme.gold }} />
-      )}
-      <Icon size={20} strokeWidth={active ? 2.2 : 1.5} />
-      <span className="text-[9px] font-semibold tracking-wide"
-        style={{ opacity: active ? 1 : 0.7 }}>{label}</span>
+      className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all duration-200"
+      style={{ color: active ? theme.gold : theme.textSecondary }}>
+      <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
+      <span className="text-[10px] font-medium">{label}</span>
     </button>
   );
 });
@@ -52,19 +44,13 @@ export default memo(function Layout() {
       </main>
       {!hideNav && (
         <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] md:max-w-[768px] lg:max-w-[520px] z-50 safe-bottom"
-          style={{
-            background: theme.navBg,
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            borderTop: `1px solid ${theme.cardBorder}`,
-            boxShadow: '0 -4px 30px rgba(0,0,0,0.3)',
-          }}
+          style={{ background: theme.navBg, backdropFilter: 'blur(16px)', borderTop: `1px solid ${theme.cardBorder}` }}
           data-testid="bottom-nav">
-          <div className="flex justify-around items-center h-[64px] px-1">
+          <div className="flex justify-around items-center h-16 px-1">
             {tabs.map(({ path, icon, label }) => {
               const active = path === '/' ? pathname === '/' : pathname.startsWith(path);
               return (
-                <NavTab key={path} icon={icon} label={label} active={active} theme={theme}
+                <NavTab key={path} path={path} icon={icon} label={label} active={active} theme={theme}
                   onClick={() => navigate(path)} />
               );
             })}

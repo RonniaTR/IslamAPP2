@@ -2,41 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap');
 
 :root {
-  --bg-primary: #070D18;
-  --bg-surface: #111D30;
-  --bg-surface-light: #1A2940;
-  --gold: #C8A55A;
-  --gold-light: #E0C47A;
-  --cream: #EBE5D8;
-  --cream-muted: #B8B0A0;
-  --text-primary: #EBE5D8;
-  --text-secondary: #7E8A9E;
-  --nav-bg: rgba(7, 13, 24, 0.97);
-  --card-bg: rgba(17, 29, 48, 0.55);
-  --card-border: rgba(200, 165, 90, 0.07);
-  --input-bg: rgba(255, 255, 255, 0.03);
-  --input-border: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(17, 29, 48, 0.55);
+  --bg-primary: #0A1F14;
+  --bg-surface: #0F3D2E;
+  --bg-surface-light: #164A38;
+  --gold: #D4AF37;
+  --gold-light: #E8C84A;
+  --cream: #F5F5DC;
+  --cream-muted: #D4D4AA;
+  --text-primary: #F5F5DC;
+  --text-secondary: #A8B5A0;
+  --nav-bg: rgba(10, 31, 20, 0.95);
+  --card-bg: rgba(15, 61, 46, 0.5);
+  --card-border: rgba(212, 175, 55, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(15, 61, 46, 0.5);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
 h1, h2, h3 { font-family: 'Playfair Display', serif; }
 
 .arabic-text {
-  font-family: 'Amiri', 'Arabic Typesetting', serif;
+  font-family: 'Amiri', serif;
   direction: rtl;
   text-align: right;
   line-height: 2.2;
@@ -45,82 +44,81 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ─── Core Animations ─── */
+/* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(40px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-slide-up { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.animate-slide-up { animation: slideUp 0.6s ease-out forwards; }
 
 @keyframes crescentGlow {
-  0%, 100% { filter: drop-shadow(0 0 12px rgba(200,165,90,0.25)); }
-  50% { filter: drop-shadow(0 0 28px rgba(200,165,90,0.5)); }
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(212,175,55,0.3)); }
+  50% { filter: drop-shadow(0 0 20px rgba(212,175,55,0.6)); }
 }
-.animate-crescent { animation: crescentGlow 3s ease-in-out infinite; }
+.animate-crescent { animation: crescentGlow 2s ease-in-out infinite; }
 
 @keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.3); }
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
 }
-.animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
+.animate-twinkle { animation: twinkle 1.5s ease-in-out infinite; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-6px); }
 }
-.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-float { animation: float 3s ease-in-out infinite; }
 
 @keyframes pulseGold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(200,165,90,0.3); }
-  50% { box-shadow: 0 0 0 10px rgba(200,165,90,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(212,175,55,0); }
 }
-.animate-pulse-gold { animation: pulseGold 2.5s ease-in-out infinite; }
+.animate-pulse-gold { animation: pulseGold 2s ease-in-out infinite; }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes breathe {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+@keyframes hadithGlow {
+  0%, 100% { box-shadow: 0 20px 60px rgba(5, 16, 11, 0.28); }
+  50% { box-shadow: 0 26px 80px rgba(212, 175, 55, 0.12); }
 }
 
-/* ─── Glass & Card Styles ─── */
+@keyframes hadithOrbFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Glass morphism */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
 }
 
 .glass-dark {
   background: var(--nav-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
 }
 
 .card-islamic {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+  transition: all 0.3s ease;
 }
 .card-islamic:hover {
-  border-color: rgba(200, 165, 90, 0.2);
+  border-color: rgba(212, 175, 55, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 .card-islamic:active { transform: scale(0.97); }
 
+/* Gold gradient text */
 .text-gold-gradient {
-  background: linear-gradient(135deg, #C8A55A, #E0C47A, #C8A55A);
+  background: linear-gradient(135deg, #D4AF37, #E8C84A, #D4AF37);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -133,24 +131,28 @@ h1, h2, h3 { font-family: 'Playfair Display', serif; }
   overflow: hidden;
 }
 
-input, textarea, select { font-family: 'Inter', sans-serif; }
-audio::-webkit-media-controls-panel { background: #1A2940; }
-
-/* ─── Splash & Login Bg ─── */
-.splash-bg {
-  background: radial-gradient(ellipse at 50% 80%, #111D30 0%, #070D18 60%);
+input, textarea, select {
+  font-family: 'Inter', sans-serif;
 }
 
+audio::-webkit-media-controls-panel { background: #164A38; }
+
+/* Splash screen */
+.splash-bg {
+  background: radial-gradient(ellipse at center bottom, #0F3D2E 0%, #0A1F14 70%);
+}
+
+/* Mosque silhouette */
 .mosque-silhouette {
-  background: linear-gradient(to top, rgba(7, 13, 24, 1) 0%, transparent 100%);
+  background: linear-gradient(to top, rgba(10, 31, 20, 1) 0%, transparent 100%);
 }
 
 .hadith-shell {
   min-height: 100%;
   background:
-    radial-gradient(circle at top left, rgba(200, 165, 90, 0.1), transparent 32%),
-    radial-gradient(circle at top right, rgba(26, 41, 64, 0.5), transparent 28%),
-    linear-gradient(180deg, #070D18 0%, #0B1525 18%, #111D30 100%);
+    radial-gradient(circle at top left, rgba(212, 175, 55, 0.14), transparent 32%),
+    radial-gradient(circle at top right, rgba(43, 102, 77, 0.32), transparent 28%),
+    linear-gradient(180deg, #07130d 0%, #0a1f14 18%, #10271c 100%);
 }
 
 .hadith-hero {
@@ -158,7 +160,7 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
   overflow: hidden;
   background-size: cover;
   background-position: center;
-  border-bottom: 1px solid rgba(200, 165, 90, 0.06);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
 }
 
 .hadith-orb {
@@ -168,14 +170,14 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
   align-items: center;
   justify-content: center;
   border-radius: 18px;
-  background: linear-gradient(135deg, #E0C47A, #C8A55A);
-  animation: float 3.2s ease-in-out infinite;
+  background: linear-gradient(135deg, #f3cf66, #d4af37);
+  animation: hadithOrbFloat 3.2s ease-in-out infinite;
 }
 
 .hadith-stat-card {
   min-width: 108px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(7, 13, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 19, 14, 0.58);
   backdrop-filter: blur(12px);
   border-radius: 20px;
   padding: 14px 16px;
@@ -186,14 +188,15 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
 .hadith-empty-state {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(200, 165, 90, 0.08);
-  background: linear-gradient(180deg, rgba(17, 29, 48, 0.96) 0%, rgba(7, 13, 24, 0.95) 100%);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  background: linear-gradient(180deg, rgba(16, 39, 28, 0.96) 0%, rgba(8, 20, 14, 0.95) 100%);
+  box-shadow: 0 20px 60px rgba(5, 16, 11, 0.28);
 }
 
 .hadith-feature-card {
   border-radius: 28px;
   padding: 22px;
+  animation: hadithGlow 5s ease-in-out infinite;
 }
 
 .hadith-card {

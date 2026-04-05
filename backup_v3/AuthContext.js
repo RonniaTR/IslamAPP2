@@ -1,11 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api';
 
 const AuthContext = createContext(null);
 
 const AUTH_CACHE_KEY = 'islamapp_user_cache';
-const AUTH_CACHE_TTL = 5 * 60 * 1000;
-const AUTH_TIMEOUT = 8000; // 8s max for auth check
+const AUTH_CACHE_TTL = 5 * 60 * 1000; // 5 min local cache
 
 function getCachedUser() {
   try {
@@ -27,46 +26,34 @@ function setCachedUser(user) {
 export function AuthProvider({ children }) {
   const cached = getCachedUser();
   const [user, setUser] = useState(cached);
-  const [loading, setLoading] = useState(!cached);
-  const mounted = useRef(true);
-
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const [loading, setLoading] = useState(!cached); // skip loading if cache hit
 
   const checkAuth = useCallback(async () => {
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), AUTH_TIMEOUT);
-      const { data } = await api.get('/auth/me', { signal: controller.signal });
-      clearTimeout(timeout);
-      if (mounted.current) {
-        setUser(data);
-        setCachedUser(data);
-      }
+      const { data } = await api.get('/auth/me');
+      setUser(data);
+      setCachedUser(data);
     } catch {
-      if (mounted.current) {
-        // Only clear user if we had no cache (don't log out cached users on network blip)
-        if (!getCachedUser()) {
-          setUser(null);
-          setCachedUser(null);
-        }
-      }
+      setUser(null);
+      setCachedUser(null);
     } finally {
-      if (mounted.current) setLoading(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    // If returning from OAuth callback, skip the /me check.
     if (window.location.hash?.includes('session_id=')) {
       setLoading(false);
       return;
     }
-    checkAuth();
-    // Safety: force loading=false after timeout even if checkAuth hangs
-    const safetyTimer = setTimeout(() => {
-      if (mounted.current) setLoading(false);
-    }, AUTH_TIMEOUT + 2000);
-    return () => clearTimeout(safetyTimer);
-  }, [checkAuth]);
+    // If we have cached user, show UI immediately, revalidate in background
+    if (cached) {
+      checkAuth(); // silent revalidate
+    } else {
+      checkAuth();
+    }
+  }, [checkAuth, cached]);
 
   const loginAsGuest = async () => {
     try {
@@ -74,9 +61,9 @@ export function AuthProvider({ children }) {
       setUser(data);
       setCachedUser(data);
       return data;
-    } catch {
-      const existingCache = getCachedUser();
-      const guest = existingCache?.isGuest ? existingCache : { id: 'guest_' + Date.now(), name: 'Misafir', isGuest: true };
+    } catch (e) {
+      // Fallback: create local guest session when API is unavailable
+      const guest = { id: 'guest_' + Date.now(), name: 'Misafir', isGuest: true };
       setUser(guest);
       setCachedUser(guest);
       return guest;
@@ -84,7 +71,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try { await api.post('/auth/logout'); } finally {
+    try {
+      await api.post('/auth/logout');
+    } finally {
       setUser(null);
       setCachedUser(null);
     }

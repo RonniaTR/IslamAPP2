@@ -99,62 +99,66 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen pb-4 animate-fade-in" style={{ background: theme.bg }}>
-      {/* Header */}
-      <div className="relative overflow-hidden px-5 pt-7 pb-8"
-        style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, ${theme.bg} 100%)` }}>
+      {/* Header - Enhanced Profile Card */}
+      <div className="relative overflow-hidden px-4 pt-6 pb-8" style={{ background: `linear-gradient(135deg, ${theme.surface}, ${theme.surfaceLight})` }}>
         <IslamicPatternBg theme={theme} />
-        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-10 pointer-events-none"
-          style={{ background: `radial-gradient(circle, ${theme.gold}50, transparent)` }} />
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-15" style={{ background: `radial-gradient(circle, ${theme.gold}60, transparent)`, filter: 'blur(40px)' }} />
+        <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full opacity-10" style={{ background: `radial-gradient(circle, ${theme.gold}40, transparent)`, filter: 'blur(30px)' }} />
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-5 relative z-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+          className="flex items-center gap-4 mb-4 relative z-10">
           <div className="relative">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl overflow-hidden"
-              style={{ background: `${theme.gold}10`, border: `2px solid ${theme.gold}30` }}>
-              {user?.picture ? <img src={user.picture} alt="" className="w-full h-full object-cover" /> : lvl.icon}
+            <div className="w-18 h-18 rounded-full flex items-center justify-center text-3xl border-2 shadow-lg"
+              style={{ borderColor: theme.gold, background: `linear-gradient(135deg, ${theme.cardBg}, ${theme.surface})`, width: '4.5rem', height: '4.5rem' }}>
+              {user?.picture ? <img src={user.picture} alt="" className="w-full h-full rounded-full object-cover" /> : lvl.icon}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold"
-              style={{ background: theme.gold, color: '#070D18' }}>
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+              style={{ background: theme.gold, color: '#0A1F14' }}>
               {lvl.level}
             </div>
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-black" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
+            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
               {user?.name || t.user || 'Kullanıcı'}
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-semibold" style={{ color: theme.gold }}>{lvl.icon} {lvl.name}</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-sm font-medium" style={{ color: theme.gold }}>{lvl.icon} {lvl.name}</span>
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}20`, color: theme.gold }}>
+                {t.level || 'Seviye'} {lvl.level}
+              </span>
             </div>
           </div>
         </motion.div>
 
-        {/* XP Bar */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="relative z-10">
-          <div className="flex justify-between text-[10px] mb-1.5" style={{ color: theme.textSecondary }}>
-            <span className="font-semibold">{stats.total_points || 0} XP</span>
-            <span>{lvl.next ? `${lvl.pointsToNext} ${t.remaining || 'kaldı'}` : t.max_level || 'Maks!'}</span>
+        {/* XP Bar - Enhanced */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="mt-2 relative z-10">
+          <div className="flex justify-between text-xs mb-1.5" style={{ color: theme.textSecondary }}>
+            <span className="font-medium">{stats.total_points || 0} {t.xp || 'XP'}</span>
+            <span>{lvl.next ? `${lvl.next.min} XP · ${lvl.pointsToNext} ${t.remaining || 'kaldı'}` : t.max_level || 'Maksimum seviye!'}</span>
           </div>
-          <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}15` }}>
-            <motion.div initial={{ width: 0 }} animate={{ width: `${lvl.progress}%` }} transition={{ duration: 1, ease: 'easeOut' }}
-              className="h-full rounded-full"
-              style={{ background: `linear-gradient(90deg, ${theme.gold}, ${theme.goldLight || theme.gold})` }} />
+          <div className="w-full h-3 rounded-full overflow-hidden" style={{ background: theme.inputBg }}>
+            <motion.div initial={{ width: 0 }} animate={{ width: `${lvl.progress}%` }} transition={{ duration: 1.2, ease: 'easeOut' }}
+              className="h-full rounded-full relative"
+              style={{ background: `linear-gradient(90deg, ${theme.gold}, ${theme.goldLight || theme.gold}cc)` }}>
+              <div className="absolute inset-0 rounded-full animate-pulse-gold opacity-30" style={{ background: `linear-gradient(90deg, transparent, ${theme.gold}80, transparent)` }} />
+            </motion.div>
           </div>
         </motion.div>
 
-        {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-2.5 mt-5 relative z-10">
+        {/* Streak + Stats Mini */}
+        <div className="grid grid-cols-3 gap-3 mt-5 relative z-10">
           {[
-            { icon: Flame, label: t.streak || 'Seri', value: `${stats.current_streak || 0}`, color: '#F97316' },
-            { icon: BookOpen, label: t.quran || "Kur'an", value: `${stats.quran_pages_read || 0}`, color: '#4ADE80' },
-            { icon: Zap, label: t.quiz || 'Quiz', value: `${stats.quizzes_played || user?.quizzes_played || 0}`, color: '#818CF8' },
-          ].map(({ icon: Icon, label, value, color }, i) => (
-            <motion.div key={label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.06 }}
-              className="rounded-xl py-3 text-center"
-              style={{ background: `${color}08`, border: `1px solid ${color}12` }}>
-              <Icon size={16} className="mx-auto mb-1" style={{ color }} />
-              <div className="text-base font-bold" style={{ color: theme.textPrimary }}>{value}</div>
-              <div className="text-[9px] uppercase tracking-wider" style={{ color: theme.textSecondary }}>{label}</div>
+            { icon: Flame, label: t.streak || 'Seri', value: `${stats.current_streak || 0} ${t.day_suffix || 'gün'}`, color: '#F97316', delay: 0.3 },
+            { icon: BookOpen, label: t.quran || "Kur'an", value: `${stats.quran_pages_read || 0} ${t.quran_pages || 'sayfa'}`, color: '#10B981', delay: 0.4 },
+            { icon: Zap, label: t.quiz || 'Quiz', value: `${stats.quizzes_played || user?.quizzes_played || 0}`, color: '#8B5CF6', delay: 0.5 },
+          ].map(({ icon: Icon, label, value, color, delay }) => (
+            <motion.div key={label} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay }}
+              className="rounded-xl p-2.5 text-center backdrop-blur-sm"
+              style={{ background: `${color}12`, border: `1px solid ${color}20` }}>
+              <Icon size={18} className="mx-auto mb-1" style={{ color }} />
+              <div className="text-sm font-bold" style={{ color: theme.textPrimary }}>{value}</div>
+              <div className="text-[10px]" style={{ color: theme.textSecondary }}>{label}</div>
             </motion.div>
           ))}
         </div>

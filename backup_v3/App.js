@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense, lazy, useEffect } from 'react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -48,11 +48,8 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#070D18' }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-[#C8A55A] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-[#7E8A9E] tracking-wider">Yükleniyor</p>
-        </div>
+      <div className="min-h-screen bg-[#0A1F14] flex items-center justify-center max-w-[520px] md:max-w-[768px] lg:max-w-[520px] mx-auto">
+        <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -61,11 +58,13 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+// Suspense fallback for lazy-loaded pages
 function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#070D18' }}>
+    <div className="min-h-screen flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-[#C8A55A] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs text-[#A8B5A0]">Yükleniyor...</p>
       </div>
     </div>
   );
@@ -74,6 +73,7 @@ function PageLoader() {
 function AppRouter() {
   const location = useLocation();
 
+  // CRITICAL: Check URL fragment for session_id synchronously during render
   if (location.hash?.includes('session_id=')) {
     return <Suspense fallback={<PageLoader />}><AuthCallback /></Suspense>;
   }
@@ -132,18 +132,10 @@ function LoginRoute() {
 }
 
 export default function App() {
+  // Skip splash for returning users (have cached auth)
   const hasCache = !!localStorage.getItem('islamapp_user_cache');
   const [showSplash, setShowSplash] = useState(!hasCache);
   const handleSplashComplete = useCallback(() => setShowSplash(false), []);
-
-  // Force clear old service workers on first load after update
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(reg => reg.update());
-      });
-    }
-  }, []);
 
   return (
     <ErrorBoundary>
@@ -153,7 +145,7 @@ export default function App() {
           <ThemeProvider>
             <PremiumProvider>
             {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-            {!showSplash && <AppRouter />}
+            <AppRouter />
             </PremiumProvider>
           </ThemeProvider>
         </LangProvider>

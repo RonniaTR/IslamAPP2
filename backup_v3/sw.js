@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = 'islamic-v16-20250705';
-const API_CACHE_NAME = 'islamic-api-v2';
+const CACHE_NAME = 'islamic-v15-20250705';
+const API_CACHE_NAME = 'islamic-api-v1';
 const APP_SHELL = '/';
 
 // API endpoints that should be cached for offline use
@@ -18,6 +18,12 @@ const CACHEABLE_API_PATHS = [
   '/api/gamification/badges',
 ];
 
+function isCacheableRequest(request) {
+  if (request.method !== 'GET') return false;
+  if (request.url.includes('/api/')) return false;
+  return request.url.startsWith(self.location.origin);
+}
+
 function isCacheableApiRequest(request) {
   if (request.method !== 'GET') return false;
   return CACHEABLE_API_PATHS.some(path => request.url.includes(path));
@@ -34,8 +40,9 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((key) => key !== CACHE_NAME && key !== API_CACHE_NAME).map((key) => caches.delete(key)))
-    ).then(() => self.clients.claim())
+    )
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -45,20 +52,28 @@ self.addEventListener('fetch', (event) => {
       caches.open(API_CACHE_NAME).then(async (cache) => {
         const cached = await cache.match(event.request);
         const fetchPromise = fetch(event.request).then((response) => {
-          if (response.ok) cache.put(event.request, response.clone());
+          if (response.ok) {
+            cache.put(event.request, response.clone());
+          }
           return response;
         }).catch(() => {
+          // Offline: return cached version
           return cached || new Response(JSON.stringify({ error: 'offline' }), {
-            headers: { 'Content-Type': 'application/json' }, status: 503,
+            headers: { 'Content-Type': 'application/json' },
+            status: 503,
           });
         });
+
+        // Return cached immediately, update in background
         return cached || fetchPromise;
       })
     );
     return;
   }
 
-  // Navigation: network-first, fallback to cached shell
+  if (!isCacheableRequest(event.request)) return;
+
+  // Navigation requests should prefer fresh HTML
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -72,33 +87,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets with content hash in URL: cache-first (immutable)
-  if (event.request.url.match(/\/static\/(js|css|media)\/.+\.[a-f0-9]{8}\./)) {
-    event.respondWith(
-      caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request).then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        });
-      })
-    );
-    return;
-  }
-
-  // Other same-origin GETs: network-first
-  if (event.request.method === 'GET' && event.request.url.startsWith(self.location.origin)) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
-  }
+  // Static assets: cache first, then network fallback and cache fill.
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      });
+    })
+  );
 });
 
 // Push notification handler
