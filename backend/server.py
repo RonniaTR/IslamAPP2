@@ -1875,11 +1875,14 @@ async def track_worship(request: Request, session_token: Optional[str] = Cookie(
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     today = date.today().isoformat()
-    await db.worship_tracking.update_one(
-        {"user_id": user.user_id, "date": today},
-        {"$set": {**body, "user_id": user.user_id, "date": today, "updated_at": datetime.now(timezone.utc).isoformat()}},
-        upsert=True
-    )
+    try:
+        await db.worship_tracking.update_one(
+            {"user_id": user.user_id, "date": today},
+            {"$set": {**body, "user_id": user.user_id, "date": today, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True
+        )
+    except Exception as e:
+        logger.warning(f"DB worship track error: {e}")
     return {"status": "ok"}
 
 @api_router.get("/worship/today")
@@ -1889,10 +1892,13 @@ async def get_today_worship(request: Request, session_token: Optional[str] = Coo
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     today = date.today().isoformat()
-    doc = await db.worship_tracking.find_one({"user_id": user.user_id, "date": today}, {"_id": 0})
-    if not doc:
-        return {"namaz": False, "kuran": False, "sadaka": False, "zikir": False}
-    return doc
+    try:
+        doc = await db.worship_tracking.find_one({"user_id": user.user_id, "date": today}, {"_id": 0})
+        if doc:
+            return doc
+    except Exception as e:
+        logger.warning(f"DB worship read error: {e}")
+    return {"namaz": False, "kuran": False, "sadaka": False, "zikir": False}
 
 @api_router.get("/scholars")
 async def get_scholars():
@@ -1952,14 +1958,17 @@ CEVAP FORMATI:
         # Initialize Gemini chat
         response = await gemini_generate(request.question, system_message=system_message)
         
-        # Store the interaction
-        await db.scholar_questions.insert_one({
-            "session_id": request.session_id,
-            "scholar_id": request.scholar_id,
-            "question": request.question,
-            "response": response,
-            "timestamp": datetime.utcnow()
-        })
+        # Store the interaction (non-critical)
+        try:
+            await db.scholar_questions.insert_one({
+                "session_id": request.session_id,
+                "scholar_id": request.scholar_id,
+                "question": request.question,
+                "response": response,
+                "timestamp": datetime.utcnow()
+            })
+        except Exception:
+            pass
         
         return ScholarResponse(
             response=response,
@@ -1967,6 +1976,8 @@ CEVAP FORMATI:
             sources=scholar["sources"]
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Scholar API error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
@@ -2337,18 +2348,24 @@ async def search_hadiths(query: str):
 @api_router.get("/gamification/stats/{user_id}")
 async def get_user_stats(user_id: str):
     """Get user's gamification stats"""
-    stats = await db.user_stats.find_one({"user_id": user_id})
-    
-    if not stats:
-        # Create new stats
+    try:
+        stats = await db.user_stats.find_one({"user_id": user_id})
+        
+        if not stats:
+            stats = UserStats(user_id=user_id).dict()
+            try:
+                await db.user_stats.insert_one(stats)
+            except Exception:
+                pass
+        
+        stats["badges"] = get_earned_badges(stats)
+        stats["level"] = calculate_level(stats.get("total_points", 0))
+        return stats
+    except Exception:
         stats = UserStats(user_id=user_id).dict()
-        await db.user_stats.insert_one(stats)
-    
-    # Calculate earned badges
-    stats["badges"] = get_earned_badges(stats)
-    stats["level"] = calculate_level(stats.get("total_points", 0))
-    
-    return stats
+        stats["badges"] = []
+        stats["level"] = 1
+        return stats
 
 @api_router.post("/gamification/activity")
 async def log_activity(activity: ActivityCreate):
@@ -2423,7 +2440,10 @@ async def get_all_badges():
 @api_router.get("/gamification/leaderboard")
 async def get_leaderboard():
     """Get top users leaderboard"""
-    users = await db.user_stats.find().sort("total_points", -1).limit(20).to_list(20)
+    try:
+        users = await db.user_stats.find().sort("total_points", -1).limit(20).to_list(20)
+    except Exception:
+        return []
     
     leaderboard = []
     for i, user in enumerate(users):
@@ -2572,21 +2592,26 @@ correct değeri 0-3 arası bir sayı olmalı (doğru şıkkın index'i)."""
 @api_router.post("/ai/chat", response_model=ChatResponse)
 async def ai_chat(request: ChatRequest):
     try:
-        user_msg = ChatMessage(
-            session_id=request.session_id,
-            role="user",
-            content=request.message
-        )
-        await db.chat_messages.insert_one(user_msg.dict())
-        
-        history = await db.chat_messages.find(
-            {"session_id": request.session_id}
-        ).sort("timestamp", 1).to_list(20)
-        
+        # Try to save to DB but don't fail if DB is down
         context = ""
-        for msg in history[-10:]:
-            role = "Kullanıcı" if msg["role"] == "user" else "Asistan"
-            context += f"{role}: {msg['content']}\n"
+        try:
+            user_msg = ChatMessage(
+                session_id=request.session_id,
+                role="user",
+                content=request.message
+            )
+            await db.chat_messages.insert_one(user_msg.dict())
+            
+            history = await db.chat_messages.find(
+                {"session_id": request.session_id}
+            ).sort("timestamp", 1).to_list(20)
+            
+            for msg in history[-10:]:
+                role = "Kullanıcı" if msg["role"] == "user" else "Asistan"
+                context += f"{role}: {msg['content']}\n"
+        except Exception as db_err:
+            logger.warning(f"DB unavailable for chat history: {db_err}")
+            context = f"Kullanıcı: {request.message}\n"
         
         system_message = ISLAMIC_ADVISOR_SYSTEM_PROMPT + f"\n\nSohbet geçmişi:\n{context}"
         
@@ -2596,12 +2621,16 @@ async def ai_chat(request: ChatRequest):
             timeout=30
         )
         
-        assistant_msg = ChatMessage(
-            session_id=request.session_id,
-            role="assistant",
-            content=response
-        )
-        await db.chat_messages.insert_one(assistant_msg.dict())
+        # Try to save assistant response but don't fail
+        try:
+            assistant_msg = ChatMessage(
+                session_id=request.session_id,
+                role="assistant",
+                content=response
+            )
+            await db.chat_messages.insert_one(assistant_msg.dict())
+        except Exception:
+            pass
         
         return ChatResponse(response=response, session_id=request.session_id)
         
@@ -2614,16 +2643,21 @@ async def ai_chat(request: ChatRequest):
 
 @api_router.get("/ai/history/{session_id}")
 async def get_chat_history(session_id: str):
-    messages = await db.chat_messages.find(
-        {"session_id": session_id}
-    ).sort("timestamp", 1).to_list(100)
-    
-    return [{"role": msg["role"], "content": msg["content"], "timestamp": msg["timestamp"]} for msg in messages]
+    try:
+        messages = await db.chat_messages.find(
+            {"session_id": session_id}
+        ).sort("timestamp", 1).to_list(100)
+        return [{"role": msg["role"], "content": msg["content"], "timestamp": msg["timestamp"]} for msg in messages]
+    except Exception:
+        return []
 
 @api_router.delete("/ai/history/{session_id}")
 async def clear_chat_history(session_id: str):
-    result = await db.chat_messages.delete_many({"session_id": session_id})
-    return {"deleted_count": result.deleted_count}
+    try:
+        result = await db.chat_messages.delete_many({"session_id": session_id})
+        return {"deleted_count": result.deleted_count}
+    except Exception:
+        return {"deleted_count": 0}
 
 # ===================== POMODORO (EXISTING) =====================
 
