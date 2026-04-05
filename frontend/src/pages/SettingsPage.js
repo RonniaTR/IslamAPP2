@@ -47,7 +47,7 @@ export default function SettingsPage() {
 
   return (
     <div className="animate-fade-in" data-testid="settings-page">
-      <div className="px-5 pt-10 pb-4" style={{ background: 'linear-gradient(180deg, rgba(15,61,46,0.4) 0%, transparent 100%)' }}>
+      <div className="px-5 pt-6 pb-4" style={{ background: 'linear-gradient(180deg, rgba(15,61,46,0.4) 0%, transparent 100%)' }}>
         <div className="flex items-center gap-3 mb-2">
           <Settings size={24} className="text-[#D4AF37]" />
           <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{t.settings || 'Ayarlar'}</h1>

@@ -77,6 +77,7 @@ export default function QuizPage() {
       const { data } = await api.post(endpoint);
       setSession(data); setQi(0); setScore(0); setCorrect(0); setStreak(0); setBestStreak(0);
       setSelected(null); setResult(null); setView('game');
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch {} finally { setLoading(false); }
   };
 
@@ -104,12 +105,14 @@ export default function QuizPage() {
     if (!session?.questions || qi + 1 >= session.questions.length) {
       api.post(`/quiz/solo/${session.session_id}/finish`).catch(() => {});
       setView('result');
+      window.scrollTo({ top: 0, behavior: 'instant' });
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
       api.get('/quiz/leaderboard').then(r => { if (Array.isArray(r.data)) setLeaderboard(r.data); }).catch(() => {});
       return;
     }
     setQi(prev => prev + 1); setSelected(null); setResult(null);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   // HOME VIEW
@@ -118,7 +121,7 @@ export default function QuizPage() {
     return (
       <div className="animate-fade-in pb-24" data-testid="quiz-home">
         {/* Header */}
-        <div className="relative px-5 pt-10 pb-6 overflow-hidden">
+        <div className="relative px-5 pt-6 pb-4 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-[#D4AF37]/10 to-transparent" />
           <div className="relative flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] flex items-center justify-center shadow-lg shadow-[#D4AF37]/20">
@@ -209,7 +212,7 @@ export default function QuizPage() {
   if (view === 'leaderboard') {
     return (
       <div className="animate-fade-in pb-24" data-testid="quiz-leaderboard">
-        <div className="px-5 pt-10 pb-4">
+        <div className="px-5 pt-6 pb-4">
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => setView('home')} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#F5F5DC]">
               <ArrowLeft size={16} />

@@ -305,7 +305,7 @@ export default function SurahDetail() {
       <PreReadingDua show={showDua} onClose={() => { setShowDua(false); sessionStorage.setItem('quran_dua_seen', '1'); }} />
 
       {/* Premium Header */}
-      <div className="quran-header-bg px-4 pt-10 pb-5">
+      <div className="quran-header-bg px-4 pt-5 pb-3">
         {/* Decorative geometric bg */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.025]">
           <svg className="absolute top-0 right-0 w-48 h-48 animate-geometric-spin" viewBox="0 0 200 200" fill="none">
@@ -315,13 +315,13 @@ export default function SurahDetail() {
         </div>
 
         <div className="relative">
-          <button onClick={() => navigate('/quran')} className="flex items-center gap-1.5 text-sm mb-4 transition-all active:scale-95" style={{ color: theme.gold }} data-testid="back-to-quran">
+          <button onClick={() => navigate('/quran')} className="flex items-center gap-1.5 text-sm mb-2 transition-all active:scale-95" style={{ color: theme.gold }} data-testid="back-to-quran">
             <ArrowLeft size={18} /> {txt.back}
           </button>
 
           {/* Surah Title Card */}
           <motion.div
-            className="text-center mb-5"
+            className="text-center mb-3"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}

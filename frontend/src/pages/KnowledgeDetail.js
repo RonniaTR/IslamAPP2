@@ -236,7 +236,7 @@ export default function KnowledgeDetail() {
     <div className="animate-fade-in min-h-screen" style={{ background: theme.bg }} data-testid="knowledge-detail">
 
       {/* ─── Header ─── */}
-      <div className="px-4 pt-10 pb-4 relative overflow-hidden" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
+      <div className="px-4 pt-6 pb-4 relative overflow-hidden" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
         {/* Decorative circles */}
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full opacity-10" style={{ background: theme.gold }} />
         <div className="absolute -bottom-5 -left-5 w-24 h-24 rounded-full opacity-5" style={{ background: theme.gold }} />

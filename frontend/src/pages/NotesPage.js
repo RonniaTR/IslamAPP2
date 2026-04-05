@@ -56,7 +56,7 @@ export default function NotesPage() {
 
   return (
     <div className="animate-fade-in" data-testid="notes-page" style={{ background: theme.bg }}>
-      <div className="px-5 pt-10 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
+      <div className="px-5 pt-6 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
         <div className="flex items-center gap-2 mb-1">
           <Heart size={20} style={{ color: theme.gold }} />
           <h1 className="text-xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{t.my_notes_title || 'Notlarım'}</h1>

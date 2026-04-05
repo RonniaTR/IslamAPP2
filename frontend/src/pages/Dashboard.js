@@ -595,7 +595,7 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="px-5 pt-10 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
+      <div className="px-5 pt-6 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
         <p className="text-xs tracking-widest uppercase" style={{ color: theme.gold }}>Bismillahirrahmanirrahim</p>
         <h1 className="text-2xl font-bold mt-1" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
           {t.greeting_hello || 'Selam'}{user?.name ? `, ${user.name}` : ''}

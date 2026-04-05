@@ -244,7 +244,7 @@ export default function HadithPage() {
   return (
     <div className="animate-fade-in" data-testid="hadith-page" style={{ background: theme.bg }}>
       {/* Hero */}
-      <div className="px-5 pt-10 pb-5" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
+      <div className="px-5 pt-6 pb-5" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.24em]"

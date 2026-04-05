@@ -95,11 +95,11 @@ export default function QuranList() {
       <PreReadingDua show={showDua} onClose={handleDuaClose} />
 
       {/* Hero Header */}
-      <div className="quran-header-bg px-5 pt-10 pb-5">
+      <div className="quran-header-bg px-5 pt-5 pb-3">
         <GeometricBg color={theme.gold} />
 
         {/* Title Row */}
-        <div className="relative flex items-center gap-3 mb-5">
+        <div className="relative flex items-center gap-3 mb-3">
           <div className="w-11 h-11 rounded-2xl flex items-center justify-center animate-float" style={{
             background: `linear-gradient(135deg, ${theme.gold}20, ${theme.gold}08)`,
             border: `1px solid ${theme.gold}20`,
@@ -171,20 +171,19 @@ export default function QuranList() {
 
         {/* Meal Audio Link */}
         <button onClick={() => navigate('/meal-audio')} data-testid="meal-audio-link"
-          className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left active:scale-[0.98] transition-all"
+          className="w-full flex items-center gap-2.5 p-2.5 rounded-xl text-left active:scale-[0.98] transition-all"
           style={{
             background: 'rgba(220,50,50,0.06)',
             border: '1px solid rgba(220,50,50,0.1)',
-            backdropFilter: 'blur(8px)',
           }}>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(220,50,50,0.1)' }}>
-            <Youtube size={18} className="text-red-400" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(220,50,50,0.1)' }}>
+            <Youtube size={15} className="text-red-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{txt.listenMeal}</p>
-            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Mazlum Kiper · {txt.juz30}</p>
+            <p className="text-xs font-semibold" style={{ color: theme.textPrimary }}>{txt.listenMeal}</p>
+            <p className="text-[10px]" style={{ color: theme.textSecondary }}>Mazlum Kiper · {txt.juz30}</p>
           </div>
-          <ChevronRight size={16} style={{ color: theme.textSecondary }} />
+          <ChevronRight size={14} style={{ color: theme.textSecondary }} />
         </button>
       </div>
 

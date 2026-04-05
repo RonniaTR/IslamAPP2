@@ -61,7 +61,7 @@ export default function RamadanPage() {
   return (
     <div className="animate-fade-in" data-testid="ramadan-page">
       {/* Header */}
-      <div className="px-5 pt-10 pb-4" style={{ background: 'linear-gradient(180deg, rgba(212,175,55,0.12) 0%, transparent 100%)' }}>
+      <div className="px-5 pt-6 pb-4" style={{ background: 'linear-gradient(180deg, rgba(212,175,55,0.12) 0%, transparent 100%)' }}>
         <div className="flex items-center gap-2 mb-1">
           <Moon size={20} style={{ color: theme.gold }} />
           <p className="text-xs tracking-widest uppercase" style={{ color: theme.gold }}>{t.ramadan_mubarak || 'Ramazan Mübarek'}</p>
