@@ -1,134 +1,232 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User } from 'lucide-react';
+import { User, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
+
+// Floating particle component
+function Particles() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(25)].map((_, i) => {
+        const size = i < 5 ? 3 : i < 12 ? 2 : 1;
+        const isGold = i < 8;
+        return (
+          <div key={i} className="absolute rounded-full animate-twinkle"
+            style={{
+              width: size, height: size,
+              background: isGold ? 'rgba(200,165,90,0.7)' : 'rgba(126,138,158,0.4)',
+              top: `${5 + Math.random() * 88}%`,
+              left: `${5 + Math.random() * 90}%`,
+              animationDelay: `${i * 0.3}s`,
+              animationDuration: `${3 + Math.random() * 4}s`,
+            }} />
+        );
+      })}
+    </div>
+  );
+}
+
+// Animated crescent moon
+function CrescentMoon() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.7, rotate: -20 }}
+      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+      className="relative">
+      {/* Radial glow behind moon */}
+      <div className="absolute inset-0 -m-8"
+        style={{
+          background: 'radial-gradient(circle, rgba(200,165,90,0.15) 0%, transparent 65%)',
+          filter: 'blur(8px)',
+        }} />
+      <svg width="100" height="100" viewBox="0 0 120 120" className="relative z-10 drop-shadow-lg">
+        <defs>
+          <linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F0D87A" />
+            <stop offset="40%" stopColor="#C8A55A" />
+            <stop offset="100%" stopColor="#8C6D2A" />
+          </linearGradient>
+          <filter id="moonGlow">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+        <path d="M60 8 C30 8 8 30 8 60 C8 90 30 112 60 112 C42 100 32 82 32 60 C32 38 42 20 60 8Z"
+          fill="url(#moonGrad)" filter="url(#moonGlow)" />
+        <circle cx="72" cy="22" r="2.5" fill="#F0D87A" opacity="0.6" />
+        <circle cx="82" cy="36" r="1.5" fill="#E0C47A" opacity="0.4" />
+      </svg>
+    </motion.div>
+  );
+}
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { loginAsGuest } = useAuth();
   const { t } = useLang();
+  const [guestLoading, setGuestLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) setGreeting(t.good_morning || 'Hayırlı Sabahlar');
+    else if (h >= 12 && h < 17) setGreeting(t.good_afternoon || 'Hayırlı Günler');
+    else if (h >= 17 && h < 21) setGreeting(t.good_evening || 'Hayırlı Akşamlar');
+    else setGreeting(t.good_night || 'Hayırlı Geceler');
+  }, [t]);
 
   const handleGoogleLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    setGoogleLoading(true);
     const redirectUrl = window.location.origin + '/';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   const handleGuestLogin = async () => {
-    const user = await loginAsGuest();
-    if (user) navigate('/', { replace: true });
+    setGuestLoading(true);
+    try {
+      const user = await loginAsGuest();
+      if (user) navigate('/', { replace: true });
+    } finally {
+      setGuestLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
-      style={{ background: 'radial-gradient(ellipse at 50% 40%, #111D30 0%, #070D18 70%)' }}
+    <div className="min-h-screen flex flex-col relative overflow-hidden"
+      style={{ background: 'radial-gradient(ellipse at 50% 30%, #0F1A2E 0%, #070D18 80%)' }}
       data-testid="login-page">
 
-      {/* Ambient glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(200,165,90,0.06) 0%, transparent 70%)' }} />
+      <Particles />
 
-      {/* Stars */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
-          <div key={i} className="absolute rounded-full animate-twinkle"
-            style={{
-              width: i < 4 ? '2px' : '1px', height: i < 4 ? '2px' : '1px',
-              background: i < 4 ? '#C8A55A' : '#7E8A9E',
-              top: `${8 + Math.random() * 80}%`,
-              left: `${5 + Math.random() * 90}%`,
-              animationDelay: `${i * 0.4}s`,
-            }} />
-        ))}
-      </div>
+      {/* Top section - visual */}
+      <div className="flex-1 flex flex-col items-center justify-end pb-8 pt-16 relative z-10">
+        <CrescentMoon />
 
-      {/* Crescent Logo */}
-      <div className="relative z-10 mb-10 animate-float">
-        <svg width="80" height="80" viewBox="0 0 100 100">
-          <defs>
-            <linearGradient id="moonLogin" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#E0C47A" />
-              <stop offset="50%" stopColor="#C8A55A" />
-              <stop offset="100%" stopColor="#9E8530" />
-            </linearGradient>
-          </defs>
-          <path d="M50 5 C25 5 5 25 5 50 C5 75 25 95 50 95 C35 85 28 68 28 50 C28 32 35 15 50 5Z" fill="url(#moonLogin)" />
-          <circle cx="60" cy="18" r="2" fill="#E0C47A" opacity="0.5" />
-        </svg>
-      </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="text-center mt-8">
 
-      {/* Title */}
-      <div className="relative z-10 text-center mb-12 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-        <h1 className="text-3xl font-black tracking-wide" style={{ fontFamily: 'Playfair Display, serif', color: '#EBE5D8' }}>
-          İslami Yaşam Asistanı
-        </h1>
-        <div className="mt-3 flex items-center justify-center gap-3">
-          <div className="w-10 h-px" style={{ background: 'linear-gradient(to right, transparent, #C8A55A)' }} />
-          <span style={{ color: '#C8A55A', fontSize: '8px' }}>✦</span>
-          <div className="w-10 h-px" style={{ background: 'linear-gradient(to left, transparent, #C8A55A)' }} />
-        </div>
-        <p className="text-sm mt-3 tracking-[0.2em] uppercase" style={{ color: '#7E8A9E' }}>
-          {t.login_subtitle || 'Bilgi ile iman yolculuğu'}
-        </p>
-      </div>
+          {/* Greeting */}
+          <p className="text-xs tracking-[0.25em] uppercase mb-3"
+            style={{ color: '#C8A55A' }}>
+            {greeting}
+          </p>
 
-      {/* Feature pills */}
-      <div className="relative z-10 w-full max-w-sm space-y-2.5 mb-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-        {[
-          { icon: '📖', text: t.feature_quran || "Kur'an-ı Kerim & Tefsir" },
-          { icon: '🕌', text: t.feature_prayer || 'Namaz Vakitleri & Kıble' },
-          { icon: '✨', text: t.feature_ramadan || 'AI Asistan & Bilgi' },
-        ].map((item, i) => (
-          <div key={i} className="rounded-2xl px-5 py-3.5 flex items-center gap-4"
-            style={{
-              background: 'rgba(17, 29, 48, 0.5)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(200, 165, 90, 0.06)',
-            }}>
-            <span className="text-lg">{item.icon}</span>
-            <span className="text-sm font-medium" style={{ color: '#EBE5D8' }}>{item.text}</span>
+          {/* App Name */}
+          <h1 className="text-3xl font-black tracking-wide mb-2"
+            style={{ fontFamily: 'Playfair Display, serif', color: '#EBE5D8' }}>
+            İslami Yaşam
+          </h1>
+          <h2 className="text-lg font-light tracking-[0.15em]"
+            style={{ fontFamily: 'Playfair Display, serif', color: 'rgba(200,165,90,0.8)' }}>
+            Asistanı
+          </h2>
+
+          {/* Decorative line */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <div className="w-12 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(200,165,90,0.4))' }} />
+            <span style={{ color: '#C8A55A', fontSize: '10px' }}>✦</span>
+            <div className="w-12 h-px" style={{ background: 'linear-gradient(to left, transparent, rgba(200,165,90,0.4))' }} />
           </div>
-        ))}
+        </motion.div>
       </div>
 
-      {/* Buttons */}
-      <div className="relative z-10 w-full max-w-sm space-y-3 animate-fade-in" style={{ animationDelay: '0.35s' }}>
-        <button onClick={handleGoogleLogin} data-testid="google-login-btn"
-          className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 active:scale-[0.97]"
-          style={{
-            background: 'linear-gradient(135deg, #C8A55A, #9E8530)',
-            color: '#070D18',
-            fontWeight: 700,
-            fontSize: '15px',
-            boxShadow: '0 8px 32px rgba(200,165,90,0.25)',
-          }}>
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#070D18" fillOpacity="0.6" />
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#070D18" fillOpacity="0.6" />
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 001 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84z" fill="#070D18" fillOpacity="0.6" />
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#070D18" fillOpacity="0.6" />
-          </svg>
-          {t.google_login || 'Google ile Giriş Yap'}
-        </button>
+      {/* Bottom section - actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.8 }}
+        className="relative z-10 px-6 pb-10 pt-6">
 
-        <button onClick={handleGuestLogin} data-testid="guest-login-btn"
-          className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 active:scale-[0.97]"
-          style={{
-            background: 'rgba(200, 165, 90, 0.08)',
-            border: '1px solid rgba(200, 165, 90, 0.2)',
-            color: '#C8A55A',
-            fontWeight: 600,
-            fontSize: '15px',
-          }}>
-          <User size={20} />
-          {t.guest_login || 'Misafir Olarak Devam Et'}
-        </button>
-      </div>
+        {/* Bismillah */}
+        <p className="text-center text-xs tracking-wider mb-6"
+          style={{ color: 'rgba(200,165,90,0.5)', fontFamily: 'Amiri, serif' }}>
+          بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+        </p>
 
-      <p className="relative z-10 text-xs mt-8 text-center" style={{ color: '#7E8A9E' }}>
-        {t.login_terms || 'Giriş yaparak kullanım şartlarını kabul etmiş olursunuz'}
-      </p>
+        {/* Feature highlights - minimal */}
+        <div className="flex justify-center gap-6 mb-8">
+          {[
+            { icon: '📖', label: t.feature_quran_short || "Kur'an" },
+            { icon: '🕌', label: t.feature_prayer_short || 'Namaz' },
+            { icon: '🤖', label: t.feature_ai_short || 'AI' },
+            { icon: '📿', label: t.feature_dhikr_short || 'Zikir' },
+          ].map((f, i) => (
+            <motion.div key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 + i * 0.1 }}
+              className="flex flex-col items-center gap-1.5">
+              <span className="text-xl">{f.icon}</span>
+              <span className="text-[9px] tracking-wider uppercase font-medium"
+                style={{ color: '#7E8A9E' }}>{f.label}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Login buttons */}
+        <div className="max-w-sm mx-auto space-y-3">
+          {/* Google Login */}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={handleGoogleLogin}
+            disabled={googleLoading || guestLoading}
+            data-testid="google-login-btn"
+            className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 disabled:opacity-60"
+            style={{
+              background: 'linear-gradient(135deg, #C8A55A 0%, #A08030 100%)',
+              color: '#070D18',
+              fontWeight: 700,
+              fontSize: '15px',
+              boxShadow: '0 6px 24px rgba(200,165,90,0.2), inset 0 1px 0 rgba(255,255,255,0.15)',
+            }}>
+            {googleLoading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#070D18" fillOpacity="0.5" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#070D18" fillOpacity="0.5" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11.96 11.96 0 001 12c0 1.94.46 3.77 1.18 5.07l3.66-2.84z" fill="#070D18" fillOpacity="0.5" />
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#070D18" fillOpacity="0.5" />
+              </svg>
+            )}
+            {googleLoading ? (t.redirecting || 'Yönlendiriliyor...') : (t.google_login || 'Google ile Giriş Yap')}
+          </motion.button>
+
+          {/* Guest Login */}
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={handleGuestLogin}
+            disabled={guestLoading || googleLoading}
+            data-testid="guest-login-btn"
+            className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 disabled:opacity-60"
+            style={{
+              background: 'rgba(200,165,90,0.06)',
+              border: '1px solid rgba(200,165,90,0.15)',
+              color: '#C8A55A',
+              fontWeight: 600,
+              fontSize: '15px',
+            }}>
+            {guestLoading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <User size={20} />
+            )}
+            {guestLoading ? (t.entering || 'Giriş yapılıyor...') : (t.guest_login || 'Misafir Olarak Devam Et')}
+          </motion.button>
+        </div>
+
+        {/* Terms */}
+        <p className="text-[10px] mt-6 text-center leading-relaxed" style={{ color: '#7E8A9E' }}>
+          {t.login_terms || 'Giriş yaparak kullanım şartlarını kabul etmiş olursunuz'}
+        </p>
+      </motion.div>
     </div>
   );
 }

@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 
 const AUTH_CACHE_KEY = 'islamapp_user_cache';
 const AUTH_CACHE_TTL = 5 * 60 * 1000;
-const AUTH_TIMEOUT = 8000; // 8s max for auth check
+const AUTH_TIMEOUT = 5000; // 5s max for auth check (was 8s)
 
 function getCachedUser() {
   try {
@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
 
   const loginAsGuest = async () => {
     try {
-      const { data } = await api.post('/auth/guest');
+      const { data } = await api.post('/auth/guest', {}, { timeout: 5000 });
       setUser(data);
       setCachedUser(data);
       return data;

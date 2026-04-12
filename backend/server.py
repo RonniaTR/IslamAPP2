@@ -155,9 +155,9 @@ def load_quran_data():
 
 load_quran_data()
 
-# MongoDB connection
+# MongoDB connection (5s timeout to prevent blocking when DB is down)
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-client = AsyncIOMotorClient(mongo_url)
+client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000, socketTimeoutMS=10000)
 db = client[os.environ.get('DB_NAME', 'islamapp')]
 
 # AI Provider Config (Groq free tier primary, Gemini fallback)
@@ -1281,18 +1281,21 @@ async def create_guest_user(response: Response):
         "quizzes_played": 0,
         "streak_days": 0
     }
-    await db.users.insert_one(new_user)
     
-    # Create session
-    expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS)
-    session_doc = {
-        "session_id": str(uuid.uuid4()),
-        "user_id": user_id,
-        "session_token": session_token,
-        "expires_at": expires_at,
-        "created_at": datetime.now(timezone.utc)
-    }
-    await db.user_sessions.insert_one(session_doc)
+    # Try DB but don't block guest login if DB is down
+    try:
+        await db.users.insert_one(new_user)
+        expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS)
+        session_doc = {
+            "session_id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "session_token": session_token,
+            "expires_at": expires_at,
+            "created_at": datetime.now(timezone.utc)
+        }
+        await db.user_sessions.insert_one(session_doc)
+    except Exception as e:
+        logger.warning(f"DB unavailable for guest creation: {e}")
     
     # Set cookie
     response.set_cookie(

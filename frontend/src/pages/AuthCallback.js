@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
@@ -7,6 +7,7 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const hasProcessed = useRef(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (hasProcessed.current) return;
@@ -20,24 +21,37 @@ export default function AuthCallback() {
       return;
     }
 
-    api.post(`/auth/session?session_id=${sessionId}`)
+    api.post(`/auth/session?session_id=${sessionId}`, {}, { timeout: 10000 })
       .then(({ data }) => {
-        // Set user in AuthContext FIRST
         setUser(data);
-        // Clear hash fragment
         window.history.replaceState({}, '', window.location.pathname);
         navigate('/', { replace: true });
       })
       .catch(() => {
-        navigate('/login', { replace: true });
+        setError(true);
+        setTimeout(() => navigate('/login', { replace: true }), 2500);
       });
   }, [navigate, setUser]);
 
   return (
-    <div className="min-h-screen bg-[#0c1222] flex items-center justify-center max-w-[430px] mx-auto" data-testid="auth-callback">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-400 text-sm">Giriş yapılıyor...</p>
+    <div className="min-h-screen flex items-center justify-center"
+      style={{ background: 'radial-gradient(ellipse at 50% 40%, #111D30 0%, #070D18 70%)' }}
+      data-testid="auth-callback">
+      <div className="flex flex-col items-center gap-4 text-center px-6">
+        {!error ? (
+          <>
+            <div className="w-10 h-10 border-2 rounded-full animate-spin"
+              style={{ borderColor: '#C8A55A', borderTopColor: 'transparent' }} />
+            <p className="text-sm font-medium" style={{ color: '#EBE5D8' }}>Giriş yapılıyor...</p>
+            <p className="text-xs" style={{ color: '#7E8A9E' }}>Lütfen bekleyiniz</p>
+          </>
+        ) : (
+          <>
+            <div className="text-3xl">⚠️</div>
+            <p className="text-sm font-medium" style={{ color: '#EBE5D8' }}>Bağlantı hatası</p>
+            <p className="text-xs" style={{ color: '#7E8A9E' }}>Giriş sayfasına yönlendiriliyorsunuz...</p>
+          </>
+        )}
       </div>
     </div>
   );

@@ -87,6 +87,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip caching for auth endpoints (security: never cache session data)
+  if (event.request.url.includes('/api/auth/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   // Other same-origin GETs: network-first
   if (event.request.method === 'GET' && event.request.url.startsWith(self.location.origin)) {
     event.respondWith(
