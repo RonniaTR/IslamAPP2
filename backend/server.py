@@ -26,6 +26,7 @@ from phase3_tafsir import setup_phase3_tafsir_routes
 from phase3_hadith import setup_phase3_hadith_routes
 from phase3_comparative import setup_phase3_comparative_routes
 from phase3_i18n import setup_phase3_i18n_routes
+from phase4_core import setup_phase4_routes
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -3746,6 +3747,9 @@ setup_phase3_tafsir_routes(api_router, db, gemini_generate)
 setup_phase3_hadith_routes(api_router, db, gemini_generate)
 setup_phase3_comparative_routes(api_router, db, gemini_generate)
 setup_phase3_i18n_routes(api_router, db, gemini_generate)
+
+# Register Phase 4 routes (Core Islamic: Fiqh, Tafsir Advanced, Hadith AI, Dhikr, Guide)
+setup_phase4_routes(api_router, db, gemini_generate)
 
 # Include router AFTER all routes are registered
 app.include_router(api_router)

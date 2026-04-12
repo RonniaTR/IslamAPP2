@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, MessageCircle, Compass, Settings, ScrollText, Trophy } from 'lucide-react';
+import { Home, BookOpen, MessageCircle, Compass, Settings, ScrollText, Heart } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -37,7 +37,7 @@ export default memo(function Layout() {
     { path: '/', icon: Home, label: safeT.home || 'Ana Sayfa' },
     { path: '/quran', icon: BookOpen, label: safeT.quran || "Kur'an" },
     { path: '/hadith', icon: ScrollText, label: safeT.hadith || 'Hadis' },
-    { path: '/quiz', icon: Trophy, label: safeT.quiz || 'Quiz' },
+    { path: '/fiqh', icon: Heart, label: 'İbadet' },
     { path: '/discover', icon: Compass, label: safeT.explore || 'Keşfet' },
     { path: '/chat', icon: MessageCircle, label: safeT.chat || 'Sohbet' },
     { path: '/settings', icon: Settings, label: safeT.settings || 'Ayarlar' },

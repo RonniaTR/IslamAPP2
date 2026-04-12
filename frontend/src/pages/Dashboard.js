@@ -134,10 +134,10 @@ const QuickActions = memo(function QuickActions({ theme, t, lastRead }) {
   const items = useMemo(() => [
     { path: lastRead ? `/quran/${lastRead.surah}` : '/quran', icon: BookOpen, label: t.read_quran || "Kur'an", color: '#C8A55A' },
     { path: '/qibla', icon: Navigation, label: t.qibla_short || 'Kıble', color: '#4ADE80' },
-    { path: '/quiz', icon: Trophy, label: t.quiz || 'Quiz', color: '#818CF8' },
-    { path: '/scholars', icon: Users, label: t.ask_scholar_short || 'Hocaya Sor', color: '#F59E0B' },
-    { path: '/meal-audio', icon: Headphones, label: t.listen_meal_short || 'Meal', color: '#60A5FA' },
-    { path: '/notes', icon: ScrollText, label: t.my_notes || 'Notlar', color: '#F472B6' },
+    { path: '/dhikr', icon: Heart, label: t.dhikr_done || 'Zikir', color: '#F472B6' },
+    { path: '/fiqh', icon: ScrollText, label: t.fiqh_short || 'İbadet', color: '#818CF8' },
+    { path: '/hadith', icon: Headphones, label: t.hadith || 'Hadis', color: '#60A5FA' },
+    { path: '/notes', icon: ScrollText, label: t.my_notes || 'Notlar', color: '#F59E0B' },
   ], [t, lastRead]);
 
   return (

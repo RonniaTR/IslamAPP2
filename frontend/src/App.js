@@ -39,6 +39,8 @@ const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
 const PremiumPage = lazy(() => import('./pages/PremiumPage'));
 const GamificationPage = lazy(() => import('./pages/GamificationPage'));
 const OfflinePacksPage = lazy(() => import('./pages/OfflinePacksPage'));
+const FiqhPage = lazy(() => import('./pages/FiqhPage'));
+const DhikrPage = lazy(() => import('./pages/DhikrPage'));
 
 // Initialize offline sync on app start
 initOfflineSync(api);
@@ -99,6 +101,8 @@ function AppRouter() {
               <Route path="/notes" element={<PageTransition><NotesPage /></PageTransition>} />
               <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
               <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+              <Route path="/fiqh" element={<PageTransition><FiqhPage /></PageTransition>} />
+              <Route path="/dhikr" element={<PageTransition><DhikrPage /></PageTransition>} />
               <Route path="/multiplayer" element={<PageTransition><MultiplayerQuiz /></PageTransition>} />
               <Route path="/comparative" element={<PageTransition><ComparativePage /></PageTransition>} />
               <Route path="/pomodoro" element={<PageTransition><PomodoroPage /></PageTransition>} />

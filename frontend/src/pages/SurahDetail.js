@@ -79,6 +79,31 @@ export default function SurahDetail() {
   const [downloadingTafsir, setDownloadingTafsir] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [surahDownloaded, setSurahDownloaded] = useState({});
+  const [aiTafsirData, setAiTafsirData] = useState({});
+  const [aiTafsirLoading, setAiTafsirLoading] = useState(null);
+  const [aiTafsirStyle, setAiTafsirStyle] = useState('simple');
+
+  const AI_TAFSIR_STYLES = [
+    { id: 'simple', name: 'Basit', icon: '📖', color: '#3b82f6' },
+    { id: 'classical', name: 'Klasik', icon: '📜', color: '#f59e0b' },
+    { id: 'deep', name: 'Derin Analiz', icon: '🔬', color: '#8b5cf6' },
+    { id: 'modern', name: 'Modern', icon: '🌍', color: '#10b981' },
+    { id: 'psychological', name: 'Psikolojik', icon: '🧠', color: '#ec4899' },
+    { id: 'wisdom', name: 'Hikmet', icon: '💎', color: '#C8A55A' },
+  ];
+
+  const loadAiTafsir = async (verseNum, style) => {
+    const key = `${verseNum}-${style}`;
+    if (aiTafsirData[key]) return;
+    setAiTafsirLoading(key);
+    try {
+      const { data } = await api.post('/tafsir/advanced', { surah: parseInt(surahNumber), verse: verseNum, style, language: lang }, { timeout: 30000 });
+      setAiTafsirData(prev => ({ ...prev, [key]: data }));
+    } catch {
+      setAiTafsirData(prev => ({ ...prev, [key]: { error: true, tafsir: 'Tefsir oluşturulamadı. Lütfen tekrar deneyin.' } }));
+    }
+    setAiTafsirLoading(null);
+  };
 
   useEffect(() => {
     api.get('/quran/reciters').then(r => { if (Array.isArray(r.data)) setReciters(r.data); }).catch(() => {});
@@ -526,15 +551,16 @@ export default function SurahDetail() {
               )}
 
               {/* Tab buttons */}
-              <div className="flex gap-1.5 mt-4 pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+              <div className="flex gap-1.5 mt-4 pt-3 overflow-x-auto scrollbar-hide" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
                 {[
                   { id: 'meal', label: txt.meal, icon: BookOpen, color: '#3b82f6' },
                   { id: 'tafsir', label: txt.tafsir, icon: BookMarked, color: '#f59e0b' },
+                  { id: 'ai-tafsir', label: 'AI Tefsir', icon: Sparkles, color: '#8b5cf6' },
                   { id: 'kissa', label: txt.kissa, icon: Sparkles, color: theme.gold },
                 ].map(tab => (
                   <button key={tab.id}
-                    onClick={() => { setVerseTab(verse.number, tab.id); if (tab.id === 'kissa') generateKissa(verse); }}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-semibold transition-all active:scale-95"
+                    onClick={() => { setVerseTab(verse.number, tab.id); if (tab.id === 'kissa') generateKissa(verse); if (tab.id === 'ai-tafsir') loadAiTafsir(verse.number, aiTafsirStyle); }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-semibold transition-all active:scale-95 whitespace-nowrap"
                     style={{
                       background: currentTab === tab.id ? `${tab.color}15` : `${theme.gold}05`,
                       color: currentTab === tab.id ? tab.color : theme.textSecondary,
@@ -821,6 +847,60 @@ export default function SurahDetail() {
                       </>
                     ) : (
                       <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>{txt.kissaAiOff}</p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* AI Tafsir Tab */}
+              <AnimatePresence>
+                {currentTab === 'ai-tafsir' && (
+                  <motion.div className="mt-3 rounded-xl p-4" style={{ background: '#8b5cf608', border: '1px solid #8b5cf612' }}
+                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25 }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles size={14} style={{ color: '#8b5cf6' }} />
+                      <span className="text-xs font-semibold" style={{ color: '#8b5cf6' }}>AI Tefsir</span>
+                      <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
+                    </div>
+                    {/* Style selector */}
+                    <div className="flex gap-1 mb-3 overflow-x-auto scrollbar-hide pb-1">
+                      {AI_TAFSIR_STYLES.map(s => (
+                        <button key={s.id} onClick={() => { setAiTafsirStyle(s.id); loadAiTafsir(verse.number, s.id); }}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 whitespace-nowrap"
+                          style={{
+                            background: aiTafsirStyle === s.id ? `${s.color}20` : `${theme.gold}05`,
+                            color: aiTafsirStyle === s.id ? s.color : theme.textSecondary,
+                            border: `1px solid ${aiTafsirStyle === s.id ? `${s.color}40` : 'transparent'}`,
+                          }}>
+                          <span>{s.icon}</span> {s.name}
+                        </button>
+                      ))}
+                    </div>
+                    {aiTafsirLoading ? (
+                      <div className="flex items-center gap-2 py-6 justify-center">
+                        <Loader2 size={16} className="animate-spin" style={{ color: '#8b5cf6' }} />
+                        <span className="text-xs" style={{ color: theme.textSecondary }}>AI tefsir hazırlanıyor...</span>
+                      </div>
+                    ) : aiTafsirData[verse.number] ? (
+                      aiTafsirData[verse.number].error ? (
+                        <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>AI şu an kullanılamıyor</p>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>
+                            {aiTafsirData[verse.number].tafsir}
+                          </p>
+                          <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+                            <button onClick={() => { navigator.clipboard.writeText(aiTafsirData[verse.number].tafsir).catch(() => {}); }}
+                              className="flex items-center gap-1 text-[10px] px-3 py-1.5 rounded-xl transition-all active:scale-95"
+                              style={{ background: '#8b5cf610', color: '#8b5cf6' }}>
+                              <Copy size={10} /> {txt.copy || 'Kopyala'}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>Bir tefsir stili seçin</p>
                     )}
                   </motion.div>
                 )}

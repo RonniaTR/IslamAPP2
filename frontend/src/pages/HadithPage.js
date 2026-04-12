@@ -128,16 +128,19 @@ export default function HadithPage() {
   const [aiExplain, setAiExplain] = useState({}); // { hadithId: explanation }
   const [explainLoading, setExplainLoading] = useState(null);
   const [detailLevel, setDetailLevel] = useState('ozet');
+  const [dailyHadith, setDailyHadith] = useState(null);
 
   useEffect(() => {
     let mounted = true;
     Promise.all([
       api.get('/hadith/categories'),
       api.get('/hadith/all'),
-    ]).then(([categoryResponse, hadithResponse]) => {
+      api.get('/hadith/daily').catch(() => ({ data: null })),
+    ]).then(([categoryResponse, hadithResponse, dailyResponse]) => {
       if (!mounted) return;
       if (Array.isArray(categoryResponse.data) && categoryResponse.data.length) setCategories(categoryResponse.data);
       if (Array.isArray(hadithResponse.data) && hadithResponse.data.length) setHadiths(hadithResponse.data);
+      if (dailyResponse.data && dailyResponse.data.arabic) setDailyHadith(dailyResponse.data);
     }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } };
   }, []);
@@ -281,6 +284,23 @@ export default function HadithPage() {
             className="w-full rounded-[24px] py-3 pl-11 pr-4 text-sm outline-none transition"
             style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
         </div>
+
+        {/* Daily Hadith Card */}
+        {dailyHadith && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="mt-4 rounded-2xl p-4 relative overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${theme.gold}15, ${theme.gold}05)`, border: `1px solid ${theme.gold}25` }}>
+            <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10"
+              style={{ background: theme.gold, transform: 'translate(30%, -30%)' }} />
+            <div className="flex items-center gap-2 mb-2">
+              <Star size={14} style={{ color: theme.gold }} />
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: theme.gold }}>Günün Hadisi</span>
+            </div>
+            <p className="arabic-text text-base leading-loose mb-2" style={{ color: theme.gold }}>{dailyHadith.arabic}</p>
+            <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{dailyHadith.turkish}</p>
+            <p className="mt-2 text-[11px]" style={{ color: theme.textSecondary }}>— {dailyHadith.source}</p>
+          </motion.div>
+        )}
       </div>
 
       {/* Categories */}
