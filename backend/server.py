@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, Response, Request, Cookie
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -14,6 +15,8 @@ from datetime import datetime, date, timedelta, timezone
 import math
 import asyncio
 import httpx
+from collections import defaultdict, deque
+import time
 from google import genai
 from openai import OpenAI
 import edge_tts
@@ -30,6 +33,45 @@ from phase4_core import setup_phase4_routes
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Rate limit state for auth endpoints
+RATE_LIMIT_WINDOW_SECONDS = 60
+RATE_LIMIT_MAX_REQUESTS = 8
+_rate_limit_state = defaultdict(deque)
+
+def _get_client_ip(request: Request) -> str:
+    xff = request.headers.get('x-forwarded-for')
+    if xff:
+        return xff.split(',')[0].strip()
+    return request.client.host if request.client else 'unknown'
+
+def _is_rate_limited(request: Request, key: str, limit: int = RATE_LIMIT_MAX_REQUESTS, window: int = RATE_LIMIT_WINDOW_SECONDS) -> bool:
+    now = time.monotonic()
+    client_key = (_get_client_ip(request), key)
+    dq = _rate_limit_state[client_key]
+    while dq and now - dq[0] > window:
+        dq.popleft()
+    if len(dq) >= limit:
+        return True
+    dq.append(now)
+    return False
+
+
+def _validate_ajax_request(request: Request):
+    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+        raise HTTPException(status_code=403, detail='Invalid request source')
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
+        response = await call_next(request)
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        response.headers.setdefault('X-Frame-Options', 'DENY')
+        response.headers.setdefault('Referrer-Policy', 'no-referrer-when-downgrade')
+        response.headers.setdefault('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()')
+        response.headers.setdefault('X-XSS-Protection', '1; mode=block')
+        response.headers.setdefault('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+        return response
 
 # ===================== QURAN AUDIO RECITERS =====================
 # Free Quran Audio API - Multiple Reciters from alquran.cloud
@@ -164,6 +206,7 @@ db = client[os.environ.get('DB_NAME', 'islamapp')]
 # AI Provider Config (Groq free tier primary, Gemini fallback)
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'true').lower() in ('1', 'true', 'yes')
 
 groq_client = OpenAI(
     api_key=GROQ_API_KEY,
@@ -1186,8 +1229,11 @@ async def get_current_user(request: Request, session_token: Optional[str] = None
     return None
 
 @api_router.post("/auth/session")
-async def exchange_session(session_id: str, response: Response):
+async def exchange_session(request: Request, session_id: str, response: Response):
     """Exchange session_id from OAuth callback for session token"""
+    _validate_ajax_request(request)
+    if _is_rate_limited(request, 'auth_session', limit=10, window=60):
+        raise HTTPException(status_code=429, detail='Too many auth requests, please try again later')
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
@@ -1249,8 +1295,8 @@ async def exchange_session(session_id: str, response: Response):
                 key="session_token",
                 value=session_token,
                 httponly=True,
-                secure=True,
-                samesite="none",
+                secure=COOKIE_SECURE,
+                samesite="lax",
                 path="/",
                 max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
             )
@@ -1264,8 +1310,11 @@ async def exchange_session(session_id: str, response: Response):
         raise HTTPException(status_code=500, detail="Authentication service error")
 
 @api_router.post("/auth/guest")
-async def create_guest_user(response: Response):
+async def create_guest_user(request: Request, response: Response):
     """Create a guest user for quick access"""
+    _validate_ajax_request(request)
+    if _is_rate_limited(request, 'guest_auth', limit=6, window=60):
+        raise HTTPException(status_code=429, detail='Too many guest requests, please try again later')
     user_id = f"guest_{uuid.uuid4().hex[:12]}"
     session_token = f"guest_session_{uuid.uuid4().hex}"
     
@@ -1303,8 +1352,8 @@ async def create_guest_user(response: Response):
         key="session_token",
         value=session_token,
         httponly=True,
-        secure=True,
-        samesite="none",
+        secure=COOKIE_SECURE,
+        samesite="lax",
         path="/",
         max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
     )
@@ -1334,7 +1383,7 @@ async def get_current_user_info(request: Request, response: Response, session_to
         )
         response.set_cookie(
             key="session_token", value=token,
-            httponly=True, secure=True, samesite="none",
+            httponly=True, secure=COOKIE_SECURE, samesite="lax",
             path="/", max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
         )
 
@@ -1343,6 +1392,7 @@ async def get_current_user_info(request: Request, response: Response, session_to
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
     """Logout and clear session"""
+    _validate_ajax_request(request)
     token = session_token
     
     # Fallback to Authorization header (same logic as get_current_user)
@@ -1366,6 +1416,7 @@ async def update_profile(
     session_token: Optional[str] = Cookie(None)
 ):
     """Update user profile settings"""
+    _validate_ajax_request(request)
     user = await get_current_user(request, session_token)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -3762,13 +3813,25 @@ _allowed_origins = [
     "http://localhost:3334",
 ]
 
+_allowed_origins_env = os.environ.get('ALLOWED_ORIGINS', '')
+if _allowed_origins_env:
+    _allowed_origins = [origin.strip() for origin in _allowed_origins_env.split(',') if origin.strip()]
+else:
+    _allowed_origins = [
+        'https://islamapp-5942a.web.app',
+        'https://islamapp-5942a.firebaseapp.com',
+        'http://localhost:3000',
+        'http://localhost:3334',
+    ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=_allowed_origins,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With", "X-CSRF-Token"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
