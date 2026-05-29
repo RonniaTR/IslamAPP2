@@ -5,7 +5,6 @@ import random
 import uuid
 from datetime import datetime, timezone
 from typing import List, Dict, Optional
-from pydantic import BaseModel, Field
 
 # Load questions from JSON
 QUIZ_DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "quiz_questions.json")
@@ -14,80 +13,6 @@ with open(QUIZ_DATA_PATH, "r", encoding="utf-8") as f:
 
 QUIZ_CATEGORIES = _raw["categories"]
 ALL_QUESTIONS = _raw["questions"]
-
-# Models
-class QuizCategory(BaseModel):
-    id: str
-    name: str
-    icon: str
-    color: str
-    desc: str
-    question_count: int = 0
-
-class QuizQuestion(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    category: str
-    question: str
-    options: List[str]
-    correct_answer: int
-    explanation: str
-    source: str
-    difficulty: str = "medium"
-    points: int = 10
-
-class QuizRoom(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
-    category: str
-    host_id: str
-    host_name: str
-    players: List[Dict] = []
-    status: str = "waiting"
-    current_question: int = 0
-    questions: List[Dict] = []
-    max_players: int = 4
-    question_count: int = 10
-    time_per_question: int = 20
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    started_at: Optional[datetime] = None
-    finished_at: Optional[datetime] = None
-
-class QuizAnswer(BaseModel):
-    room_id: str
-    user_id: str
-    question_index: int
-    answer: int
-    time_taken: float
-
-class CreateRoomRequest(BaseModel):
-    user_id: str
-    username: str
-    category: str
-    room_name: str
-    question_count: int = 10
-    time_per_question: int = 20
-
-class JoinRoomRequest(BaseModel):
-    user_id: str
-    username: str
-
-class SubmitAnswerRequest(BaseModel):
-    user_id: str
-    question_index: int
-    answer: int
-    time_taken: float
-
-class UserQuizStats(BaseModel):
-    user_id: str
-    total_games: int = 0
-    games_won: int = 0
-    total_points: int = 0
-    correct_answers: int = 0
-    total_answers: int = 0
-    best_streak: int = 0
-    current_streak: int = 0
-    categories_played: Dict[str, int] = {}
-    last_played: Optional[datetime] = None
 
 
 def get_categories_with_counts() -> List[Dict]:
@@ -139,7 +64,7 @@ def get_mixed_questions(count: int = 20) -> List[Dict]:
 
 
 # In-memory stores
-quiz_rooms: Dict[str, QuizRoom] = {}
+quiz_rooms: Dict[str, Dict] = {}
 solo_sessions: Dict[str, Dict] = {}
 user_stats: Dict[str, Dict] = {}
 leaderboard_data: List[Dict] = []
