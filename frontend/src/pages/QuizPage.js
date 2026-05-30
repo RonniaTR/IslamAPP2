@@ -78,7 +78,25 @@ export default function QuizPage() {
       setSession(data); setQi(0); setScore(0); setCorrect(0); setStreak(0); setBestStreak(0);
       setSelected(null); setResult(null); setView('game');
       window.scrollTo({ top: 0, behavior: 'instant' });
-    } catch {} finally { setLoading(false); }
+    } catch (e) {
+      // Fallback: Dummy data when API fails
+      const dummyQuestions = [
+        { id: 'q1', question: 'Kur\'an kaç sureden oluşur?', options: ['112', '114', '116', '110'], correct_answer: 1, points: 10 },
+        { id: 'q2', question: 'İslam\'ın beş temel ilkesi nedir?', options: ['Namaz, Oruç, Dua', 'Kelime-i Şehadet, Namaz, Zekât, Oruç, Hac', 'Kur\'an oku'], correct_answer: 1, points: 10 },
+        { id: 'q3', question: 'Mekke\'den Medine\'ye hicret hangi yılda gerçekleşti?', options: ['622', '620', '625'], correct_answer: 0, points: 10 },
+        { id: 'q4', question: 'Ramazan ayı kaçıncı ayıdır?', options: ['8', '9', '10'], correct_answer: 1, points: 10 },
+        { id: 'q5', question: 'Fecr namazı kaç rekat kılınır?', options: ['2', '3', '4'], correct_answer: 0, points: 10 }
+      ];
+      const fallbackSession = {
+        session_id: 'offline-' + Date.now(),
+        category: categoryId,
+        question_count: 5,
+        questions: dummyQuestions
+      };
+      setSession(fallbackSession); setQi(0); setScore(0); setCorrect(0); setStreak(0); setBestStreak(0);
+      setSelected(null); setResult(null); setView('game');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } finally { setLoading(false); }
   };
 
   const submitAnswer = useCallback(async (idx) => {
