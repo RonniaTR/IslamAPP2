@@ -9,6 +9,12 @@ services:
         sync: false
       - key: DB_NAME
         value: islamapp
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: "https://islamapp-5942a.web.app,https://islamapp-5942a.firebaseapp.com"
+      - key: RENDER_EXTERNAL_URL
+        sync: false
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY

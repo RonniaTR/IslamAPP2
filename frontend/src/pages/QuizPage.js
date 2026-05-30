@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLang } from '../contexts/LangContext';
 import api from '../api';
+import '../styles/DeenConnect.css';
 
 const ICONS = { 'book-open': BookOpen, star: Star, users: Users, clock: Clock, scroll: Scroll, moon: Moon, sunrise: Sunrise, scale: Scale, building: Building, zap: Zap };
 
@@ -207,18 +208,18 @@ export default function QuizPage() {
           <div className="grid grid-cols-2 gap-2">
             {categories.map(c => {
               const Icon = ICONS[c.icon] || BookOpen;
-              return (
-                <button key={c.id} onClick={() => startQuiz(c.id)} disabled={loading}
-                  data-testid={`quiz-cat-${c.id}`}
-                  className="relative overflow-hidden rounded-xl p-3 text-left border border-white/5 bg-white/[0.02] hover:border-white/10 transition-all active:scale-[0.97]">
-                  <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-10" style={{ background: c.color }} />
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ background: `${c.color}20` }}>
-                    <Icon size={16} style={{ color: c.color }} />
-                  </div>
-                  <p className="text-xs font-bold text-[#F5F5DC] leading-tight">{c.name}</p>
-                  <p className="text-[9px] mt-0.5" style={{ color: theme.textSecondary }}>{c.question_count} {t.question || 'soru'}</p>
-                </button>
-              );
+                return (
+                  <button key={c.id} onClick={() => startQuiz(c.id)} disabled={loading}
+                    data-testid={`quiz-cat-${c.id}`}
+                    className="relative overflow-hidden rounded-xl p-3 text-left card-deen-glass quiz-category-card border transition-all active:scale-[0.97]">
+                    <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-10" style={{ background: c.color }} />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ background: `${c.color}20` }}>
+                      <Icon size={16} style={{ color: c.color }} />
+                    </div>
+                    <p className="text-xs font-bold text-[#F5F5DC] leading-tight">{c.name}</p>
+                    <p className="text-[9px] mt-0.5" style={{ color: theme.textSecondary }}>{c.question_count} {t.question || 'soru'}</p>
+                  </button>
+                );
             })}
           </div>
         </div>
@@ -324,15 +325,14 @@ export default function QuizPage() {
 
         {/* Actions */}
         <div className="flex gap-3">
-          <button onClick={() => { setView('home'); setSession(null); }} data-testid="quiz-back-home"
-            className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F5DC] font-medium text-sm flex items-center justify-center gap-2">
-            <ArrowLeft size={16} /> {t.main_menu || 'Ana Menü'}
-          </button>
-          <button onClick={() => startQuiz(session.category)} data-testid="quiz-restart"
-            className="flex-1 py-3 rounded-xl text-[#0A1F14] font-bold text-sm flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg, #D4AF37, #B8860B)' }}>
-            <RotateCw size={16} /> {t.play_again || 'Tekrar Oyna'}
-          </button>
+            <button onClick={() => { setView('home'); setSession(null); }} data-testid="quiz-back-home"
+              className="flex-1 py-3 rounded-xl btn-deen-secondary text-sm flex items-center justify-center gap-2">
+              <ArrowLeft size={16} /> {t.main_menu || 'Ana Menü'}
+            </button>
+            <button onClick={() => startQuiz(session.category)} data-testid="quiz-restart"
+              className="flex-1 py-3 rounded-xl btn-deen-primary text-sm flex items-center justify-center gap-2">
+              <RotateCw size={16} /> {t.play_again || 'Tekrar Oyna'}
+            </button>
         </div>
       </div>
     );
@@ -455,12 +455,11 @@ export default function QuizPage() {
 
         {/* Next Button */}
         {selected !== null && (
-          <button onClick={nextQuestion} data-testid="quiz-next"
-            className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-[#0A1F14] animate-fade-in"
-            style={{ background: 'linear-gradient(135deg, #D4AF37, #B8860B)' }}>
-            {qi + 1 >= total ? (t.see_results || 'Sonuçları Gör') : (t.next_question || 'Sonraki Soru')} <ArrowRight size={16} />
-          </button>
-        )}
+            <button onClick={nextQuestion} data-testid="quiz-next"
+              className="btn-deen-primary w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 animate-fade-in">
+              {qi + 1 >= total ? (t.see_results || 'Sonuçları Gör') : (t.next_question || 'Sonraki Soru')} <ArrowRight size={16} />
+            </button>
+          )}
       </div>
     );
   }

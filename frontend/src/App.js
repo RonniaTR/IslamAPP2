@@ -24,6 +24,10 @@ const ScholarsPage = lazy(() => import('./pages/ScholarsPage'));
 const QiblaPage = lazy(() => import('./pages/QiblaPage'));
 const MealAudioPage = lazy(() => import('./pages/MealAudioPage'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
+const JourneyTracker = lazy(() => import('./components/deen/JourneyTracker'));
+const KnowledgeProfile = lazy(() => import('./components/deen/KnowledgeProfile'));
+const QuizEngine = lazy(() => import('./components/deen/QuizEngine'));
+const SuccessAnimation = lazy(() => import('./components/deen/SuccessAnimation'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const RamadanPage = lazy(() => import('./pages/RamadanPage'));
 const KnowledgeDetail = lazy(() => import('./pages/KnowledgeDetail'));
@@ -96,6 +100,10 @@ function AppRouter() {
               <Route path="/qibla" element={<PageTransition><QiblaPage /></PageTransition>} />
               <Route path="/meal-audio" element={<PageTransition><MealAudioPage /></PageTransition>} />
               <Route path="/quiz" element={<PageTransition><QuizPage /></PageTransition>} />
+              <Route path="/quiz/engine" element={<PageTransition><QuizEngine /></PageTransition>} />
+              <Route path="/quiz/success" element={<PageTransition><SuccessAnimation /></PageTransition>} />
+              <Route path="/journey" element={<PageTransition><JourneyTracker /></PageTransition>} />
+              <Route path="/profile/knowledge" element={<PageTransition><KnowledgeProfile /></PageTransition>} />
               <Route path="/ramadan" element={<PageTransition><RamadanPage /></PageTransition>} />
               <Route path="/knowledge/:cardId" element={<PageTransition><KnowledgeDetail /></PageTransition>} />
               <Route path="/notes" element={<PageTransition><NotesPage /></PageTransition>} />

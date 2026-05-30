@@ -21,6 +21,9 @@ import PrayerTimesScreen from '../screens/PrayerTimesScreen';
 import QiblaScreen from '../screens/QiblaScreen';
 import AiChatScreen from '../screens/AiChatScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import JourneyTrackerScreen from '../screens/journey/JourneyTrackerScreen';
+import KnowledgeProfileScreen from '../screens/profile/KnowledgeProfileScreen';
+import QuizEngineScreen from '../screens/quiz/QuizEngineScreen';
 import ScholarsScreen from '../screens/ScholarsScreen';
 import NotesScreen from '../screens/NotesScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -37,7 +40,9 @@ function MainTabs() {
       HomeTab: focused ? 'home' : 'home-outline',
       QuranTab: focused ? 'book' : 'book-outline',
       HadithTab: focused ? 'library' : 'library-outline',
+      QuizTab: focused ? 'game-controller' : 'game-controller-outline',
       PrayerTab: focused ? 'time' : 'time-outline',
+      JourneyTab: focused ? 'trophy' : 'trophy-outline',
       ProfileTab: focused ? 'person' : 'person-outline',
     };
     return map[routeName] || 'ellipse-outline';
@@ -65,7 +70,9 @@ function MainTabs() {
       <Tab.Screen name="HomeTab" component={HomeScreen} options={{ tabBarLabel: t('home') }} />
       <Tab.Screen name="QuranTab" component={QuranListScreen} options={{ tabBarLabel: t('quran') }} />
       <Tab.Screen name="HadithTab" component={HadithScreen} options={{ tabBarLabel: t('hadith') }} />
+      <Tab.Screen name="QuizTab" component={QuizEngineScreen} options={{ tabBarLabel: 'Quiz' }} />
       <Tab.Screen name="PrayerTab" component={PrayerTimesScreen} options={{ tabBarLabel: t('prayer') }} />
+      <Tab.Screen name="JourneyTab" component={JourneyTrackerScreen} options={{ tabBarLabel: 'Yolculuk' }} />
       <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ tabBarLabel: t('profile') }} />
     </Tab.Navigator>
   );
@@ -92,6 +99,14 @@ function AppStack() {
       <Stack.Screen name="Scholars" component={ScholarsScreen} options={{ title: t('scholars') }} />
       <Stack.Screen name="Notes" component={NotesScreen} options={{ title: t('notes') }} />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t('settings') }} />
+      <Stack.Screen
+        name="KnowledgeProfile"
+        component={KnowledgeProfileScreen}
+        options={({ navigation }) => ({
+          title: t('profile'),
+          headerRight: () => null,
+        })}
+      />
     </Stack.Navigator>
   );
 }
