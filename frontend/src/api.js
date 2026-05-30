@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'https://islamapp2.onrender.com';
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'https://islamapp-5942a.web.app/';
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,

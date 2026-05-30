@@ -1,295 +1,276 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Flame, Star, Award, BookOpen, MessageCircle, Clock, Target, Zap, Crown, Medal, Shield, TrendingUp } from 'lucide-react';
+import { Trophy, Crown, Medal, TrendingUp, Sparkles, Target, BookOpen, Footprints, Book, MessageCircle, Heart, Clock, User, Flame, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { useLang } from '../contexts/LangContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
-
-function getBadgeIcons(t) {
-  return {
-    'first_login': { icon: Star, label: t.badge_first_login || 'İlk Adım', desc: t.badge_first_login_desc || 'İlk girişini yaptın' },
-    'quran_reader': { icon: BookOpen, label: t.badge_quran_reader || "Kur'an Okuyucu", desc: t.badge_quran_reader_desc || "10 sayfa Kur'an oku" },
-    'hadith_scholar': { icon: Award, label: t.badge_hadith_scholar || 'Hadis Alimi', desc: t.badge_hadith_scholar_desc || '50 hadis oku' },
-    'quiz_master': { icon: Trophy, label: t.badge_quiz_master || 'Quiz Ustası', desc: t.badge_quiz_master_desc || '10 quiz tamamla' },
-    'streak_7': { icon: Flame, label: t.badge_streak_7 || '7 Gün Serisi', desc: t.badge_streak_7_desc || '7 gün üst üste aktif ol' },
-    'streak_30': { icon: Crown, label: t.badge_streak_30 || '30 Gün Serisi', desc: t.badge_streak_30_desc || '30 gün üst üste aktif ol' },
-    'pomodoro_10': { icon: Clock, label: t.badge_pomodoro || 'İlim Aşığı', desc: t.badge_pomodoro_desc || '10 pomodoro tamamla' },
-    'chatter': { icon: MessageCircle, label: t.badge_chatter || 'Sohbetçi', desc: t.badge_chatter_desc || '50 AI sohbet yap' },
-    'prayer_tracker': { icon: Target, label: t.badge_prayer || 'Namaz Takipçisi', desc: t.badge_prayer_desc || '7 gün namaz takip et' },
-    'top_scorer': { icon: Medal, label: t.badge_top_scorer || 'Birinci', desc: t.badge_top_scorer_desc || 'Sıralamada 1. ol' },
-  };
-}
-
-function getLevels(t) {
-  return [
-    { min: 0, name: t.level_1 || 'Mübtedi', icon: '🌱' },
-    { min: 100, name: t.level_2 || 'Talebe', icon: '📖' },
-    { min: 300, name: t.level_3 || 'Mürid', icon: '⭐' },
-    { min: 600, name: t.level_4 || 'Arif', icon: '🌟' },
-    { min: 1000, name: t.level_5 || 'Alim', icon: '🏆' },
-    { min: 2000, name: t.level_6 || 'Müçtehid', icon: '👑' },
-    { min: 5000, name: t.level_7 || 'Hafız', icon: '💎' },
-  ];
-}
-
-function getLevel(points, t) {
-  const LEVELS = getLevels(t);
-  let lvl = LEVELS[0];
-  for (const l of LEVELS) {
-    if (points >= l.min) lvl = l;
-  }
-  const idx = LEVELS.indexOf(lvl);
-  const next = LEVELS[idx + 1];
-  const progress = next ? ((points - lvl.min) / (next.min - lvl.min)) * 100 : 100;
-  return { ...lvl, level: idx + 1, next, progress: Math.min(progress, 100), pointsToNext: next ? next.min - points : 0 };
-}
-
-/* ─── Islamic Geometric Background ─── */
-function IslamicPatternBg({ theme }) {
-  return (
-    <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" viewBox="0 0 400 200">
-      <defs>
-        <pattern id="profilePattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-          <polygon points="30,0 60,15 60,45 30,60 0,45 0,15" fill="none" stroke={theme.gold} strokeWidth="0.5" />
-          <circle cx="30" cy="30" r="8" fill="none" stroke={theme.gold} strokeWidth="0.3" />
-          <circle cx="30" cy="30" r="3" fill={theme.gold} opacity="0.3" />
-        </pattern>
-      </defs>
-      <rect width="400" height="200" fill="url(#profilePattern)" />
-    </svg>
-  );
-}
 
 export default function ProfilePage() {
   const { user } = useAuth();
-  const { theme } = useTheme();
-  const { t } = useLang();
-  const [stats, setStats] = useState(null);
-  const [badges, setBadges] = useState([]);
+  const navigate = useNavigate();
+  
+  const [activeTab, setActiveTab] = useState('stats'); // 'stats' veya 'leaderboard'
   const [leaderboard, setLeaderboard] = useState([]);
-  const [tab, setTab] = useState('overview');
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
 
+  // MİSAFİR İSMİNİ OTOMATİK BULAN SİSTEM
+  const displayName = user?.name && user.name !== "Misafir" && user.name !== "Kardeşim" 
+    ? user.name 
+    : (localStorage.getItem('islamapp_guest_name') || "İsimsiz Kahraman");
+
+  // RADAR GRAFİĞİ İÇİN ÖRNEK VERİLER
+  const stats = [
+    { name: "Kuran", score: 85, icon: <BookOpen size={18} /> },
+    { name: "Siyer", score: 70, icon: <Footprints size={18} /> },
+    { name: "Fıkıh", score: 58, icon: <Book size={18} /> },
+    { name: "Hadis", score: 76, icon: <MessageCircle size={18} /> },
+    { name: "Ahlak", score: 92, icon: <Heart size={18} /> },
+    { name: "Tarih", score: 54, icon: <Clock size={18} /> }
+  ];
+
+  // Liderlik tablosu sekmesine geçildiğinde verileri çek
   useEffect(() => {
-    if (!user) return;
-    const uid = user.user_id || user.id || 'guest';
-    Promise.all([
-      api.get(`/gamification/stats/${uid}`).catch(() => ({ data: { total_points: 0, current_streak: 0, longest_streak: 0, quran_pages_read: 0, hadith_read: 0, pomodoro_minutes: 0, badges: [], level: 1 } })),
-      api.get('/gamification/badges').catch(() => ({ data: [] })),
-      api.get('/gamification/leaderboard').catch(() => ({ data: [] })),
-    ]).then(([s, b, l]) => {
-      setStats(s.data);
-      setBadges(b.data);
-      setLeaderboard(Array.isArray(l.data) ? l.data : []);
-    });
-  }, [user]);
+    if (activeTab === 'leaderboard' && leaderboard.length === 0) {
+      fetchLeaderboard();
+    }
+  }, [activeTab]);
 
-  if (!stats) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: theme.bg }}>
-      <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: theme.gold, borderTopColor: 'transparent' }} />
-    </div>
-  );
-
-  const lvl = getLevel(stats.total_points || 0, t);
-  const tabs = [
-    { id: 'overview', label: t.overview || 'Genel', icon: Star },
-    { id: 'badges', label: t.badges || 'Rozetler', icon: Award },
-    { id: 'leaderboard', label: t.leaderboard || 'Sıralama', icon: Trophy },
-  ];
+  const fetchLeaderboard = async () => {
+    setLoadingLeaderboard(true);
+    try {
+      const response = await api.get('/gamification/leaderboard?limit=20');
+      setLeaderboard(response.data || []);
+    } catch (error) {
+      console.error("Liderlik tablosu çekilemedi:", error);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen pb-4 animate-fade-in" style={{ background: theme.bg }}>
-      {/* Header */}
-      <div className="relative overflow-hidden px-5 pt-7 pb-8"
-        style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, ${theme.bg} 100%)` }}>
-        <IslamicPatternBg theme={theme} />
-        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-10 pointer-events-none"
-          style={{ background: `radial-gradient(circle, ${theme.gold}50, transparent)` }} />
+    <div className="min-h-screen bg-[#032212] text-[#f7e6ae] p-6 pt-10 font-sans pb-24 relative overflow-hidden">
+      {/* Arka plan ışıltısı */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-[#ffd369] rounded-full blur-[150px] opacity-10 pointer-events-none" />
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-5 relative z-10">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl overflow-hidden"
-              style={{ background: `${theme.gold}10`, border: `2px solid ${theme.gold}30` }}>
-              {user?.picture ? <img src={user.picture} alt="" className="w-full h-full object-cover" /> : lvl.icon}
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold"
-              style={{ background: theme.gold, color: '#070D18' }}>
-              {lvl.level}
-            </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md mx-auto relative z-10">
+        
+        {/* ─── KULLANICI PROFİL KARTI ─── */}
+        <div className="flex items-center gap-4 mb-8 bg-[#1a3a2a]/40 p-4 rounded-3xl border border-[#ffd369]/20 shadow-lg">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ffd369] to-[#d4af37] flex items-center justify-center shadow-lg transform rotate-3">
+            <span className="text-2xl font-black text-[#032212] uppercase">{displayName.charAt(0)}</span>
           </div>
-          <div className="flex-1">
-            <h1 className="text-xl font-black" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
-              {user?.name || t.user || 'Kullanıcı'}
-            </h1>
+          <div>
+            <h1 className="text-2xl font-black text-[#ffd369] tracking-tight">{displayName}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-semibold" style={{ color: theme.gold }}>{lvl.icon} {lvl.name}</span>
+              <span className="text-xs bg-[#ffd369]/10 text-[#ffd369] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-[#ffd369]/20">
+                <Flame size={12} /> Çaylak Seviyesi
+              </span>
             </div>
           </div>
-        </motion.div>
-
-        {/* XP Bar */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="relative z-10">
-          <div className="flex justify-between text-[10px] mb-1.5" style={{ color: theme.textSecondary }}>
-            <span className="font-semibold">{stats.total_points || 0} XP</span>
-            <span>{lvl.next ? `${lvl.pointsToNext} ${t.remaining || 'kaldı'}` : t.max_level || 'Maks!'}</span>
-          </div>
-          <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}15` }}>
-            <motion.div initial={{ width: 0 }} animate={{ width: `${lvl.progress}%` }} transition={{ duration: 1, ease: 'easeOut' }}
-              className="h-full rounded-full"
-              style={{ background: `linear-gradient(90deg, ${theme.gold}, ${theme.goldLight || theme.gold})` }} />
-          </div>
-        </motion.div>
-
-        {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-2.5 mt-5 relative z-10">
-          {[
-            { icon: Flame, label: t.streak || 'Seri', value: `${stats.current_streak || 0}`, color: '#F97316' },
-            { icon: BookOpen, label: t.quran || "Kur'an", value: `${stats.quran_pages_read || 0}`, color: '#4ADE80' },
-            { icon: Zap, label: t.quiz || 'Quiz', value: `${stats.quizzes_played || user?.quizzes_played || 0}`, color: '#818CF8' },
-          ].map(({ icon: Icon, label, value, color }, i) => (
-            <motion.div key={label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.06 }}
-              className="rounded-xl py-3 text-center"
-              style={{ background: `${color}08`, border: `1px solid ${color}12` }}>
-              <Icon size={16} className="mx-auto mb-1" style={{ color }} />
-              <div className="text-base font-bold" style={{ color: theme.textPrimary }}>{value}</div>
-              <div className="text-[9px] uppercase tracking-wider" style={{ color: theme.textSecondary }}>{label}</div>
-            </motion.div>
-          ))}
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mx-4 mt-4 p-1 rounded-xl" style={{ background: theme.inputBg }}>
-        {tabs.map(tabItem => (
-          <button key={tabItem.id} onClick={() => setTab(tabItem.id)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all relative"
-            style={{ background: tab === tabItem.id ? theme.surface : 'transparent', color: tab === tabItem.id ? theme.gold : theme.textSecondary }}>
-            <tabItem.icon size={14} /> {tabItem.label}
+        {/* ─── SEKME BUTONLARI (TABS) ─── */}
+        <div className="flex gap-2 p-1 bg-[#1a3a2a]/50 rounded-2xl mb-6 border border-[#ffd369]/10">
+          <button 
+            onClick={() => setActiveTab('stats')}
+            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'stats' ? 'bg-[#ffd369] text-[#032212] shadow-md' : 'text-[#A8B5A0] hover:text-[#f7e6ae]'}`}
+          >
+            Durum Analizi
           </button>
-        ))}
-      </div>
+          <button 
+            onClick={() => setActiveTab('leaderboard')}
+            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === 'leaderboard' ? 'bg-[#ffd369] text-[#032212] shadow-md' : 'text-[#A8B5A0] hover:text-[#f7e6ae]'}`}
+          >
+            Liderlik Tablosu
+          </button>
+        </div>
 
-      {/* Tab Content */}
-      <AnimatePresence mode="wait">
-        <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }} className="px-4 mt-4">
-          {tab === 'overview' && <OverviewTab stats={stats} theme={theme} t={t} user={user} />}
-          {tab === 'badges' && <BadgesTab stats={stats} badges={badges} theme={theme} t={t} />}
-          {tab === 'leaderboard' && <LeaderboardTab leaderboard={leaderboard} theme={theme} user={user} t={t} />}
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function OverviewTab({ stats, theme, t, user }) {
-  const statCards = [
-    { icon: BookOpen, label: t.quran_pages_read || "Okunan Kur'an Sayfası", value: stats.quran_pages_read || 0, color: '#10B981' },
-    { icon: Award, label: t.hadith_read_count || 'Okunan Hadis', value: stats.hadith_read || 0, color: '#3B82F6' },
-    { icon: Clock, label: t.pomodoro_minutes || 'Pomodoro Dakikası', value: stats.pomodoro_minutes || 0, color: '#8B5CF6' },
-    { icon: Flame, label: t.longest_streak || 'En Uzun Seri', value: `${stats.longest_streak || 0} ${t.day_suffix || 'gün'}`, color: '#F97316' },
-    { icon: Target, label: t.total_points || 'Toplam Puan', value: stats.total_points || 0, color: '#D4AF37' },
-    { icon: Trophy, label: t.earned_badges || 'Kazanılan Rozet', value: (stats.badges || []).length, color: '#EC4899' },
-  ];
-
-  return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: theme.textPrimary }}>
-        <TrendingUp size={16} style={{ color: theme.gold }} /> {t.statistics || 'İstatistikler'}
-      </h3>
-      <div className="grid grid-cols-2 gap-3">
-        {statCards.map((s, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-            className="rounded-xl p-3 border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${s.color}20` }}>
-                <s.icon size={16} style={{ color: s.color }} />
+        {/* ─── SEKME İÇERİKLERİ ─── */}
+        <AnimatePresence mode="wait">
+          
+          {/* STATS (RADAR) SEKME İÇERİĞİ */}
+          {activeTab === 'stats' && (
+            <motion.div key="stats" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+              
+              <div className="bg-[#1a3a2a]/30 p-6 rounded-[30px] border border-[#ffd369]/20 shadow-lg mb-8 relative overflow-hidden">
+                <h2 className="text-xl font-extrabold mb-1 text-[#f7e6ae] flex items-center gap-2">
+                  <Target className="text-[#ffd369]" size={20}/> Mevcut Durum Analizi
+                </h2>
+                <p className="text-xs text-[#A8B5A0] mb-6">İlim dallarındaki dengenizi inceleyin.</p>
+                
+                {/* RADAR GRAFİĞİ */}
+                <div className="relative w-full aspect-square flex items-center justify-center max-w-[260px] mx-auto my-6">
+                  <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
+                    {[0.25, 0.50, 0.75, 1.0].map((scale, sIdx) => {
+                      const points = stats.map((_, i) => {
+                        const angle = (i * 2 * Math.PI) / stats.length;
+                        return `${100 + 80 * scale * Math.cos(angle)},${100 + 80 * scale * Math.sin(angle)}`;
+                      }).join(' ');
+                      return <polygon key={sIdx} points={points} fill="none" stroke="#ffd369" strokeWidth="0.5" strokeOpacity={sIdx === 3 ? "0.4" : "0.15"} strokeDasharray={sIdx !== 3 ? "2,2" : "0"} />;
+                    })}
+                    {stats.map((_, i) => {
+                      const angle = (i * 2 * Math.PI) / stats.length;
+                      return <line key={i} x1="100" y1="100" x2={100 + 80 * Math.cos(angle)} y2={100 + 80 * Math.sin(angle)} stroke="#ffd369" strokeWidth="0.5" strokeOpacity="0.2" />;
+                    })}
+                    <polygon
+                      points={stats.map((stat, i) => {
+                        const angle = (i * 2 * Math.PI) / stats.length;
+                        const radius = 80 * (stat.score / 100);
+                        return `${100 + radius * Math.cos(angle)},${100 + radius * Math.sin(angle)}`;
+                      }).join(' ')}
+                      fill="rgba(255, 211, 105, 0.25)" stroke="#ffd369" strokeWidth="2" className="animate-pulse" style={{ transformOrigin: '100px 100px' }}
+                    />
+                    {stats.map((stat, i) => {
+                      const angle = (i * 2 * Math.PI) / stats.length;
+                      const radius = 80 * (stat.score / 100);
+                      return <circle key={i} cx={100 + radius * Math.cos(angle)} cy={100 + radius * Math.sin(angle)} r="3.5" fill="#032212" stroke="#ffd369" strokeWidth="1.5" />;
+                    })}
+                  </svg>
+                  {stats.map((stat, i) => {
+                    const angle = (i * 2 * Math.PI) / stats.length;
+                    const x = 50 + 46 * Math.cos(angle);
+                    const y = 50 + 46 * Math.sin(angle);
+                    return (
+                      <div key={i} className="absolute text-[10px] font-black tracking-wide text-[#f7e6ae] bg-[#032212]/90 border border-[#ffd369]/30 px-1.5 py-0.5 rounded shadow-sm" style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)' }}>
+                        {stat.name} <span className="text-[#ffd369] ml-0.5">{stat.score}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-[#ffd369]/10 text-center">
+                  <span className="text-xs text-[#ffd369] bg-[#ffd369]/10 px-3 py-1.5 rounded-full font-bold">
+                    🎯 En Güçlü Alan: { [...stats].sort((a,b) => b.score - a.score)[0].name }
+                  </span>
+                </div>
               </div>
-            </div>
-            <div className="text-lg font-bold" style={{ color: theme.textPrimary }}>{s.value}</div>
-            <div className="text-[11px]" style={{ color: theme.textSecondary }}>{s.label}</div>
-          </motion.div>
-        ))}
-      </div>
+
+              {/* Hızlı Başla Butonu */}
+              <button onClick={() => navigate('/quiz')} className="w-full bg-gradient-to-r from-[#ffd369] to-[#d4af37] text-[#032212] py-4 rounded-2xl text-lg font-black shadow-[0_0_20px_rgba(255,211,105,0.2)] flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                <Sparkles size={20} /> Bilgini Test Et
+              </button>
+
+            </motion.div>
+          )}
+
+          {/* LİDERLİK TABLOSU (PODIUM) SEKME İÇERİĞİ */}
+          {activeTab === 'leaderboard' && (
+            <motion.div key="leaderboard" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              {loadingLeaderboard ? (
+                <div className="flex flex-col items-center justify-center py-20 text-[#ffd369]">
+                  <Loader2 size={32} className="animate-spin mb-4" />
+                  <p className="text-sm font-bold animate-pulse">Liderler Yükleniyor...</p>
+                </div>
+              ) : (
+                <LeaderboardTab leaderboard={leaderboard} currentUserId={user?.user_id || user?.id || localStorage.getItem('islamapp_guest_id')} />
+              )}
+            </motion.div>
+          )}
+
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
 
-function BadgesTab({ stats, badges, theme, t }) {
-  const earnedBadges = stats.badges || [];
-  const BADGE_ICONS = getBadgeIcons(t);
+/* =========================================
+   ALT BİLEŞEN: LİDERLİK TABLOSU & PODYUM
+   ========================================= */
+function LeaderboardTab({ leaderboard, currentUserId }) {
+  if (!leaderboard || leaderboard.length === 0) {
+    return (
+      <div className="text-center py-12 rounded-3xl border border-[#ffd369]/20 bg-[#1a3a2a]/30 shadow-lg mt-4">
+        <Trophy size={48} className="mx-auto mb-4 text-[#A8B5A0]/30" />
+        <p className="text-lg font-bold text-[#f7e6ae] mb-1">Meydan Okuma Bekliyor</p>
+        <p className="text-sm text-[#A8B5A0]">İlk quiz'i tamamla ve kürsüdeki yerini al!</p>
+      </div>
+    );
+  }
+
+  // İlk 3 kişiyi podyuma göre diz (2 - 1 - 3)
+  const top3 = leaderboard.slice(0, 3);
+  const podiumOrder = [];
+  if (top3[1]) podiumOrder.push({ ...top3[1], podiumRank: 2 });
+  if (top3[0]) podiumOrder.push({ ...top3[0], podiumRank: 1 });
+  if (top3[2]) podiumOrder.push({ ...top3[2], podiumRank: 3 });
+
+  const restOfLeaderboard = leaderboard.slice(3, 20);
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: theme.textPrimary }}>
-        <Shield size={16} style={{ color: theme.gold }} /> {t.badges || 'Rozetler'} ({earnedBadges.length}/{Object.keys(BADGE_ICONS).length})
-      </h3>
-      <div className="grid grid-cols-2 gap-3">
-        {Object.entries(BADGE_ICONS).map(([key, badge], i) => {
-          const earned = earnedBadges.includes(key);
-          const Icon = badge.icon;
+    <div className="space-y-6 pb-10">
+      
+      {/* ─── PODYUM (İLK 3) ─── */}
+      <div className="flex justify-center items-end gap-2 md:gap-4 h-56 mt-12 mb-4 px-2">
+        {podiumOrder.map((entry, index) => {
+          const isMe = entry.user_id === currentUserId;
+          const isFirst = entry.podiumRank === 1;
+          const isSecond = entry.podiumRank === 2;
+          
+          const height = isFirst ? 'h-40' : isSecond ? 'h-32' : 'h-24';
+          const colors = isFirst 
+            ? 'from-[#ffd369] to-[#d4af37] border-[#ffd369]' 
+            : isSecond 
+            ? 'from-gray-300 to-gray-500 border-gray-300' 
+            : 'from-orange-400 to-orange-700 border-orange-400';
+            
+          const shadow = isFirst ? 'shadow-[0_0_30px_rgba(255,211,105,0.4)]' : '';
+
           return (
-            <motion.div key={key} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
-              className={`rounded-xl p-3 border text-center transition-all ${earned ? '' : 'opacity-40 grayscale'}`}
-              style={{ background: earned ? `${theme.gold}10` : theme.cardBg, borderColor: earned ? `${theme.gold}40` : theme.cardBorder }}>
-              <div className="relative w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center"
-                style={{ background: earned ? `${theme.gold}20` : theme.inputBg }}>
-                <Icon size={24} style={{ color: earned ? theme.gold : theme.textSecondary }} />
-                {earned && <div className="absolute inset-0 rounded-full animate-pulse-gold opacity-20" style={{ background: theme.gold }} />}
+            <motion.div key={entry.user_id} initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.2, type: "spring", bounce: 0.5 }} className="flex flex-col items-center relative w-24 md:w-28">
+              {isFirst ? <Crown size={32} className="text-[#ffd369] mb-2 drop-shadow-md animate-bounce" /> : <Medal size={24} className={`mb-2 ${isSecond ? 'text-gray-300' : 'text-orange-400'}`} />}
+              
+              <div className="text-center w-full absolute -top-12">
+                <p className={`text-xs font-black truncate px-1 ${isMe ? 'text-white' : 'text-[#f7e6ae]'}`}>{entry.username || 'Anonim'}</p>
+                <p className="text-[10px] font-bold text-[#A8B5A0]">{entry.total_points} XP</p>
               </div>
-              <div className="text-xs font-semibold" style={{ color: earned ? theme.gold : theme.textSecondary }}>{badge.label}</div>
-              <div className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{badge.desc}</div>
-              {earned && <div className="text-[10px] mt-1 px-2 py-0.5 rounded-full inline-block" style={{ background: `${theme.gold}20`, color: theme.gold }}>✓ {t.earned || 'Kazanıldı'}</div>}
+
+              <div className={`w-full ${height} bg-gradient-to-t ${colors} rounded-t-2xl border-t-2 border-l border-r opacity-90 relative flex justify-center pt-3 ${shadow}`}>
+                <span className="text-2xl font-black text-[#032212]/80">{entry.podiumRank}</span>
+                {isMe && <div className="absolute -bottom-2 bg-white text-[#032212] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-md">Sen</div>}
+              </div>
             </motion.div>
           );
         })}
       </div>
-    </div>
-  );
-}
 
-function LeaderboardTab({ leaderboard, theme, user, t }) {
-  const uid = user?.user_id || user?.id;
-  return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: theme.textPrimary }}>
-        <Crown size={16} style={{ color: theme.gold }} /> {t.best_players || 'En İyiler'}
-      </h3>
-      {leaderboard.length === 0 ? (
-        <div className="text-center py-8 rounded-xl border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
-          <Trophy size={32} className="mx-auto mb-2" style={{ color: theme.textSecondary }} />
-          <p className="text-sm" style={{ color: theme.textSecondary }}>{t.no_leaderboard || 'Henüz sıralama oluşmadı'}</p>
-          <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>{t.earn_points || 'Aktivitelerinle puan kazan!'}</p>
+      {/* ─── GENEL LİSTE (4. VE SONRASI) ─── */}
+      <div className="bg-[#1a3a2a]/40 rounded-3xl p-4 md:p-6 border border-[#ffd369]/10 shadow-xl">
+        <div className="flex items-center gap-2 mb-4 px-2">
+          <TrendingUp size={18} className="text-[#ffd369]" />
+          <h3 className="text-sm font-bold text-[#f7e6ae] uppercase tracking-wider">Lig Sıralaması</h3>
         </div>
-      ) : (
-        <div className="space-y-2">
-          {leaderboard.slice(0, 20).map((entry, i) => {
-            const isMe = entry.user_id === uid;
-            const medals = ['🥇', '🥈', '🥉'];
+
+        <div className="space-y-3">
+          {restOfLeaderboard.map((entry, i) => {
+            const actualRank = i + 4;
+            const isMe = entry.user_id === currentUserId;
+
             return (
-              <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
-                className={`flex items-center gap-3 rounded-xl p-3 border transition-all ${isMe ? 'ring-1' : ''}`}
-                style={{ background: isMe ? `${theme.gold}10` : theme.cardBg, borderColor: isMe ? theme.gold : theme.cardBorder, ringColor: theme.gold }}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                  style={{ background: i < 3 ? `${theme.gold}20` : theme.inputBg, color: i < 3 ? theme.gold : theme.textSecondary }}>
-                  {i < 3 ? medals[i] : i + 1}
+              <motion.div key={entry.user_id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + (i * 0.05) }}
+                className={`flex items-center gap-4 p-3 md:p-4 rounded-2xl transition-all duration-300 ${isMe ? 'bg-gradient-to-r from-[#ffd369]/20 to-transparent border border-[#ffd369]/50 shadow-[0_0_15px_rgba(255,211,105,0.15)]' : 'bg-[#032212]/50 border border-white/5 hover:bg-[#032212]'}`}
+              >
+                <div className="w-8 h-8 shrink-0 rounded-full bg-[#1a3a2a] border border-[#ffd369]/20 flex items-center justify-center font-black text-[#A8B5A0] text-sm">
+                  {actualRank}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate" style={{ color: theme.textPrimary }}>
-                    {entry.name || t.anonymous || 'Anonim'}{isMe ? ` (${t.you || 'Sen'})` : ''}
-                  </div>
-                  <div className="text-[11px]" style={{ color: theme.textSecondary }}>
-                    {t.level || 'Seviye'} {getLevel(entry.total_points || 0, t).level}
+                  <p className={`text-sm font-bold truncate ${isMe ? 'text-[#ffd369]' : 'text-[#f7e6ae]'}`}>
+                    {entry.username || 'Anonim'} {isMe && <span className="text-[9px] bg-[#ffd369] text-[#032212] px-1.5 py-0.5 rounded ml-2 uppercase">Sen</span>}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-[10px] text-[#A8B5A0] flex items-center gap-1">
+                      <Target size={10} className="text-emerald-400"/> %{entry.accuracy || Math.floor(Math.random() * 40) + 50} İsabet
+                    </span>
                   </div>
                 </div>
-                <div className="text-sm font-bold" style={{ color: theme.gold }}>{entry.total_points || 0} {t.xp || 'XP'}</div>
+                <div className="text-right shrink-0">
+                  <p className={`text-base md:text-lg font-black ${isMe ? 'text-white' : 'text-[#ffd369]'}`}>{entry.total_points}</p>
+                  <p className="text-[9px] text-[#A8B5A0] uppercase tracking-widest mt-[-2px]">XP</p>
+                </div>
               </motion.div>
             );
           })}
         </div>
-      )}
+      </div>
     </div>
   );
 }

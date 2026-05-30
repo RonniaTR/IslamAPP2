@@ -14,7 +14,6 @@
     "date-fns": "^3.0.0",
     "expo": "54.0.33",
     "framer-motion": "^12.38.0",
-    "lottie-react": "^2.9.0",
     "recharts": "^2.5.0",
     "idb": "^8.0.3",
     "lucide-react": "^0.294.0",

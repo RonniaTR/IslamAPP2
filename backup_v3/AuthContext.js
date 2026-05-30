@@ -55,18 +55,24 @@ export function AuthProvider({ children }) {
     }
   }, [checkAuth, cached]);
 
-  const loginAsGuest = async () => {
+  const loginAsGuest = async (guestName = "Misafir") => {
     try {
-      const { data } = await api.post('/auth/guest');
+      // Tarayıcı hafızasından eski ID'yi kontrol et
+      let savedGuestId = localStorage.getItem('islamapp_guest_id');
+      
+      const { data } = await api.post('/auth/guest', {
+        guest_id: savedGuestId,
+        name: guestName
+      });
+      
+      // Gelen ID'yi kalıcı olarak kaydet
+      localStorage.setItem('islamapp_guest_id', data.user_id);
+      
       setUser(data);
-      setCachedUser(data);
       return data;
-    } catch (e) {
-      // Fallback: create local guest session when API is unavailable
-      const guest = { id: 'guest_' + Date.now(), name: 'Misafir', isGuest: true };
-      setUser(guest);
-      setCachedUser(guest);
-      return guest;
+    } catch (error) {
+      console.error("Misafir girişi hatası:", error);
+      return null;
     }
   };
 
