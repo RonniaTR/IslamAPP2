@@ -6,7 +6,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
-import json
+import json as json_module
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -30,9 +30,8 @@ from phase3_hadith import setup_phase3_hadith_routes
 from phase3_comparative import setup_phase3_comparative_routes
 from phase3_i18n import setup_phase3_i18n_routes
 from phase4_core import setup_phase4_routes
-class GuestLoginRequest(BaseModel):
-    guest_id: Optional[str] = None
-    name: str = "Kardeşim"
+from league_system import build_league_overview, build_season_summary, build_weekly_standings
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -184,15 +183,15 @@ def load_quran_data():
         
         if arabic_path.exists():
             with open(arabic_path, 'r', encoding='utf-8') as f:
-                QURAN_ARABIC = json.load(f)['data']['surahs']
+                QURAN_ARABIC = json_module.load(f)['data']['surahs']
         
         if turkish_path.exists():
             with open(turkish_path, 'r', encoding='utf-8') as f:
-                QURAN_TURKISH = json.load(f)['data']['surahs']
+                QURAN_TURKISH = json_module.load(f)['data']['surahs']
         
         if english_path.exists():
             with open(english_path, 'r', encoding='utf-8') as f:
-                QURAN_ENGLISH = json.load(f)['data']['surahs']
+                QURAN_ENGLISH = json_module.load(f)['data']['surahs']
         
         print(f"Loaded Quran data: {len(QURAN_ARABIC) if QURAN_ARABIC else 0} surahs (AR), {len(QURAN_TURKISH) if QURAN_TURKISH else 0} (TR), {len(QURAN_ENGLISH) if QURAN_ENGLISH else 0} (EN)")
     except Exception as e:
@@ -263,6 +262,8 @@ async def _groq_generate(prompt: str, system_message: str = "") -> str:
     if system_message:
         messages.append({"role": "system", "content": system_message})
     messages.append({"role": "user", "content": prompt})
+    if not groq_client:
+        raise RuntimeError("Groq client is not configured")
     response = await asyncio.wait_for(
         asyncio.to_thread(
             groq_client.chat.completions.create,
@@ -273,13 +274,16 @@ async def _groq_generate(prompt: str, system_message: str = "") -> str:
         ),
         timeout=AI_TIMEOUT_SECONDS
     )
-    return response.choices[0].message.content
+    content = response.choices[0].message.content
+    return content or ""
 
 async def _gemini_generate(prompt: str, system_message: str = "") -> str:
     """Generate text using Google Gemini (free tier)"""
     config = genai.types.GenerateContentConfig(
         system_instruction=system_message if system_message else None
     )
+    if not gemini_client:
+        raise RuntimeError("Gemini client is not configured")
     response = await asyncio.wait_for(
         asyncio.to_thread(
             gemini_client.models.generate_content,
@@ -289,7 +293,7 @@ async def _gemini_generate(prompt: str, system_message: str = "") -> str:
         ),
         timeout=AI_TIMEOUT_SECONDS
     )
-    return response.text
+    return response.text or ""
 
 async def gemini_generate(prompt: str, system_message: str = "") -> str:
     """Generate text with retry + circuit breaker: Groq → Gemini → Groq(retry) → Gemini(retry)"""
@@ -829,7 +833,7 @@ MOOD_CONTENT = {
 _kc_path = ROOT_DIR / "data" / "knowledge_cards.json"
 if _kc_path.exists():
     with open(_kc_path, "r", encoding="utf-8") as f:
-        KNOWLEDGE_CARDS = json.load(f)
+        KNOWLEDGE_CARDS = json_module.load(f)
 else:
     KNOWLEDGE_CARDS = []
 
@@ -1021,7 +1025,7 @@ def load_hadith_catalog():
     if hadiths_file.exists():
         try:
             with open(hadiths_file, "r", encoding="utf-8") as f:
-                loaded = json.load(f)
+                loaded = json_module.load(f)
             if isinstance(loaded, list) and loaded:
                 hadiths = loaded
         except Exception as e:
@@ -1230,61 +1234,86 @@ async def get_current_user(request: Request, session_token: Optional[str] = None
         return User(**user)
     return None
 
-@api_router.post("/auth/guest")
-async def create_guest_user(request: Request, response: Response, payload: GuestLoginRequest):
-    """Create or resume a guest user session"""
+@api_router.post("/auth/session")
+async def exchange_session(request: Request, session_id: str, response: Response):
+    """Exchange session_id from OAuth callback for session token"""
     _validate_ajax_request(request)
-    if _is_rate_limited(request, 'guest_auth', limit=6, window=60):
-        raise HTTPException(status_code=429, detail='Too many guest requests')
-        
-    session_token = f"guest_session_{uuid.uuid4().hex}"
-    user = None
-
-    # 1. Tarayıcıdan eski bir misafir ID'si geldiyse onu bul
-    if payload.guest_id:
-        user = await db.users.find_one({"user_id": payload.guest_id}, {"_id": 0})
-        
-    # 2. Eğer kullanıcı yoksa veya ilk kez giriyorsa YENİ hesap oluştur
-    if not user:
-        user_id = payload.guest_id if payload.guest_id else f"guest_{uuid.uuid4().hex[:12]}"
-        user = {
-            "user_id": user_id,
-            "email": f"{user_id}@guest.local",
-            "name": payload.name, # Kullanıcının girdiği isim
-            "picture": None,
-            "is_guest": True,
-            "created_at": datetime.now(timezone.utc),
-            "language": "tr",
-            "theme": "dark",
-            "total_points": 0,
-            "quizzes_played": 0,
-            "streak_days": 0
-        }
-        await db.users.insert_one(user)
-        user.pop("_id", None)
-
-    # 3. Oturumu başlat ve Cookie'ye yaz
-    expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS)
-    session_doc = {
-        "session_id": str(uuid.uuid4()),
-        "user_id": user.get("user_id"),
-        "session_token": session_token,
-        "expires_at": expires_at,
-        "created_at": datetime.now(timezone.utc)
-    }
-    await db.user_sessions.insert_one(session_doc)
-    
-    response.set_cookie(
-        key="session_token",
-        value=session_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite="lax",
-        path="/",
-        max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
-    )
-    
-    return user
+    if _is_rate_limited(request, 'auth_session', limit=10, window=60):
+        raise HTTPException(status_code=429, detail='Too many auth requests, please try again later')
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                EMERGENT_AUTH_URL,
+                headers={"X-Session-ID": session_id},
+                timeout=10.0
+            )
+            
+            if resp.status_code != 200:
+                raise HTTPException(status_code=401, detail="Invalid session")
+            
+            auth_data = resp.json()
+            email = auth_data.get("email")
+            name = auth_data.get("name")
+            picture = auth_data.get("picture")
+            session_token = auth_data.get("session_token")
+            
+            # Check if user exists
+            existing_user = await db.users.find_one({"email": email}, {"_id": 0})
+            
+            if existing_user:
+                user_id = existing_user["user_id"]
+                # Update user info
+                await db.users.update_one(
+                    {"user_id": user_id},
+                    {"$set": {"name": name, "picture": picture}}
+                )
+            else:
+                # Create new user
+                user_id = f"user_{uuid.uuid4().hex[:12]}"
+                new_user = {
+                    "user_id": user_id,
+                    "email": email,
+                    "name": name,
+                    "picture": picture,
+                    "is_guest": False,
+                    "created_at": datetime.now(timezone.utc),
+                    "language": "tr",
+                    "theme": "dark",
+                    "total_points": 0,
+                    "quizzes_played": 0,
+                    "streak_days": 0
+                }
+                await db.users.insert_one(new_user)
+            
+            # Create session
+            expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS)
+            session_doc = {
+                "session_id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "session_token": session_token,
+                "expires_at": expires_at,
+                "created_at": datetime.now(timezone.utc)
+            }
+            await db.user_sessions.insert_one(session_doc)
+            
+            # Set cookie
+            response.set_cookie(
+                key="session_token",
+                value=session_token,
+                httponly=True,
+                secure=COOKIE_SECURE,
+                samesite="lax",
+                path="/",
+                max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
+            )
+            
+            # Get user data
+            user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+            return user
+            
+    except httpx.RequestError as e:
+        logger.error(f"Auth error: {e}")
+        raise HTTPException(status_code=500, detail="Authentication service error")
 
 @api_router.post("/auth/guest")
 async def create_guest_user(request: Request, response: Response):
@@ -1431,7 +1460,7 @@ async def get_status_checks():
 
 # Cities
 @api_router.get("/cities")
-async def get_cities(country: str = None, lang: str = "tr"):
+async def get_cities(country: Optional[str] = None, lang: str = "tr"):
     """Get cities, optionally filtered by country code"""
     cities = ALL_CITIES
     if country:
@@ -1492,7 +1521,7 @@ async def get_tafsir_scholars():
     return list(TAFSIR_SCHOLARS.values())
 
 @api_router.get("/tafsir/v1/{surah_number}/{verse_number}")
-async def get_tafsir(surah_number: int, verse_number: int, scholar: str = None, lang: str = "tr"):
+async def get_tafsir(surah_number: int, verse_number: int, scholar: Optional[str] = None, lang: str = "tr"):
     """Get tafsir for a specific verse from MongoDB or generate via AI"""
     query = {"surah_number": surah_number, "verse_number": verse_number, "language": lang}
     if scholar:
@@ -1872,8 +1901,10 @@ async def text_to_speech(request: Request):
         communicate = edge_tts.Communicate(text, "tr-TR-AhmetNeural")
         audio_buffer = io.BytesIO()
         async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_buffer.write(chunk["data"])
+            if chunk.get("type") == "audio":
+                data = chunk.get("data")
+                if data:
+                    audio_buffer.write(data)
         audio_buffer.seek(0)
         audio_base64 = base64.b64encode(audio_buffer.read()).decode('utf-8')
         return {"audio": audio_base64, "format": "mp3"}
@@ -2570,7 +2601,6 @@ class KnowledgeQuizRequest(BaseModel):
 async def generate_knowledge_quiz(request: KnowledgeQuizRequest):
     """Generate an AI quiz question based on a knowledge topic"""
     try:
-        import asyncio
         prompt = f"""Aşağıdaki İslami bilgi konusu hakkında Türkçe bir çoktan seçmeli soru oluştur.
 
 Konu Başlığı: {request.topic_title}
@@ -2592,7 +2622,6 @@ correct değeri 0-3 arası bir sayı olmalı (doğru şıkkın index'i)."""
             timeout=30
         )
 
-        import json as json_module
         # Extract JSON from response
         response = response.strip()
         if response.startswith("```"):
@@ -2647,7 +2676,6 @@ async def ai_chat(request: ChatRequest):
         
         system_message = ISLAMIC_ADVISOR_SYSTEM_PROMPT + f"\n\nSohbet geçmişi:\n{context}"
         
-        import asyncio
         response = await asyncio.wait_for(
             gemini_generate(request.message, system_message=system_message),
             timeout=30
@@ -2752,6 +2780,8 @@ async def create_or_update_preferences(prefs: UserPreferencesCreate):
             {"$set": {**prefs.dict(), "updated_at": datetime.utcnow()}}
         )
         updated = await db.user_preferences.find_one({"user_id": prefs.user_id})
+        if not updated:
+            return UserPreferences(user_id=prefs.user_id)
         return UserPreferences(**updated)
     else:
         prefs_obj = UserPreferences(**prefs.dict())
@@ -2787,7 +2817,7 @@ async def search_comparative_texts(query: str = Query(..., min_length=2)):
     return {"query": query, "count": len(results), "results": results}
 
 @api_router.post("/comparative/ai-compare")
-async def ai_compare_religions(topic: str, question: str = None):
+async def ai_compare_religions(topic: str, question: Optional[str] = None):
     """AI-powered comparative analysis using Claude"""
     topic_data = get_comparative_data(topic)
     
@@ -2836,7 +2866,7 @@ Cevaplarını Türkçe ver ve kaynaklara dikkat et."""
         }
 
 # ===================== QUIZ SYSTEM API =====================
-from quiz_data import QUIZ_CATEGORIES, ALL_QUESTIONS, get_questions_for_category, get_categories_with_counts, get_mixed_questions, update_leaderboard, get_leaderboard, solo_sessions
+from quiz_data import QUIZ_CATEGORIES, ALL_QUESTIONS, get_questions_for_category, get_categories_with_counts, get_mixed_questions, update_leaderboard, solo_sessions
 import random
 
 # Quiz Models
@@ -2847,6 +2877,8 @@ class CreateQuizRoomRequest(BaseModel):
     room_name: str
     question_count: int = 10
     time_per_question: int = 20
+    max_players: int = 4
+    room_type: str = "classic"
 
 class JoinQuizRoomRequest(BaseModel):
     user_id: str
@@ -2991,8 +3023,12 @@ async def submit_quiz_result(request: Request, payload: SubmitQuizResult):
                 calc_score = 0
                 calc_correct = 0
                 for ans in payload.answers:
-                    qid = ans.qid or ans.get("qid")
-                    sel = ans.selected if hasattr(ans, 'selected') else ans.get("selected")
+                    qid = getattr(ans, "qid", None)
+                    if qid is None and isinstance(ans, dict):
+                        qid = ans.get("qid")
+                    sel = getattr(ans, "selected", None)
+                    if sel is None and isinstance(ans, dict):
+                        sel = ans.get("selected")
                     entry = qmap.get(str(qid))
                     if not entry:
                         continue
@@ -3142,6 +3178,7 @@ async def create_quiz_room(request: CreateQuizRoomRequest):
         "category": request.category,
         "host_id": request.user_id,
         "host_name": request.username,
+        "room_type": request.room_type,
         "players": [{
             "user_id": request.user_id,
             "username": request.username,
@@ -3152,7 +3189,7 @@ async def create_quiz_room(request: CreateQuizRoomRequest):
         "status": "waiting",
         "current_question": 0,
         "questions": selected_questions,
-        "max_players": 4,
+        "max_players": max(2, min(8, request.max_players)),
         "question_count": len(selected_questions),
         "time_per_question": request.time_per_question,
         "created_at": datetime.utcnow(),
@@ -3169,6 +3206,7 @@ async def create_quiz_room(request: CreateQuizRoomRequest):
         "category": room["category"],
         "host_id": room["host_id"],
         "host_name": room["host_name"],
+        "room_type": room.get("room_type", "classic"),
         "players": room["players"],
         "status": room["status"],
         "current_question": room["current_question"],
@@ -3206,6 +3244,7 @@ async def get_quiz_rooms(category: Optional[str] = None, status: str = "waiting"
             "name": room["name"],
             "category": room["category"],
             "host_name": room["host_name"],
+            "room_type": room.get("room_type", "classic"),
             "player_count": len(room.get("players", [])),
             "max_players": room.get("max_players", 4),
             "question_count": room.get("question_count", 10),
@@ -3286,8 +3325,27 @@ async def join_quiz_room(room_id: str, request: JoinQuizRoomRequest):
         {"id": room_id},
         {"$push": {"players": new_player}}
     )
+
+    updated_room = await db.quiz_rooms.find_one({"id": room_id})
+    if not updated_room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    safe_room = {
+        "id": updated_room["id"],
+        "name": updated_room["name"],
+        "category": updated_room["category"],
+        "host_id": updated_room["host_id"],
+        "host_name": updated_room["host_name"],
+        "room_type": updated_room.get("room_type", "classic"),
+        "players": updated_room.get("players", []),
+        "status": updated_room["status"],
+        "current_question": updated_room.get("current_question", 0),
+        "max_players": updated_room.get("max_players", 4),
+        "question_count": updated_room.get("question_count", 10),
+        "time_per_question": updated_room.get("time_per_question", 20),
+    }
     
-    return {"message": "Joined successfully"}
+    return {"message": "Joined successfully", "room": safe_room}
 
 @api_router.post("/quiz/rooms/{room_id}/start")
 async def start_quiz_game(room_id: str, request: StartQuizRequest):
@@ -3551,6 +3609,45 @@ async def get_category_leaderboard(category: str, limit: int = 20):
     
     return category_stats[:limit]
 
+@api_router.get("/league/overview/{user_id}")
+async def get_league_overview(user_id: str):
+    """Return a compact overview for the new league experience."""
+    user_stats = await db.user_stats.find_one({"user_id": user_id}) or {}
+    quiz_stats = await db.quiz_stats.find_one({"user_id": user_id}) or {}
+    if quiz_stats:
+        quiz_stats = {
+            **quiz_stats,
+            "accuracy": round(quiz_stats.get("correct_answers", 0) / max(1, quiz_stats.get("total_answers", 0)) * 100, 1),
+        }
+    return build_league_overview(user_id=user_id, user_stats=user_stats, quiz_stats=quiz_stats)
+
+@api_router.get("/league/standings")
+async def get_league_standings(limit: int = 5):
+    """Return a simple weekly standings list for the current league."""
+    users = await db.user_stats.find().sort("total_points", -1).limit(max(1, int(limit))).to_list(length=max(1, int(limit)))
+    entries = []
+    for user in users:
+        entries.append({
+            "user_id": user.get("user_id"),
+            "username": user.get("user_id"),
+            "xp": int(user.get("total_points", 0)),
+            "streak": int(user.get("current_streak", 0)),
+            "accuracy": 0,
+        })
+    return build_weekly_standings(entries)
+
+@api_router.get("/league/season/{user_id}")
+async def get_league_season(user_id: str):
+    """Return season metadata and progress for the league page."""
+    user_stats = await db.user_stats.find_one({"user_id": user_id}) or {}
+    quiz_stats = await db.quiz_stats.find_one({"user_id": user_id}) or {}
+    if quiz_stats:
+        quiz_stats = {
+            **quiz_stats,
+            "accuracy": round(quiz_stats.get("correct_answers", 0) / max(1, quiz_stats.get("total_answers", 0)) * 100, 1),
+        }
+    return build_season_summary(user_stats=user_stats, quiz_stats=quiz_stats)
+
 # ===================== SOLO QUIZ MODE =====================
 
 @api_router.post("/quiz/solo/start")
@@ -3757,7 +3854,7 @@ class QuizWebSocketManager:
                 except Exception as e:
                     logger.error(f"Error sending to user {user_id}: {e}")
     
-    async def broadcast_to_room(self, room_id: str, message: dict, exclude_user: str = None):
+    async def broadcast_to_room(self, room_id: str, message: dict, exclude_user: Optional[str] = None):
         if room_id in self.active_connections:
             for user_id, websocket in self.active_connections[room_id].items():
                 if exclude_user and user_id == exclude_user:
@@ -4040,426 +4137,6 @@ app.add_middleware(
     allow_origins=_allowed_origins,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With", "X-CSRF-Token"],
-)
-app.add_middleware(SecurityHeadersMiddleware)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    global _keep_alive_task
-    if _keep_alive_task:
-        _keep_alive_task.cancel()
-    client.close()
-    from fastapi import FastAPI, APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, Response, Request, Cookie
-from fastapi.responses import JSONResponse
-from dotenv import load_dotenv
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-import logging
-import json
-from pathlib import Path
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
-import uuid
-from datetime import datetime, date, timedelta, timezone
-import math
-import asyncio
-import httpx
-from collections import defaultdict, deque
-import time
-from google import genai
-from openai import OpenAI
-import edge_tts
-import base64
-import io
-
-# Local imports (Faz 2, 3 ve 4 modülleri)
-from comparative_religions import COMPARATIVE_TEXTS, TOPICS, get_comparative_data, get_all_topics, search_comparative
-from phase2 import setup_phase2_routes
-from phase3_ai import setup_phase3_ai_routes
-from phase3_tafsir import setup_phase3_tafsir_routes
-from phase3_hadith import setup_phase3_hadith_routes
-from phase3_comparative import setup_phase3_comparative_routes
-from phase3_i18n import setup_phase3_i18n_routes
-from phase4_core import setup_phase4_routes
-from quiz_data import QUIZ_CATEGORIES, ALL_QUESTIONS, get_questions_for_category, get_categories_with_counts, get_mixed_questions, update_leaderboard, get_leaderboard, solo_sessions
-import random
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# ===================== RATE LIMITING & SECURITY =====================
-RATE_LIMIT_WINDOW_SECONDS = 60
-RATE_LIMIT_MAX_REQUESTS = 8
-_rate_limit_state = defaultdict(deque)
-
-def _get_client_ip(request: Request) -> str:
-    xff = request.headers.get('x-forwarded-for')
-    if xff:
-        return xff.split(',')[0].strip()
-    return request.client.host if request.client else 'unknown'
-
-def _is_rate_limited(request: Request, key: str, limit: int = RATE_LIMIT_MAX_REQUESTS, window: int = RATE_LIMIT_WINDOW_SECONDS) -> bool:
-    now = time.monotonic()
-    client_key = (_get_client_ip(request), key)
-    dq = _rate_limit_state[client_key]
-    while dq and now - dq[0] > window:
-        dq.popleft()
-    if len(dq) >= limit:
-        return True
-    dq.append(now)
-    return False
-
-def _validate_ajax_request(request: Request):
-    if request.headers.get('x-requested-with') != 'XMLHttpRequest':
-        raise HTTPException(status_code=403, detail='Invalid request source')
-
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
-        response = await call_next(request)
-        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
-        response.headers.setdefault('X-Frame-Options', 'DENY')
-        response.headers.setdefault('Referrer-Policy', 'no-referrer-when-downgrade')
-        response.headers.setdefault('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()')
-        response.headers.setdefault('X-XSS-Protection', '1; mode=block')
-        response.headers.setdefault('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
-        return response
-
-# ===================== QURAN AUDIO & DATA =====================
-QURAN_RECITERS = {
-    "alafasy": {"id": "ar.alafasy", "name": "Mishary Rashid Alafasy", "name_ar": "مشاري راشد العفاسي", "style": "Murattal", "quality": 128},
-    "abdulbasit": {"id": "ar.abdulbasitmurattal", "name": "Abdul Basit Abdul Samad", "name_ar": "عبد الباسط عبد الصمد", "style": "Murattal", "quality": 192},
-    "husary": {"id": "ar.husary", "name": "Mahmoud Khalil Al-Husary", "name_ar": "محمود خليل الحصري", "style": "Murattal", "quality": 128},
-}
-
-def get_audio_url(surah: int, ayah: int, reciter: str = "alafasy") -> str:
-    reciter_info = QURAN_RECITERS.get(reciter, QURAN_RECITERS["alafasy"])
-    verse_num = ayah
-    if surah > 1:
-        verse_counts = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6]
-        verse_num = sum(verse_counts[:surah-1]) + ayah
-    return f"https://cdn.islamic.network/quran/audio/{reciter_info['quality']}/{reciter_info['id']}/{verse_num}.mp3"
-
-def get_surah_audio_url(surah: int, reciter: str = "alafasy") -> str:
-    reciter_info = QURAN_RECITERS.get(reciter, QURAN_RECITERS["alafasy"])
-    return f"https://cdn.islamic.network/quran/audio-surah/{reciter_info['quality']}/{reciter_info['id']}/{surah}.mp3"
-
-# Kapsamlı Dil Veritabanı Yüklemesi
-QURAN_ARABIC = None
-QURAN_TURKISH = None
-QURAN_ENGLISH = None
-QURAN_SPANISH = None
-
-def load_quran_data():
-    global QURAN_ARABIC, QURAN_TURKISH, QURAN_ENGLISH, QURAN_SPANISH
-    try:
-        arabic_path = ROOT_DIR / 'data' / 'quran_arabic.json'
-        turkish_path = ROOT_DIR / 'data' / 'quran_turkish.json'
-        english_path = ROOT_DIR / 'data' / 'quran_english.json'
-        spanish_path = ROOT_DIR / 'data' / 'quran_spanish.json'
-        
-        if arabic_path.exists():
-            with open(arabic_path, 'r', encoding='utf-8') as f:
-                QURAN_ARABIC = json.load(f)['data']['surahs']
-        if turkish_path.exists():
-            with open(turkish_path, 'r', encoding='utf-8') as f:
-                QURAN_TURKISH = json.load(f)['data']['surahs']
-        if english_path.exists():
-            with open(english_path, 'r', encoding='utf-8') as f:
-                QURAN_ENGLISH = json.load(f)['data']['surahs']
-        if spanish_path.exists():
-            with open(spanish_path, 'r', encoding='utf-8') as f:
-                QURAN_SPANISH = json.load(f)['data']['surahs']
-                
-        print(f"Loaded Quran data: AR({len(QURAN_ARABIC) if QURAN_ARABIC else 0}), TR({len(QURAN_TURKISH) if QURAN_TURKISH else 0}), EN({len(QURAN_ENGLISH) if QURAN_ENGLISH else 0}), ES({len(QURAN_SPANISH) if QURAN_SPANISH else 0})")
-    except Exception as e:
-        print(f"Error loading Quran data: {e}")
-
-load_quran_data()
-
-# ===================== DATABASE & AI CONFIG =====================
-mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000, socketTimeoutMS=10000)
-db = client[os.environ.get('DB_NAME', 'islamapp')]
-
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'true').lower() in ('1', 'true', 'yes')
-
-groq_client = OpenAI(api_key=GROQ_API_KEY, base_url="https://api.groq.com/openai/v1") if GROQ_API_KEY else None
-gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
-
-AI_TIMEOUT_SECONDS = 25
-AI_RETRY_ATTEMPTS = 2
-_ai_circuit = {"groq_failures": 0, "gemini_failures": 0, "groq_open_until": None, "gemini_open_until": None}
-_CIRCUIT_THRESHOLD = 3
-_CIRCUIT_COOLDOWN = 120
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-def _is_circuit_open(provider: str) -> bool:
-    key = f"{provider}_open_until"
-    open_until = _ai_circuit.get(key)
-    if open_until and datetime.now(timezone.utc) < open_until:
-        return True
-    if open_until:
-        _ai_circuit[f"{provider}_failures"] = 0
-        _ai_circuit[key] = None
-    return False
-
-def _record_failure(provider: str):
-    _ai_circuit[f"{provider}_failures"] += 1
-    if _ai_circuit[f"{provider}_failures"] >= _CIRCUIT_THRESHOLD:
-        _ai_circuit[f"{provider}_open_until"] = datetime.now(timezone.utc) + timedelta(seconds=_CIRCUIT_COOLDOWN)
-        logger.warning(f"Circuit breaker OPEN for {provider} — cooling down {_CIRCUIT_COOLDOWN}s")
-
-def _record_success(provider: str):
-    _ai_circuit[f"{provider}_failures"] = 0
-    _ai_circuit[f"{provider}_open_until"] = None
-
-async def _groq_generate(prompt: str, system_message: str = "") -> str:
-    messages = [{"role": "system", "content": system_message}] if system_message else []
-    messages.append({"role": "user", "content": prompt})
-    response = await asyncio.wait_for(
-        asyncio.to_thread(groq_client.chat.completions.create, model="llama-3.3-70b-versatile", messages=messages, temperature=0.7, max_tokens=2048),
-        timeout=AI_TIMEOUT_SECONDS
-    )
-    return response.choices[0].message.content
-
-async def _gemini_generate(prompt: str, system_message: str = "") -> str:
-    config = genai.types.GenerateContentConfig(system_instruction=system_message if system_message else None)
-    response = await asyncio.wait_for(
-        asyncio.to_thread(gemini_client.models.generate_content, model="gemini-2.0-flash", contents=prompt, config=config),
-        timeout=AI_TIMEOUT_SECONDS
-    )
-    return response.text
-
-async def gemini_generate(prompt: str, system_message: str = "") -> str:
-    providers = []
-    if groq_client and not _is_circuit_open("groq"): providers.append(("groq", _groq_generate))
-    if gemini_client and not _is_circuit_open("gemini"): providers.append(("gemini", _gemini_generate))
-
-    if not providers:
-        if groq_client: providers.append(("groq", _groq_generate))
-        if gemini_client: providers.append(("gemini", _gemini_generate))
-
-    last_error = None
-    for attempt in range(AI_RETRY_ATTEMPTS):
-        for name, fn in providers:
-            try:
-                result = await fn(prompt, system_message)
-                _record_success(name)
-                return result
-            except asyncio.TimeoutError:
-                _record_failure(name)
-                last_error = f"{name} timeout"
-            except Exception as e:
-                _record_failure(name)
-                last_error = str(e)
-    raise Exception(f"All AI providers failed. Last: {last_error}")
-
-# ===================== MODELS =====================
-class User(BaseModel):
-    user_id: str
-    email: str
-    name: str
-    picture: Optional[str] = None
-    is_guest: bool = False
-    language: str = "tr"
-    total_points: int = 0
-
-class ChatRequest(BaseModel):
-    session_id: str
-    message: str
-
-class SubmitAnswer(BaseModel):
-    qid: Optional[str]
-    selected: Optional[int]
-
-class SubmitQuizResult(BaseModel):
-    user_id: Optional[str] = None
-    username: Optional[str] = None
-    score: int
-    correct: Optional[int] = 0
-    total: Optional[int] = 0
-    answers: Optional[list[SubmitAnswer]] = None
-
-class SubmitLeaderboard(BaseModel):
-    user_id: str
-    username: str
-    score: int
-
-# ===================== APP & ROUTER =====================
-app = FastAPI()
-api_router = APIRouter(prefix="/api")
-_keep_alive_task = None
-
-async def _keep_alive():
-    import aiohttp
-    render_url = os.environ.get('RENDER_EXTERNAL_URL', '')
-    if not render_url: return
-    health_url = f"{render_url}/api/health"
-    async with aiohttp.ClientSession() as session:
-        while True:
-            await asyncio.sleep(780)
-            try:
-                async with session.get(health_url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
-                    pass
-            except Exception:
-                pass
-
-@app.on_event("startup")
-async def startup_event():
-    global _keep_alive_task
-    _keep_alive_task = asyncio.create_task(_keep_alive())
-
-async def get_current_user(request: Request, session_token: Optional[str] = None) -> Optional[User]:
-    token = session_token or request.cookies.get("session_token")
-    if not token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            token = auth_header.split(" ")[1]
-    if not token: return None
-    
-    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
-    if not session: return None
-    
-    user = await db.users.find_one({"user_id": session["user_id"]}, {"_id": 0})
-    return User(**user) if user else None
-
-# ===================== QURAN API ENDPOINTS =====================
-@api_router.get("/quran/surah/{surah_number}")
-async def get_surah(surah_number: int, lang: str = "tr", reciter: str = "alafasy"):
-    if not QURAN_ARABIC or surah_number < 1 or surah_number > 114:
-        raise HTTPException(status_code=404, detail="Surah not found")
-    
-    arabic_surah = QURAN_ARABIC[surah_number - 1]
-    turkish_surah = QURAN_TURKISH[surah_number - 1] if QURAN_TURKISH else None
-    english_surah = QURAN_ENGLISH[surah_number - 1] if QURAN_ENGLISH else None
-    spanish_surah = QURAN_SPANISH[surah_number - 1] if QURAN_SPANISH else None 
-    
-    reciter_info = QURAN_RECITERS.get(reciter, QURAN_RECITERS["alafasy"])
-    
-    verses = []
-    for i, ayah in enumerate(arabic_surah['ayahs']):
-        verses.append({
-            "number": ayah['numberInSurah'],
-            "global_number": ayah.get('number', 0),
-            "arabic": ayah['text'],
-            "turkish": turkish_surah['ayahs'][i]['text'] if turkish_surah and i < len(turkish_surah['ayahs']) else "",
-            "english": english_surah['ayahs'][i]['text'] if english_surah and i < len(english_surah['ayahs']) else "",
-            "spanish": spanish_surah['ayahs'][i]['text'] if spanish_surah and i < len(spanish_surah['ayahs']) else "",
-            "audio_url": get_audio_url(surah_number, ayah['numberInSurah'], reciter),
-        })
-    
-    return {
-        "number": arabic_surah['number'],
-        "name": arabic_surah.get('englishName', ''),
-        "arabic_name": arabic_surah.get('name', ''),
-        "total_verses": len(verses),
-        "verses": verses,
-        "full_audio_url": get_surah_audio_url(surah_number, reciter)
-    }
-
-# ===================== QUIZ & GAMIFICATION API (GÜNCELLENDİ) =====================
-
-@api_router.post("/gamification/leaderboard/submit")
-async def submit_leaderboard_score(data: SubmitLeaderboard):
-    """Skor ekranından (SuccessScreen) gelen isim ve skoru kaydeder"""
-    try:
-        user_id = data.user_id
-        username = data.username.strip()
-        score = data.score
-        
-        # Kullanıcıyı DB'de varsa güncelle, yoksa oluştur
-        await db.users.update_one(
-            {"user_id": user_id}, 
-            {"$set": {"name": username, "updated_at": datetime.utcnow()}}, 
-            upsert=True
-        )
-
-        # Skoru quiz_stats tablosuna ekle
-        upd = {
-            "$inc": {"total_points": score, "total_games": 1},
-            "$set": {"username": username, "last_played": datetime.utcnow()},
-            "$setOnInsert": {"user_id": user_id}
-        }
-        await db.quiz_stats.update_one({"user_id": user_id}, upd, upsert=True)
-        
-        return {"success": True, "message": "Skor başarıyla kaydedildi."}
-    except Exception as e:
-        logger.error(f"Skor kayıt hatası: {e}")
-        raise HTTPException(status_code=500, detail="Skor kaydedilemedi")
-
-@api_router.get("/gamification/leaderboard")
-async def get_quiz_leaderboard(limit: int = 20):
-    """En yüksek skorlu 20 kişiyi getirir"""
-    try:
-        stats = await db.quiz_stats.find().sort("total_points", -1).limit(limit).to_list(limit)
-        leaderboard = []
-        for i, s in enumerate(stats):
-            # İsim quiz_stats içinde varsa onu al, yoksa users koleksiyonuna bak
-            display_name = s.get("username")
-            if not display_name:
-                uname_doc = await db.users.find_one({"user_id": s["user_id"]}, {"_id": 0, "name": 1})
-                display_name = uname_doc.get("name") if uname_doc else "İsimsiz Oyuncu"
-
-            leaderboard.append({
-                "rank": i + 1,
-                "user_id": s["user_id"],
-                "username": display_name,
-                "total_points": s.get("total_points", 0),
-                "games_played": s.get("total_games", 0),
-                "accuracy": round(s.get("correct_answers", 0) / max(s.get("total_answers", 1), 1) * 100, 1)
-            })
-        return leaderboard
-    except Exception as e:
-        logger.error(f"Liderlik tablosu hatası: {e}")
-        return []
-
-# ===================== TTS API =====================
-@api_router.post("/tts")
-async def text_to_speech(request: Request):
-    try:
-        body = await request.json()
-        text = body.get("text", "")
-        if not text: raise HTTPException(status_code=400)
-        communicate = edge_tts.Communicate(text, "tr-TR-AhmetNeural")
-        audio_buffer = io.BytesIO()
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_buffer.write(chunk["data"])
-        audio_buffer.seek(0)
-        return {"audio": base64.b64encode(audio_buffer.read()).decode('utf-8'), "format": "mp3"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="TTS generation failed")
-
-# Register Phase 2, 3, 4 routes
-setup_phase2_routes(api_router, db, gemini_generate)
-setup_phase3_ai_routes(api_router, db, gemini_generate)
-setup_phase3_tafsir_routes(api_router, db, gemini_generate)
-setup_phase3_hadith_routes(api_router, db, gemini_generate)
-setup_phase3_comparative_routes(api_router, db, gemini_generate)
-setup_phase3_i18n_routes(api_router, db, gemini_generate)
-setup_phase4_routes(api_router, db, gemini_generate)
-
-app.include_router(api_router)
-
-_allowed_origins = [
-    "https://islamapp-5942a.web.app",
-    "https://islamapp-5942a.firebaseapp.com",
-    "http://localhost:3000",
-    "http://localhost:3334",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=_allowed_origins,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
 )
 app.add_middleware(SecurityHeadersMiddleware)
 
