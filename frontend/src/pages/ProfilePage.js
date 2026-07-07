@@ -1,130 +1,164 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, LogOut, Clock, Bookmark, Download, BookOpen, ChevronRight, Menu } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
+import { Settings, LogOut, Flame, Star, Trophy, Target, ChevronRight, Activity, Calendar } from 'lucide-react';
+import { Typography } from '../components/ui/Typography';
+import { userStats } from '../data/cmsContent';
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
-  const { theme } = useTheme();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
+  // Simulated GitHub style contribution data (30 days)
+  const activityData = Array.from({ length: 35 }, () => Math.floor(Math.random() * 4));
+
+  const getColorForActivity = (level) => {
+    switch(level) {
+      case 0: return 'rgba(255,255,255,0.05)';
+      case 1: return 'rgba(46, 204, 113, 0.3)';
+      case 2: return 'rgba(46, 204, 113, 0.6)';
+      case 3: return '#2ECC71';
+      default: return 'rgba(255,255,255,0.05)';
     }
   };
 
-  const menuItems = [
-    { id: 'history', label: 'Okuma Geçmişi', icon: Clock, path: '/history' },
-    { id: 'saved', label: 'Kaydedilenler', icon: Bookmark, path: '/bookmarks' },
-    { id: 'downloads', label: 'İndirilenler', icon: Download, path: '/downloads' },
-    { id: 'notes', label: 'Notlarım', icon: BookOpen, path: '/notes' },
-    { id: 'settings', label: 'Ayarlar', icon: Settings, path: '/settings' },
-  ];
-
   return (
-    <div className="min-h-screen pb-24" style={{ background: theme.bg }} data-testid="profile-page">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 pt-6 pb-4">
-        <span className="font-extrabold text-2xl tracking-tight" style={{ color: theme.textPrimary, fontFamily: TYPOGRAPHY.fonts.heading }}>
-          Profil
-        </span>
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/settings')} className="p-2.5 rounded-full transition-colors" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
-            <Settings size={20} style={{ color: theme.textPrimary }} />
-          </button>
-          <button className="p-2.5 rounded-full transition-colors" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
-            <Menu size={20} style={{ color: theme.textPrimary }} />
+    <div style={{ minHeight: '100vh', background: '#052A1E', position: 'relative', paddingBottom: '120px' }}>
+      {/* Background Geometry */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '350px', background: 'linear-gradient(to bottom, #031c13 0%, #052A1E 100%)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'url("https://www.transparenttextures.com/patterns/arabesque.png")', opacity: 0.03, zIndex: 1, pointerEvents: 'none' }} />
+
+      <div style={{ position: 'relative', zIndex: 2, padding: '24px' }}>
+        
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <div>
+            <Typography variant="h2" style={{ color: '#FFF', fontSize: '28px' }}>Profil</Typography>
+          </div>
+          <button onClick={() => navigate('/settings')} style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}>
+            <Settings size={20} />
           </button>
         </div>
-      </div>
 
-      {/* Profile Header */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="px-4 mb-8">
-        <div className="flex flex-col items-center text-center">
-          <div className="relative mb-4">
-            <div className="w-24 h-24 rounded-full border-[3px] p-1" style={{ borderColor: theme.primary }}>
-              <div className="w-full h-full rounded-full overflow-hidden" style={{ background: theme.surface }}>
-                <img src={user?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Samet"} alt="Profile" className="w-full h-full object-cover" />
-              </div>
+        {/* Profile Identity & Ring */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>
+          <div style={{ position: 'relative', width: '120px', height: '120px', marginBottom: '16px' }}>
+            {/* Circular Progress SVG */}
+            <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)', position: 'absolute', top: 0, left: 0 }}>
+              <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+              <circle cx="60" cy="60" r="54" fill="none" stroke="#CDA434" strokeWidth="6" strokeDasharray="339.292" strokeDashoffset={339.292 * (1 - (userStats.level / 20))} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease' }} />
+            </svg>
+            <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#031c13', position: 'absolute', top: '10px', left: '10px', overflow: 'hidden', border: '2px solid rgba(205, 164, 52, 0.5)' }}>
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Samet" alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold border-2 border-white shadow-sm whitespace-nowrap"
-                 style={{ background: theme.primary, color: '#FFF' }}>
-              Seviye 12
+            {/* Level Badge */}
+            <div style={{ position: 'absolute', bottom: '-4px', left: '50%', transform: 'translateX(-50%)', background: '#CDA434', color: '#000', padding: '4px 12px', borderRadius: '100px', fontWeight: 800, fontSize: '14px', border: '2px solid #052A1E' }}>
+              Seviye {userStats.level}
             </div>
           </div>
           
-          <h2 className="text-xl font-bold mb-1" style={{ color: theme.textPrimary, fontFamily: TYPOGRAPHY.fonts.heading }}>
-            {user?.name || 'Samet Durak'}
-          </h2>
-          <p className="text-xs font-medium mb-5" style={{ color: theme.textSecondary }}>
-            sametdurak@example.com
-          </p>
+          <Typography variant="h2" style={{ color: '#FFF', fontSize: '24px', marginBottom: '4px' }}>Samet Durak</Typography>
+          <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 600, fontSize: '14px' }}>İlim Yolcusu</Typography>
+        </div>
 
-          {/* XP Bar */}
-          <div className="w-full max-w-[280px] mb-8">
-            <div className="flex justify-between items-center text-[10px] font-bold mb-1.5 px-1" style={{ color: theme.primary }}>
-              <span>Seviye 12</span>
-              <span>2500 / 3300 XP</span>
-            </div>
-            <div className="h-2 rounded-full w-full overflow-hidden" style={{ background: theme.cardBorder }}>
-              <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: '75%', background: theme.primary }} />
-            </div>
+        {/* Quick Stats Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '32px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Flame size={24} color="#E74C3C" style={{ marginBottom: '8px' }} />
+            <Typography variant="h3" style={{ color: '#FFF', fontSize: '20px' }}>{userStats.streak}</Typography>
+            <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>Gün Seri</Typography>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Star size={24} color="#CDA434" style={{ marginBottom: '8px' }} />
+            <Typography variant="h3" style={{ color: '#FFF', fontSize: '20px' }}>{userStats.xp}</Typography>
+            <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>Toplam XP</Typography>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Trophy size={24} color="#3498DB" style={{ marginBottom: '8px' }} />
+            <Typography variant="h3" style={{ color: '#FFF', fontSize: '20px' }}>12</Typography>
+            <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>Rozet</Typography>
           </div>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { value: '125', label: 'Gün' },
-            { value: '82%', label: 'Başarı' },
-            { value: '45', label: 'Rozet' },
-          ].map((stat, idx) => (
-            <div key={idx} className="flex flex-col items-center p-3 rounded-[20px]" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
-              <span className="text-lg font-bold mb-0.5" style={{ color: theme.textPrimary }}>{stat.value}</span>
-              <span className="text-[10px] font-semibold" style={{ color: theme.textSecondary }}>{stat.label}</span>
-            </div>
-          ))}
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '24px' }}>
+          <button onClick={() => setActiveTab('overview')} style={{ background: 'none', border: 'none', color: activeTab === 'overview' ? '#CDA434' : 'rgba(255,255,255,0.5)', fontWeight: 700, paddingBottom: '12px', borderBottom: activeTab === 'overview' ? '2px solid #CDA434' : '2px solid transparent', transition: 'all 0.2s', fontSize: '15px' }}>
+            Genel Bakış
+          </button>
+          <button onClick={() => setActiveTab('badges')} style={{ background: 'none', border: 'none', color: activeTab === 'badges' ? '#CDA434' : 'rgba(255,255,255,0.5)', fontWeight: 700, paddingBottom: '12px', borderBottom: activeTab === 'badges' ? '2px solid #CDA434' : '2px solid transparent', transition: 'all 0.2s', fontSize: '15px' }}>
+            Rozetler
+          </button>
         </div>
-      </motion.div>
 
-      {/* Menu List */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="px-4">
-        <div className="rounded-[24px] overflow-hidden" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}`, boxShadow: SHADOWS.sm }}>
-          {menuItems.map((item, idx) => (
-            <button
-              key={item.id}
-              onClick={() => navigate(item.path)}
-              className="w-full flex items-center justify-between p-4 transition-colors hover:bg-black/5"
-              style={{ borderBottom: idx !== menuItems.length - 1 ? `1px solid ${theme.cardBorder}` : 'none' }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: theme.bg }}>
-                  <item.icon size={16} style={{ color: theme.textPrimary }} />
-                </div>
-                <span className="text-[13px] font-bold" style={{ color: theme.textPrimary }}>{item.label}</span>
+        {/* Tab Content: Overview */}
+        {activeTab === 'overview' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            
+            {/* Weekly Challenge */}
+            <div style={{ background: 'linear-gradient(135deg, rgba(46, 204, 113, 0.15) 0%, rgba(15, 143, 87, 0.05) 100%)', border: '1px solid rgba(46, 204, 113, 0.3)', borderRadius: '24px', padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <Target size={24} color="#2ECC71" />
+                <Typography variant="h3" style={{ color: '#FFF', fontSize: '18px' }}>Haftalık Hedef</Typography>
               </div>
-              <ChevronRight size={16} style={{ color: theme.textSecondary }} />
-            </button>
-          ))}
-        </div>
-        
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="w-full mt-6 p-4 rounded-[20px] flex items-center justify-center gap-2 transition-opacity hover:opacity-80"
-          style={{ background: '#FEE2E2', color: '#EF4444' }}
-        >
-          <LogOut size={18} />
-          <span className="font-bold text-[13px]">Çıkış Yap</span>
-        </button>
-      </motion.div>
+              <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>{userStats.challenges.weekly.desc}</Typography>
+              
+              <div style={{ width: '100%', height: '10px', borderRadius: '5px', background: 'rgba(0,0,0,0.3)', overflow: 'hidden', marginBottom: '8px' }}>
+                <div style={{ height: '100%', background: '#2ECC71', width: `${(userStats.challenges.weekly.current / userStats.challenges.weekly.target) * 100}%` }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="caption" style={{ color: '#2ECC71', fontWeight: 700 }}>%{Math.round((userStats.challenges.weekly.current / userStats.challenges.weekly.target) * 100)} Tamamlandı</Typography>
+                <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.5)' }}>{userStats.challenges.weekly.current} / {userStats.challenges.weekly.target}</Typography>
+              </div>
+            </div>
+
+            {/* Activity Heatmap */}
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px', padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Activity size={20} color="#CDA434" />
+                  <Typography variant="h3" style={{ color: '#FFF', fontSize: '16px' }}>Öğrenme Aktivitesi</Typography>
+                </div>
+                <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.5)' }}>Son 30 Gün</Typography>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+                {activityData.map((level, i) => (
+                  <div key={i} style={{ aspectRatio: '1/1', borderRadius: '6px', background: getColorForActivity(level), transition: 'transform 0.2s', cursor: 'pointer' }} title={`Aktivite Seviyesi: ${level}`} />
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* Tab Content: Badges */}
+        {activeTab === 'badges' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+            {/* Mock Badges */}
+            {[
+              { id: 1, name: "Sabah Kuşu", desc: "10 gün üst üste sabah namazı sonrası zikir", icon: "🌅", color: "#F5A623", earned: true },
+              { id: 2, name: "Kur'an Muhafızı", desc: "1 Cüz hatim edildi", icon: "📖", color: "#2ECC71", earned: true },
+              { id: 3, name: "Hadis Talebesi", desc: "40 Hadis okundu", icon: "📜", color: "#3498DB", earned: true },
+              { id: 4, name: "İlim Aşığı", desc: "Seviye 20'ye ulaş", icon: "👑", color: "#9CA3AF", earned: false },
+              { id: 5, name: "Gece Nuru", desc: "7 gün teheccüd vakti okuma", icon: "🌙", color: "#9CA3AF", earned: false },
+              { id: 6, name: "Hafızlığa Adım", desc: "Yasin suresi ezberlendi", icon: "🧠", color: "#9CA3AF", earned: false }
+            ].map(badge => (
+              <div key={badge.id} style={{
+                background: badge.earned ? `linear-gradient(135deg, ${badge.color}20 0%, rgba(0,0,0,0) 100%)` : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${badge.earned ? `${badge.color}40` : 'rgba(255,255,255,0.05)'}`,
+                borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+                filter: badge.earned ? 'none' : 'grayscale(100%)', opacity: badge.earned ? 1 : 0.5
+              }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px', background: badge.earned ? `${badge.color}20` : 'rgba(255,255,255,0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {badge.icon}
+                </div>
+                <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 700, marginBottom: '4px' }}>{badge.name}</Typography>
+                <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', lineHeight: 1.4 }}>{badge.desc}</Typography>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

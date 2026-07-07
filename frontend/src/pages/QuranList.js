@@ -1,26 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MoreVertical, Download, ChevronRight, Play, BookOpen } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Search, MoreVertical, BookOpen, Star, Clock, ArrowRight } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { TYPOGRAPHY } from '../styles/designTokens';
-import api from '../api';
-import { fetchWithCache } from '../services/cache';
+import { Typography } from '../components/ui/Typography';
+import { quranCategories } from '../data/quranContent';
 
 export default function QuranList() {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('sureler');
+  const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [surahs, setSurahs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [downloadedSurahs, setDownloadedSurahs] = useState({});
 
   useEffect(() => {
-    // Check local storage for downloaded
-    const saved = localStorage.getItem('offline_surahs');
-    if (saved) setDownloadedSurahs(JSON.parse(saved));
-
     const fetchSurahs = async () => {
       try {
         const res = await fetch('https://api.alquran.cloud/v1/surah');
@@ -29,172 +22,175 @@ export default function QuranList() {
           const mappedSurahs = data.data.map(s => ({
             number: s.number,
             name: s.englishName,
-            turkish_name: s.englishNameTranslation, // use translation if available
+            turkish_name: s.englishNameTranslation,
             arabic_name: s.name,
             verses: s.numberOfAyahs,
-            revelationType: s.revelationType === 'Meccan' ? 'Mekke' : 'Medine'
+            revelationType: s.revelationType === 'Meccan' ? 'Mekki' : 'Medeni'
           }));
           setSurahs(mappedSurahs);
           setLoading(false);
-          return;
         }
       } catch (err) {
         console.error("AlQuran API failed", err);
+        setLoading(false);
       }
-      
-      // Fallback
-      fetchWithCache('surahs_list', () => api.get('/quran/surahs').then(r => r.data), { ttl: 24 * 60 * 60 * 1000 })
-        .then(({ data }) => {
-          if (Array.isArray(data)) setSurahs(data);
-          else if (data && data.data) setSurahs(data.data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
     };
 
     fetchSurahs();
   }, []);
 
-  const displaySurahs = surahs.length > 0 ? surahs : [];
+  let displaySurahs = surahs;
+  if (activeTab === 'meccan') displaySurahs = surahs.filter(s => s.revelationType === 'Mekki');
+  if (activeTab === 'medinan') displaySurahs = surahs.filter(s => s.revelationType === 'Medeni');
+  if (activeTab === 'favorites') displaySurahs = surahs.filter(s => [1, 36, 112].includes(s.number)); // Mock favorites
 
   const filteredSurahs = displaySurahs.filter(s => {
     const searchStr = `${s.turkish_name} ${s.name} ${s.arabic_name} ${s.number}`.toLowerCase();
     return searchStr.includes(searchQuery.toLowerCase());
   });
 
-  // Dummy data for Juz and Pages
-  const juzList = Array.from({ length: 30 }, (_, i) => i + 1);
-
   return (
-    <div className="min-h-screen pb-24" style={{ background: theme.bg }} data-testid="quran-page">
-      {/* ─── Hero / Search Section ─── */}
-      <div 
-        className="relative pt-12 pb-6 px-5 shadow-sm overflow-hidden" 
-        style={{ background: 'linear-gradient(135deg, #0D5C2F 0%, #1A7A42 100%)', borderBottomLeftRadius: '30px', borderBottomRightRadius: '30px' }}
-      >
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1590076215667-87ebffeb36e6?auto=format&fit=crop&q=80&w=1000)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+    <div className="min-h-screen pb-24" style={{ background: '#052A1E', position: 'relative' }} data-testid="quran-page">
+      {/* Background Geometry */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, height: '400px',
+        background: 'linear-gradient(to bottom, #031c13 0%, #052A1E 100%)',
+        zIndex: 0
+      }} />
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundImage: 'url("https://www.transparenttextures.com/patterns/arabesque.png")',
+        opacity: 0.03, zIndex: 1, pointerEvents: 'none'
+      }} />
+
+      <div style={{ position: 'relative', zIndex: 2, padding: '24px' }}>
         
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="font-extrabold text-2xl text-white tracking-tight" style={{ fontFamily: TYPOGRAPHY.fonts.heading }}>
-              Kur'an-ı Kerim
-            </h1>
-            <button className="p-2.5 rounded-full bg-white/10 border border-white/20">
-              <MoreVertical size={20} color="#FFF" />
-            </button>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <div>
+            <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px', display: 'block' }}>
+              Okuma Modülü
+            </Typography>
+            <Typography variant="h2" style={{ color: '#FFF', fontSize: '28px' }}>Kur'an-ı Kerim</Typography>
           </div>
-
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2">
-              <Search size={20} color="#9CA3AF" />
-            </div>
-            <input 
-              type="text" 
-              placeholder="Sure adi, numarasi veya anlami ara..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-3.5 pl-12 pr-4 rounded-2xl outline-none font-medium text-[14px] shadow-lg transition-all focus:ring-4 focus:ring-white/20"
-              style={{ background: '#FFF', color: '#1F2937' }}
-            />
-          </div>
+          <button style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}>
+            <MoreVertical size={20} />
+          </button>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="px-5 mt-6 mb-4">
-        <div className="flex p-1 rounded-2xl shadow-sm" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
-          {[
-            { id: 'sureler', label: 'Sureler' },
-            { id: 'cuzler', label: 'Cuzler' },
-            { id: 'sayfa', label: 'Sayfa' }
-          ].map(tab => (
+        {/* Search Bar */}
+        <div style={{ position: 'relative', marginBottom: '24px' }}>
+          <div style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }}>
+            <Search size={20} color="#0F8F57" />
+          </div>
+          <input 
+            type="text" 
+            placeholder="Sure ara (Yasin, Bakara, 36...)" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ 
+              width: '100%', padding: '16px 16px 16px 48px', 
+              borderRadius: '20px', border: '1px solid rgba(15, 143, 87, 0.3)', 
+              background: 'rgba(0,0,0,0.3)', color: '#FFF', 
+              fontSize: '15px', fontWeight: 600, outline: 'none',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+            }}
+          />
+        </div>
+
+        {/* Quick Stats / Last Read Banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(205, 164, 52, 0.15) 0%, rgba(140, 108, 46, 0.05) 100%)',
+          border: '1px solid rgba(205, 164, 52, 0.3)',
+          borderRadius: '24px', padding: '20px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer'
+        }} onClick={() => navigate('/quran/36')}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(205, 164, 52, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Clock size={24} color="#CDA434" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Son Okunan</Typography>
+            <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 700, fontSize: '16px' }}>Yasin Suresi</Typography>
+          </div>
+          <ArrowRight size={20} color="#CDA434" />
+        </div>
+
+        {/* Categories (Tabs) */}
+        <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none', marginBottom: '8px' }}>
+          {quranCategories.map(cat => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className="flex-1 py-2 text-[13px] font-bold rounded-xl transition-all"
+              key={cat.id}
+              onClick={() => setActiveTab(cat.id)}
               style={{
-                background: activeTab === tab.id ? theme.primary : 'transparent',
-                color: activeTab === tab.id ? '#FFF' : theme.textSecondary,
-                boxShadow: activeTab === tab.id ? '0 4px 12px rgba(13,92,47,0.2)' : 'none'
+                padding: '10px 20px',
+                borderRadius: '100px',
+                whiteSpace: 'nowrap',
+                fontWeight: 700,
+                fontSize: '13px',
+                transition: 'all 0.3s',
+                background: activeTab === cat.id ? '#CDA434' : 'rgba(255,255,255,0.05)',
+                color: activeTab === cat.id ? '#000' : '#FFF',
+                border: `1px solid ${activeTab === cat.id ? '#CDA434' : 'rgba(255,255,255,0.1)'}`
               }}
             >
-              {tab.label}
+              {cat.label} ({cat.count})
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-5 pb-8">
-        <AnimatePresence mode="wait">
-          {activeTab === 'sureler' && (
-            <motion.div key="sureler" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-              {loading ? (
-                <div className="flex justify-center p-10"><div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: theme.primary, borderTopColor: 'transparent' }} /></div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {filteredSurahs.map((surah) => (
-                    <motion.div
-                      key={surah.number}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate(`/quran/${surah.number}`)}
-                      className="flex items-center justify-between p-4 rounded-[20px] shadow-sm cursor-pointer transition-shadow hover:shadow-md bg-white"
-                      style={{ border: `1px solid ${theme.cardBorder}` }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-12 h-12 flex items-center justify-center">
-                          {/* Islami Yildiz Ikonu (SVG placeholder) */}
-                          <svg viewBox="0 0 36 36" className="absolute inset-0 w-full h-full opacity-10" style={{ fill: theme.primary }}>
-                            <path d="M18 0L22.5 13.5L36 18L22.5 22.5L18 36L13.5 22.5L0 18L13.5 13.5L18 0Z" />
-                          </svg>
-                          <span className="font-bold text-[13px]" style={{ color: theme.primary }}>{surah.number}</span>
-                        </div>
-                        <div>
-                          <p className="font-extrabold text-[15px] mb-0.5" style={{ color: theme.textPrimary }}>{surah.name}</p>
-                          <p className="text-[11px] font-semibold" style={{ color: theme.textSecondary }}>{surah.revelationType} • {surah.verses} Ayet</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-4">
-                        <p className="font-bold text-lg" style={{ fontFamily: TYPOGRAPHY.fonts.arabic, color: theme.primary }}>{surah.arabic_name}</p>
-                        <div className="p-2 rounded-full" style={{ background: '#F3F4F6' }}>
-                          <ChevronRight size={16} color="#9CA3AF" />
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+        {/* Surah List */}
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+            <Typography variant="bodySmall" style={{ color: '#CDA434' }}>Sureler Yükleniyor...</Typography>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {filteredSurahs.map((surah) => (
+              <div 
+                key={surah.number}
+                onClick={() => navigate(`/quran/${surah.number}`)}
+                style={{
+                  display: 'flex', alignItems: 'center', padding: '16px',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s',
+                  backdropFilter: 'blur(10px)'
+                }}
+              >
+                {/* Number Box */}
+                <div style={{
+                  width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(15, 143, 87, 0.1)',
+                  border: '1px solid rgba(15, 143, 87, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(45deg)', marginRight: '24px'
+                }}>
+                  <span style={{ transform: 'rotate(-45deg)', color: '#2ECC71', fontWeight: 800, fontSize: '14px' }}>
+                    {surah.number}
+                  </span>
                 </div>
-              )}
-            </motion.div>
-          )}
 
-          {activeTab === 'cuzler' && (
-            <motion.div key="cuzler" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="grid grid-cols-2 gap-3">
-              {juzList.map(juz => (
-                <div key={juz} className="p-4 rounded-[20px] bg-white border cursor-pointer flex flex-col items-center shadow-sm hover:shadow-md transition-shadow" style={{ borderColor: theme.cardBorder }}>
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2" style={{ background: `${theme.primary}15`, color: theme.primary }}>
-                    <BookOpen size={20} />
-                  </div>
-                  <span className="font-bold text-[15px]" style={{ color: theme.textPrimary }}>{juz}. Cuz</span>
+                <div style={{ flex: 1 }}>
+                  <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 700, fontSize: '16px', marginBottom: '2px' }}>
+                    {surah.name}
+                  </Typography>
+                  <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <span style={{ color: '#CDA434' }}>{surah.revelationType}</span> • {surah.verses} Ayet
+                  </Typography>
                 </div>
-              ))}
-            </motion.div>
-          )}
 
-          {activeTab === 'sayfa' && (
-            <motion.div key="sayfa" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="p-6 rounded-[24px] bg-white border text-center shadow-sm" style={{ borderColor: theme.cardBorder }}>
-                <Search size={32} className="mx-auto mb-4" style={{ color: theme.primary }} />
-                <h3 className="font-bold text-lg mb-2" style={{ color: theme.textPrimary }}>Sayfa Numarasina Git</h3>
-                <p className="text-sm font-medium mb-4" style={{ color: theme.textSecondary }}>Hafiz Osman hatti 604 sayfalik Kuran-i Kerim'den istediginiz sayfaya gidin.</p>
-                <div className="flex gap-2">
-                  <input type="number" min="1" max="604" placeholder="Orn: 250" className="flex-1 px-4 py-3 rounded-xl border bg-gray-50 outline-none" />
-                  <button className="px-6 py-3 rounded-xl font-bold text-white transition-opacity hover:opacity-90" style={{ background: theme.primary }}>Git</button>
+                <div style={{ textAlign: 'right' }}>
+                  <Typography variant="h3" style={{ color: '#FFF', fontFamily: "'Amiri', serif", fontSize: '24px', opacity: 0.9 }}>
+                    {surah.arabic_name}
+                  </Typography>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+            {filteredSurahs.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.5)' }}>Sonuç bulunamadı</Typography>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

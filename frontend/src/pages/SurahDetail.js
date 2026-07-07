@@ -1,35 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Type, Bell, Share2, Bookmark, Play, Pause, SkipBack, SkipForward, Maximize2, MoreHorizontal, Download } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '../contexts/ThemeContext';
-import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
-import api from '../api';
-import { fetchWithCache } from '../services/cache';
+import { ChevronLeft, Play, Pause, MoreVertical, BookOpen, Share2, Info } from 'lucide-react';
+import { Typography } from '../components/ui/Typography';
+import { quranData } from '../data/quranContent';
 
 export default function SurahDetail() {
   const { surahNumber } = useParams();
   const navigate = useNavigate();
-  const { theme } = useTheme();
   const [surah, setSurah] = useState(null);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isSaved, setIsSaved] = useState(false);
+  const [activeAyah, setActiveAyah] = useState(null);
+  const [showTafsir, setShowTafsir] = useState({});
+
   const audioRef = useRef(null);
 
   useEffect(() => {
-    // Check if this surah is saved
-    const saved = localStorage.getItem('saved_surahs');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.some(s => s.number === Number(surahNumber))) {
-        setIsSaved(true);
-      }
-    }
-
     const fetchSurahDetail = async () => {
+      // First check our premium local DB for Tafsir and rich text
+      const localSurah = quranData.find(s => s.id === Number(surahNumber));
+
       try {
         const [arRes, trRes, audioRes] = await Promise.all([
           fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}`),
@@ -42,36 +32,34 @@ export default function SurahDetail() {
         const audioData = await audioRes.json();
 
         if (arData.data && trData.data && audioData.data) {
-          const verses = arData.data.ayahs.map((ayah, i) => ({
-            number: ayah.numberInSurah,
-            arabic: ayah.text,
-            turkish: trData.data.ayahs[i].text,
-            audio_url: audioData.data.ayahs[i].audio
-          }));
+          const verses = arData.data.ayahs.map((ayah, i) => {
+            const localVerse = localSurah?.verses?.find(v => v.verseNumber === ayah.numberInSurah);
+            return {
+              number: ayah.numberInSurah,
+              arabic: ayah.text,
+              turkish: localVerse?.translation || trData.data.ayahs[i].text,
+              tafsir: localVerse?.tafsir || "Bu ayet için tefsir bulunmuyor.",
+              audio_url: audioData.data.ayahs[i].audio
+            };
+          });
           
           setSurah({
             number: Number(surahNumber),
             name: arData.data.englishName,
             arabicName: arData.data.name,
+            translation: localSurah?.translation || arData.data.englishNameTranslation,
+            revelationType: arData.data.revelationType === 'Meccan' ? 'Mekki' : 'Medeni',
+            totalVerses: arData.data.numberOfAyahs,
             verses,
-            reciter: { name: 'Mishary Rashid Alafasy' },
+            reciter: 'Mishary Rashid Alafasy',
             full_audio_url: `https://server8.mp3quran.net/afs/${String(surahNumber).padStart(3, '0')}.mp3`
           });
           setLoading(false);
-          return;
         }
       } catch (err) {
         console.error("AlQuran API failed", err);
+        setLoading(false);
       }
-
-      fetchWithCache(`surah_${surahNumber}`, () => api.get(`/quran/surah/${surahNumber}`).then(r => r.data), { ttl: 24 * 60 * 60 * 1000 })
-        .then(({ data }) => {
-          setSurah(data);
-          setLoading(false);
-        })
-        .catch(() => {
-          setLoading(false);
-        });
     };
 
     fetchSurahDetail();
@@ -89,181 +77,150 @@ export default function SurahDetail() {
 
   const togglePlay = () => setPlaying(!playing);
 
-  const handleTimeUpdate = () => {
+  const playAyah = (ayah) => {
     if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
+      audioRef.current.src = ayah.audio_url;
+      setActiveAyah(ayah.number);
+      setPlaying(true);
+      audioRef.current.play();
     }
   };
 
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
+  const toggleTafsir = (ayahNum) => {
+    setShowTafsir(prev => ({ ...prev, [ayahNum]: !prev[ayahNum] }));
   };
 
-  const formatTime = (time) => {
-    if (isNaN(time)) return '00:00';
-    const mins = Math.floor(time / 60);
-    const secs = Math.floor(time % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const toggleSave = () => {
-    let saved = localStorage.getItem('saved_surahs');
-    saved = saved ? JSON.parse(saved) : [];
-    
-    if (isSaved) {
-      saved = saved.filter(s => s.number !== surah.number);
-      setIsSaved(false);
-    } else {
-      saved.push({
-        number: surah.number,
-        name: surah.name,
-        arabicName: surah.arabicName,
-        savedAt: new Date().toISOString()
-      });
-      setIsSaved(true);
-    }
-    localStorage.setItem('saved_surahs', JSON.stringify(saved));
-    if (navigator.vibrate) navigator.vibrate(50);
-  };
-
-  const downloadAudio = () => {
-    if (!surah || !surah.full_audio_url) return;
-    
-    const a = document.createElement('a');
-    a.href = surah.full_audio_url;
-    // We try to trigger a download. It depends on browser policies for cross-origin resources.
-    // Adding target=_blank as fallback if the download attribute is ignored.
-    a.target = '_blank';
-    a.download = `${surah.name.replace(/\s+/g, '_')}_Audio.mp3`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    // Show a small feedback to user
-    alert("Ses dosyasi indiriliyor/aciliyor...");
-    
-    // Also save it locally in our app state to mark as offline available
-    let offline = localStorage.getItem('offline_surahs');
-    offline = offline ? JSON.parse(offline) : [];
-    if (!offline.some(s => s.number === surah.number)) {
-      offline.push({
-        number: surah.number,
-        name: surah.name,
-        downloadedAt: new Date().toISOString()
-      });
-      localStorage.setItem('offline_surahs', JSON.stringify(offline));
-    }
-  };
+  if (loading || !surah) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#052A1E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="bodySmall" style={{ color: '#CDA434' }}>Sure Yükleniyor...</Typography>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen pb-40" style={{ background: theme.bg }} data-testid="surah-detail">
-      {surah?.full_audio_url && (
-        <audio 
-          ref={audioRef} 
-          src={surah.full_audio_url} 
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setPlaying(false)}
-        />
-      )}
-      
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 pt-6 pb-4 bg-white/80 backdrop-blur-md sticky top-0 z-20" style={{ borderBottom: `1px solid ${theme.cardBorder}` }}>
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 transition-opacity hover:opacity-70">
-          <ChevronLeft size={24} style={{ color: theme.textPrimary }} />
-          <span className="font-bold text-base" style={{ color: theme.textPrimary }}>{surah?.name || 'Yukleniyor...'}</span>
+    <div style={{ minHeight: '100vh', background: '#052A1E', position: 'relative', paddingBottom: '120px' }}>
+      <audio 
+        ref={audioRef} 
+        src={surah.full_audio_url} 
+        onEnded={() => setPlaying(false)}
+      />
+
+      {/* Header Bar */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(5, 42, 30, 0.9)', backdropFilter: 'blur(10px)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ChevronLeft size={24} />
+          <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 600 }}>Geri</Typography>
         </button>
-        <div className="flex items-center gap-4">
-          <button onClick={downloadAudio} className="transition-transform active:scale-95">
-            <Download size={20} style={{ color: theme.textPrimary }} />
-          </button>
-          <button onClick={toggleSave} className="transition-transform active:scale-95">
-            <Bookmark size={20} style={{ color: isSaved ? theme.primary : theme.textPrimary }} fill={isSaved ? theme.primary : "none"} />
+        <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 700, fontSize: '18px' }}>
+          {surah.name}
+        </Typography>
+        <button style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}>
+          <MoreVertical size={24} />
+        </button>
+      </div>
+
+      {/* Surah Banner */}
+      <div style={{ padding: '24px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(205, 164, 52, 0.2) 0%, rgba(15, 143, 87, 0.1) 100%)',
+          border: '1px solid rgba(205, 164, 52, 0.3)',
+          borderRadius: '24px', padding: '32px 24px', textAlign: 'center', position: 'relative', overflow: 'hidden'
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'url("https://www.transparenttextures.com/patterns/arabesque.png")', opacity: 0.05 }} />
+          
+          <Typography variant="h2" style={{ color: '#FFF', fontSize: '36px', fontFamily: "'Amiri', serif", marginBottom: '8px', position: 'relative', zIndex: 2 }}>
+            {surah.arabicName}
+          </Typography>
+          <Typography variant="bodySmall" style={{ color: '#CDA434', fontWeight: 800, fontSize: '18px', letterSpacing: '1px', marginBottom: '8px', position: 'relative', zIndex: 2 }}>
+            {surah.name.toUpperCase()}
+          </Typography>
+          <div style={{ width: '60%', height: '1px', background: 'rgba(255,255,255,0.2)', margin: '16px auto', position: 'relative', zIndex: 2 }} />
+          <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'relative', zIndex: 2 }}>
+            <span>{surah.revelationType}</span> • <span>{surah.totalVerses} Ayet</span>
+          </Typography>
+
+          <button 
+            onClick={togglePlay}
+            style={{
+              marginTop: '24px', width: '64px', height: '64px', borderRadius: '50%',
+              background: '#CDA434', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 24px rgba(205, 164, 52, 0.4)', cursor: 'pointer', position: 'relative', zIndex: 2
+            }}
+          >
+            {playing && !activeAyah ? <Pause size={28} color="#000" /> : <Play size={28} color="#000" style={{ marginLeft: '4px' }} />}
           </button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center p-12"><div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: theme.primary, borderTopColor: 'transparent' }} /></div>
-      ) : (
-        <div className="px-4 mt-4">
-          {surah?.verses?.map((verse, idx) => (
-            <div key={idx} className="mb-6">
-              {/* Ayat header */}
-              <div className="mb-4">
-                <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ background: theme.surface, color: theme.textSecondary, border: `1px solid ${theme.cardBorder}` }}>
-                  {verse.number}. Ayet
-                </span>
-              </div>
-
-              {/* Ayah Card */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} 
-                className="p-6 rounded-[24px] relative overflow-hidden"
-                style={{ background: theme.surface, boxShadow: SHADOWS.sm, border: `1px solid ${theme.cardBorder}` }}
-              >
-                <p className="text-3xl mb-6 leading-[2.2] text-right" style={{ fontFamily: TYPOGRAPHY.fonts.arabic, color: theme.textPrimary, direction: 'rtl' }}>
-                  {verse.arabic}
-                </p>
-                
-                <p className="text-sm font-medium leading-relaxed mb-8" style={{ color: theme.textSecondary }}>
-                  {verse.turkish}
-                </p>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
-                  {[
-                    { icon: <Maximize2 size={18} />, label: 'Tefsir' },
-                    { icon: <MoreHorizontal size={18} />, label: 'Aciklama' },
-                    { icon: <Share2 size={18} />, label: 'Paylas' },
-                    { icon: <Bookmark size={18} />, label: 'Kaydet' },
-                  ].map((action, i) => (
-                    <button key={i} className="flex flex-col items-center gap-1.5 transition-colors hover:text-primary group" style={{ color: theme.textSecondary }}>
-                      <div className="p-2 rounded-full group-hover:bg-green-50 transition-colors">
-                        {action.icon}
-                      </div>
-                      <span className="text-[10px] font-semibold">{action.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          ))}
+      {/* Bismillah */}
+      {surah.number !== 1 && surah.number !== 9 && (
+        <div style={{ textAlign: 'center', padding: '24px', marginBottom: '16px' }}>
+          <Typography variant="h2" style={{ color: '#FFF', fontSize: '28px', fontFamily: "'Amiri', serif" }}>
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+          </Typography>
         </div>
       )}
 
-      {/* Floating Audio Player */}
-      <div className="fixed bottom-[80px] left-4 right-4 z-30">
-        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-          className="rounded-[24px] p-4 flex flex-col gap-4 shadow-xl"
-          style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-100">
-                <img src="https://images.unsplash.com/photo-1592659762303-90081d34b277?auto=format&fit=crop&q=80&w=100" alt="Reciter" className="w-full h-full object-cover" />
+      {/* Verses List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '0 24px' }}>
+        {surah.verses.map((ayah) => (
+          <div key={ayah.number} style={{
+            background: activeAyah === ayah.number ? 'rgba(205, 164, 52, 0.05)' : 'transparent',
+            border: activeAyah === ayah.number ? '1px solid rgba(205, 164, 52, 0.3)' : '1px solid transparent',
+            borderRadius: '20px', padding: '20px', transition: 'all 0.3s'
+          }}>
+            {/* Top Bar for Ayah */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(15, 143, 87, 0.1)',
+                border: '1px solid rgba(15, 143, 87, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#2ECC71', fontWeight: 800, fontSize: '13px'
+              }}>
+                {ayah.number}
               </div>
-              <div>
-                <p className="text-sm font-bold" style={{ color: theme.textPrimary }}>{surah?.reciter?.name || 'Mishary Rashid Alafasy'}</p>
-                <p className="text-[10px] font-semibold" style={{ color: theme.textSecondary }}>{surah?.name || 'Bakara'} Suresi</p>
+              
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button onClick={() => toggleTafsir(ayah.number)} style={{ background: 'none', border: 'none', color: '#CDA434', cursor: 'pointer' }}>
+                  <Info size={20} />
+                </button>
+                <button onClick={() => playAyah(ayah)} style={{ background: 'none', border: 'none', color: '#2ECC71', cursor: 'pointer' }}>
+                  {activeAyah === ayah.number && playing ? <Pause size={20} /> : <Play size={20} />}
+                </button>
+                <button style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
+                  <Share2 size={20} />
+                </button>
               </div>
             </div>
-            <button className="p-2" onClick={downloadAudio}><Download size={18} style={{ color: theme.textSecondary }} /></button>
-          </div>
-          
-          <div className="flex items-center justify-between px-2">
-            <span className="text-[10px] font-medium" style={{ color: theme.textSecondary }}>{formatTime(currentTime)}</span>
-            <div className="flex items-center gap-6">
-              <button className="p-1 transition-opacity hover:opacity-70"><SkipBack size={20} style={{ color: theme.textPrimary }} /></button>
-              <button onClick={togglePlay} className="w-12 h-12 rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-md" style={{ background: theme.primary }}>
-                {playing ? <Pause size={24} color="#FFF" fill="#FFF" /> : <Play size={24} color="#FFF" fill="#FFF" className="ml-1" />}
-              </button>
-              <button className="p-1 transition-opacity hover:opacity-70"><SkipForward size={20} style={{ color: theme.textPrimary }} /></button>
+
+            {/* Arabic Text */}
+            <div style={{ textAlign: 'right', marginBottom: '24px' }}>
+              <Typography variant="h2" style={{ color: '#FFF', fontSize: '32px', fontFamily: "'Amiri', serif", lineHeight: 1.8 }}>
+                {ayah.arabic}
+              </Typography>
             </div>
-            <span className="text-[10px] font-medium" style={{ color: theme.textSecondary }}>{formatTime(duration)}</span>
+
+            {/* Translation */}
+            <div>
+              <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', lineHeight: 1.6 }}>
+                {ayah.turkish}
+              </Typography>
+            </div>
+
+            {/* Tafsir Expandable */}
+            {showTafsir[ayah.number] && (
+              <div style={{
+                marginTop: '16px', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px',
+                borderLeft: '4px solid #CDA434'
+              }}>
+                <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 700, marginBottom: '8px', display: 'block' }}>TEFSİR / AÇIKLAMA</Typography>
+                <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: 1.6 }}>
+                  {ayah.tafsir}
+                </Typography>
+              </div>
+            )}
           </div>
-        </motion.div>
+        ))}
       </div>
     </div>
   );
