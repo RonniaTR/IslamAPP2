@@ -87,6 +87,10 @@ export function AuthProvider({ children }) {
     try { await api.post('/auth/logout'); } finally {
       setUser(null);
       setCachedUser(null);
+      localStorage.removeItem('islamapp_guest_id');
+      localStorage.removeItem('islamapp_user_cache');
+      localStorage.removeItem('onboarding_completed');
+      window.location.href = '/';
     }
   };
 

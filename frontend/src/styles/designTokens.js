@@ -212,7 +212,7 @@ export const BREAKPOINTS = {
 export const ADULT_NAV_TABS = [
   { id: 'home', path: '/', icon: 'Home', label: 'Ana Sayfa' },
   { id: 'discover', path: '/discover', icon: 'Compass', label: 'Keşfet' },
-  { id: 'play', path: '/quiz', icon: 'Gamepad2', label: 'Oyna', isCenter: true },
+  { id: 'reading', path: '/quran', icon: 'BookOpen', label: 'Okuma', isCenter: true },
   { id: 'events', path: '/journey', icon: 'Calendar', label: 'Etkinlikler' },
   { id: 'profile', path: '/profile', icon: 'User', label: 'Profil' },
 ];

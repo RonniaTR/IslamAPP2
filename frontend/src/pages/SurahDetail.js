@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Type, Bell, Share2, Bookmark, Play, Pause, SkipBack, SkipForward, Maximize2, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, Type, Bell, Share2, Bookmark, Play, Pause, SkipBack, SkipForward, Maximize2, MoreHorizontal, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
@@ -16,9 +16,19 @@ export default function SurahDetail() {
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isSaved, setIsSaved] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
+    // Check if this surah is saved
+    const saved = localStorage.getItem('saved_surahs');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.some(s => s.number === Number(surahNumber))) {
+        setIsSaved(true);
+      }
+    }
+
     const fetchSurahDetail = async () => {
       try {
         const [arRes, trRes, audioRes] = await Promise.all([
@@ -40,10 +50,12 @@ export default function SurahDetail() {
           }));
           
           setSurah({
+            number: Number(surahNumber),
             name: arData.data.englishName,
+            arabicName: arData.data.name,
             verses,
             reciter: { name: 'Mishary Rashid Alafasy' },
-            full_audio_url: `https://server8.mp3quran.net/afs/${String(surahNumber).padStart(3, '0')}.mp3` // A common reliable full audio source
+            full_audio_url: `https://server8.mp3quran.net/afs/${String(surahNumber).padStart(3, '0')}.mp3`
           });
           setLoading(false);
           return;
@@ -96,6 +108,55 @@ export default function SurahDetail() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const toggleSave = () => {
+    let saved = localStorage.getItem('saved_surahs');
+    saved = saved ? JSON.parse(saved) : [];
+    
+    if (isSaved) {
+      saved = saved.filter(s => s.number !== surah.number);
+      setIsSaved(false);
+    } else {
+      saved.push({
+        number: surah.number,
+        name: surah.name,
+        arabicName: surah.arabicName,
+        savedAt: new Date().toISOString()
+      });
+      setIsSaved(true);
+    }
+    localStorage.setItem('saved_surahs', JSON.stringify(saved));
+    if (navigator.vibrate) navigator.vibrate(50);
+  };
+
+  const downloadAudio = () => {
+    if (!surah || !surah.full_audio_url) return;
+    
+    const a = document.createElement('a');
+    a.href = surah.full_audio_url;
+    // We try to trigger a download. It depends on browser policies for cross-origin resources.
+    // Adding target=_blank as fallback if the download attribute is ignored.
+    a.target = '_blank';
+    a.download = `${surah.name.replace(/\s+/g, '_')}_Audio.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // Show a small feedback to user
+    alert("Ses dosyasi indiriliyor/aciliyor...");
+    
+    // Also save it locally in our app state to mark as offline available
+    let offline = localStorage.getItem('offline_surahs');
+    offline = offline ? JSON.parse(offline) : [];
+    if (!offline.some(s => s.number === surah.number)) {
+      offline.push({
+        number: surah.number,
+        name: surah.name,
+        downloadedAt: new Date().toISOString()
+      });
+      localStorage.setItem('offline_surahs', JSON.stringify(offline));
+    }
+  };
+
   return (
     <div className="min-h-screen pb-40" style={{ background: theme.bg }} data-testid="surah-detail">
       {surah?.full_audio_url && (
@@ -112,12 +173,14 @@ export default function SurahDetail() {
       <div className="flex items-center justify-between px-4 pt-6 pb-4 bg-white/80 backdrop-blur-md sticky top-0 z-20" style={{ borderBottom: `1px solid ${theme.cardBorder}` }}>
         <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 transition-opacity hover:opacity-70">
           <ChevronLeft size={24} style={{ color: theme.textPrimary }} />
-          <span className="font-bold text-base" style={{ color: theme.textPrimary }}>{surah?.name || 'Yükleniyor...'}</span>
+          <span className="font-bold text-base" style={{ color: theme.textPrimary }}>{surah?.name || 'Yukleniyor...'}</span>
         </button>
         <div className="flex items-center gap-4">
-          <button><Type size={20} style={{ color: theme.textPrimary }} /></button>
-          <button className="relative">
-            <Bell size={20} style={{ color: theme.textPrimary }} />
+          <button onClick={downloadAudio} className="transition-transform active:scale-95">
+            <Download size={20} style={{ color: theme.textPrimary }} />
+          </button>
+          <button onClick={toggleSave} className="transition-transform active:scale-95">
+            <Bookmark size={20} style={{ color: isSaved ? theme.primary : theme.textPrimary }} fill={isSaved ? theme.primary : "none"} />
           </button>
         </div>
       </div>
@@ -152,8 +215,8 @@ export default function SurahDetail() {
                 <div className="flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
                   {[
                     { icon: <Maximize2 size={18} />, label: 'Tefsir' },
-                    { icon: <MoreHorizontal size={18} />, label: 'Açıklama' },
-                    { icon: <Share2 size={18} />, label: 'Paylaş' },
+                    { icon: <MoreHorizontal size={18} />, label: 'Aciklama' },
+                    { icon: <Share2 size={18} />, label: 'Paylas' },
                     { icon: <Bookmark size={18} />, label: 'Kaydet' },
                   ].map((action, i) => (
                     <button key={i} className="flex flex-col items-center gap-1.5 transition-colors hover:text-primary group" style={{ color: theme.textSecondary }}>
@@ -186,7 +249,7 @@ export default function SurahDetail() {
                 <p className="text-[10px] font-semibold" style={{ color: theme.textSecondary }}>{surah?.name || 'Bakara'} Suresi</p>
               </div>
             </div>
-            <button className="p-2"><MoreHorizontal size={18} style={{ color: theme.textSecondary }} /></button>
+            <button className="p-2" onClick={downloadAudio}><Download size={18} style={{ color: theme.textSecondary }} /></button>
           </div>
           
           <div className="flex items-center justify-between px-2">

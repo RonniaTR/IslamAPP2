@@ -6,7 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
 
 export default function SettingsPage() {
-  const { theme } = useTheme();
+  const { theme, themeId, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const settingsGroups = [
@@ -18,17 +18,17 @@ export default function SettingsPage() {
     },
     {
       items: [
-        { id: 'appearance', label: 'Görünüm', icon: Palette, value: 'Açık Tema', path: '/settings/appearance' },
-        { id: 'language', label: 'Dil', icon: Globe, value: 'Türkçe', path: '/settings/language' },
-        { id: 'fontsize', label: 'Yazı Boyutu', icon: Type, value: 'Orta', path: '/settings/appearance' },
-        { id: 'audio', label: 'Ses ve Okuyucu', icon: Volume2, value: '', path: '/settings/audio' },
+        { id: 'appearance', label: 'Görünüm', icon: Palette, value: themeId === 'dark' ? 'Koyu Tema' : 'Açık Tema', action: 'toggleTheme' },
+        { id: 'language', label: 'Dil', icon: Globe, value: 'Türkçe', action: 'noop' },
+        { id: 'fontsize', label: 'Yazı Boyutu', icon: Type, value: 'Orta', action: 'noop' },
+        { id: 'audio', label: 'Ses ve Okuyucu', icon: Volume2, value: 'Kabe İmamı', action: 'noop' },
       ]
     },
     {
       items: [
-        { id: 'privacy', label: 'Gizlilik', icon: Shield, value: '', path: '/settings/privacy' },
-        { id: 'backup', label: 'Yedekleme', icon: Database, value: '', path: '/settings/backup' },
-        { id: 'about', label: 'Hakkında', icon: Info, value: '', path: '/settings/about' },
+        { id: 'privacy', label: 'Gizlilik', icon: Shield, value: '', action: 'noop' },
+        { id: 'backup', label: 'Yedekleme', icon: Database, value: '', action: 'noop' },
+        { id: 'about', label: 'Hakkında', icon: Info, value: '', action: 'noop' },
       ]
     }
   ];
@@ -58,7 +58,11 @@ export default function SettingsPage() {
             {group.items.map((item, idx) => (
               <button
                 key={item.id}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  if (item.action === 'toggleTheme') toggleTheme();
+                  else if (item.path) navigate(item.path);
+                  else alert('Bu özellik yakında eklenecek!');
+                }}
                 className="w-full flex items-center justify-between p-4 transition-colors hover:bg-black/5"
                 style={{ borderBottom: idx !== group.items.length - 1 ? `1px solid ${theme.cardBorder}` : 'none' }}
               >

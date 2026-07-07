@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search, MoreVertical, MoreHorizontal } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ChevronLeft, Search, MoreVertical, MoreHorizontal, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
 import api from '../api';
@@ -15,30 +15,50 @@ export default function BookmarksPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchWithCache('bookmarks_list', () => api.get('/bookmarks').then(r => r.data), { ttl: 24 * 60 * 60 * 1000 })
-      .then(({ data }) => {
-        setBookmarks(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => {
-        // Fallback mock data
-        setBookmarks([
-          { id: 1, title: 'Bakara Suresi 286. Ayet', type: 'Ayet', icon: '📖' },
-          { id: 2, title: 'Rabbim! İlmimi artır.', type: 'Dua', icon: '🤲' },
-          { id: 3, title: 'Tevekkül Nedir? Nasıl Gerçekleşir?', type: 'Makale', icon: '📄' },
-          { id: 4, title: "Hz. Yusuf'un Sabır Örneği", type: 'Hikaye', icon: '🕌' },
-        ]);
-        setLoading(false);
-      });
+    // 1. Fetch default/mock bookmarks
+    const mockBookmarks = [
+      { id: 'b1', title: 'Bakara Suresi 286. Ayet', type: 'Ayet', icon: '📖' },
+      { id: 'b2', title: 'Rabbim! İlmimi artır.', type: 'Dua', icon: '🤲' },
+      { id: 'b3', title: 'Tevekkül Nedir? Nasıl Gerçekleşir?', type: 'Makale', icon: '📄' },
+      { id: 'b4', title: "Hz. Yusuf'un Sabır Örneği", type: 'Hikaye', icon: '🕌' },
+    ];
+
+    // 2. Fetch saved surahs from localStorage
+    let localSaved = [];
+    try {
+      const saved = localStorage.getItem('saved_surahs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        localSaved = parsed.map(s => ({
+          id: `surah_${s.number}`,
+          title: `${s.name} Suresi`,
+          subtitle: s.arabicName,
+          type: 'Kuran',
+          path: `/quran/${s.number}`,
+          icon: '✨'
+        }));
+      }
+    } catch (e) {
+      console.log('Error reading saved surahs', e);
+    }
+
+    setBookmarks([...localSaved, ...mockBookmarks]);
+    setLoading(false);
   }, []);
 
   const tabs = [
     { id: 'all', label: 'Tümü' },
-    { id: 'ayah', label: 'Ayet' },
+    { id: 'kuran', label: 'Kuran' },
+    { id: 'ayet', label: 'Ayet' },
     { id: 'dua', label: 'Dua' },
-    { id: 'article', label: 'Makale' },
-    { id: 'story', label: 'Hikaye' },
+    { id: 'makale', label: 'Makale' },
+    { id: 'hikaye', label: 'Hikaye' },
   ];
+
+  const filteredBookmarks = bookmarks.filter(b => {
+    if (activeTab === 'all') return true;
+    return b.type.toLowerCase() === activeTab;
+  });
 
   return (
     <div className="min-h-screen pb-24" style={{ background: theme.bg }} data-testid="bookmarks-page">
@@ -85,30 +105,52 @@ export default function BookmarksPage() {
       <div className="px-4 flex flex-col gap-3">
         {loading ? (
           <div className="flex justify-center p-8"><div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: theme.primary, borderTopColor: 'transparent' }} /></div>
+        ) : filteredBookmarks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 text-center">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: `${theme.primary}15`, color: theme.primary }}>
+              <BookOpen size={32} />
+            </div>
+            <p className="text-[15px] font-bold mb-2" style={{ color: theme.textPrimary }}>Henüz kayıt yok.</p>
+            <p className="text-xs font-medium" style={{ color: theme.textSecondary }}>Kaydettiğiniz sureler, dualar ve yazılar burada listelenir.</p>
+          </div>
         ) : (
-          bookmarks.map((item, idx) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className="flex items-center justify-between p-4 rounded-[20px] transition-shadow hover:shadow-sm"
-              style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-[12px] flex items-center justify-center text-lg" style={{ background: `${theme.primary}15` }}>
-                  {item.icon}
+          <AnimatePresence mode="popLayout">
+            {filteredBookmarks.map((item, idx) => (
+              <motion.div
+                layout
+                key={item.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  if (item.path) navigate(item.path);
+                }}
+                className={`flex items-center justify-between p-4 rounded-[20px] transition-shadow hover:shadow-md ${item.path ? 'cursor-pointer' : ''}`}
+                style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[16px] flex items-center justify-center text-xl shadow-inner" style={{ background: `${theme.primary}15` }}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-bold mb-0.5 line-clamp-1" style={{ color: theme.textPrimary }}>{item.title}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase" style={{ background: `${theme.primary}20`, color: theme.primary }}>
+                        {item.type}
+                      </span>
+                      {item.subtitle && (
+                        <span className="text-[11px] font-bold" style={{ color: theme.textSecondary, fontFamily: TYPOGRAPHY.fonts.arabic }}>{item.subtitle}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-[13px] mb-0.5" style={{ color: theme.textPrimary }}>{item.title}</h3>
-                  <p className="text-[10px] font-medium" style={{ color: theme.textSecondary }}>{item.type}</p>
-                </div>
-              </div>
-              <button className="p-2 transition-colors hover:text-primary" style={{ color: theme.textSecondary }}>
-                <MoreHorizontal size={18} />
-              </button>
-            </motion.div>
-          ))
+                <button className="p-2 transition-colors hover:bg-gray-100 rounded-full">
+                  <MoreHorizontal size={18} style={{ color: theme.textSecondary }} />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         )}
       </div>
     </div>

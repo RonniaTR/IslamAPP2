@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Zap, Target, Flame, Trophy } from 'lucide-react';
+import { Play, Zap, Target, Flame, Trophy, ChevronLeft, Award } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { getRandomQuestions } from '../data/quizData'; 
 
@@ -16,12 +16,6 @@ export default function QuizEngine() {
   const [streak, setStreak] = useState(0);
   const [comboBonus, setComboBonus] = useState(0);
   const [multiplier, setMultiplier] = useState(1);
-
-  const userStats = [
-    { name: "Kuran", score: 85 }, { name: "Siyer", score: 70 },
-    { name: "Fıkıh", score: 58 }, { name: "Hadis", score: 76 },
-    { name: "Ahlak", score: 92 }, { name: "Tarih", score: 54 }
-  ];
 
   const startGame = (count, mult) => {
     setMultiplier(mult);
@@ -70,157 +64,167 @@ export default function QuizEngine() {
     }, 500);
   };
 
-  // LOBBY
+  // ─── LOBBY ───
   if (gameState === 'lobby') {
     const modes = [
-      { count: 5, mult: 1.0, title: 'Hızlı Oyun', desc: '5 Soru • 1.0x XP', icon: Zap, color: '#10B981' },
-      { count: 10, mult: 1.2, title: 'Klasik Test', desc: '10 Soru • 1.2x XP Çarpanı', icon: Target, color: theme.gold },
-      { count: 20, mult: 1.5, title: 'Maraton', desc: '20 Soru • 1.5x Dev XP Bonusu', icon: Flame, color: '#EF4444' },
+      { count: 5, mult: 1.0, title: 'Hızlı Oyun', desc: '5 Soru • 1.0x Puan', icon: Zap, color: '#10B981', gradient: 'linear-gradient(135deg, #10B981, #059669)' },
+      { count: 10, mult: 1.2, title: 'Klasik Test', desc: '10 Soru • 1.2x Puan', icon: Target, color: '#F59E0B', gradient: 'linear-gradient(135deg, #F59E0B, #D97706)' },
+      { count: 20, mult: 1.5, title: 'Maraton', desc: '20 Soru • 1.5x Puan', icon: Flame, color: '#EF4444', gradient: 'linear-gradient(135deg, #EF4444, #DC2626)' },
     ];
 
     return (
-      <div className="min-h-screen flex flex-col items-center pt-8 p-5 font-sans pb-28" style={{ background: theme.bg }}>
-        
-        {/* Radar Chart */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md p-5 rounded-3xl mb-6"
-          style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-          <h2 className="text-lg font-bold mb-0.5 text-center" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>İlim Radarı</h2>
-          <p className="text-[10px] text-center mb-4" style={{ color: theme.textSecondary }}>Mevcut bilgi seviyeniz</p>
+      <div className="min-h-screen pb-24" style={{ background: theme.bg }} data-testid="quiz-lobby">
+        {/* Header / Hero Section */}
+        <div 
+          className="relative pt-12 pb-12 px-5 rounded-b-[40px] shadow-sm mb-8 overflow-hidden" 
+          style={{ background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%)' }}
+        >
+          {/* Decorative Background */}
+          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&q=80&w=800)', backgroundSize: 'cover', backgroundPosition: 'center', mixBlendMode: 'overlay' }} />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
           
-          <div className="relative w-full aspect-square max-w-[200px] mx-auto">
-            <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
-              {[0.25, 0.50, 0.75, 1.0].map((scale, sIdx) => {
-                const points = userStats.map((_, i) => {
-                  const angle = (i * 2 * Math.PI) / userStats.length;
-                  return `${100 + 80 * scale * Math.cos(angle)},${100 + 80 * scale * Math.sin(angle)}`;
-                }).join(' ');
-                return <polygon key={sIdx} points={points} fill="none" stroke={theme.gold} strokeWidth="0.5" strokeOpacity={sIdx === 3 ? "0.4" : "0.15"} />;
-              })}
-              <polygon
-                points={userStats.map((stat, i) => {
-                  const angle = (i * 2 * Math.PI) / userStats.length;
-                  const radius = 80 * (stat.score / 100);
-                  return `${100 + radius * Math.cos(angle)},${100 + radius * Math.sin(angle)}`;
-                }).join(' ')}
-                fill={`${theme.gold}30`} stroke={theme.gold} strokeWidth="2"
-              />
-            </svg>
-            {userStats.map((stat, i) => {
-              const angle = (i * 2 * Math.PI) / userStats.length;
-              const x = 50 + 44 * Math.cos(angle);
-              const y = 50 + 44 * Math.sin(angle);
-              return (
-                <div key={i} className="absolute text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm"
-                  style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%, -50%)', background: `${theme.bg}95`, color: theme.textPrimary, border: `1px solid ${theme.cardBorder}` }}>
-                  {stat.name}
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Game Modes */}
-        <div className="w-full max-w-md flex flex-col gap-3">
-          <h2 className="font-black text-base mb-1" style={{ color: theme.gold }}>Oyun Modunu Seç</h2>
-          
-          {modes.map((mode, i) => (
-            <motion.button key={i} whileTap={{ scale: 0.97 }}
-              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-              onClick={() => startGame(mode.count, mode.mult)}
-              className="w-full flex items-center justify-between p-4 rounded-2xl transition-all"
-              style={{ background: theme.surface, border: `1px solid ${mode.color}20` }}>
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl" style={{ background: `${mode.color}15` }}>
-                  <mode.icon size={22} style={{ color: mode.color }} />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-bold text-base" style={{ color: theme.textPrimary }}>{mode.title}</h3>
-                  <p className="text-[11px]" style={{ color: theme.textSecondary }}>{mode.desc}</p>
+          <div className="relative z-10">
+            {/* Top Bar with Back Button */}
+            <div className="flex justify-between items-center mb-8">
+              <button 
+                onClick={() => navigate(-1)} 
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 border border-white/20 backdrop-blur-md transition-transform active:scale-95"
+              >
+                <ChevronLeft size={24} color="#FFF" />
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center gap-1">
+                  <Trophy size={14} color="#FBBF24" />
+                  <span className="text-white text-xs font-bold">1250 Puan</span>
                 </div>
               </div>
-              <Play size={18} style={{ color: theme.gold }} />
-            </motion.button>
-          ))}
+            </div>
+
+            {/* Intro Text */}
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto bg-white/10 rounded-[20px] backdrop-blur-md flex items-center justify-center mb-4 border border-white/20 shadow-lg">
+                <Award size={32} color="#FBBF24" />
+              </div>
+              <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">Kendini Test Et</h1>
+              <p className="text-white/80 text-sm font-medium px-4 leading-relaxed">
+                İslami bilgini ölç, puanları topla ve liderlik tablosunda yüksel. Hangi modda yarışmak istersin?
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Mode Selection */}
+        <div className="px-5">
+          <h2 className="text-[17px] font-extrabold mb-4" style={{ color: theme.textPrimary }}>Oyun Modunu Seç</h2>
+          
+          <div className="flex flex-col gap-4">
+            <AnimatePresence>
+              {modes.map((mode, i) => (
+                <motion.button
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => startGame(mode.count, mode.mult)}
+                  className="w-full text-left p-4 rounded-[24px] shadow-sm flex items-center gap-4 relative overflow-hidden"
+                  style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
+                >
+                  <div className="w-16 h-16 rounded-[18px] flex items-center justify-center shrink-0 shadow-inner relative z-10" style={{ background: mode.gradient }}>
+                    <mode.icon size={28} color="#FFF" />
+                  </div>
+                  <div className="flex-1 relative z-10 py-1">
+                    <h3 className="text-[16px] font-extrabold mb-1" style={{ color: theme.textPrimary }}>{mode.title}</h3>
+                    <p className="text-[12px] font-semibold" style={{ color: theme.textSecondary }}>{mode.desc}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center relative z-10" style={{ background: `${mode.color}15` }}>
+                    <Play size={18} color={mode.color} className="ml-0.5" />
+                  </div>
+                </motion.button>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     );
   }
 
-  // PLAYING
+  // ─── PLAYING STATE ───
   const currentQ = questions[currentIndex];
   const progress = ((currentIndex) / questions.length) * 100;
 
-  const renderOptions = () => {
-    if (currentQ.type === 'tf') {
-      return (
-        <div className="flex gap-3 w-full mt-4">
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => handleAnswer(0)}
-            className="flex-1 py-7 rounded-2xl text-xl font-black"
-            style={{ background: '#10B98115', border: '2px solid #10B98140', color: '#10B981' }}>DOĞRU</motion.button>
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => handleAnswer(1)}
-            className="flex-1 py-7 rounded-2xl text-xl font-black"
-            style={{ background: '#EF444415', border: '2px solid #EF444440', color: '#EF4444' }}>YANLIŞ</motion.button>
-        </div>
-      );
-    }
-    return (
-      <div className="flex flex-col gap-3 w-full">
-        {currentQ.options.map((opt, idx) => (
-          <motion.button key={idx} whileTap={{ scale: 0.98 }} onClick={() => handleAnswer(idx)}
-            className="p-4 rounded-2xl text-base font-semibold text-left pl-5 w-full transition-all"
-            style={{ background: `${theme.textSecondary}08`, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary }}>
-            <span className="font-bold mr-2" style={{ color: theme.gold }}>{['A', 'B', 'C', 'D'][idx]}.</span>{opt}
-          </motion.button>
-        ))}
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-5 font-sans" style={{ background: theme.bg }}>
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen flex flex-col font-sans pb-10 pt-6 px-5" style={{ background: theme.bg }}>
+      
+      {/* Top Bar */}
+      <div className="flex items-center justify-between mb-8">
+        <button onClick={() => setGameState('lobby')} className="w-10 h-10 rounded-full flex items-center justify-center border transition-colors" style={{ background: theme.surface, borderColor: theme.cardBorder }}>
+          <ChevronLeft size={24} style={{ color: theme.textPrimary }} />
+        </button>
         
-        {/* Top Bar */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
-            style={{ background: theme.surface, color: theme.gold }}>
-            <Target size={14} /> Soru {currentIndex + 1}/{questions.length}
-          </div>
-          
+        <div className="flex gap-3">
           {streak >= 3 && (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
-              className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse"
-              style={{ background: '#F9731915', color: '#F97316', border: '1px solid #F9731630' }}>
-              <Flame size={14} /> {streak}x Seri (+15 XP)
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-orange-100 border border-orange-200">
+              <Flame size={14} className="text-orange-500" />
+              <span className="text-xs font-bold text-orange-600">{streak}x Seri!</span>
             </motion.div>
           )}
-
-          <div className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5"
-            style={{ background: theme.surface, color: theme.gold }}>
-            <Trophy size={14} /> {Math.round(score)} XP
+          <div className="flex items-center gap-1 px-3 py-1.5 rounded-full shadow-sm border" style={{ background: theme.surface, borderColor: theme.cardBorder }}>
+            <Trophy size={14} style={{ color: theme.gold }} />
+            <span className="text-xs font-bold" style={{ color: theme.textPrimary }}>{score}</span>
           </div>
         </div>
+      </div>
 
-        {/* Progress Bar */}
-        <div className="h-2 rounded-full overflow-hidden mb-6" style={{ background: `${theme.textSecondary}15` }}>
-          <motion.div className="h-full rounded-full" initial={{ width: `${((currentIndex) / questions.length) * 100}%` }} animate={{ width: `${progress}%` }}
-            style={{ background: `linear-gradient(90deg, ${theme.gold}, ${theme.goldLight || theme.gold})` }} />
+      {/* Progress Bar */}
+      <div className="mb-8">
+        <div className="flex justify-between text-xs font-bold mb-2" style={{ color: theme.textSecondary }}>
+          <span>Soru {currentIndex + 1}</span>
+          <span>{questions.length} Soru</span>
+        </div>
+        <div className="h-2.5 w-full rounded-full overflow-hidden" style={{ background: theme.cardBorder }}>
+          <motion.div 
+            initial={{ width: 0 }} animate={{ width: `${progress}%` }} 
+            className="h-full rounded-full" 
+            style={{ background: `linear-gradient(90deg, ${theme.primary}, ${theme.gold})` }} 
+          />
+        </div>
+      </div>
+
+      {/* Question Card */}
+      <motion.div 
+        key={currentIndex}
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="w-full flex-1 flex flex-col"
+      >
+        <div className="flex-1 flex items-center justify-center mb-8 px-2">
+          <h2 className="text-2xl font-bold text-center leading-snug" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
+            {currentQ.question}
+          </h2>
         </div>
 
-        {/* Question */}
-        <AnimatePresence mode="wait">
-          <motion.div key={currentIndex} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="w-full">
-            <div className="backdrop-blur-xl p-7 rounded-3xl shadow-2xl mb-6 min-h-[200px] flex items-center justify-center relative overflow-hidden"
-              style={{ background: theme.cardBg, border: `1px solid ${theme.gold}25` }}>
-              <div className="absolute top-0 right-0 px-3 py-1 rounded-bl-2xl font-bold text-[10px]"
-                style={{ background: `${theme.gold}10`, color: theme.gold }}>{currentQ.category}</div>
-              <h2 className="text-xl md:text-2xl font-extrabold text-center leading-relaxed z-10" style={{ color: theme.textPrimary }}>{currentQ.question}</h2>
-            </div>
-            {renderOptions()}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+        {/* Options */}
+        <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
+          {currentQ.options.map((opt, i) => (
+            <motion.button
+              key={i}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleAnswer(i)}
+              className="w-full text-left p-4 rounded-2xl border-2 transition-colors relative overflow-hidden"
+              style={{ background: theme.surface, borderColor: theme.cardBorder, color: theme.textPrimary }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold opacity-70" style={{ background: theme.bg }}>
+                  {String.fromCharCode(65 + i)}
+                </span>
+                <span className="text-[15px] font-semibold">{opt}</span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
     </div>
   );
 }

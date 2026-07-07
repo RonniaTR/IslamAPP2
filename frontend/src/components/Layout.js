@@ -1,13 +1,54 @@
 import React, { memo, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Compass, Gamepad2, Calendar, User } from 'lucide-react';
+import { Home, Compass, Gamepad2, Calendar, User, BookOpen } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS, ADULT_NAV_TABS } from '../styles/designTokens';
 
-const iconMap = { Home, Compass, Gamepad2, Calendar, User };
+const iconMap = { Home, Compass, Gamepad2, Calendar, User, BookOpen };
 
-const NavTab = memo(function NavTab({ icon: Icon, label, active, isCenter, theme, onClick }) {
+const NavTab = memo(function NavTab({ icon: Icon, label, active, isCenter, theme, onClick, isDesktop }) {
+  if (isDesktop) {
+    return (
+      <button onClick={onClick}
+        aria-label={label}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          width: '100%',
+          padding: '12px 16px',
+          borderRadius: '16px',
+          background: active ? `${theme.primary || '#0D5C2F'}15` : 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+        }}
+      >
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '12px',
+          background: active ? (theme.primary || '#0D5C2F') : 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: active ? `0 4px 12px ${theme.primary || '#0D5C2F'}40` : 'none',
+        }}>
+          <Icon size={20} color={active ? '#FFFFFF' : theme.textSecondary} strokeWidth={active ? 2.5 : 2} />
+        </div>
+        <span style={{
+          fontSize: '15px',
+          fontWeight: active ? 800 : 600,
+          color: active ? (theme.primary || '#0D5C2F') : theme.textSecondary,
+        }}>
+          {label}
+        </span>
+      </button>
+    );
+  }
+
+  // Mobile layout tab
   if (isCenter) {
     return (
       <button onClick={onClick}
@@ -135,23 +176,62 @@ export default memo(function Layout() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[768px] lg:max-w-[520px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
+      className={`min-h-screen flex w-full relative ${isRtl ? 'rtl' : 'ltr'}`}
       style={{ background: theme.bg }}
       data-testid="app-layout"
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      <main className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
-        <Outlet />
+      {/* DESKTOP SIDEBAR */}
+      {!hideNav && (
+        <aside className="hidden md:flex flex-col fixed top-0 bottom-0 left-0 w-[260px] z-50 p-6"
+          style={{ background: theme.navBg, borderRight: `1px solid ${theme.cardBorder}` }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
+            <svg width="32" height="32" viewBox="0 0 40 40">
+              <path d="M20 2 C10 2 2 10 2 20 C2 30 10 38 20 38 C15 34 12 28 12 20 C12 12 15 6 20 2Z" fill={theme.primary || '#0D5C2F'} />
+              <circle cx="20" cy="20" r="18" fill="none" stroke={theme.primary || '#0D5C2F'} strokeWidth="1.5" opacity="0.3" />
+            </svg>
+            <span style={{ fontSize: '20px', fontWeight: 800, color: theme.textPrimary, letterSpacing: '-0.02em' }}>
+              İslami Yaşam
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {tabs.map(({ id, path, icon, label }) => {
+              const active = path === '/' ? pathname === '/' : pathname.startsWith(path);
+              return (
+                <NavTab
+                  key={id}
+                  icon={icon}
+                  label={label}
+                  active={active}
+                  isCenter={false}
+                  theme={theme}
+                  onClick={() => navigate(path)}
+                  isDesktop={true}
+                />
+              );
+            })}
+          </div>
+        </aside>
+      )}
+
+      {/* MAIN CONTENT AREA */}
+      <main className={`flex-1 overflow-y-auto scrollbar-hide pb-24 md:pb-0 ${!hideNav ? 'md:ml-[260px]' : ''}`}>
+        <div className="w-full h-full max-w-[1400px] mx-auto relative">
+          <Outlet />
+        </div>
       </main>
+
+      {/* MOBILE BOTTOM NAV */}
       {!hideNav && (
         <nav
+          className="md:hidden"
           style={{
             position: 'fixed',
             bottom: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            left: 0,
             width: '100%',
-            maxWidth: '520px',
             zIndex: 50,
             background: theme.navBg,
             backdropFilter: 'blur(24px)',

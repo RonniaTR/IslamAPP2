@@ -45,29 +45,28 @@ const THEMES = {
     id: 'dark',
     name: 'Koyu',
     icon: '🌙',
-    // Yetişkin Modu Dark
-    bg: '#070D18',
-    surface: '#111D30',
-    surfaceLight: '#1A2940',
-    surfaceAlt: '#0E1824',
-    primary: COLORS.adult.primary,
-    primaryLight: COLORS.adult.primaryLight,
-    primaryDark: COLORS.adult.primaryDark,
-    primaryGradient: COLORS.adult.primaryGradient,
+    bg: '#040C07',
+    surface: '#0B1A11',
+    surfaceLight: '#122B1C',
+    surfaceAlt: '#08140B',
+    primary: '#0D5C2F',
+    primaryLight: '#1A7A42',
+    primaryDark: '#064420',
+    primaryGradient: 'linear-gradient(135deg, #0D5C2F, #1A7A42)',
     gold: '#C8A55A',
     goldLight: '#E0C47A',
     accent: '#C8A55A',
     cream: '#EBE5D8',
     creamMuted: '#B8B0A0',
-    textPrimary: '#EBE5D8',
-    textSecondary: '#7E8A9E',
-    textMuted: '#5A6577',
-    navBg: 'rgba(7, 13, 24, 0.97)',
-    cardBg: 'rgba(17, 29, 48, 0.55)',
-    cardBorder: 'rgba(200, 165, 90, 0.07)',
+    textPrimary: '#FFFFFF',
+    textSecondary: '#8E9B93',
+    textMuted: '#5F6F65',
+    navBg: 'rgba(4, 12, 7, 0.97)',
+    cardBg: '#0B1A11',
+    cardBorder: 'rgba(255, 255, 255, 0.05)',
     inputBg: 'rgba(255, 255, 255, 0.03)',
     inputBorder: 'rgba(255, 255, 255, 0.08)',
-    glassBg: 'rgba(17, 29, 48, 0.55)',
+    glassBg: 'rgba(11, 26, 17, 0.55)',
     success: COLORS.adult.success,
     warning: COLORS.adult.warning,
     error: COLORS.adult.error,
@@ -144,9 +143,9 @@ export const KIDS_THEME = {
 };
 
 export function ThemeProvider({ children }) {
-  const [themeId, setThemeId] = useState(() => localStorage.getItem('app_theme') || 'light');
+  const [themeId, setThemeId] = useState(() => localStorage.getItem('app_theme') || 'dark');
 
-  const theme = THEMES[themeId] || THEMES.light;
+  const theme = THEMES[themeId] || THEMES.dark;
 
   useEffect(() => {
     localStorage.setItem('app_theme', themeId);
