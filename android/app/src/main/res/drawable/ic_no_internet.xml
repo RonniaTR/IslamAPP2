@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Çevrimdışı ikonu (sinyal yok) -->
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M24,8.98C20.93,5.9 16.69,4 12,4C10.13,4 8.35,4.38 6.73,5.06L8.53,6.86C9.62,6.31 10.78,6 12,6c3.47,0 6.49,1.4 8.74,3.66L24,8.98z" />
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M2.71,3.16L1.29,4.58L4.06,7.35C2.74,8.54 1.62,9.94 0.76,11.5L3.26,13C3.95,11.79 4.84,10.72 5.89,9.82L7.63,11.56C6.73,12.3 5.97,13.18 5.37,14.16L7.87,15.66C8.3,15.03 8.82,14.47 9.4,14L20.42,25L21.84,23.58L2.71,3.16z" />
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M12,18m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+
+</vector>

@@ -1,0 +1,518 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800;900&family=Amiri:wght@400;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg-primary: #F5F5F0;
+  --bg-surface: #FFFFFF;
+  --bg-surface-light: #F0EBE3;
+  --primary: #0D5C2F;
+  --primary-light: #1A7A42;
+  --gold: #C8A55A;
+  --gold-light: #E0C47A;
+  --cream: #1A1A1A;
+  --cream-muted: #4A4A4A;
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B7280;
+  --nav-bg: rgba(255, 255, 255, 0.97);
+  --card-bg: #FFFFFF;
+  --card-border: rgba(0, 0, 0, 0.06);
+  --input-bg: rgba(0, 0, 0, 0.03);
+  --input-border: rgba(0, 0, 0, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+.arabic-text {
+  font-family: 'Amiri', 'Arabic Typesetting', serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 2.2;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Core Animations ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@keyframes crescentGlow {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(200,165,90,0.25)); }
+  50% { filter: drop-shadow(0 0 28px rgba(200,165,90,0.5)); }
+}
+.animate-crescent { animation: crescentGlow 3s ease-in-out infinite; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+.animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,165,90,0.3); }
+  50% { box-shadow: 0 0 0 10px rgba(200,165,90,0); }
+}
+.animate-pulse-gold { animation: pulseGold 2.5s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* ─── Glass & Card Styles ─── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+}
+
+.glass-dark {
+  background: var(--nav-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+}
+
+.card-islamic {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.card-islamic:hover {
+  border-color: rgba(200, 165, 90, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+.card-islamic:active { transform: scale(0.97); }
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #C8A55A, #E0C47A, #C8A55A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+input, textarea, select { font-family: 'Inter', sans-serif; }
+audio::-webkit-media-controls-panel { background: #1A2940; }
+
+/* ─── Splash & Login Bg ─── */
+.splash-bg {
+  background: radial-gradient(ellipse at 50% 80%, #111D30 0%, #070D18 60%);
+}
+
+.mosque-silhouette {
+  background: linear-gradient(to top, rgba(7, 13, 24, 1) 0%, transparent 100%);
+}
+
+.hadith-shell {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top left, rgba(200, 165, 90, 0.1), transparent 32%),
+    radial-gradient(circle at top right, rgba(26, 41, 64, 0.5), transparent 28%),
+    linear-gradient(180deg, #070D18 0%, #0B1525 18%, #111D30 100%);
+}
+
+.hadith-hero {
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid rgba(200, 165, 90, 0.06);
+}
+
+.hadith-orb {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #E0C47A, #C8A55A);
+  animation: float 3.2s ease-in-out infinite;
+}
+
+.hadith-stat-card {
+  min-width: 108px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(7, 13, 24, 0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 14px 16px;
+}
+
+.hadith-feature-card,
+.hadith-card,
+.hadith-empty-state {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(200, 165, 90, 0.08);
+  background: linear-gradient(180deg, rgba(17, 29, 48, 0.96) 0%, rgba(7, 13, 24, 0.95) 100%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.hadith-feature-card {
+  border-radius: 28px;
+  padding: 22px;
+}
+
+.hadith-card {
+  border-radius: 24px;
+  padding: 20px;
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+.hadith-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.24);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.28);
+}
+
+.hadith-empty-state {
+  border-radius: 24px;
+}
+
+.hadith-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e8e1c7;
+  padding: 10px 14px;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.hadith-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hadith-action-btn:disabled {
+  opacity: 0.7;
+}
+
+.hadith-action-btn--accent {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.2);
+  color: #f0cc67;
+}
+
+
+/* Quran Section - Islamic Geometric & Premium Animations */
+@keyframes quranShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.quran-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(212,175,55,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: quranShimmer 3s ease-in-out infinite;
+}
+
+@keyframes verseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0), 0 4px 20px rgba(0,0,0,0.2); }
+  50% { box-shadow: 0 0 20px 2px rgba(212,175,55,0.08), 0 8px 30px rgba(0,0,0,0.25); }
+}
+.animate-verse-glow { animation: verseGlow 4s ease-in-out infinite; }
+
+@keyframes geometricSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-geometric-spin { animation: geometricSpin 60s linear infinite; }
+
+@keyframes starPulse {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.15); }
+}
+.animate-star-pulse { animation: starPulse 4s ease-in-out infinite; }
+
+@keyframes duaFadeIn {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-dua-enter { animation: duaFadeIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@keyframes surahCardEnter {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-surah-card { animation: surahCardEnter 0.4s ease-out both; }
+
+@keyframes borderGoldFlow {
+  0% { border-color: rgba(212,175,55,0.08); }
+  50% { border-color: rgba(212,175,55,0.25); }
+  100% { border-color: rgba(212,175,55,0.08); }
+}
+.animate-border-flow { animation: borderGoldFlow 3s ease-in-out infinite; }
+
+@keyframes verseBadgePulse {
+  0%, 100% { background: rgba(212,175,55,0.12); }
+  50% { background: rgba(212,175,55,0.22); }
+}
+
+.quran-verse-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.08);
+  background: linear-gradient(165deg, rgba(15,61,46,0.6) 0%, rgba(10,31,20,0.8) 100%);
+  backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.quran-verse-card:hover {
+  border-color: rgba(212,175,55,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(212,175,55,0.06);
+}
+
+.quran-header-bg {
+  position: relative;
+  background: linear-gradient(180deg, rgba(10,31,20,0.95) 0%, rgba(10,31,20,0.3) 100%);
+  overflow: hidden;
+}
+.quran-header-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(212,175,55,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(212,175,55,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.quran-surah-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(212,175,55,0.06);
+  background: linear-gradient(165deg, rgba(15,61,46,0.45) 0%, rgba(10,31,20,0.65) 100%);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 14px 16px;
+  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.quran-surah-card:hover {
+  border-color: rgba(212,175,55,0.2);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.25), 0 0 20px rgba(212,175,55,0.04);
+}
+.quran-surah-card:active {
+  transform: scale(0.98);
+}
+.quran-surah-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+}
+
+.quran-number-badge {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  font-size: 13px; font-weight: 700;
+  color: #D4AF37;
+}
+.quran-number-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(212,175,55,0.1);
+  border-radius: 12px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(212,175,55,0.15);
+  transition: all 0.3s ease;
+}
+.quran-surah-card:hover .quran-number-badge::before {
+  background: rgba(212,175,55,0.18);
+  transform: rotate(45deg) scale(1.08);
+}
+
+.quran-dua-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5,15,10,0.85);
+  backdrop-filter: blur(12px);
+}
+
+.quran-scholar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(212,175,55,0.12);
+  background: rgba(212,175,55,0.06);
+  color: #A8B5A0;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.quran-scholar-chip:hover,
+.quran-scholar-chip.active {
+  background: rgba(212,175,55,0.15);
+  border-color: rgba(212,175,55,0.3);
+  color: #D4AF37;
+}
+
+/* Quiz Animations */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.animate-confetti { animation: confetti-fall 3s ease-out forwards; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.animate-shake { animation: shake 0.4s ease-in-out; }
+
+/* Islamic Geometric Pattern Animation */
+@keyframes geometricPulse {
+  0%, 100% { opacity: 0.03; }
+  50% { opacity: 0.08; }
+}
+
+@keyframes goldShine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.animate-gold-shine {
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+  background-size: 200% 100%;
+  animation: goldShine 3s ease-in-out infinite;
+}
+
+/* Ramadan special glow */
+@keyframes ramadanGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212,175,55,0.1), inset 0 0 20px rgba(212,175,55,0.02); }
+  50% { box-shadow: 0 0 40px rgba(212,175,55,0.2), inset 0 0 30px rgba(212,175,55,0.05); }
+}
+.animate-ramadan-glow { animation: ramadanGlow 3s ease-in-out infinite; }
+
+/* Badge unlock animation */
+@keyframes badgeUnlock {
+  0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+  50% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-badge-unlock { animation: badgeUnlock 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* Score counter bounce */
+@keyframes scoreCount {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+.animate-score-count { animation: scoreCount 0.4s ease-out; }
+
+/* Progress bar fill */
+@keyframes progressFill {
+  from { width: 0%; }
+}
+.animate-progress-fill { animation: progressFill 1s ease-out forwards; }
+
+/* Card hover shine effect */
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+.card-shine::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(212,175,55,0.04) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg) translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+.card-shine:hover::before {
+  transform: rotate(45deg) translateX(100%);
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Islamic star decoration */
+.islamic-star {
+  position: relative;
+}
+.islamic-star::after {
+  content: '✦';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 8px;
+  color: rgba(212,175,55,0.6);
+  animation: twinkle 2s ease-in-out infinite;
+}

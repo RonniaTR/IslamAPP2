@@ -1,0 +1,116 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, Search, MoreVertical, MoreHorizontal } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
+import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
+import api from '../api';
+import { fetchWithCache } from '../services/cache';
+
+export default function BookmarksPage() {
+  const { theme } = useTheme();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('all');
+  const [bookmarks, setBookmarks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWithCache('bookmarks_list', () => api.get('/bookmarks').then(r => r.data), { ttl: 24 * 60 * 60 * 1000 })
+      .then(({ data }) => {
+        setBookmarks(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(() => {
+        // Fallback mock data
+        setBookmarks([
+          { id: 1, title: 'Bakara Suresi 286. Ayet', type: 'Ayet', icon: '📖' },
+          { id: 2, title: 'Rabbim! İlmimi artır.', type: 'Dua', icon: '🤲' },
+          { id: 3, title: 'Tevekkül Nedir? Nasıl Gerçekleşir?', type: 'Makale', icon: '📄' },
+          { id: 4, title: "Hz. Yusuf'un Sabır Örneği", type: 'Hikaye', icon: '🕌' },
+        ]);
+        setLoading(false);
+      });
+  }, []);
+
+  const tabs = [
+    { id: 'all', label: 'Tümü' },
+    { id: 'ayah', label: 'Ayet' },
+    { id: 'dua', label: 'Dua' },
+    { id: 'article', label: 'Makale' },
+    { id: 'story', label: 'Hikaye' },
+  ];
+
+  return (
+    <div className="min-h-screen pb-24" style={{ background: theme.bg }} data-testid="bookmarks-page">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between px-4 pt-6 pb-4 sticky top-0 z-10 bg-white/50 backdrop-blur-md">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 transition-opacity hover:opacity-70">
+          <ChevronLeft size={24} style={{ color: theme.textPrimary }} />
+          <span className="font-extrabold text-xl tracking-tight" style={{ color: theme.textPrimary, fontFamily: TYPOGRAPHY.fonts.heading }}>
+            Kaydedilenler
+          </span>
+        </button>
+        <div className="flex items-center gap-3">
+          <button className="p-2 transition-colors rounded-full" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+            <Search size={20} style={{ color: theme.textPrimary }} />
+          </button>
+          <button className="p-2 transition-colors rounded-full" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+            <MoreVertical size={20} style={{ color: theme.textPrimary }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-4 mb-6">
+        <div className="flex gap-2 py-1 overflow-x-auto scrollbar-hide">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="px-4 py-1.5 text-[12px] font-bold rounded-full transition-all shrink-0"
+              style={{
+                background: activeTab === tab.id ? theme.primary : theme.surface,
+                color: activeTab === tab.id ? '#FFF' : theme.textSecondary,
+                border: activeTab === tab.id ? `1px solid ${theme.primary}` : `1px solid ${theme.cardBorder}`,
+                boxShadow: activeTab === tab.id ? '0 4px 12px rgba(13,92,47,0.2)' : 'none'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="px-4 flex flex-col gap-3">
+        {loading ? (
+          <div className="flex justify-center p-8"><div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: theme.primary, borderTopColor: 'transparent' }} /></div>
+        ) : (
+          bookmarks.map((item, idx) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              className="flex items-center justify-between p-4 rounded-[20px] transition-shadow hover:shadow-sm"
+              style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-[12px] flex items-center justify-center text-lg" style={{ background: `${theme.primary}15` }}>
+                  {item.icon}
+                </div>
+                <div>
+                  <h3 className="font-bold text-[13px] mb-0.5" style={{ color: theme.textPrimary }}>{item.title}</h3>
+                  <p className="text-[10px] font-medium" style={{ color: theme.textSecondary }}>{item.type}</p>
+                </div>
+              </div>
+              <button className="p-2 transition-colors hover:text-primary" style={{ color: theme.textSecondary }}>
+                <MoreHorizontal size={18} />
+              </button>
+            </motion.div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

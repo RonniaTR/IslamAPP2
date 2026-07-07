@@ -1,0 +1,10 @@
+node_modules
+.git
+.firebase
+**/.DS_Store
+**/npm-debug.log
+**/yarn-error.log
+mobile/node_modules
+functions/node_modules
+frontend/node_modules
+android/.gradle
