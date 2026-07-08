@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'https://islamapp2.onrender.com';
 const WS_URL = API_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
 export default function MultiplayerQuiz() {
