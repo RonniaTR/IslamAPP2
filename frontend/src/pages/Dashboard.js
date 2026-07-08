@@ -535,15 +535,17 @@ export default function Dashboard() {
   const [randomHadith, setRandomHadith] = useState(null);
 
   useEffect(() => {
-    // Parallel fetch
+    // Günün ayeti/hadisi tarih bazlı önbelleklenir → gün boyunca sabit kalır ("günün")
+    const today = new Date().toISOString().split('T')[0];
+    // Parallel fetch — fetchWithCache(cacheKey, fetcher, opts) → { data }
     Promise.allSettled([
-      fetchWithCache(`/prayer-times/${selectedCity}`, { ttl: 30 * 60 * 1000 }),
-      fetchWithCache('/quran/random', { ttl: 10 * 60 * 1000 }),
-      fetchWithCache('/hadith/random', { ttl: 10 * 60 * 1000 }),
+      fetchWithCache(`prayer_${selectedCity}`, () => api.get(`/prayer-times/${selectedCity}`).then(r => r.data), { ttl: 30 * 60 * 1000 }),
+      fetchWithCache(`daily_verse_${today}`, () => api.get('/quran/random').then(r => r.data), { ttl: 24 * 60 * 60 * 1000 }),
+      fetchWithCache(`daily_hadith_${today}`, () => api.get('/hadith/random').then(r => r.data), { ttl: 24 * 60 * 60 * 1000 }),
     ]).then(([p, v, h]) => {
-      if (p.status === 'fulfilled' && p.value && typeof p.value === 'object') setPrayerTimes(p.value);
-      if (v.status === 'fulfilled' && v.value && typeof v.value === 'object') setRandomVerse(v.value);
-      if (h.status === 'fulfilled' && h.value && typeof h.value === 'object') setRandomHadith(h.value);
+      if (p.status === 'fulfilled' && p.value?.data && typeof p.value.data === 'object') setPrayerTimes(p.value.data);
+      if (v.status === 'fulfilled' && v.value?.data && typeof v.value.data === 'object') setRandomVerse(v.value.data);
+      if (h.status === 'fulfilled' && h.value?.data && typeof h.value.data === 'object') setRandomHadith(h.value.data);
     });
     logger.info('Dashboard loaded', { city: selectedCity });
   }, [selectedCity]);

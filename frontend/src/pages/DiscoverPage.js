@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Compass, BookOpen, Sparkles, ChevronRight, ScrollText, Heart, MessageCircle, Navigation, Calendar, Award, BookMarked, Users, Loader } from 'lucide-react';
+import { Compass, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import api from '../api';
 
 const SECTIONS = [
   {
@@ -46,11 +45,6 @@ export default function DiscoverPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [dailyHadith, setDailyHadith] = useState(null);
-
-  useEffect(() => {
-    api.get('/hadith/daily').then(r => setDailyHadith(r.data)).catch(() => {});
-  }, []);
 
   return (
     <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
@@ -62,19 +56,6 @@ export default function DiscoverPage() {
         </div>
         <p className="text-xs" style={{ color: theme.textSecondary }}>Tüm özellikler ve İslami ilim yolculuğun</p>
       </div>
-
-      {/* Daily Hadith Card */}
-      {dailyHadith && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="mx-5 mb-5 rounded-2xl p-4" style={{ background: `linear-gradient(135deg, ${theme.surface}, rgba(200,165,90,0.06))`, border: `1px solid ${theme.gold}20` }}>
-          <p className="text-[10px] font-semibold mb-2 flex items-center gap-1" style={{ color: theme.gold }}>
-            <Sparkles size={12} /> Günün Hadisi
-          </p>
-          <p className="text-base mb-1" style={{ fontFamily: 'Amiri, serif', color: theme.gold, direction: 'rtl' }}>{dailyHadith.arabic}</p>
-          <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{dailyHadith.turkish}</p>
-          <p className="text-[10px] mt-2" style={{ color: theme.textSecondary }}>{dailyHadith.source} — {dailyHadith.narrator}</p>
-        </motion.div>
-      )}
 
       {/* Feature Sections */}
       <div className="px-5 space-y-5">
