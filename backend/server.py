@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, Response, Request, Cookie
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from dotenv import load_dotenv
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.middleware.cors import CORSMiddleware
@@ -331,6 +331,30 @@ async def gemini_generate(prompt: str, system_message: str = "") -> str:
 # Auth Config
 EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
 SESSION_EXPIRY_DAYS = 7
+
+# Cross-site SPA (frontend and API on different domains) requires SameSite=None; Secure
+# for the session cookie to be sent on credentialed XHR. Override to "lax" for local dev.
+COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'none').lower()
+
+# Google OAuth 2.0 (standard, self-hosted). Set these env vars to enable Google login.
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', '')  # e.g. https://<backend>/api/auth/google/callback
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://islamapp-5942a.web.app').rstrip('/')
+
+def _cookie_params():
+    """SameSite=None needs Secure. Falls back safely for local http dev via COOKIE_SAMESITE=lax."""
+    samesite = COOKIE_SAMESITE if COOKIE_SAMESITE in ('none', 'lax', 'strict') else 'none'
+    secure = COOKIE_SECURE or samesite == 'none'
+    return {"samesite": samesite, "secure": secure}
+
+def _set_session_cookie(response, token: str):
+    p = _cookie_params()
+    response.set_cookie(
+        key="session_token", value=token, httponly=True,
+        secure=p["secure"], samesite=p["samesite"], path="/",
+        max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60,
+    )
 
 # Create the main app
 app = FastAPI()
@@ -1295,18 +1319,10 @@ async def exchange_session(request: Request, session_id: str, response: Response
                 "created_at": datetime.now(timezone.utc)
             }
             await db.user_sessions.insert_one(session_doc)
-            
+
             # Set cookie
-            response.set_cookie(
-                key="session_token",
-                value=session_token,
-                httponly=True,
-                secure=COOKIE_SECURE,
-                samesite="lax",
-                path="/",
-                max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
-            )
-            
+            _set_session_cookie(response, session_token)
+
             # Get user data
             user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
             return user
@@ -1315,58 +1331,72 @@ async def exchange_session(request: Request, session_id: str, response: Response
         logger.error(f"Auth error: {e}")
         raise HTTPException(status_code=500, detail="Authentication service error")
 
+class GuestLogin(BaseModel):
+    name: Optional[str] = None
+    guest_id: Optional[str] = None  # resume an existing guest to keep their data & name
+
 @api_router.post("/auth/guest")
-async def create_guest_user(request: Request, response: Response):
-    """Create a guest user for quick access"""
+async def create_guest_user(request: Request, response: Response, payload: Optional[GuestLogin] = None):
+    """Create (or resume) a guest user. A provided name is persisted and kept.
+    Passing an existing guest_id resumes that guest so their data/name survive."""
     _validate_ajax_request(request)
     if _is_rate_limited(request, 'guest_auth', limit=6, window=60):
         raise HTTPException(status_code=429, detail='Too many guest requests, please try again later')
-    user_id = f"guest_{uuid.uuid4().hex[:12]}"
+
+    payload = payload or GuestLogin()
+    display_name = (payload.name or "").strip() or "Kardeşim"
     session_token = f"guest_session_{uuid.uuid4().hex}"
-    
-    new_user = {
-        "user_id": user_id,
-        "email": f"{user_id}@guest.local",
-        "name": "Kardeşim",
-        "picture": None,
-        "is_guest": True,
-        "created_at": datetime.now(timezone.utc),
-        "language": "tr",
-        "theme": "dark",
-        "total_points": 0,
-        "quizzes_played": 0,
-        "streak_days": 0
-    }
-    
-    # Try DB but don't block guest login if DB is down
+    user = None
+
     try:
-        await db.users.insert_one(new_user)
-        expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS)
+        # Resume an existing guest (keeps XP, notes, name, etc.)
+        if payload.guest_id:
+            existing = await db.users.find_one({"user_id": payload.guest_id, "is_guest": True}, {"_id": 0})
+            if existing:
+                user = existing
+                # Update the stored name only if the user typed a new one
+                if payload.name and payload.name.strip():
+                    await db.users.update_one({"user_id": existing["user_id"]}, {"$set": {"name": display_name}})
+                    user["name"] = display_name
+
+        if not user:
+            user_id = f"guest_{uuid.uuid4().hex[:12]}"
+            user = {
+                "user_id": user_id,
+                "email": f"{user_id}@guest.local",
+                "name": display_name,
+                "picture": None,
+                "is_guest": True,
+                "created_at": datetime.now(timezone.utc),
+                "language": "tr",
+                "theme": "dark",
+                "total_points": 0,
+                "quizzes_played": 0,
+                "streak_days": 0,
+            }
+            await db.users.insert_one(user)
+
         session_doc = {
             "session_id": str(uuid.uuid4()),
-            "user_id": user_id,
+            "user_id": user["user_id"],
             "session_token": session_token,
-            "expires_at": expires_at,
-            "created_at": datetime.now(timezone.utc)
+            "expires_at": datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS),
+            "created_at": datetime.now(timezone.utc),
         }
         await db.user_sessions.insert_one(session_doc)
     except Exception as e:
         logger.warning(f"DB unavailable for guest creation: {e}")
-    
-    # Set cookie
-    response.set_cookie(
-        key="session_token",
-        value=session_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite="lax",
-        path="/",
-        max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
-    )
-    
-    # Remove MongoDB _id before returning
-    new_user.pop("_id", None)
-    return new_user
+        if not user:
+            user = {
+                "user_id": f"guest_{uuid.uuid4().hex[:12]}",
+                "email": "", "name": display_name, "picture": None, "is_guest": True,
+                "language": "tr", "theme": "dark", "total_points": 0, "quizzes_played": 0, "streak_days": 0,
+            }
+
+    _set_session_cookie(response, session_token)
+    user = dict(user)
+    user.pop("_id", None)
+    return user
 
 @api_router.get("/auth/me")
 async def get_current_user_info(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
@@ -1387,11 +1417,7 @@ async def get_current_user_info(request: Request, response: Response, session_to
             {"session_token": token},
             {"$set": {"expires_at": new_expiry}}
         )
-        response.set_cookie(
-            key="session_token", value=token,
-            httponly=True, secure=COOKIE_SECURE, samesite="lax",
-            path="/", max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
-        )
+        _set_session_cookie(response, token)
 
     return user.dict()
 
@@ -1412,6 +1438,112 @@ async def logout(request: Request, response: Response, session_token: Optional[s
     
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out successfully"}
+
+# ===================== GOOGLE OAUTH 2.0 =====================
+
+@api_router.get("/auth/google/login")
+async def google_login():
+    """Kick off Google OAuth: redirect the browser to Google's consent screen."""
+    if not GOOGLE_CLIENT_ID or not GOOGLE_REDIRECT_URI:
+        return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=unconfigured", status_code=303)
+    import secrets
+    from urllib.parse import urlencode
+    state = secrets.token_urlsafe(24)
+    params = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "access_type": "online",
+        "prompt": "select_account",
+    }
+    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
+    resp = RedirectResponse(url=url, status_code=303)
+    # Short-lived state cookie for CSRF protection on the callback
+    p = _cookie_params()
+    resp.set_cookie("g_oauth_state", state, httponly=True, secure=p["secure"],
+                    samesite=p["samesite"], path="/", max_age=600)
+    return resp
+
+@api_router.get("/auth/google/callback")
+async def google_callback(request: Request, code: Optional[str] = None,
+                          state: Optional[str] = None, g_oauth_state: Optional[str] = Cookie(None)):
+    """Google redirects here with an auth code. Exchange it, upsert the user,
+    create a session, then bounce back into the app."""
+    if not code or not state or not g_oauth_state or state != g_oauth_state:
+        return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
+
+    try:
+        async with httpx.AsyncClient() as client:
+            token_resp = await client.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "code": code,
+                    "client_id": GOOGLE_CLIENT_ID,
+                    "client_secret": GOOGLE_CLIENT_SECRET,
+                    "redirect_uri": GOOGLE_REDIRECT_URI,
+                    "grant_type": "authorization_code",
+                },
+                timeout=10.0,
+            )
+            if token_resp.status_code != 200:
+                logger.error(f"Google token exchange failed: {token_resp.text}")
+                return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
+            access_token = token_resp.json().get("access_token")
+
+            info_resp = await client.get(
+                "https://www.googleapis.com/oauth2/v2/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=10.0,
+            )
+            info = info_resp.json()
+
+        email = info.get("email")
+        name = info.get("name") or (email.split("@")[0] if email else "Kullanıcı")
+        picture = info.get("picture")
+        if not email:
+            return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
+
+        existing_user = await db.users.find_one({"email": email}, {"_id": 0})
+        if existing_user:
+            user_id = existing_user["user_id"]
+            await db.users.update_one(
+                {"user_id": user_id},
+                {"$set": {"name": name, "picture": picture, "is_guest": False}},
+            )
+        else:
+            user_id = f"user_{uuid.uuid4().hex[:12]}"
+            await db.users.insert_one({
+                "user_id": user_id,
+                "email": email,
+                "name": name,
+                "picture": picture,
+                "is_guest": False,
+                "created_at": datetime.now(timezone.utc),
+                "language": "tr",
+                "theme": "dark",
+                "total_points": 0,
+                "quizzes_played": 0,
+                "streak_days": 0,
+            })
+
+        session_token = f"g_{uuid.uuid4().hex}"
+        await db.user_sessions.insert_one({
+            "session_id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "session_token": session_token,
+            "expires_at": datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS),
+            "created_at": datetime.now(timezone.utc),
+        })
+
+        resp = RedirectResponse(url=f"{FRONTEND_URL}/", status_code=303)
+        _set_session_cookie(resp, session_token)
+        resp.delete_cookie("g_oauth_state", path="/")
+        return resp
+    except Exception as e:
+        logger.error(f"Google OAuth error: {e}")
+        return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
 
 @api_router.put("/auth/profile")
 async def update_profile(

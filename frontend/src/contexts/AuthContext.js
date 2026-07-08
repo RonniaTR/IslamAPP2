@@ -68,19 +68,29 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(safetyTimer);
   }, [checkAuth]);
 
-  const loginAsGuest = async () => {
+  const loginAsGuest = async (name) => {
+    const savedGuestId = localStorage.getItem('islamapp_guest_id') || undefined;
     try {
-      const { data } = await api.post('/auth/guest', {}, { timeout: 5000 });
+      const { data } = await api.post('/auth/guest', { name, guest_id: savedGuestId }, { timeout: 8000 });
+      if (data?.user_id) localStorage.setItem('islamapp_guest_id', data.user_id);
       setUser(data);
       setCachedUser(data);
       return data;
     } catch {
+      // Offline fallback: keep the same guest identity + name locally
       const existingCache = getCachedUser();
-      const guest = existingCache?.isGuest ? existingCache : { id: 'guest_' + Date.now(), name: 'Misafir', isGuest: true };
+      const guest = existingCache?.is_guest
+        ? existingCache
+        : { user_id: savedGuestId || 'guest_' + Date.now(), name: (name && name.trim()) || 'Misafir', is_guest: true };
       setUser(guest);
       setCachedUser(guest);
       return guest;
     }
+  };
+
+  const loginWithGoogle = () => {
+    // Full-page redirect: backend -> Google consent -> backend callback -> app
+    window.location.href = `${api.defaults.baseURL}/auth/google/login`;
   };
 
   const logout = async () => {
@@ -91,7 +101,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser: (u) => { setUser(u); setCachedUser(u); }, loading, loginAsGuest, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, setUser: (u) => { setUser(u); setCachedUser(u); }, loading, loginAsGuest, loginWithGoogle, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogIn, Loader2, Sparkles } from 'lucide-react';
@@ -6,15 +6,23 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  
-  // AuthContext'ten fonksiyonları çekiyoruz
-  // Not: loginWithGoogle fonksiyonun yoksa hata vermemesi için boş bırakılabilir
-  const { loginAsGuest, loginWithGoogle } = useAuth(); 
+
+  const { loginAsGuest, loginWithGoogle } = useAuth();
 
   const [showNameInput, setShowNameInput] = useState(false);
   const [guestName, setGuestName] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  // Show a message if we were redirected back from a failed/unconfigured Google login
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const auth = params.get('auth');
+    if (auth === 'failed') setAuthError('Google girişi tamamlanamadı. Lütfen tekrar deneyin.');
+    else if (auth === 'unconfigured') setAuthError('Google girişi henüz yapılandırılmadı.');
+    if (auth) window.history.replaceState({}, '', '/login');
+  }, []);
 
   // Misafir Butonuna Tıklanınca
   const handleGuestClick = async () => {
@@ -57,20 +65,15 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    try {
-      if (loginWithGoogle) {
-         const user = await loginWithGoogle();
-         if (user) navigate('/', { replace: true });
-      } else {
-         alert("Google girişi şu an aktif değil.");
-      }
-    } catch (error) {
-      console.error("Google login hatası:", error);
-    } finally {
-      setGoogleLoading(false);
+  const handleGoogleLogin = () => {
+    setAuthError('');
+    if (!loginWithGoogle) {
+      setAuthError('Google girişi şu an aktif değil.');
+      return;
     }
+    setGoogleLoading(true);
+    // Full-page redirect to backend -> Google. Spinner stays until the page leaves.
+    loginWithGoogle();
   };
 
   return (
@@ -102,7 +105,13 @@ export default function LoginPage() {
         <div className="bg-[#1a3a2a]/40 border border-[#ffd369]/20 backdrop-blur-xl p-8 rounded-[32px] shadow-2xl">
           
           <div className="space-y-4">
-            
+
+            {authError && (
+              <div className="p-3 rounded-2xl text-xs text-center" style={{ background: 'rgba(239,68,68,0.12)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.25)' }}>
+                {authError}
+              </div>
+            )}
+
             {/* Google Girişi */}
             <motion.button
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
