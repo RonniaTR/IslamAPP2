@@ -17,10 +17,11 @@
 - [x] **Ölü kod temizliği**: `Leaderboard.js` (LeaderboardPage'in birebir kopyası) silindi
 
 ## P0 - Sıradaki kritik iş (gelir & güven)
-- [ ] **Gerçek ödeme entegrasyonu** — Şu an premium sahte: `/premium/activate` ödeme doğrulaması yapmadan herkesi premium yapıyor, frontend `demo_...` id gönderiyor.
-  - Sağlayıcı seçilmeli (iyzico / PayTR / Stripe — TR pazarı için iyzico veya PayTR önerilir)
-  - Backend: ödeme başlatma + webhook doğrulama; `/premium/activate` sadece doğrulanmış ödemeyle çalışmalı
-  - Frontend: gerçek ödeme akışı (kart formu / yönlendirme)
+- [~] **iyzico ödeme entegrasyonu — KOD HAZIR, anahtar bekliyor** (bkz. `backend/PAYMENTS_SETUP.md`)
+  - Backend: `/premium/iyzico/init`, `/verify`, `/callback` eklendi; ödeme iyzico'dan doğrulanarak abonelik açılıyor
+  - Güvenlik: eski `/premium/activate` açığı kapatıldı (canlıda 403; sadece `PAYMENTS_DEV_MODE=true` ile açık)
+  - Frontend: `PremiumPage` gerçek ödeme sayfasına yönlendiriyor + dönüş sonucunu işliyor
+  - **Kalan (kullanıcı):** iyzico hesabı + `IYZICO_*` / `FRONTEND_URL` env değişkenlerini Render'a gir, sandbox'ta test et, canlıya geç
 - [ ] **Misafir veri kalıcılığı** — DB hatası anında misafir verisi sadece tarayıcıda kalıyor, kayboluyor. Sunucu tarafı garanti + yerel yedek/senkronizasyon.
 
 ## P1 - İçerik & tutarlılık

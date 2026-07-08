@@ -4,9 +4,12 @@ All endpoints registered via setup_phase2_routes(api_router, db, gemini_generate
 """
 
 from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi.responses import RedirectResponse
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, date, timedelta, timezone
+import os
 import uuid
 import json
 import hashlib
@@ -516,19 +519,10 @@ Türkçe yaz."""
             "started_at": sub.get("created_at"),
         }
 
-    @api_router.post("/premium/activate")
-    async def activate_premium(data: dict):
-        """Activate premium subscription (after payment verification)"""
-        user_id = data.get("user_id")
-        plan_type = data.get("plan_type", "monthly")  # monthly / yearly
-        payment_id = data.get("payment_id", "")
-
-        if not user_id:
-            raise HTTPException(status_code=400, detail="user_id required")
-
+    async def _activate_subscription(user_id: str, plan_type: str, payment_id: str, provider: str = "manual"):
+        """Internal: grant/extend a premium subscription. Only call after a verified payment."""
         months = 12 if plan_type == "yearly" else 1
         expires_at = datetime.now(timezone.utc) + timedelta(days=30 * months)
-
         await db.subscriptions.update_one(
             {"user_id": user_id},
             {"$set": {
@@ -536,14 +530,206 @@ Türkçe yaz."""
                 "status": "active",
                 "plan_type": plan_type,
                 "payment_id": payment_id,
+                "provider": provider,
                 "started_at": datetime.now(timezone.utc),
                 "expires_at": expires_at,
                 "updated_at": datetime.now(timezone.utc),
             }},
             upsert=True,
         )
+        return expires_at
 
+    @api_router.post("/premium/activate")
+    async def activate_premium(data: dict):
+        """Manual activation — DISABLED in production. Guarded behind PAYMENTS_DEV_MODE
+        so it can be used for local/testing but never grants free premium in prod."""
+        if os.getenv("PAYMENTS_DEV_MODE", "").lower() != "true":
+            raise HTTPException(status_code=403, detail="Doğrudan aktivasyon kapalı. Lütfen ödeme akışını kullanın.")
+        user_id = data.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="user_id required")
+        plan_type = data.get("plan_type", "monthly")
+        expires_at = await _activate_subscription(user_id, plan_type, data.get("payment_id", "dev"), "dev")
         return {"status": "active", "expires_at": expires_at}
+
+    # ===================== IYZICO PAYMENTS =====================
+
+    def _iyzico_options():
+        return {
+            "api_key": os.getenv("IYZICO_API_KEY", ""),
+            "secret_key": os.getenv("IYZICO_SECRET_KEY", ""),
+            # Sandbox by default; set to https://api.iyzipay.com for production
+            "base_url": os.getenv("IYZICO_BASE_URL", "https://sandbox-api.iyzipay.com"),
+        }
+
+    async def _iyzico_retrieve(token: str, conversation_id: str):
+        """Retrieve a checkout form result from iyzico (runs the blocking SDK off-thread)."""
+        opts = _iyzico_options()
+
+        def _call():
+            import iyzipay
+            req = {"locale": "tr", "conversationId": conversation_id or "", "token": token}
+            cf = iyzipay.CheckoutForm().retrieve(req, opts)
+            return json.loads(cf.read().decode("utf-8"))
+
+        return await run_in_threadpool(_call)
+
+    @api_router.post("/premium/iyzico/init")
+    async def iyzico_init(data: dict):
+        """Start an iyzico Checkout Form for a premium subscription. Returns a hosted
+        paymentPageUrl the client redirects to (plus embeddable checkoutFormContent)."""
+        opts = _iyzico_options()
+        if not opts["api_key"] or not opts["secret_key"]:
+            raise HTTPException(status_code=503, detail="Ödeme sistemi henüz yapılandırılmadı (IYZICO anahtarları eksik).")
+        try:
+            import iyzipay  # noqa: F401
+        except ImportError:
+            raise HTTPException(status_code=503, detail="Ödeme kütüphanesi yüklü değil (iyzipay).")
+
+        user_id = data.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="user_id required")
+        plan_type = data.get("plan_type", "monthly")
+
+        price = PREMIUM_PLANS["premium"]["price_yearly"] if plan_type == "yearly" else PREMIUM_PLANS["premium"]["price_monthly"]
+        price_str = f"{price:.2f}"
+        conversation_id = str(uuid.uuid4())
+
+        user = await db.users.find_one({"user_id": user_id}) or {}
+        name = (user.get("name") or "İslam APP").strip()
+        email = user.get("email") or f"{user_id}@guest.local"
+        first, _, last = name.partition(" ")
+        last = last or first
+        callback_url = os.getenv("IYZICO_CALLBACK_URL", "")
+
+        request = {
+            "locale": "tr",
+            "conversationId": conversation_id,
+            "price": price_str,
+            "paidPrice": price_str,
+            "currency": "TRY",
+            "basketId": f"premium_{plan_type}",
+            "paymentGroup": "SUBSCRIPTION",
+            "callbackUrl": callback_url,
+            "enabledInstallments": ["1"],
+            "buyer": {
+                "id": user_id,
+                "name": first,
+                "surname": last,
+                "email": email,
+                "identityNumber": "11111111111",
+                "registrationAddress": "Istanbul",
+                "city": "Istanbul",
+                "country": "Turkey",
+                "ip": "85.34.78.112",
+            },
+            "billingAddress": {
+                "contactName": name,
+                "city": "Istanbul",
+                "country": "Turkey",
+                "address": "Istanbul",
+            },
+            "basketItems": [{
+                "id": f"premium_{plan_type}",
+                "name": f"İslam APP Premium ({'Yıllık' if plan_type == 'yearly' else 'Aylık'})",
+                "category1": "Subscription",
+                "itemType": "VIRTUAL",
+                "price": price_str,
+            }],
+        }
+
+        def _call():
+            import iyzipay
+            cf = iyzipay.CheckoutFormInitialize().create(request, opts)
+            return json.loads(cf.read().decode("utf-8"))
+
+        try:
+            result = await run_in_threadpool(_call)
+        except Exception as e:
+            logger.error(f"iyzico init failed: {e}")
+            raise HTTPException(status_code=502, detail="Ödeme başlatılamadı.")
+
+        if result.get("status") != "success":
+            raise HTTPException(status_code=502, detail=result.get("errorMessage", "Ödeme başlatılamadı."))
+
+        await db.payments.insert_one({
+            "token": result.get("token"),
+            "conversation_id": conversation_id,
+            "user_id": user_id,
+            "plan_type": plan_type,
+            "price": price,
+            "status": "pending",
+            "provider": "iyzico",
+            "created_at": datetime.now(timezone.utc),
+        })
+
+        return {
+            "token": result.get("token"),
+            "checkoutFormContent": result.get("checkoutFormContent"),
+            "paymentPageUrl": result.get("paymentPageUrl"),
+        }
+
+    @api_router.post("/premium/iyzico/verify")
+    async def iyzico_verify(data: dict):
+        """Verify a payment by token and activate premium on success (client-driven)."""
+        token = data.get("token")
+        if not token:
+            raise HTTPException(status_code=400, detail="token required")
+        if not _iyzico_options()["api_key"]:
+            raise HTTPException(status_code=503, detail="Ödeme sistemi yapılandırılmadı.")
+
+        payment = await db.payments.find_one({"token": token})
+        if not payment:
+            raise HTTPException(status_code=404, detail="Ödeme kaydı bulunamadı.")
+        if payment.get("status") == "paid":
+            return {"status": "active", "already": True}
+
+        try:
+            result = await _iyzico_retrieve(token, payment.get("conversation_id", ""))
+        except Exception as e:
+            logger.error(f"iyzico verify failed: {e}")
+            raise HTTPException(status_code=502, detail="Ödeme doğrulanamadı.")
+
+        if result.get("status") == "success" and result.get("paymentStatus") == "SUCCESS":
+            expires_at = await _activate_subscription(
+                payment["user_id"], payment["plan_type"], result.get("paymentId", token), "iyzico"
+            )
+            await db.payments.update_one(
+                {"token": token},
+                {"$set": {"status": "paid", "paid_at": datetime.now(timezone.utc), "payment_id": result.get("paymentId")}},
+            )
+            return {"status": "active", "expires_at": expires_at}
+
+        await db.payments.update_one({"token": token}, {"$set": {"status": "failed"}})
+        raise HTTPException(status_code=402, detail=result.get("errorMessage") or "Ödeme doğrulanamadı.")
+
+    @api_router.post("/premium/iyzico/callback")
+    async def iyzico_callback(request: Request):
+        """Server-to-server redirect target for iyzico. Verifies then bounces the
+        browser back into the app with a status query param."""
+        frontend = os.getenv("FRONTEND_URL", "").rstrip("/")
+        status = "failed"
+        try:
+            form = await request.form()
+            token = form.get("token")
+            if token:
+                payment = await db.payments.find_one({"token": token})
+                if payment and payment.get("status") != "paid":
+                    result = await _iyzico_retrieve(token, payment.get("conversation_id", ""))
+                    if result.get("paymentStatus") == "SUCCESS":
+                        await _activate_subscription(
+                            payment["user_id"], payment["plan_type"], result.get("paymentId", token), "iyzico"
+                        )
+                        await db.payments.update_one(
+                            {"token": token},
+                            {"$set": {"status": "paid", "paid_at": datetime.now(timezone.utc), "payment_id": result.get("paymentId")}},
+                        )
+                        status = "success"
+                elif payment and payment.get("status") == "paid":
+                    status = "success"
+        except Exception as e:
+            logger.error(f"iyzico callback error: {e}")
+        return RedirectResponse(url=f"{frontend}/premium?payment={status}", status_code=303)
 
     # ===================== GAMIFICATION v2 =====================
 
