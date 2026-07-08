@@ -7,6 +7,7 @@ import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTTS, shareOrCopy } from '../hooks/useShared';
 import { fetchWithCache } from '../services/cache';
+import { awardXPOnce } from '../services/gamification';
 import notifications from '../services/notifications';
 import logger from '../services/logger';
 import api from '../api';
@@ -372,14 +373,17 @@ const KnowledgeCards = memo(function KnowledgeCards({ theme, t }) {
 });
 
 // ─── Worship Tracker ───
-const WorshipTracker = memo(function WorshipTracker({ theme, t }) {
+const WorshipTracker = memo(function WorshipTracker({ theme, t, user }) {
   const [items, setItems] = useState({ namaz: false, kuran: false, sadaka: false, zikir: false });
   useEffect(() => { api.get('/worship/today').then(r => { if (r.data && typeof r.data === 'object' && !Array.isArray(r.data)) setItems(prev => ({ ...prev, ...r.data })); }).catch(() => {}); }, []);
 
   const toggle = async (key) => {
+    const wasOff = !items[key];
     const updated = { ...items, [key]: !items[key] };
     setItems(updated);
     api.post('/worship/track', updated).catch(() => {});
+    // Görev tamamlandığında XP (aynı görev için günde bir kez)
+    if (wasOff) awardXPOnce(user, `worship_${key}`, 'worship_task', { details: key });
   };
 
   const labels = useMemo(() => [
@@ -594,7 +598,7 @@ export default function Dashboard() {
       <DailyVerse verse={randomVerse} theme={theme} t={t} />
       <DailyHadith hadith={randomHadith} theme={theme} t={t} />
       <KnowledgeCards theme={theme} t={t} />
-      <WorshipTracker theme={theme} t={t} />
+      <WorshipTracker theme={theme} t={t} user={user} />
       <DhikrWidget theme={theme} t={t} />
       <RamadanMini prayerTimes={prayerTimes} theme={theme} t={t} />
     </div>

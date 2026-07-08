@@ -40,6 +40,7 @@ const GamificationPage = lazy(() => import('./pages/GamificationPage'));
 const OfflinePacksPage = lazy(() => import('./pages/OfflinePacksPage'));
 const FiqhPage = lazy(() => import('./pages/FiqhPage'));
 const DhikrPage = lazy(() => import('./pages/DhikrPage'));
+const GamesPage = lazy(() => import('./pages/GamesPage'));
 
 // --- DEEN CONNECT SAYFALARI ---
 const JourneyTracker = lazy(() => import('./pages/JourneyTracker'));
@@ -79,6 +80,7 @@ function AppRouter() {
             <Route path="/meal-audio" element={<PageTransition><MealAudioPage /></PageTransition>} />
             <Route path="/journey" element={<PageTransition><JourneyTracker /></PageTransition>} />
             <Route path="/quiz" element={<PageTransition><QuizEngine /></PageTransition>} />
+            <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
             <Route path="/success" element={<PageTransition><SuccessScreen /></PageTransition>} />
             <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
             <Route path="/profile/knowledge" element={<PageTransition><KnowledgeProfile /></PageTransition>} />

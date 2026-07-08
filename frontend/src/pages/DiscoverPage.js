@@ -7,6 +7,15 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SECTIONS = [
   {
+    title: '🎮 Oyun & Yarışma',
+    items: [
+      { path: '/games', icon: '🎡', title: 'Çarkıfelek', desc: 'Çevir, soruyu bil, XP kazan', color: '#10B981' },
+      { path: '/games', icon: '🔤', title: 'Kelime Tamamlama', desc: 'İpucundan İslami terimi bul', color: '#8B5CF6' },
+      { path: '/games', icon: '⚡', title: 'Hızlı Bilgi', desc: '60 saniyede bilgi maratonu', color: '#F59E0B' },
+      { path: '/games', icon: '🔗', title: 'Eşleştirme', desc: 'Terimi anlamıyla eşleştir', color: '#06B6D4' },
+    ],
+  },
+  {
     title: 'İbadet & İlim',
     items: [
       { path: '/fiqh', icon: '⚖️', title: 'İslami Bilgi (Fıkıh)', desc: 'Abdest, namaz, oruç rehberi', color: '#10B981' },
@@ -27,7 +36,7 @@ const SECTIONS = [
     title: 'Yapay Zeka & Eğitim',
     items: [
       { path: '/chat', icon: '🤖', title: 'İslami AI Sohbet', desc: 'Sorularına yapay zeka cevabı', color: '#06B6D4' },
-      { path: '/quiz', icon: '🏆', title: 'Bilgi Yarışması', desc: 'İslami bilgini test et', color: '#F97316' },
+      { path: '/games', icon: '🏆', title: 'Oyun Modu', desc: '4 oyunla XP kazan, seviye atla', color: '#F97316' },
       { path: '/comparative', icon: '📊', title: 'Karşılaştırmalı Dinler', desc: 'İslam, Hristiyanlık, Yahudilik', color: '#10B981' },
     ],
   },

@@ -19,6 +19,7 @@ import {
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { awardXPOnce } from '../services/gamification';
 import api from '../api';
 import localHadiths from '../data/hadiths.json';
 
@@ -412,7 +413,12 @@ export default function HadithPage() {
                 <p className={`mt-3 text-sm leading-7 ${expandedHadith === h.id ? '' : 'line-clamp-4'}`}
                   style={{ color: theme.textPrimary }}>{h.turkish}</p>
 
-                <button onClick={() => setExpandedHadith(expandedHadith === h.id ? null : h.id)}
+                <button onClick={() => {
+                    const opening = expandedHadith !== h.id;
+                    setExpandedHadith(opening ? h.id : null);
+                    // Hadis okuma XP'si (aynı hadis için günde bir kez)
+                    if (opening) awardXPOnce(user, `hadith_${h.id}`, 'hadith_read', { details: String(h.id) });
+                  }}
                   className="mt-3 text-xs transition-colors" style={{ color: theme.gold }}>
                   {expandedHadith === h.id ? (t.hide_detail || 'Detayı gizle ↑') : (t.show_detail || 'Detayı aç ↓')}
                 </button>

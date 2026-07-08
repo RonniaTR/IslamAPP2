@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen, Shield, Languages, GitCompare, Star, Bookmark, Download, CheckCircle } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { awardXPOnce } from '../services/gamification';
 import PreReadingDua from '../components/PreReadingDua';
 import api from '../api';
 import { openDB } from 'idb';
@@ -40,6 +42,7 @@ export default function SurahDetail() {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { theme } = useTheme();
+  const { user } = useAuth();
   const txt = surahI18n[lang] || surahI18n.tr;
   const isRTL = lang === 'ar';
   const [surah, setSurah] = useState(null);
@@ -135,6 +138,8 @@ export default function SurahDetail() {
       api.get(`/quran/surah/${surahNumber}/meal-video`),
     ]).then(([surahRes, mealRes]) => {
       setSurah(surahRes.data); setMealVideo(mealRes.data); setLoading(false);
+      // Kur'an okuma XP'si (aynı sure için günde bir kez)
+      awardXPOnce(user, `surah_${surahNumber}`, 'quran_read', { details: `Sure ${surahNumber}` });
     }).catch(() => setLoading(false));
   }, [surahNumber, reciter]);
 
