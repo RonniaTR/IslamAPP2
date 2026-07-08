@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Lightbulb, RefreshCw, Trophy } from 'lucide-react';
 import { WORD_PUZZLES, TR_ALPHABET } from '../../data/gameData';
+import Confetti from './Confetti';
 
 const MAX_LIVES = 6;
 
@@ -85,7 +86,8 @@ export default function WordGame({ theme, onXP }) {
       {/* Sonuç */}
       {status !== 'playing' && (
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          className="w-full max-w-md rounded-2xl p-5 mb-4 text-center" style={{ background: status === 'won' ? '#10B98118' : '#EF444418', border: `1px solid ${status === 'won' ? '#10B981' : '#EF4444'}55` }}>
+          className="relative w-full max-w-md rounded-2xl p-5 mb-4 text-center overflow-hidden" style={{ background: status === 'won' ? '#10B98118' : '#EF444418', border: `1px solid ${status === 'won' ? '#10B981' : '#EF4444'}55` }}>
+          {status === 'won' && <Confetti count={24} />}
           {status === 'won'
             ? <div className="flex items-center justify-center gap-2 font-black" style={{ color: '#10B981' }}><Trophy size={20} /> Tebrikler! +{15 + lives * 5} XP</div>
             : <p className="font-bold" style={{ color: '#EF4444' }}>Kelime: <span style={{ color: theme.gold }}>{puzzle.word}</span></p>}

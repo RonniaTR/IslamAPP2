@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Zap, Target, Flame, Trophy } from 'lucide-react';
-import { getRandomQuestions } from '../data/quizData'; 
+// 400+ soruluk birleşik bankadan çeker (quizData + büyük havuz)
+import { drawQuestions as getRandomQuestions } from '../data/questionBank';
 
 export default function QuizEngine() {
   const navigate = useNavigate();

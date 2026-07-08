@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw, Trophy, Link2 } from 'lucide-react';
 import { MATCH_PAIRS } from '../../data/gameData';
+import Confetti from './Confetti';
 
 const ROUND = 6; // her turda 6 çift
 
@@ -85,7 +86,8 @@ export default function MatchGame({ theme, onXP }) {
 
       {done ? (
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-          className="rounded-2xl p-6 text-center" style={{ background: '#10B98118', border: '1px solid #10B98155' }}>
+          className="relative rounded-2xl p-6 text-center overflow-hidden" style={{ background: '#10B98118', border: '1px solid #10B98155' }}>
+          <Confetti count={24} />
           <Trophy size={40} style={{ color: theme.gold }} className="mx-auto mb-3" />
           <p className="text-xl font-black mb-1" style={{ color: theme.gold }}>+{earned} XP</p>
           <p className="text-sm mb-5" style={{ color: theme.textSecondary }}>{moves} hamlede tamamladın</p>
