@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, Response, Request, Cookie
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.concurrency import run_in_threadpool
 from dotenv import load_dotenv
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.middleware.cors import CORSMiddleware
@@ -331,6 +332,29 @@ async def gemini_generate(prompt: str, system_message: str = "") -> str:
 # Auth Config
 EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
 SESSION_EXPIRY_DAYS = 7
+
+# Cross-site SPA (frontend and API on different domains) requires SameSite=None; Secure
+# for the session cookie to be sent on credentialed XHR. Override to "lax" for local dev.
+COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'none').lower()
+
+# Google login via Firebase Authentication. Frontend signs in with the Firebase
+# SDK and posts the resulting ID token; we verify it here against this project.
+FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', 'islamapp-5942a')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://islamapp-5942a.web.app').rstrip('/')
+
+def _cookie_params():
+    """SameSite=None needs Secure. Falls back safely for local http dev via COOKIE_SAMESITE=lax."""
+    samesite = COOKIE_SAMESITE if COOKIE_SAMESITE in ('none', 'lax', 'strict') else 'none'
+    secure = COOKIE_SECURE or samesite == 'none'
+    return {"samesite": samesite, "secure": secure}
+
+def _set_session_cookie(response, token: str):
+    p = _cookie_params()
+    response.set_cookie(
+        key="session_token", value=token, httponly=True,
+        secure=p["secure"], samesite=p["samesite"], path="/",
+        max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60,
+    )
 
 # Create the main app
 app = FastAPI()
@@ -1295,18 +1319,10 @@ async def exchange_session(request: Request, session_id: str, response: Response
                 "created_at": datetime.now(timezone.utc)
             }
             await db.user_sessions.insert_one(session_doc)
-            
+
             # Set cookie
-            response.set_cookie(
-                key="session_token",
-                value=session_token,
-                httponly=True,
-                secure=COOKIE_SECURE,
-                samesite="lax",
-                path="/",
-                max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
-            )
-            
+            _set_session_cookie(response, session_token)
+
             # Get user data
             user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
             return user
@@ -1315,58 +1331,72 @@ async def exchange_session(request: Request, session_id: str, response: Response
         logger.error(f"Auth error: {e}")
         raise HTTPException(status_code=500, detail="Authentication service error")
 
+class GuestLogin(BaseModel):
+    name: Optional[str] = None
+    guest_id: Optional[str] = None  # resume an existing guest to keep their data & name
+
 @api_router.post("/auth/guest")
-async def create_guest_user(request: Request, response: Response):
-    """Create a guest user for quick access"""
+async def create_guest_user(request: Request, response: Response, payload: Optional[GuestLogin] = None):
+    """Create (or resume) a guest user. A provided name is persisted and kept.
+    Passing an existing guest_id resumes that guest so their data/name survive."""
     _validate_ajax_request(request)
     if _is_rate_limited(request, 'guest_auth', limit=6, window=60):
         raise HTTPException(status_code=429, detail='Too many guest requests, please try again later')
-    user_id = f"guest_{uuid.uuid4().hex[:12]}"
+
+    payload = payload or GuestLogin()
+    display_name = (payload.name or "").strip() or "Kardeşim"
     session_token = f"guest_session_{uuid.uuid4().hex}"
-    
-    new_user = {
-        "user_id": user_id,
-        "email": f"{user_id}@guest.local",
-        "name": "Kardeşim",
-        "picture": None,
-        "is_guest": True,
-        "created_at": datetime.now(timezone.utc),
-        "language": "tr",
-        "theme": "dark",
-        "total_points": 0,
-        "quizzes_played": 0,
-        "streak_days": 0
-    }
-    
-    # Try DB but don't block guest login if DB is down
+    user = None
+
     try:
-        await db.users.insert_one(new_user)
-        expires_at = datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS)
+        # Resume an existing guest (keeps XP, notes, name, etc.)
+        if payload.guest_id:
+            existing = await db.users.find_one({"user_id": payload.guest_id, "is_guest": True}, {"_id": 0})
+            if existing:
+                user = existing
+                # Update the stored name only if the user typed a new one
+                if payload.name and payload.name.strip():
+                    await db.users.update_one({"user_id": existing["user_id"]}, {"$set": {"name": display_name}})
+                    user["name"] = display_name
+
+        if not user:
+            user_id = f"guest_{uuid.uuid4().hex[:12]}"
+            user = {
+                "user_id": user_id,
+                "email": f"{user_id}@guest.local",
+                "name": display_name,
+                "picture": None,
+                "is_guest": True,
+                "created_at": datetime.now(timezone.utc),
+                "language": "tr",
+                "theme": "dark",
+                "total_points": 0,
+                "quizzes_played": 0,
+                "streak_days": 0,
+            }
+            await db.users.insert_one(user)
+
         session_doc = {
             "session_id": str(uuid.uuid4()),
-            "user_id": user_id,
+            "user_id": user["user_id"],
             "session_token": session_token,
-            "expires_at": expires_at,
-            "created_at": datetime.now(timezone.utc)
+            "expires_at": datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS),
+            "created_at": datetime.now(timezone.utc),
         }
         await db.user_sessions.insert_one(session_doc)
     except Exception as e:
         logger.warning(f"DB unavailable for guest creation: {e}")
-    
-    # Set cookie
-    response.set_cookie(
-        key="session_token",
-        value=session_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite="lax",
-        path="/",
-        max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
-    )
-    
-    # Remove MongoDB _id before returning
-    new_user.pop("_id", None)
-    return new_user
+        if not user:
+            user = {
+                "user_id": f"guest_{uuid.uuid4().hex[:12]}",
+                "email": "", "name": display_name, "picture": None, "is_guest": True,
+                "language": "tr", "theme": "dark", "total_points": 0, "quizzes_played": 0, "streak_days": 0,
+            }
+
+    _set_session_cookie(response, session_token)
+    user = dict(user)
+    user.pop("_id", None)
+    return user
 
 @api_router.get("/auth/me")
 async def get_current_user_info(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
@@ -1387,11 +1417,7 @@ async def get_current_user_info(request: Request, response: Response, session_to
             {"session_token": token},
             {"$set": {"expires_at": new_expiry}}
         )
-        response.set_cookie(
-            key="session_token", value=token,
-            httponly=True, secure=COOKIE_SECURE, samesite="lax",
-            path="/", max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
-        )
+        _set_session_cookie(response, token)
 
     return user.dict()
 
@@ -1412,6 +1438,82 @@ async def logout(request: Request, response: Response, session_token: Optional[s
     
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out successfully"}
+
+# ===================== GOOGLE LOGIN (Firebase Authentication) =====================
+
+class FirebaseLogin(BaseModel):
+    id_token: str
+
+@api_router.post("/auth/firebase")
+async def firebase_login(payload: FirebaseLogin, request: Request, response: Response):
+    """Verify a Firebase ID token (from the frontend Google sign-in), upsert the
+    user, and mint our own session cookie so the rest of the app is unchanged."""
+    _validate_ajax_request(request)
+    if _is_rate_limited(request, 'firebase_auth', limit=10, window=60):
+        raise HTTPException(status_code=429, detail='Too many auth requests, please try again later')
+    if not FIREBASE_PROJECT_ID:
+        raise HTTPException(status_code=503, detail="Google girişi yapılandırılmadı (FIREBASE_PROJECT_ID).")
+
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+    except ImportError:
+        raise HTTPException(status_code=503, detail="Kimlik doğrulama kütüphanesi yüklü değil (google-auth).")
+
+    def _verify():
+        req = google_requests.Request()
+        return google_id_token.verify_firebase_token(payload.id_token, req, audience=FIREBASE_PROJECT_ID)
+
+    try:
+        claims = await run_in_threadpool(_verify)
+    except Exception as e:
+        logger.error(f"Firebase token verification failed: {e}")
+        raise HTTPException(status_code=401, detail="Google oturumu doğrulanamadı.")
+
+    if not claims:
+        raise HTTPException(status_code=401, detail="Geçersiz oturum.")
+
+    email = claims.get("email")
+    name = claims.get("name") or (email.split("@")[0] if email else "Kullanıcı")
+    picture = claims.get("picture")
+    if not email:
+        raise HTTPException(status_code=400, detail="E-posta bilgisi alınamadı.")
+
+    existing_user = await db.users.find_one({"email": email}, {"_id": 0})
+    if existing_user:
+        user_id = existing_user["user_id"]
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {"name": name, "picture": picture, "is_guest": False}},
+        )
+    else:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        await db.users.insert_one({
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "is_guest": False,
+            "created_at": datetime.now(timezone.utc),
+            "language": "tr",
+            "theme": "dark",
+            "total_points": 0,
+            "quizzes_played": 0,
+            "streak_days": 0,
+        })
+
+    session_token = f"fb_{uuid.uuid4().hex}"
+    await db.user_sessions.insert_one({
+        "session_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS),
+        "created_at": datetime.now(timezone.utc),
+    })
+
+    _set_session_cookie(response, session_token)
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    return user
 
 @api_router.put("/auth/profile")
 async def update_profile(
@@ -2337,25 +2439,49 @@ async def get_random_verse():
         "turkish": turkish_text
     }
 
+class BookmarkCreate(BaseModel):
+    user_id: str
+    surah: int
+    verse: int
+
 @api_router.post("/quran/bookmark")
-async def add_bookmark(user_id: str, surah: int, verse: int):
-    """Bookmark a verse"""
+async def add_bookmark(payload: BookmarkCreate):
+    """Bookmark a verse (idempotent — same verse won't be duplicated)"""
+    existing = await db.quran_bookmarks.find_one({
+        "user_id": payload.user_id, "surah": payload.surah, "verse": payload.verse
+    })
+    if existing:
+        return {
+            "id": existing.get("id") or str(existing.get("_id", "")),
+            "surah": payload.surah, "verse": payload.verse, "already": True
+        }
     bookmark = {
         "id": str(uuid.uuid4()),
-        "user_id": user_id,
-        "surah": surah,
-        "verse": verse,
+        "user_id": payload.user_id,
+        "surah": payload.surah,
+        "verse": payload.verse,
         "created_at": datetime.utcnow()
     }
     await db.quran_bookmarks.insert_one(bookmark)
-    bookmark.pop("_id", None)
-    return bookmark
+    return {"id": bookmark["id"], "surah": payload.surah, "verse": payload.verse}
 
 @api_router.get("/quran/bookmarks/{user_id}")
 async def get_bookmarks(user_id: str):
-    """Get user's bookmarks"""
-    bookmarks = await db.quran_bookmarks.find({"user_id": user_id}).to_list(100)
-    return [{"id": str(b.get("_id", b.get("id", ""))), "surah": b["surah"], "verse": b["verse"]} for b in bookmarks]
+    """Get user's bookmarks (newest first)"""
+    bookmarks = await db.quran_bookmarks.find({"user_id": user_id}).sort("created_at", -1).to_list(200)
+    return [{"id": b.get("id") or str(b.get("_id", "")), "surah": b["surah"], "verse": b["verse"]} for b in bookmarks]
+
+@api_router.delete("/quran/bookmark/{bookmark_id}")
+async def delete_bookmark(bookmark_id: str):
+    """Delete a bookmark by its uuid id (falls back to legacy ObjectId)"""
+    res = await db.quran_bookmarks.delete_one({"id": bookmark_id})
+    if res.deleted_count == 0:
+        try:
+            from bson import ObjectId
+            res = await db.quran_bookmarks.delete_one({"_id": ObjectId(bookmark_id)})
+        except Exception:
+            pass
+    return {"deleted": res.deleted_count > 0}
 
 # ===================== HADITH API =====================
 
@@ -2493,6 +2619,55 @@ async def log_activity(activity: ActivityCreate):
         "total_points": update_data["total_points"],
         "level": update_data["level"],
         "current_streak": update_data.get("current_streak", 1)
+    }
+
+@api_router.get("/knowledge/profile/{user_id}")
+async def get_knowledge_profile(user_id: str):
+    """Real learning profile aggregated from the user's actual activity logs & stats."""
+    stats = await db.user_stats.find_one({"user_id": user_id}) or {}
+    total_xp = stats.get("total_points", 0)
+    current_streak = stats.get("current_streak", 0)
+
+    # Completed daily quests today
+    today = date.today().isoformat()
+    quests_doc = await db.daily_quests.find_one({"user_id": user_id, "date": today}) or {}
+    completed_quests = sum(1 for q in quests_doc.get("quests", []) if q.get("completed"))
+
+    # Aggregate real activity counts by type
+    counts = {}
+    try:
+        pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$group": {"_id": "$activity_type", "count": {"$sum": 1}}},
+        ]
+        async for row in db.activity_logs.aggregate(pipeline):
+            counts[row["_id"]] = row["count"]
+    except Exception as e:
+        logger.debug(f"knowledge profile aggregation failed: {e}")
+
+    # Quiz games from quiz_stats
+    qstats = await db.quiz_stats.find_one({"user_id": user_id}) or {}
+    quiz_games = qstats.get("total_games", 0)
+
+    def pct(n, target):
+        return min(100, round((n / target) * 100)) if target else 0
+
+    # Progress toward a sensible engagement goal per real, tracked activity
+    categories = [
+        {"key": "quran", "name": "Kur'an", "count": counts.get("quran_read", 0), "score": pct(counts.get("quran_read", 0), 30)},
+        {"key": "hadith", "name": "Hadis", "count": counts.get("hadith_read", 0), "score": pct(counts.get("hadith_read", 0), 30)},
+        {"key": "quiz", "name": "Quiz", "count": quiz_games, "score": pct(quiz_games, 20)},
+        {"key": "dhikr", "name": "Zikir", "count": counts.get("dhikr", 0), "score": pct(counts.get("dhikr", 0), 30)},
+        {"key": "pomodoro", "name": "Odaklanma", "count": counts.get("pomodoro", 0), "score": pct(counts.get("pomodoro", 0), 20)},
+        {"key": "chat", "name": "Sohbet", "count": counts.get("chat", 0), "score": pct(counts.get("chat", 0), 20)},
+    ]
+
+    return {
+        "user_id": user_id,
+        "total_xp": total_xp,
+        "current_streak": current_streak,
+        "completed_quests": completed_quests,
+        "categories": categories,
     }
 
 @api_router.get("/gamification/badges")

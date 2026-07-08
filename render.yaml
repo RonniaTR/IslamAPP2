@@ -19,5 +19,29 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # ---- iyzico payment (set these in the Render dashboard) ----
+      - key: IYZICO_API_KEY
+        sync: false
+      - key: IYZICO_SECRET_KEY
+        sync: false
+      # Sandbox: https://sandbox-api.iyzipay.com  |  Production: https://api.iyzipay.com
+      - key: IYZICO_BASE_URL
+        value: "https://sandbox-api.iyzipay.com"
+      # Backend callback iyzico redirects to after payment, e.g. https://<backend>/api/premium/iyzico/callback
+      - key: IYZICO_CALLBACK_URL
+        sync: false
+      # Frontend base URL the callback bounces the user back to, e.g. https://islamapp-5942a.web.app
+      - key: FRONTEND_URL
+        value: "https://islamapp-5942a.web.app"
+      # Set to "true" ONLY for local testing to allow manual /premium/activate
+      - key: PAYMENTS_DEV_MODE
+        sync: false
+      # ---- Google login via Firebase Authentication ----
+      # Firebase project id (audience for verifying the ID token from the frontend)
+      - key: FIREBASE_PROJECT_ID
+        value: "islamapp-5942a"
+      # Cross-site cookie mode. Keep "none" for the firebase+render split; use "lax" only for local http dev.
+      - key: COOKIE_SAMESITE
+        value: "none"
       - key: PYTHON_VERSION
         value: 3.12.1

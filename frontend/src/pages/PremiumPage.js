@@ -22,21 +22,43 @@ export default function PremiumPage() {
   const [plans, setPlans] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
     api.get('/premium/plans').then(r => setPlans(r.data)).catch(() => {});
   }, []);
 
+  // Handle return from iyzico hosted payment page (?payment=success|failed)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pay = params.get('payment');
+    if (!pay) return;
+    if (pay === 'success') {
+      setNotice('Ödemeniz alındı — Premium aktif! 🎉');
+      checkPremium();
+    } else {
+      setError('Ödeme tamamlanamadı. Dilerseniz tekrar deneyebilirsiniz.');
+    }
+    window.history.replaceState({}, '', '/premium');
+  }, [checkPremium]);
+
   const handleSubscribe = async () => {
+    setError('');
     setProcessing(true);
     try {
-      await api.post('/premium/activate', {
+      const { data } = await api.post('/premium/iyzico/init', {
         user_id: user?.user_id,
         plan_type: selectedPlan,
-        payment_id: `demo_${Date.now()}`,
       });
-      await checkPremium();
-    } catch {} finally {
+      if (data?.paymentPageUrl) {
+        window.location.href = data.paymentPageUrl;
+        return; // leaving the page; keep spinner until redirect
+      }
+      setError('Ödeme başlatılamadı. Lütfen tekrar deneyin.');
+    } catch (e) {
+      setError(e.response?.data?.detail || 'Ödeme sistemi şu an kullanılamıyor.');
+    } finally {
       setProcessing(false);
     }
   };
@@ -134,6 +156,16 @@ export default function PremiumPage() {
 
       {/* CTA */}
       <div className="px-4 mt-6">
+        {notice && (
+          <div className="mb-3 p-3 rounded-xl text-xs text-center" style={{ background: `${theme.gold}15`, color: theme.gold, border: `1px solid ${theme.gold}30` }}>
+            {notice}
+          </div>
+        )}
+        {error && (
+          <div className="mb-3 p-3 rounded-xl text-xs text-center" style={{ background: '#ef444415', color: '#ef4444', border: '1px solid #ef444430' }}>
+            {error}
+          </div>
+        )}
         <motion.button whileTap={{ scale: 0.97 }} onClick={handleSubscribe} disabled={processing}
           className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 font-semibold text-sm text-white disabled:opacity-50"
           style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight})` }}>
