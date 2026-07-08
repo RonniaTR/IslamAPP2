@@ -2337,25 +2337,49 @@ async def get_random_verse():
         "turkish": turkish_text
     }
 
+class BookmarkCreate(BaseModel):
+    user_id: str
+    surah: int
+    verse: int
+
 @api_router.post("/quran/bookmark")
-async def add_bookmark(user_id: str, surah: int, verse: int):
-    """Bookmark a verse"""
+async def add_bookmark(payload: BookmarkCreate):
+    """Bookmark a verse (idempotent — same verse won't be duplicated)"""
+    existing = await db.quran_bookmarks.find_one({
+        "user_id": payload.user_id, "surah": payload.surah, "verse": payload.verse
+    })
+    if existing:
+        return {
+            "id": existing.get("id") or str(existing.get("_id", "")),
+            "surah": payload.surah, "verse": payload.verse, "already": True
+        }
     bookmark = {
         "id": str(uuid.uuid4()),
-        "user_id": user_id,
-        "surah": surah,
-        "verse": verse,
+        "user_id": payload.user_id,
+        "surah": payload.surah,
+        "verse": payload.verse,
         "created_at": datetime.utcnow()
     }
     await db.quran_bookmarks.insert_one(bookmark)
-    bookmark.pop("_id", None)
-    return bookmark
+    return {"id": bookmark["id"], "surah": payload.surah, "verse": payload.verse}
 
 @api_router.get("/quran/bookmarks/{user_id}")
 async def get_bookmarks(user_id: str):
-    """Get user's bookmarks"""
-    bookmarks = await db.quran_bookmarks.find({"user_id": user_id}).to_list(100)
-    return [{"id": str(b.get("_id", b.get("id", ""))), "surah": b["surah"], "verse": b["verse"]} for b in bookmarks]
+    """Get user's bookmarks (newest first)"""
+    bookmarks = await db.quran_bookmarks.find({"user_id": user_id}).sort("created_at", -1).to_list(200)
+    return [{"id": b.get("id") or str(b.get("_id", "")), "surah": b["surah"], "verse": b["verse"]} for b in bookmarks]
+
+@api_router.delete("/quran/bookmark/{bookmark_id}")
+async def delete_bookmark(bookmark_id: str):
+    """Delete a bookmark by its uuid id (falls back to legacy ObjectId)"""
+    res = await db.quran_bookmarks.delete_one({"id": bookmark_id})
+    if res.deleted_count == 0:
+        try:
+            from bson import ObjectId
+            res = await db.quran_bookmarks.delete_one({"_id": ObjectId(bookmark_id)})
+        except Exception:
+            pass
+    return {"deleted": res.deleted_count > 0}
 
 # ===================== HADITH API =====================
 
@@ -2493,6 +2517,55 @@ async def log_activity(activity: ActivityCreate):
         "total_points": update_data["total_points"],
         "level": update_data["level"],
         "current_streak": update_data.get("current_streak", 1)
+    }
+
+@api_router.get("/knowledge/profile/{user_id}")
+async def get_knowledge_profile(user_id: str):
+    """Real learning profile aggregated from the user's actual activity logs & stats."""
+    stats = await db.user_stats.find_one({"user_id": user_id}) or {}
+    total_xp = stats.get("total_points", 0)
+    current_streak = stats.get("current_streak", 0)
+
+    # Completed daily quests today
+    today = date.today().isoformat()
+    quests_doc = await db.daily_quests.find_one({"user_id": user_id, "date": today}) or {}
+    completed_quests = sum(1 for q in quests_doc.get("quests", []) if q.get("completed"))
+
+    # Aggregate real activity counts by type
+    counts = {}
+    try:
+        pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$group": {"_id": "$activity_type", "count": {"$sum": 1}}},
+        ]
+        async for row in db.activity_logs.aggregate(pipeline):
+            counts[row["_id"]] = row["count"]
+    except Exception as e:
+        logger.debug(f"knowledge profile aggregation failed: {e}")
+
+    # Quiz games from quiz_stats
+    qstats = await db.quiz_stats.find_one({"user_id": user_id}) or {}
+    quiz_games = qstats.get("total_games", 0)
+
+    def pct(n, target):
+        return min(100, round((n / target) * 100)) if target else 0
+
+    # Progress toward a sensible engagement goal per real, tracked activity
+    categories = [
+        {"key": "quran", "name": "Kur'an", "count": counts.get("quran_read", 0), "score": pct(counts.get("quran_read", 0), 30)},
+        {"key": "hadith", "name": "Hadis", "count": counts.get("hadith_read", 0), "score": pct(counts.get("hadith_read", 0), 30)},
+        {"key": "quiz", "name": "Quiz", "count": quiz_games, "score": pct(quiz_games, 20)},
+        {"key": "dhikr", "name": "Zikir", "count": counts.get("dhikr", 0), "score": pct(counts.get("dhikr", 0), 30)},
+        {"key": "pomodoro", "name": "Odaklanma", "count": counts.get("pomodoro", 0), "score": pct(counts.get("pomodoro", 0), 20)},
+        {"key": "chat", "name": "Sohbet", "count": counts.get("chat", 0), "score": pct(counts.get("chat", 0), 20)},
+    ]
+
+    return {
+        "user_id": user_id,
+        "total_xp": total_xp,
+        "current_streak": current_streak,
+        "completed_quests": completed_quests,
+        "categories": categories,
     }
 
 @api_router.get("/gamification/badges")

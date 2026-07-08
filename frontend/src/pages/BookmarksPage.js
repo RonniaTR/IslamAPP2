@@ -39,13 +39,14 @@ export default function BookmarksPage() {
   const [view, setView] = useState('bookmarks'); // bookmarks | juz
 
   useEffect(() => {
-    if (!user?.uid) return;
-    api.get(`/quran/bookmarks/${user.uid}`)
+    const lr = localStorage.getItem('lastRead');
+    if (lr) try { setLastRead(JSON.parse(lr)); } catch {}
+    const uid = user?.user_id || user?.id;
+    if (!uid) { setLoading(false); return; }
+    api.get(`/quran/bookmarks/${uid}`)
       .then(r => { setBookmarks(Array.isArray(r.data) ? r.data : []); })
       .catch(() => {})
       .finally(() => setLoading(false));
-    const lr = localStorage.getItem('lastRead');
-    if (lr) try { setLastRead(JSON.parse(lr)); } catch {}
   }, [user]);
 
   const removeBookmark = useCallback(async (id) => {

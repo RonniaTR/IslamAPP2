@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen, Shield, Languages, GitCompare, Star, Bookmark, Download, CheckCircle } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import PreReadingDua from '../components/PreReadingDua';
 import api from '../api';
 import { openDB } from 'idb';
@@ -40,6 +41,8 @@ export default function SurahDetail() {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const uid = user?.user_id || user?.id;
   const txt = surahI18n[lang] || surahI18n.tr;
   const isRTL = lang === 'ar';
   const [surah, setSurah] = useState(null);
@@ -64,6 +67,7 @@ export default function SurahDetail() {
   const [kissaData, setKissaData] = useState({});
   const [kissaLoading, setKissaLoading] = useState(null);
   const [savedNotes, setSavedNotes] = useState({});
+  const [bookmarks, setBookmarks] = useState({}); // verseNumber -> bookmarkId
   const [copiedVerse, setCopiedVerse] = useState(null);
   const [activeTab, setActiveTab] = useState({});
   const [tafsirV2Scholars, setTafsirV2Scholars] = useState([]);
@@ -137,6 +141,16 @@ export default function SurahDetail() {
       setSurah(surahRes.data); setMealVideo(mealRes.data); setLoading(false);
     }).catch(() => setLoading(false));
   }, [surahNumber, reciter]);
+
+  useEffect(() => {
+    if (!uid) return;
+    api.get(`/quran/bookmarks/${uid}`).then(r => {
+      if (!Array.isArray(r.data)) return;
+      const map = {};
+      r.data.filter(b => Number(b.surah) === Number(surahNumber)).forEach(b => { map[b.verse] = b.id; });
+      setBookmarks(map);
+    }).catch(() => {});
+  }, [uid, surahNumber]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -297,6 +311,27 @@ export default function SurahDetail() {
       });
       setSavedNotes(prev => ({ ...prev, [key]: true }));
     } catch {}
+  };
+
+  const toggleBookmark = async (verse) => {
+    if (!uid) return;
+    const existingId = bookmarks[verse.number];
+    if (existingId) {
+      // Optimistic remove
+      setBookmarks(prev => { const n = { ...prev }; delete n[verse.number]; return n; });
+      try { await api.delete(`/quran/bookmark/${existingId}`); } catch {}
+    } else {
+      // Optimistic add
+      setBookmarks(prev => ({ ...prev, [verse.number]: 'pending' }));
+      try {
+        const { data } = await api.post('/quran/bookmark', {
+          user_id: uid, surah: parseInt(surahNumber), verse: verse.number,
+        });
+        setBookmarks(prev => ({ ...prev, [verse.number]: data.id }));
+      } catch {
+        setBookmarks(prev => { const n = { ...prev }; delete n[verse.number]; return n; });
+      }
+    }
   };
 
   const copyVerse = (verse) => {
@@ -531,6 +566,11 @@ export default function SurahDetail() {
                     className="w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90"
                     style={{ background: `${theme.gold}08`, color: theme.textSecondary }}>
                     <Share2 size={13} />
+                  </button>
+                  <button onClick={() => toggleBookmark(verse)} title={txt.save}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90"
+                    style={{ background: bookmarks[verse.number] ? `${theme.gold}20` : `${theme.gold}08`, color: bookmarks[verse.number] ? theme.gold : theme.textSecondary }}>
+                    <Bookmark size={13} fill={bookmarks[verse.number] ? 'currentColor' : 'none'} />
                   </button>
                   <button onClick={() => saveToNotes(verse, kissaData[kissaKey])}
                     className="w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90"
