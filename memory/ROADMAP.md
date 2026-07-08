@@ -23,11 +23,11 @@
   - Frontend: `PremiumPage` gerçek ödeme sayfasına yönlendiriyor + dönüş sonucunu işliyor
   - **Kalan (kullanıcı):** iyzico hesabı + `IYZICO_*` / `FRONTEND_URL` env değişkenlerini Render'a gir, sandbox'ta test et, canlıya geç
 - [x] **Misafir veri kalıcılığı çözüldü** — Girilen isim artık backend'de kaydediliyor ve her yerde görünüyor; `islamapp_guest_id` ile misafir çıkış/cookie kaybı sonrası aynı kimlikle devam ediyor (veri kaybolmuyor).
-- [~] **Google ile giriş — KOD HAZIR, anahtar bekliyor** (bkz. `backend/AUTH_SETUP.md`)
-  - Standart Google OAuth 2.0 (sunucu taraflı redirect) eklendi: `/auth/google/login` + `/auth/google/callback`
-  - Emergent bağımlılığı yerine kendi OAuth'umuz; `loginWithGoogle` frontend'e eklendi
+- [~] **Google ile giriş — Firebase Authentication, KOD HAZIR** (bkz. `backend/AUTH_SETUP.md`)
+  - Frontend Firebase SDK popup ile giriş yapıyor; backend `/auth/firebase` token'ı `google-auth` ile doğrulayıp kendi oturumumuzu açıyor
+  - Emergent bağımlılığı kalktı; `loginWithGoogle` frontend'e eklendi
   - **Cross-origin cookie hatası düzeltildi**: `SameSite=None; Secure` (eski `lax` cross-origin'de çalışmıyordu)
-  - **Kalan (kullanıcı):** Google Cloud'da OAuth Client oluştur, `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` env'lerini Render'a gir
+  - **Kalan (kullanıcı):** Firebase Console'da Google provider'ı aç, web config'i `frontend/src/firebase.js`'e gir, frontend'i yeniden deploy et
 
 ## P1 - İçerik & tutarlılık
 - [ ] **ScholarsPage gözden geçir** — 12 "hoca" listesi frontend'de hardcoded; backend `/scholars` kullanılmıyor. Ayrıca AI, isimli gerçek kişilerin ağzından cevap veriyor → itibar/yasal açıdan değerlendirilmeli (jenerik "Diyanet görüşü" personası daha güvenli olabilir).

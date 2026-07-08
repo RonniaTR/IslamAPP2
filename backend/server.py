@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Query, WebSocket, WebSocketDisconnect, Response, Request, Cookie
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.concurrency import run_in_threadpool
 from dotenv import load_dotenv
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.middleware.cors import CORSMiddleware
@@ -336,10 +337,9 @@ SESSION_EXPIRY_DAYS = 7
 # for the session cookie to be sent on credentialed XHR. Override to "lax" for local dev.
 COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'none').lower()
 
-# Google OAuth 2.0 (standard, self-hosted). Set these env vars to enable Google login.
-GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
-GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
-GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', '')  # e.g. https://<backend>/api/auth/google/callback
+# Google login via Firebase Authentication. Frontend signs in with the Firebase
+# SDK and posts the resulting ID token; we verify it here against this project.
+FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', 'islamapp-5942a')
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://islamapp-5942a.web.app').rstrip('/')
 
 def _cookie_params():
@@ -1439,111 +1439,81 @@ async def logout(request: Request, response: Response, session_token: Optional[s
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out successfully"}
 
-# ===================== GOOGLE OAUTH 2.0 =====================
+# ===================== GOOGLE LOGIN (Firebase Authentication) =====================
 
-@api_router.get("/auth/google/login")
-async def google_login():
-    """Kick off Google OAuth: redirect the browser to Google's consent screen."""
-    if not GOOGLE_CLIENT_ID or not GOOGLE_REDIRECT_URI:
-        return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=unconfigured", status_code=303)
-    import secrets
-    from urllib.parse import urlencode
-    state = secrets.token_urlsafe(24)
-    params = {
-        "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": GOOGLE_REDIRECT_URI,
-        "response_type": "code",
-        "scope": "openid email profile",
-        "state": state,
-        "access_type": "online",
-        "prompt": "select_account",
-    }
-    url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
-    resp = RedirectResponse(url=url, status_code=303)
-    # Short-lived state cookie for CSRF protection on the callback
-    p = _cookie_params()
-    resp.set_cookie("g_oauth_state", state, httponly=True, secure=p["secure"],
-                    samesite=p["samesite"], path="/", max_age=600)
-    return resp
+class FirebaseLogin(BaseModel):
+    id_token: str
 
-@api_router.get("/auth/google/callback")
-async def google_callback(request: Request, code: Optional[str] = None,
-                          state: Optional[str] = None, g_oauth_state: Optional[str] = Cookie(None)):
-    """Google redirects here with an auth code. Exchange it, upsert the user,
-    create a session, then bounce back into the app."""
-    if not code or not state or not g_oauth_state or state != g_oauth_state:
-        return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
+@api_router.post("/auth/firebase")
+async def firebase_login(payload: FirebaseLogin, request: Request, response: Response):
+    """Verify a Firebase ID token (from the frontend Google sign-in), upsert the
+    user, and mint our own session cookie so the rest of the app is unchanged."""
+    _validate_ajax_request(request)
+    if _is_rate_limited(request, 'firebase_auth', limit=10, window=60):
+        raise HTTPException(status_code=429, detail='Too many auth requests, please try again later')
+    if not FIREBASE_PROJECT_ID:
+        raise HTTPException(status_code=503, detail="Google girişi yapılandırılmadı (FIREBASE_PROJECT_ID).")
 
     try:
-        async with httpx.AsyncClient() as client:
-            token_resp = await client.post(
-                "https://oauth2.googleapis.com/token",
-                data={
-                    "code": code,
-                    "client_id": GOOGLE_CLIENT_ID,
-                    "client_secret": GOOGLE_CLIENT_SECRET,
-                    "redirect_uri": GOOGLE_REDIRECT_URI,
-                    "grant_type": "authorization_code",
-                },
-                timeout=10.0,
-            )
-            if token_resp.status_code != 200:
-                logger.error(f"Google token exchange failed: {token_resp.text}")
-                return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
-            access_token = token_resp.json().get("access_token")
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+    except ImportError:
+        raise HTTPException(status_code=503, detail="Kimlik doğrulama kütüphanesi yüklü değil (google-auth).")
 
-            info_resp = await client.get(
-                "https://www.googleapis.com/oauth2/v2/userinfo",
-                headers={"Authorization": f"Bearer {access_token}"},
-                timeout=10.0,
-            )
-            info = info_resp.json()
+    def _verify():
+        req = google_requests.Request()
+        return google_id_token.verify_firebase_token(payload.id_token, req, audience=FIREBASE_PROJECT_ID)
 
-        email = info.get("email")
-        name = info.get("name") or (email.split("@")[0] if email else "Kullanıcı")
-        picture = info.get("picture")
-        if not email:
-            return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
+    try:
+        claims = await run_in_threadpool(_verify)
+    except Exception as e:
+        logger.error(f"Firebase token verification failed: {e}")
+        raise HTTPException(status_code=401, detail="Google oturumu doğrulanamadı.")
 
-        existing_user = await db.users.find_one({"email": email}, {"_id": 0})
-        if existing_user:
-            user_id = existing_user["user_id"]
-            await db.users.update_one(
-                {"user_id": user_id},
-                {"$set": {"name": name, "picture": picture, "is_guest": False}},
-            )
-        else:
-            user_id = f"user_{uuid.uuid4().hex[:12]}"
-            await db.users.insert_one({
-                "user_id": user_id,
-                "email": email,
-                "name": name,
-                "picture": picture,
-                "is_guest": False,
-                "created_at": datetime.now(timezone.utc),
-                "language": "tr",
-                "theme": "dark",
-                "total_points": 0,
-                "quizzes_played": 0,
-                "streak_days": 0,
-            })
+    if not claims:
+        raise HTTPException(status_code=401, detail="Geçersiz oturum.")
 
-        session_token = f"g_{uuid.uuid4().hex}"
-        await db.user_sessions.insert_one({
-            "session_id": str(uuid.uuid4()),
+    email = claims.get("email")
+    name = claims.get("name") or (email.split("@")[0] if email else "Kullanıcı")
+    picture = claims.get("picture")
+    if not email:
+        raise HTTPException(status_code=400, detail="E-posta bilgisi alınamadı.")
+
+    existing_user = await db.users.find_one({"email": email}, {"_id": 0})
+    if existing_user:
+        user_id = existing_user["user_id"]
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {"name": name, "picture": picture, "is_guest": False}},
+        )
+    else:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        await db.users.insert_one({
             "user_id": user_id,
-            "session_token": session_token,
-            "expires_at": datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS),
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "is_guest": False,
             "created_at": datetime.now(timezone.utc),
+            "language": "tr",
+            "theme": "dark",
+            "total_points": 0,
+            "quizzes_played": 0,
+            "streak_days": 0,
         })
 
-        resp = RedirectResponse(url=f"{FRONTEND_URL}/", status_code=303)
-        _set_session_cookie(resp, session_token)
-        resp.delete_cookie("g_oauth_state", path="/")
-        return resp
-    except Exception as e:
-        logger.error(f"Google OAuth error: {e}")
-        return RedirectResponse(url=f"{FRONTEND_URL}/login?auth=failed", status_code=303)
+    session_token = f"fb_{uuid.uuid4().hex}"
+    await db.user_sessions.insert_one({
+        "session_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=SESSION_EXPIRY_DAYS),
+        "created_at": datetime.now(timezone.utc),
+    })
+
+    _set_session_cookie(response, session_token)
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    return user
 
 @api_router.put("/auth/profile")
 async def update_profile(

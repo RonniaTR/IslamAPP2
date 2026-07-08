@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, LogIn, Loader2, Sparkles } from 'lucide-react';
@@ -14,15 +14,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [authError, setAuthError] = useState('');
-
-  // Show a message if we were redirected back from a failed/unconfigured Google login
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const auth = params.get('auth');
-    if (auth === 'failed') setAuthError('Google girişi tamamlanamadı. Lütfen tekrar deneyin.');
-    else if (auth === 'unconfigured') setAuthError('Google girişi henüz yapılandırılmadı.');
-    if (auth) window.history.replaceState({}, '', '/login');
-  }, []);
 
   // Misafir Butonuna Tıklanınca
   const handleGuestClick = async () => {
@@ -65,15 +56,26 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setAuthError('');
     if (!loginWithGoogle) {
       setAuthError('Google girişi şu an aktif değil.');
       return;
     }
     setGoogleLoading(true);
-    // Full-page redirect to backend -> Google. Spinner stays until the page leaves.
-    loginWithGoogle();
+    try {
+      const user = await loginWithGoogle();
+      if (user) navigate('/', { replace: true });
+    } catch (error) {
+      const code = error?.code || '';
+      // User simply closed the popup — don't show a scary error
+      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        setAuthError(error?.response?.data?.detail || 'Google girişi tamamlanamadı. Lütfen tekrar deneyin.');
+      }
+      console.error('Google login hatası:', error);
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (

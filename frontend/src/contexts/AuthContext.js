@@ -88,9 +88,15 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const loginWithGoogle = () => {
-    // Full-page redirect: backend -> Google consent -> backend callback -> app
-    window.location.href = `${api.defaults.baseURL}/auth/google/login`;
+  const loginWithGoogle = async () => {
+    // Firebase Google popup -> ID token -> our backend verifies + opens a session
+    const { signInWithGoogle } = await import('../firebase');
+    const idToken = await signInWithGoogle();
+    const { data } = await api.post('/auth/firebase', { id_token: idToken });
+    localStorage.removeItem('islamapp_guest_id');
+    setUser(data);
+    setCachedUser(data);
+    return data;
   };
 
   const logout = async () => {

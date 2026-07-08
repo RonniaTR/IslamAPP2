@@ -9,33 +9,40 @@
   aynı misafir kimliğiyle **kaldığı yerden devam eder** (verisi kaybolmaz).
 - Ek kurulum gerekmez.
 
-## Google ile giriş — anahtar gerekiyor
-Standart Google OAuth 2.0 (sunucu taraflı) kuruldu. Etkinleştirmek için:
+## Google ile giriş — Firebase Authentication
+Frontend, Firebase SDK ile Google popup'ı açar; oluşan kimlik token'ını backend
+`/api/auth/firebase` doğrular, kullanıcıyı oluşturur/günceller ve kendi oturumumuzu
+açar. Etkinleştirmek için:
 
-### 1. Google Cloud Console
-1. https://console.cloud.google.com → yeni proje (veya mevcut).
-2. **APIs & Services → OAuth consent screen**: External, uygulama adı + destek e-postası.
-3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
-   - Application type: **Web application**
-   - **Authorized redirect URIs**: `https://<backend-adresin>/api/auth/google/callback`
-     (Render backend adresin, örn. `https://islamapp-backend.onrender.com/api/auth/google/callback`)
-4. Oluşan **Client ID** ve **Client Secret**'i not al.
+### 1. Firebase Console
+1. https://console.firebase.google.com → **ISLAMAPP** projesi.
+2. **Authentication → Sign-in method → Add new provider → Google → Enable**,
+   destek e-postasını seç, **Save**.
+3. **Authentication → Settings → Authorized domains**: `islamapp-5942a.web.app`
+   ve `localhost` zaten olmalı (yoksa ekle). Kendi alan adın varsa onu da ekle.
+4. **Project Settings (⚙) → General → Your apps → Web app → SDK setup and
+   configuration → Config**. Şu değerleri kopyala:
+   `apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`.
+   (Web app yoksa "Add app → Web" ile bir tane oluştur.)
 
-### 2. Render ortam değişkenleri
+### 2. Frontend config (değerleri gir)
+`frontend/src/firebase.js` içindeki `firebaseConfig`'e yukarıdaki değerleri yaz
+(bu değerler **gizli değildir**, herkese açık olabilir). Alternatif olarak
+build sırasında `REACT_APP_FIREBASE_API_KEY`, `..._APP_ID`, `..._MSG_SENDER_ID`
+env değişkenleriyle de verilebilir. Sonra frontend'i yeniden build + deploy et:
+```
+cd frontend && npm install && npm run build
+firebase deploy --only hosting
+```
+
+### 3. Backend ortam değişkeni (Render)
 | Değişken | Değer |
 |---|---|
-| `GOOGLE_CLIENT_ID` | (Google'dan) |
-| `GOOGLE_CLIENT_SECRET` | (Google'dan) |
-| `GOOGLE_REDIRECT_URI` | `https://<backend-adresin>/api/auth/google/callback` (yukarıdakiyle **birebir aynı**) |
+| `FIREBASE_PROJECT_ID` | `islamapp-5942a` (token doğrulaması için) |
+| `COOKIE_SAMESITE` | `none` (frontend ve backend farklı domain) |
 | `FRONTEND_URL` | `https://islamapp-5942a.web.app` |
-| `COOKIE_SAMESITE` | `none` (frontend ve backend farklı domain olduğu için gerekli) |
 
-### 3. Akış
-1. Kullanıcı **Google ile Giriş Yap**'a basar → `/api/auth/google/login`
-   Google onay ekranına yönlendirir.
-2. Google, kullanıcıyı `/api/auth/google/callback`'e döndürür; backend kodu token'la
-   değişir, kullanıcıyı oluşturur/günceller, oturum açar ve
-   `FRONTEND_URL`'e geri yollar. Kullanıcı giriş yapmış olur.
+`google-auth` kütüphanesi `requirements.txt`'e eklendi (token doğrulama için).
 
 ### Neden `COOKIE_SAMESITE=none`?
 Frontend (firebase) ile backend (render) **farklı domain**. Oturum cookie'sinin
@@ -43,5 +50,11 @@ cross-origin isteklerde gönderilmesi için `SameSite=None; Secure` şart. Eski
 `lax` ayarı bu mimaride cookie'yi göndermiyordu (gizli giriş hatası) — düzeltildi.
 Yerel http geliştirmede `COOKIE_SAMESITE=lax` + `COOKIE_SECURE=false` kullan.
 
-> Not: Eski "Emergent" tabanlı Google akışı (`/auth/session`) yerinde duruyor ama
-> artık standart OAuth akışı kullanılıyor; Emergent'e bağımlılık yok.
+### Akış özeti
+1. **Google ile Giriş Yap** → Firebase popup → Google hesabı seç.
+2. Frontend, Firebase ID token'ını `/api/auth/firebase`'e gönderir.
+3. Backend token'ı doğrular, kullanıcıyı MongoDB'de oluşturur/günceller, oturum
+   cookie'si verir. Kullanıcı giriş yapmış olur.
+
+> Not: Eski "Emergent" tabanlı `/auth/session` akışı yerinde duruyor ama artık
+> Firebase kullanılıyor; Emergent'e bağımlılık yok.

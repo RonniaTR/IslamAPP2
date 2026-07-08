@@ -36,15 +36,10 @@ services:
       # Set to "true" ONLY for local testing to allow manual /premium/activate
       - key: PAYMENTS_DEV_MODE
         sync: false
-      # ---- Google OAuth 2.0 login (set these in the Render dashboard) ----
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
-      # Must exactly match an Authorized redirect URI in Google Cloud Console:
-      # https://<your-backend-host>/api/auth/google/callback
-      - key: GOOGLE_REDIRECT_URI
-        sync: false
+      # ---- Google login via Firebase Authentication ----
+      # Firebase project id (audience for verifying the ID token from the frontend)
+      - key: FIREBASE_PROJECT_ID
+        value: "islamapp-5942a"
       # Cross-site cookie mode. Keep "none" for the firebase+render split; use "lax" only for local http dev.
       - key: COOKIE_SAMESITE
         value: "none"
