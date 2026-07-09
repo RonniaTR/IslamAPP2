@@ -16,6 +16,7 @@ import ClassicTest from './games/ClassicTest';
 import AIDuel from './games/AIDuel';
 import BossBattle from './games/BossBattle';
 import OrderGame from './games/OrderGame';
+import VoiceGuess from './games/VoiceGuess';
 
 // ════════════════════════════════════════════════════════════
 // OYUN MERKEZİ — referans tasarım birebir (mobil düzene uyarlı)
@@ -46,7 +47,7 @@ const GAME_MODES = [
   { id: 'order', title: 'Doğru Sırala', desc: 'Bilgileri doğru sıraya koy, ustalaş!', emoji: '🔢', color: '#EAB308', type: 'game_match', Comp: OrderGame },
   { id: 'word', title: 'Kelime Bulmaca', desc: 'Kelimeyi bul, manayı keşfet! Eğlenerek öğren.', emoji: '🔤', color: '#6366F1', type: 'game_word', Comp: WordGame },
   { id: 'wheel', title: 'Çarkıfelek', desc: 'Çarkı çevir, kategorinden soruyu bil!', emoji: '🎡', color: '#14B8A6', type: 'game_wheel', Comp: WheelGame },
-  { id: 'voice', title: 'Sesli Tahmin', desc: 'Kıraati dinle, surenin adını tahmin et!', emoji: '🎵', color: '#22C55E', locked: true },
+  { id: 'voice', title: 'Sesli Tahmin', desc: 'Kıraati dinle, surenin adını tahmin et!', emoji: '🎵', color: '#22C55E', type: 'game_quiz', Comp: VoiceGuess },
 ];
 
 const CAT_ICONS = {

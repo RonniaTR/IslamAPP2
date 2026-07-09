@@ -4,28 +4,6 @@
 // Format: { cat, d(ifficulty), q(uestion), o(ptions), a(nswer index), exp(lanation) }
 
 export const EXTRA_QUESTIONS = [
-  // ─── ESMAÜL HÜSNA (Allah'ın güzel isimleri) ───
-  { cat: 'Esmaül Hüsna', d: 'easy', q: "'Er-Rahman' isminin anlamı nedir?", o: ['Dünyada tüm yaratılmışlara merhamet eden', 'Her şeyi bilen', 'Rızık veren', 'Her şeyi gören'], a: 0, exp: 'Er-Rahman, dünyada mümin-kâfir ayırmadan tüm yaratılmışlara merhamet eden demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'easy', q: "'Er-Rahim' isminin anlamı nedir?", o: ['Ahirette müminlere merhamet eden', 'Mülkün sahibi', 'Esenlik veren', 'Çok bağışlayan'], a: 0, exp: 'Er-Rahim, ahirette müminlere özel merhamet eden anlamına gelir.' },
-  { cat: 'Esmaül Hüsna', d: 'easy', q: "'El-Alim' isminin anlamı nedir?", o: ['Her şeyi hakkıyla bilen', 'Her şeyi işiten', 'Adaletli olan', 'Şifa veren'], a: 0, exp: 'El-Alim; gizli, açık, geçmiş, gelecek her şeyi bilen demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'easy', q: "'Es-Semi' isminin anlamı nedir?", o: ['Her şeyi işiten', 'Her şeyi gören', 'Her şeye gücü yeten', 'Koruyan'], a: 0, exp: 'Es-Semi, gizli-açık her sesi işiten anlamına gelir.' },
-  { cat: 'Esmaül Hüsna', d: 'easy', q: "'El-Basir' isminin anlamı nedir?", o: ['Her şeyi gören', 'Rızık veren', 'Hikmet sahibi', 'Çok seven'], a: 0, exp: 'El-Basir, her şeyi bütün incelikleriyle gören demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Gaffar' isminin anlamı nedir?", o: ['Günahları çokça bağışlayan', 'Mülkün sahibi', 'Her şeyi yaratan', 'Sabırlı olan'], a: 0, exp: 'El-Gaffar, kullarının günahlarını tekrar tekrar bağışlayan anlamındadır.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'Er-Rezzak' isminin anlamı nedir?", o: ['Tüm canlıların rızkını veren', 'Her şeyi işiten', 'Esenlik veren', 'Yol gösteren'], a: 0, exp: 'Er-Rezzak, bütün canlıların rızkını yaratan ve ulaştıran demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Halık' isminin anlamı nedir?", o: ['Her şeyi yoktan yaratan', 'Çok merhametli', 'Günahları örten', 'Her şeyi bilen'], a: 0, exp: 'El-Halık, her şeyi yoktan var eden, yaratan anlamına gelir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Kerim' isminin anlamı nedir?", o: ['Cömert, ikramı bol olan', 'Güçlü olan', 'Hüküm veren', 'Işık veren'], a: 0, exp: 'El-Kerim, lütuf ve ikramı bol, cömert olan demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Hakim' isminin anlamı nedir?", o: ['Her işi hikmetli olan', 'Her şeyi gören', 'Rızık veren', 'Çok sabırlı'], a: 0, exp: 'El-Hakim, her emri ve işi yerli yerinde, hikmetli olan anlamındadır.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Vedud' isminin anlamı nedir?", o: ['Kullarını çok seven ve sevilen', 'Her şeyi işiten', 'Koruyup gözeten', 'Mülkün sahibi'], a: 0, exp: 'El-Vedud, salih kullarını çok seven ve onlar tarafından çok sevilen demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'Es-Sabur' isminin anlamı nedir?", o: ['Çok sabırlı olan', 'Çok bağışlayan', 'Hesabı çabuk gören', 'Her şeyi bilen'], a: 0, exp: 'Es-Sabur, isyankârları hemen cezalandırmayıp mühlet veren, çok sabırlı olandır.' },
-  { cat: 'Esmaül Hüsna', d: 'easy', q: "'El-Kadir' isminin anlamı nedir?", o: ['Her şeye gücü yeten', 'Her şeyi işiten', 'Çok merhametli', 'Yol gösteren'], a: 0, exp: 'El-Kadir, istediğini istediği gibi yapmaya gücü yeten demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Hafız' isminin anlamı nedir?", o: ['Koruyan, muhafaza eden', 'Rızık veren', 'Hüküm veren', 'Cömert olan'], a: 0, exp: 'El-Hafız, her şeyi koruyup gözeten anlamına gelir.' },
-  { cat: 'Esmaül Hüsna', d: 'easy', q: "'Eş-Şafi' ismi hangi anlamdadır?", o: ['Şifa veren', 'Yaratan', 'Bağışlayan', 'İşiten'], a: 0, exp: 'Eş-Şafi, hastalara şifa veren anlamındadır.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'En-Nur' isminin anlamı nedir?", o: ['Alemleri nurlandıran, aydınlatan', 'Her şeyi gören', 'Esenlik veren', 'Güçlü olan'], a: 0, exp: 'En-Nur, alemleri nuruyla aydınlatan demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Adl' isminin anlamı nedir?", o: ['Mutlak adalet sahibi', 'Çok seven', 'Rızık veren', 'Sabırlı olan'], a: 0, exp: 'El-Adl, tam adaletli olan, asla zulmetmeyen anlamına gelir.' },
-  { cat: 'Esmaül Hüsna', d: 'medium', q: "'El-Melik' isminin anlamı nedir?", o: ['Mülkün gerçek sahibi', 'Şifa veren', 'Günahları örten', 'Işık veren'], a: 0, exp: 'El-Melik, bütün kâinatın gerçek sahibi ve hükümdarı demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'hard', q: "'El-Kuddüs' isminin anlamı nedir?", o: ['Her türlü eksiklikten uzak, tertemiz', 'Çok güçlü', 'Hesap soran', 'Çok cömert'], a: 0, exp: 'El-Kuddüs, her türlü eksiklik ve kusurdan münezzeh olan demektir.' },
-  { cat: 'Esmaül Hüsna', d: 'hard', q: "'Es-Selam' isminin anlamı nedir?", o: ['Esenlik veren, selamete çıkaran', 'Rızık veren', 'Her şeyi bilen', 'Hüküm veren'], a: 0, exp: 'Es-Selam, her türlü tehlikeden kullarını selamete çıkaran, esenlik verendir.' },
-
   // ─── DUALAR & ZİKİRLER ───
   { cat: 'Dualar', d: 'easy', q: 'Yemeğe başlarken ne söylenir?', o: ['Besmele (Bismillahirrahmanirrahim)', 'Elhamdülillah', 'Allahu Ekber', 'Estağfirullah'], a: 0, exp: 'Yemeğe ve her hayırlı işe Besmele ile başlanır.' },
   { cat: 'Dualar', d: 'easy', q: "'Elhamdülillah' ne anlama gelir?", o: ['Hamd (övgü) Allah\'a mahsustur', 'Allah en büyüktür', 'Allah\'ı tenzih ederim', 'Allah\'tan af dilerim'], a: 0, exp: "Elhamdülillah, 'Her türlü övgü Allah'a aittir' demektir; şükür ifadesidir." },
@@ -98,6 +76,42 @@ export const EXTRA_QUESTIONS = [
   { cat: 'Çocuk', d: 'easy', q: 'Peygamberimiz hangi şehirde doğmuştur?', o: ['Mekke', 'Medine', 'Kudüs', 'Şam'], a: 0, exp: 'Peygamberimiz Mekke şehrinde doğmuştur.' },
   { cat: 'Çocuk', d: 'easy', q: 'Namaz kılmadan önce ne yaparız?', o: ['Abdest alırız', 'Yemek yeriz', 'Uyuruz', 'Koşarız'], a: 0, exp: 'Namazdan önce abdest alarak temizlenir ve hazırlanırız.' },
   { cat: 'Çocuk', d: 'easy', q: 'Müslümanların haftalık toplu ibadet günü hangisidir?', o: ['Cuma', 'Pazar', 'Cumartesi', 'Pazartesi'], a: 0, exp: 'Cuma günü Müslümanların haftalık toplanma ve ibadet günüdür.' },
+
+  // ─── AHLAK (ek) ───
+  { cat: 'Ahlak', d: 'easy', q: 'Bir kimsenin arkasından hoşlanmayacağı şekilde konuşmaya ne denir?', o: ['Gıybet', 'İftira', 'Yalan', 'Tecessüs'], a: 0, exp: 'Gıybet, kişinin arkasından hoşlanmayacağı sözler söylemektir; Kur\'an bunu "ölü kardeşinin etini yemeye" benzetir (Hucurat 12).' },
+  { cat: 'Ahlak', d: 'easy', q: 'Bir kimseye yapmadığı bir şeyi isnat etmeye ne denir?', o: ['İftira', 'Gıybet', 'Kibir', 'Haset'], a: 0, exp: 'İftira, kişiye işlemediği bir suçu veya sözü yakıştırmaktır; büyük günahlardandır.' },
+  { cat: 'Ahlak', d: 'medium', q: "Başkasının sahip olduğu nimetin yok olmasını istemeye ne denir?", o: ['Haset (kıskançlık)', 'Gıpta', 'Tevazu', 'Cimrilik'], a: 0, exp: 'Haset, nimetin sahibinden gitmesini istemektir; gıpta ise aynısını kendine istemektir ve caizdir.' },
+  { cat: 'Ahlak', d: 'medium', q: 'Kendini başkalarından üstün görmeye ne denir?', o: ['Kibir', 'İhlas', 'Vera', 'Zühd'], a: 0, exp: "Kibir, büyüklenmektir. Hadis: 'Kalbinde zerre kadar kibir bulunan cennete giremez' (Müslim)." },
+  { cat: 'Ahlak', d: 'medium', q: "'Emrolunduğun gibi dosdoğru ol' ayeti hangi kavramı emreder?", o: ['İstikamet', 'Cihad', 'İnfak', 'Tefekkür'], a: 0, exp: 'Hud Suresi 112. ayet istikameti (dosdoğru olmayı) emreder.' },
+  { cat: 'Ahlak', d: 'easy', q: 'İhtiyaç sahiplerine karşılıksız yardım etmeye ne denir?', o: ['İnfak', 'Ticaret', 'Borç', 'Miras'], a: 0, exp: "İnfak, Allah rızası için malından harcamaktır." },
+  { cat: 'Ahlak', d: 'medium', q: 'İbadetleri gösteriş için yapmaya ne denir?', o: ['Riya', 'İhlas', 'Takva', 'Huşu'], a: 0, exp: 'Riya, ameli Allah rızası yerine insanların beğenisi için yapmaktır; gizli şirk sayılmıştır.' },
+  { cat: 'Ahlak', d: 'easy', q: 'Verdiği sözde durmak hangi ahlaki kavramla ifade edilir?', o: ['Vefa / Ahde vefa', 'Cömertlik', 'Sabır', 'Şükür'], a: 0, exp: "Ahde vefa (söze bağlılık) Kur'an'da müminlerin özelliği olarak sayılır (Mü'minun 8)." },
+  { cat: 'Ahlak', d: 'medium', q: 'Dünya malına gönül bağlamadan yaşamaya ne denir?', o: ['Zühd', 'İsraf', 'Hırs', 'Tamah'], a: 0, exp: 'Zühd, dünyaya gereğinden fazla değer vermemek, kalbi mala bağlamamaktır.' },
+  { cat: 'Ahlak', d: 'easy', q: 'Anne-babaya iyi davranmak Kur\'an\'da neyle birlikte emredilir?', o: ["Allah'a kulluktan hemen sonra", 'Ticaretle birlikte', 'Yolculukla birlikte', 'Sadece bayramlarda'], a: 0, exp: "'Rabbin, yalnız kendisine kulluk etmenizi ve ana-babaya iyilik etmenizi emretti' (İsra 23)." },
+
+  // ─── TARİH (ek) ───
+  { cat: 'Tarih', d: 'medium', q: 'Osmanlı Devleti\'nin kurucusu kimdir?', o: ['Osman Gazi', 'Orhan Gazi', 'Ertuğrul Gazi', 'Fatih Sultan Mehmet'], a: 0, exp: 'Osmanlı Devleti 1299\'da Osman Gazi tarafından kurulmuştur.' },
+  { cat: 'Tarih', d: 'easy', q: "İstanbul'u fethederek çağ açıp çağ kapatan padişah kimdir?", o: ['Fatih Sultan Mehmet', 'Yavuz Sultan Selim', 'Kanuni Sultan Süleyman', 'II. Bayezid'], a: 0, exp: "Fatih Sultan Mehmet 1453'te İstanbul'u fethetti." },
+  { cat: 'Tarih', d: 'medium', q: 'Malazgirt Zaferi (1071) hangi komutan tarafından kazanılmıştır?', o: ['Sultan Alparslan', 'Tuğrul Bey', 'Melikşah', 'Kılıç Arslan'], a: 0, exp: "Sultan Alparslan 1071'de Bizans'ı Malazgirt'te yenerek Anadolu'nun kapılarını açtı." },
+  { cat: 'Tarih', d: 'medium', q: 'Halifelik hangi Osmanlı padişahı döneminde Osmanlı\'ya geçmiştir?', o: ['Yavuz Sultan Selim', 'Fatih Sultan Mehmet', 'Kanuni Sultan Süleyman', 'Osman Gazi'], a: 0, exp: "1517 Mısır Seferi sonrası halifelik Yavuz Sultan Selim'e geçti." },
+  { cat: 'Tarih', d: 'medium', q: 'Endülüs Emevi Devleti hangi ülke topraklarında kurulmuştur?', o: ['İspanya', 'Fas', 'Mısır', 'İtalya'], a: 0, exp: "Endülüs, bugünkü İspanya'da 756'da kurulan İslam medeniyetidir." },
+  { cat: 'Tarih', d: 'hard', q: 'İslam tarihindeki ilk mescit hangisidir?', o: ['Kuba Mescidi', 'Mescid-i Nebevi', 'Mescid-i Haram', 'Mescid-i Aksa'], a: 0, exp: 'Hicret yolculuğunda inşa edilen Kuba Mescidi, İslam tarihinde inşa edilen ilk mesciddir.' },
+  { cat: 'Tarih', d: 'medium', q: 'Hicri takvimin başlangıcı hangi olaydır?', o: ["Hicret (Mekke'den Medine'ye göç)", 'Peygamberimizin doğumu', 'İlk vahiy', "Mekke'nin fethi"], a: 0, exp: "Hicri takvim, 622'deki Hicret olayını başlangıç kabul eder; Hz. Ömer döneminde kabul edilmiştir." },
+  { cat: 'Tarih', d: 'hard', q: 'Abbasi Devleti\'nin başkenti ve dönemin ilim merkezi hangi şehirdi?', o: ['Bağdat', 'Şam', 'Kahire', 'Kudüs'], a: 0, exp: "Abbasiler'in başkenti Bağdat, 'Beytü'l-Hikme' ile dönemin ilim merkeziydi." },
+  { cat: 'Tarih', d: 'medium', q: 'Mekke hangi yıl fethedilmiştir?', o: ['630 (Hicri 8)', '622 (Hicri 1)', '632 (Hicri 10)', '624 (Hicri 2)'], a: 0, exp: "Mekke, hicretin 8. yılında (miladi 630) fethedilmiştir." },
+  { cat: 'Tarih', d: 'medium', q: 'Kudüs\'ü 1187\'de Haçlılardan geri alan komutan kimdir?', o: ['Selahaddin Eyyubi', 'Nureddin Zengi', 'Baybars', 'Tarık bin Ziyad'], a: 0, exp: "Selahaddin Eyyubi, 1187 Hıttin Zaferi'nin ardından Kudüs'ü fethetti." },
+
+  // ─── GENEL (ek) ───
+  { cat: 'Genel', d: 'easy', q: "Kur'an-ı Kerim kaç yılda tamamlanarak indirilmiştir?", o: ['Yaklaşık 23 yılda', '10 yılda', '40 yılda', 'Bir gecede tamamı'], a: 0, exp: "Kur'an, 610-632 yılları arasında yaklaşık 23 yılda peyderpey indirilmiştir." },
+  { cat: 'Genel', d: 'medium', q: "Kur'an'ı çoğaltarak çeşitli merkezlere gönderen halife kimdir?", o: ['Hz. Osman', 'Hz. Ebubekir', 'Hz. Ömer', 'Hz. Ali'], a: 0, exp: "Hz. Ebubekir döneminde kitaplaştırılan Kur'an, Hz. Osman döneminde çoğaltılıp dağıtılmıştır." },
+  { cat: 'Genel', d: 'easy', q: 'İslam\'ın ilk müezzini kimdir?', o: ['Hz. Bilal-i Habeşi', 'Hz. Ebubekir', 'Hz. Selman-ı Farisi', 'Hz. Ammar'], a: 0, exp: 'Hz. Bilal-i Habeşi, güzel sesiyle İslam\'ın ilk müezzini olmuştur.' },
+  { cat: 'Genel', d: 'medium', q: "Peygamberimizin 'Cennet gençlerinin efendileri' dediği torunları kimlerdir?", o: ['Hz. Hasan ve Hz. Hüseyin', 'Hz. Kasım ve Hz. Abdullah', 'Hz. Zeyd ve Hz. Üsame', 'Hz. Abbas ve Hz. Hamza'], a: 0, exp: "Hz. Hasan ve Hz. Hüseyin, Hz. Fatıma'nın oğulları ve Peygamberimizin torunlarıdır (Tirmizi)." },
+  { cat: 'Genel', d: 'medium', q: 'Ashab-ı Kehf kıssası hangi surede anlatılır?', o: ['Kehf Suresi', 'Yasin Suresi', 'Meryem Suresi', 'Fil Suresi'], a: 0, exp: 'Mağara arkadaşlarının (Ashab-ı Kehf) kıssası Kehf Suresi\'nde anlatılır.' },
+  { cat: 'Genel', d: 'easy', q: 'Ramazan ve Kurban bayramlarında kılınan namaza ne denir?', o: ['Bayram namazı', 'Teravih namazı', 'Vitir namazı', 'Cenaze namazı'], a: 0, exp: 'Bayram namazı, bayram sabahı güneş doğduktan sonra cemaatle kılınır.' },
+  { cat: 'Genel', d: 'medium', q: "Peygamberimizin hicrette yol arkadaşı ve mağaradaki dostu kimdir?", o: ['Hz. Ebubekir', 'Hz. Ömer', 'Hz. Ali', 'Hz. Zeyd'], a: 0, exp: "Hz. Ebubekir, hicrette Sevr Mağarası'nda Peygamberimizle birlikteydi (Tevbe 40)." },
+  { cat: 'Genel', d: 'medium', q: "'Sadece sana kulluk eder, sadece senden yardım dileriz' mealindeki ayet hangi surededir?", o: ['Fatiha', 'İhlas', 'Bakara', 'Nas'], a: 0, exp: "'İyyake na'büdü ve iyyake nestein' Fatiha Suresi'nin 5. ayetidir." },
+  { cat: 'Genel', d: 'hard', q: 'Müslümanların Habeşistan\'a hicretinde onları koruyan adil hükümdar kimdir?', o: ['Necaşi (Ashame)', 'Herakliyus', 'Kisra', 'Mukavkıs'], a: 0, exp: 'Habeş kralı Necaşi, hicret eden Müslümanları korumuş ve iade etmemiştir.' },
+  { cat: 'Genel', d: 'easy', q: "Kur'an okumaya başlarken ne söylenir?", o: ['Eûzü besmele', 'Salavat', 'Tekbir', 'Selam'], a: 0, exp: "Kur'an okumaya 'Eûzü billahi mineş-şeytanirracim, Bismillahirrahmanirrahim' diyerek başlanır (Nahl 98)." },
 ];
 
 export default EXTRA_QUESTIONS;

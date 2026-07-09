@@ -8,6 +8,7 @@
 import raw from './quizQuestionsBig.json';
 import { quizQuestions } from './quizData';
 import { EXTRA_QUESTIONS } from './questionBankExtra';
+import { GENERATED_QUESTIONS } from './generatedQuestions';
 
 // Backend kategori id'leri → görünen ad
 const CAT_MAP = {
@@ -60,7 +61,8 @@ const fromExtra = EXTRA_QUESTIONS.map((q, i) => ({
   difficulty: q.d || 'easy',
 }));
 
-export const QUESTION_BANK = [...fromLocal, ...fromBig, ...fromExtra];
+// Tablo-üretimli sorular: Esmaül Hüsna (198) + sure bilgileri (~330)
+export const QUESTION_BANK = [...fromLocal, ...fromBig, ...fromExtra, ...GENERATED_QUESTIONS];
 export const BANK_SIZE = QUESTION_BANK.length;
 
 // Kategori listesi + soru sayıları (rozet/gösterge için)
