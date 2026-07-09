@@ -5,6 +5,8 @@ import { ArrowLeft, Flame, Star, Gem, Trophy, CheckCircle2, Gift, Crown, Medal, 
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { awardXP, fetchStats, subscribeStats, getCachedStats, getUsername } from '../services/gamification';
+import sfx, { sfxEnabled, setSfxEnabled } from '../services/sfx';
+import ambient from '../services/ambient';
 import { BANK_CATEGORIES, QUESTION_BANK } from '../data/questionBank';
 import api from '../api';
 import WheelGame from './games/WheelGame';
@@ -20,6 +22,7 @@ import VoiceGuess from './games/VoiceGuess';
 import StoryMode from './games/StoryMode';
 import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
+import Confetti from './games/Confetti';
 import { ADVENTURE } from '../data/adventureData';
 
 // ════════════════════════════════════════════════════════════
@@ -73,6 +76,17 @@ const emptyDaily = () => ({ answers: 0, correct: 0, hadis: 0, wins: 0, combo: 0,
 const loadDaily = () => load(`gc_daily_${todayKey()}`, emptyDaily());
 const loadTotals = () => load('gc_totals', { answers: 0, correct: 0, wins: 0, byCat: {} });
 const loadGameMeta = () => load('game_meta', {});
+
+// Haftalık kişisel hedef (500 XP → +100 bonus)
+const WEEK_GOAL = 500;
+const WEEK_BONUS = 100;
+function weekKey() {
+  const d = new Date();
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return `${d.getFullYear()}_w${week}`;
+}
+const loadWeek = () => load(`gc_week_${weekKey()}`, { xp: 0, claimed: false });
 
 function levelInfo(points) {
   let lvl = 1;
@@ -221,6 +235,11 @@ export default function GamesPage() {
   const [stats, setStats] = useState(() => getCachedStats() || { total_points: 0, level: 1, current_streak: 0 });
   const [daily, setDaily] = useState(loadDaily);
   const [totals, setTotals] = useState(loadTotals);
+  const [week, setWeek] = useState(loadWeek);
+  const [levelUp, setLevelUp] = useState(null); // yeni seviye numarası
+  const [sfxOn, setSfxOn] = useState(sfxEnabled);
+  const [amb, setAmb] = useState(() => ambient.getState());
+  const prevLvl = useRef(null);
   const [gameMeta, setGameMeta] = useState(loadGameMeta);
   const [leaderboard, setLeaderboard] = useState([]);
   const [midnight, setMidnight] = useState('');
@@ -269,8 +288,28 @@ export default function GamesPage() {
     setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 1600);
   }, []);
 
-  // Oyunlardan gelen olaylar → görev/sandık/başarı ilerlemesi
+  // Atmosfer durumu aboneliği
+  useEffect(() => ambient.subscribe(setAmb), []);
+
+  // Seviye atlama kutlaması — XP artınca seviye değiştiyse tam ekran kutla
+  const totalXPNow = stats.total_points || 0;
+  useEffect(() => {
+    const { lvl: cur } = levelInfo(totalXPNow);
+    if (prevLvl.current === null) { prevLvl.current = cur; return; }
+    if (cur > prevLvl.current) {
+      setLevelUp(cur);
+      sfx.levelUp();
+      const t = setTimeout(() => setLevelUp(null), 3000);
+      prevLvl.current = cur;
+      return () => clearTimeout(t);
+    }
+    prevLvl.current = cur;
+  }, [totalXPNow]);
+
+  // Oyunlardan gelen olaylar → görev/sandık/başarı ilerlemesi + ses
   const handleEvent = useCallback((type, data = {}) => {
+    if (type === 'answer') (data.correct ? sfx.correct() : sfx.wrong());
+    if (type === 'win') sfx.victory();
     setDaily(prev => {
       const d = { ...prev };
       if (type === 'answer') {
@@ -340,6 +379,7 @@ export default function GamesPage() {
     pushFloat(finalAmount, isDaily);
     setStats(prev => ({ ...prev, total_points: (prev.total_points || 0) + finalAmount }));
     setDaily(prev => { const d = { ...prev, xp: prev.xp + finalAmount }; save(`gc_daily_${todayKey()}`, d); return d; });
+    setWeek(prev => { const w = { ...prev, xp: prev.xp + finalAmount }; save(`gc_week_${weekKey()}`, w); return w; });
     if (active) {
       setGameMeta(prev => {
         const m = prev[active] || {};
@@ -351,8 +391,19 @@ export default function GamesPage() {
     await awardXP(user, type, { points: finalAmount, details: isDaily ? `${label} (Günün Oyunu 2x)` : label });
   }, [user, active, dailyGameId, pushFloat]);
 
+  // Haftalık hedef ödülü
+  const claimWeek = useCallback(async () => {
+    if (week.claimed || week.xp < WEEK_GOAL) return;
+    setWeek(prev => { const w = { ...prev, claimed: true }; save(`gc_week_${weekKey()}`, w); return w; });
+    sfx.claim();
+    pushFloat(WEEK_BONUS, false);
+    setStats(prev => ({ ...prev, total_points: (prev.total_points || 0) + WEEK_BONUS }));
+    await awardXP(user, 'game_quiz', { points: WEEK_BONUS, details: 'Haftalık Hedef Ödülü' });
+  }, [week, user, pushFloat]);
+
   // Görev / sandık ödül alma
   const claimReward = useCallback(async (kind, id, xpReward) => {
+    sfx.claim();
     setDaily(prev => {
       const key = kind === 'task' ? 'claimedTasks' : 'claimedChests';
       if (prev[key].includes(id)) return prev;
@@ -396,11 +447,40 @@ export default function GamesPage() {
 
   const S = { card: { background: theme.cardBg, border: `1px solid ${theme.cardBorder}` } };
 
+  // ─── Seviye atlama kutlaması (her iki görünümde de gösterilir) ───
+  const levelUpOverlay = (
+    <AnimatePresence>
+      {levelUp && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[80] flex items-center justify-center p-6 pointer-events-none"
+          style={{ background: 'rgba(4, 12, 8, 0.82)', backdropFilter: 'blur(5px)' }}>
+          <motion.div initial={{ scale: 0.6, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: 'spring', bounce: 0.5 }}
+            className="relative w-full max-w-sm rounded-3xl p-8 text-center overflow-hidden"
+            style={{ background: `linear-gradient(170deg, ${theme.gold}20, ${theme.surface})`, border: `2px solid ${theme.gold}70`, boxShadow: `0 0 60px ${theme.gold}40` }}>
+            <Confetti count={30} />
+            <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ delay: 0.15, type: 'spring', bounce: 0.6 }}
+              className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl font-black"
+              style={{ background: `${theme.gold}22`, border: `3px solid ${theme.gold}`, color: theme.gold }}>
+              {levelUp}
+            </motion.div>
+            <p className="text-[11px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: theme.gold }}>Seviye Atladın!</p>
+            <h2 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
+              {LEVEL_TITLES[Math.min(levelUp - 1, LEVEL_TITLES.length - 1)]}
+            </h2>
+            <p className="text-xs mt-2" style={{ color: theme.textSecondary }}>İlim yolculuğun yükseliyor 🌙</p>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   // ═══ LOBİ + OYUN İÇİ GÖRÜNÜM ═══
   if (activeGame && stage !== 'hub') {
     const inPlay = stage === 'play';
     return (
       <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
+        {levelUpOverlay}
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
           <AnimatePresence>
             {floats.map(f => (
@@ -432,6 +512,7 @@ export default function GamesPage() {
   // ═══ OYUN MERKEZİ (HUB) ═══
   return (
     <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
+      {levelUpOverlay}
       {/* Uçan XP */}
       <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
         <AnimatePresence>
@@ -516,6 +597,32 @@ export default function GamesPage() {
 
       {/* ─── GÜNÜN SORUSU ─── */}
       <DailyQuestion theme={theme} onXP={handleXP} onEvent={handleEvent} />
+
+      {/* ─── ATMOSFER SESİ + EFEKTLER ─── */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}
+        className="mx-5 mb-3 rounded-2xl px-4 py-3 flex items-center gap-3" style={S.card}>
+        <button onClick={() => ambient.toggle()}
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+          style={{ background: amb.playing ? '#10B98122' : `${theme.gold}12`, border: `1.5px solid ${amb.playing ? '#10B981' : `${theme.gold}35`}` }}
+          aria-label={amb.playing ? 'Atmosferi durdur' : 'Atmosferi başlat'}>
+          <span className="text-lg">{amb.playing ? '⏸️' : '🎵'}</span>
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-black" style={{ color: theme.textPrimary }}>
+            Atmosfer {amb.playing && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ color: '#10B981' }}>· çalıyor</motion.span>}
+          </p>
+          <input type="range" min="0" max="1" step="0.05" value={amb.volume}
+            onChange={e => ambient.setVolume(Number(e.target.value))}
+            className="w-full h-1 mt-1.5 accent-current cursor-pointer"
+            style={{ accentColor: theme.gold }} aria-label="Ses seviyesi" />
+        </div>
+        <button onClick={() => { const v = !sfxOn; setSfxOn(v); setSfxEnabled(v); if (v) sfx.correct(); }}
+          className="shrink-0 flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl active:scale-95 transition-transform"
+          style={{ background: sfxOn ? `${theme.gold}12` : `${theme.textSecondary}10`, border: `1px solid ${sfxOn ? `${theme.gold}35` : theme.cardBorder}` }}>
+          <span className="text-sm">{sfxOn ? '🔔' : '🔕'}</span>
+          <span className="text-[8px] font-bold" style={{ color: sfxOn ? theme.gold : theme.textSecondary }}>Efektler</span>
+        </button>
+      </motion.div>
 
       {/* ─── DEVAM ET (son oynanan mod) ─── */}
       {(() => {
@@ -639,6 +746,27 @@ export default function GamesPage() {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* ─── HAFTALIK HEDEF ─── */}
+      <div className="px-5 mb-5">
+        <div className="rounded-2xl p-4" style={S.card}>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>🎯 Haftalık Hedef</h2>
+            {week.claimed
+              ? <span className="text-[10px] font-black" style={{ color: '#10B981' }}>Alındı ✓</span>
+              : week.xp >= WEEK_GOAL
+                ? <button onClick={claimWeek} className="text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95" style={{ background: '#10B981', color: '#fff' }}>+{WEEK_BONUS} Al</button>
+                : <span className="text-[10px] font-bold tabular-nums" style={{ color: theme.textSecondary }}>{Math.min(week.xp, WEEK_GOAL)} / {WEEK_GOAL} XP</span>}
+          </div>
+          <div className="h-2.5 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
+            <motion.div className="h-full rounded-full" animate={{ width: `${Math.min(100, (week.xp / WEEK_GOAL) * 100)}%` }}
+              style={{ background: week.xp >= WEEK_GOAL ? '#10B981' : `linear-gradient(90deg, ${theme.gold}, ${theme.goldLight})` }} />
+          </div>
+          <p className="text-[10px] mt-1.5" style={{ color: theme.textSecondary }}>
+            Bu hafta {WEEK_GOAL} XP topla, +{WEEK_BONUS} bonus kazan! Hafta pazartesi sıfırlanır.
+          </p>
         </div>
       </div>
 
