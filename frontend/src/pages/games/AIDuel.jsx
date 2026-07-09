@@ -5,10 +5,14 @@ import { drawQuestions } from '../../data/questionBank';
 import Confetti from './Confetti';
 
 const ROUNDS = 10;
+// Rakipler: büyük âlimlerin ekollerinden ilham alan AI talebeler
+// (âlimlerin kendisi değil — saygı gereği talebe/yoldaş olarak temsil edilir)
 const BOTS = [
-  { id: 'easy', name: 'Çaylak Bot', acc: 0.45, color: '#10B981', emoji: '🤖', bonus: 30 },
-  { id: 'mid', name: 'Bilgin Bot', acc: 0.65, color: '#F59E0B', emoji: '🧠', bonus: 60 },
-  { id: 'hard', name: 'Usta Bot', acc: 0.82, color: '#EF4444', emoji: '👑', bonus: 100 },
+  { id: 'talebe', name: 'Medrese Talebesi', title: 'Yeni başlayan', acc: 0.4, color: '#10B981', emoji: '📗', bonus: 25 },
+  { id: 'nevevi', name: 'Nevevî Talebesi', title: 'Hadis ekolü', acc: 0.55, color: '#3B82F6', emoji: '📿', bonus: 50 },
+  { id: 'kesir', name: 'İbn Kesîr Talebesi', title: 'Tefsir ekolü', acc: 0.68, color: '#F59E0B', emoji: '📖', bonus: 75 },
+  { id: 'gazali', name: 'Gazâlî Talebesi', title: 'Hikmet ekolü', acc: 0.8, color: '#8B5CF6', emoji: '🕌', bonus: 100 },
+  { id: 'selahaddin', name: "Selahaddin'in Yoldaşı", title: 'Efsane rakip', acc: 0.88, color: '#EF4444', emoji: '⚔️', bonus: 150 },
 ];
 
 // AI Rakip: 10 soruluk düello. Bot her soruda kendi isabet oranıyla cevaplar.
@@ -64,16 +68,16 @@ export default function AIDuel({ theme, onXP, onEvent = () => {} }) {
           <Bot size={38} style={{ color: '#8B5CF6' }} />
         </div>
         <h2 className="text-xl font-black mb-1" style={{ color: theme.textPrimary }}>AI Rakip</h2>
-        <p className="text-sm mb-6 max-w-xs" style={{ color: theme.textSecondary }}>{ROUNDS} soruluk düello! Botu yenersen bonus XP kazanırsın.</p>
-        <div className="flex flex-col gap-3 w-full max-w-xs">
+        <p className="text-sm mb-6 max-w-xs" style={{ color: theme.textSecondary }}>{ROUNDS} soruluk düello! İlim ekollerinin talebelerini yen, bonus XP kazan.</p>
+        <div className="flex flex-col gap-2.5 w-full max-w-xs">
           {BOTS.map(b => (
             <button key={b.id} onClick={() => start(b)}
-              className="flex items-center gap-3 p-4 rounded-2xl text-left active:scale-95 transition-all"
+              className="flex items-center gap-3 p-3.5 rounded-2xl text-left active:scale-95 transition-all"
               style={{ background: `${b.color}12`, border: `1.5px solid ${b.color}40` }}>
               <span className="text-2xl">{b.emoji}</span>
               <div className="flex-1">
                 <p className="text-sm font-black" style={{ color: b.color }}>{b.name}</p>
-                <p className="text-[10px]" style={{ color: theme.textSecondary }}>İsabet ~%{Math.round(b.acc * 100)} · Zafer bonusu +{b.bonus} XP</p>
+                <p className="text-[10px]" style={{ color: theme.textSecondary }}>{b.title} · isabet ~%{Math.round(b.acc * 100)} · zafer +{b.bonus} XP</p>
               </div>
             </button>
           ))}
@@ -120,6 +124,16 @@ export default function AIDuel({ theme, onXP, onEvent = () => {} }) {
                 className="absolute -top-2 right-2 text-sm">{botMark ? '✅' : '❌'}</motion.span>
             )}
           </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Canlı yarış çubukları */}
+      <div className="space-y-1.5 mb-4">
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
+          <motion.div className="h-full rounded-full" animate={{ width: `${(myScore / ROUNDS) * 100}%` }} style={{ background: theme.gold }} />
+        </div>
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
+          <motion.div className="h-full rounded-full" animate={{ width: `${(botScore / ROUNDS) * 100}%` }} style={{ background: bot.color }} />
         </div>
       </div>
 

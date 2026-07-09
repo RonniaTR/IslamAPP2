@@ -1,156 +1,207 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Timer, Zap, RefreshCw, Trophy } from 'lucide-react';
-import { drawQuestions, BANK_SIZE } from '../../data/questionBank';
-import Confetti from './Confetti';
+import { Zap, Heart, Flame } from 'lucide-react';
+import { drawQuestions } from '../../data/questionBank';
+import FeedbackOverlay from './FeedbackOverlay';
+import ResultScreen from './ResultScreen';
 
-// Blitz: 30 saniye, 10 soru — hangisi önce biterse
+// ⚡ BLITZ — 30 saniye, 10 soru, 3 kalp, combo sistemi, jokerler.
 const DURATION = 30;
 const MAX_Q = 10;
+const LIVES = 3;
 
-const DIFFICULTIES = [
-  { id: null, label: 'Karışık', color: '#C8A55A', mult: 1 },
-  { id: 'easy', label: 'Kolay', color: '#10B981', mult: 1 },
-  { id: 'medium', label: 'Orta', color: '#F59E0B', mult: 1.2 },
-  { id: 'hard', label: 'Zor', color: '#EF4444', mult: 1.5 },
-];
+// "%X oyuncu doğru cevapladı" — zorluktan türetilen deterministik tahmin
+function estPercent(q) {
+  const base = q.difficulty === 'hard' ? 47 : q.difficulty === 'medium' ? 64 : 82;
+  let h = 0;
+  for (const ch of String(q.id)) h = (h * 31 + ch.charCodeAt(0)) % 97;
+  return Math.max(28, Math.min(94, base + (h % 17) - 8));
+}
 
 export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
-  const [phase, setPhase] = useState('idle'); // idle | playing | done
-  const [diff, setDiff] = useState(DIFFICULTIES[0]);
-  const [questions, setQuestions] = useState([]);
+  const [phase, setPhase] = useState('playing'); // playing | done
+  const [questions, setQuestions] = useState(() => drawQuestions(MAX_Q));
   const [idx, setIdx] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [xp, setXp] = useState(0);
-  const [best, setBest] = useState(() => Number(localStorage.getItem('rapid_best') || 0));
+  const [combo, setCombo] = useState(0);
+  const [bestCombo, setBestCombo] = useState(0);
+  const [lives, setLives] = useState(LIVES);
   const [timeLeft, setTimeLeft] = useState(DURATION);
-  const [flash, setFlash] = useState(null); // idx of chosen
-  const timerRef = useRef(null);
+  const [overlay, setOverlay] = useState(null); // {mode, data}
+  const [flash, setFlash] = useState(null);
+  const [shake, setShake] = useState(false);
+  const [hidden, setHidden] = useState([]); // 50:50 ile gizlenen şıklar
+  const [jokers, setJokers] = useState({ fifty: true, time: true, second: true });
+  const [secondChance, setSecondChance] = useState(false);
+  const [wrongs, setWrongs] = useState([]);
+  const [times, setTimes] = useState([]);
+  const qStart = useRef(Date.now());
+  const finished = useRef(false);
 
-  const start = useCallback(() => {
-    setQuestions(drawQuestions(MAX_Q, { difficulty: diff.id }));
-    setIdx(0); setCorrect(0); setXp(0); setTimeLeft(DURATION); setFlash(null);
+  const restart = useCallback((pool) => {
+    finished.current = false;
+    setQuestions(pool && pool.length ? pool.slice(0, MAX_Q) : drawQuestions(MAX_Q));
+    setIdx(0); setCorrect(0); setXp(0); setCombo(0); setBestCombo(0);
+    setLives(LIVES); setTimeLeft(DURATION); setOverlay(null); setFlash(null);
+    setHidden([]); setJokers({ fifty: true, time: true, second: true });
+    setSecondChance(false); setWrongs([]); setTimes([]);
+    qStart.current = Date.now();
     setPhase('playing');
-  }, [diff]);
+  }, []);
 
-  const finish = useCallback((finalXp, finalCorrect) => {
+  const finish = useCallback((fXp, fCorrect) => {
+    if (finished.current) return;
+    finished.current = true;
     setPhase('done');
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (finalXp > best) { setBest(finalXp); try { localStorage.setItem('rapid_best', String(finalXp)); } catch { /* ignore */ } }
-    if ((finalCorrect ?? 0) >= 5) onEvent('win');
-    if (finalXp > 0) onXP(finalXp, 'game_quiz', `Hızlı Bilgi (${diff.label})`);
-  }, [onXP, onEvent, best, diff]);
+    if ((fCorrect ?? 0) >= 5) onEvent('win');
+    if (fXp > 0) onXP(fXp, 'game_quiz', 'Blitz');
+    const best = Number(localStorage.getItem('rapid_best') || 0);
+    if (fXp > best) { try { localStorage.setItem('rapid_best', String(fXp)); } catch { /* ignore */ } }
+  }, [onXP, onEvent]);
+
+  // Zamanlayıcı — overlay açıkken durur
+  useEffect(() => {
+    if (phase !== 'playing' || overlay) return;
+    const iv = setInterval(() => setTimeLeft(t => (t <= 1 ? 0 : t - 1)), 1000);
+    return () => clearInterval(iv);
+  }, [phase, overlay]);
 
   useEffect(() => {
-    if (phase !== 'playing') return;
-    timerRef.current = setInterval(() => {
-      setTimeLeft(t => {
-        if (t <= 1) { clearInterval(timerRef.current); return 0; }
-        return t - 1;
-      });
-    }, 1000);
-    return () => timerRef.current && clearInterval(timerRef.current);
-  }, [phase]);
-
-  // Süre bitince sonuç (xp'nin güncel değeriyle)
-  useEffect(() => {
-    if (phase === 'playing' && timeLeft === 0) finish(xp, correct);
-  }, [timeLeft, phase, xp, correct, finish]);
+    if (phase === 'playing' && timeLeft === 0 && !overlay) finish(xp, correct);
+  }, [timeLeft, phase, overlay, xp, correct, finish]);
 
   const q = questions[idx];
   const options = q ? (q.type === 'tf' ? ['Doğru', 'Yanlış'] : q.options) : [];
 
+  const advance = useCallback((nextCorrect, nextXp) => {
+    setOverlay(null); setFlash(null); setHidden([]); setSecondChance(false);
+    qStart.current = Date.now();
+    if (idx + 1 >= questions.length || lives <= 0) finish(nextXp, nextCorrect);
+    else setIdx(i => i + 1);
+  }, [idx, questions.length, lives, finish]);
+
   const answer = useCallback((choice) => {
-    if (flash !== null || !q) return;
-    setFlash(choice);
+    if (flash !== null || overlay || !q) return;
     const ok = choice === q.correct_index;
+    setTimes(ts => [...ts, (Date.now() - qStart.current) / 1000]);
+    if (!ok && secondChance) {
+      // Çift Cevap jokeri: bu yanlış sayılmaz, şık kilitlenir
+      setSecondChance(false);
+      setHidden(h => [...h, choice]);
+      return;
+    }
+    setFlash(choice);
     onEvent('answer', { correct: ok, category: q.category });
-    let gained = 0;
-    if (ok) { gained = Math.round((q.points || 10) * diff.mult); setCorrect(c => c + 1); setXp(x => x + gained); }
-    setTimeout(() => {
-      setFlash(null);
-      if (idx + 1 >= questions.length) { finish(xp + gained, correct + (ok ? 1 : 0)); }
-      else setIdx(i => i + 1);
-    }, 260);
-  }, [flash, q, idx, questions.length, xp, correct, finish, diff, onEvent]);
+    if (ok) {
+      const newCombo = combo + 1;
+      const gained = (q.points || 10) + newCombo * 2;
+      setCombo(newCombo); setBestCombo(b => Math.max(b, newCombo));
+      setCorrect(c => c + 1); setXp(x => x + gained);
+      setOverlay({ mode: 'correct', data: { xp: gained, combo: newCombo }, next: { c: correct + 1, x: xp + gained } });
+    } else {
+      setCombo(0);
+      setLives(l => l - 1);
+      setShake(true); setTimeout(() => setShake(false), 500);
+      setWrongs(w => [...w, q]);
+      setOverlay({
+        mode: 'wrong',
+        data: { answer: options[q.correct_index], explanation: q.explanation, source: q.category },
+        next: { c: correct, x: xp },
+      });
+    }
+  }, [flash, overlay, q, combo, correct, xp, secondChance, options, onEvent]);
 
-  if (phase === 'idle') {
-    return (
-      <div className="flex flex-col items-center justify-center px-6 py-8 text-center">
-        <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-4" style={{ background: `${theme.gold}18` }}>
-          <Zap size={36} style={{ color: theme.gold }} />
-        </div>
-        <h2 className="text-xl font-black mb-1" style={{ color: theme.textPrimary }}>Hızlı Bilgi (Blitz)</h2>
-        <p className="text-sm mb-1 max-w-xs" style={{ color: theme.textSecondary }}>30 saniye, 10 soru! Hızını ve bilgini test et.</p>
-        <p className="text-[11px] mb-5" style={{ color: theme.gold }}>{BANK_SIZE} soruluk bankadan · {best > 0 ? `Rekorun: ${best} XP` : 'İlk rekorunu kır!'}</p>
-
-        {/* Zorluk seçimi */}
-        <div className="flex gap-2 mb-6 flex-wrap justify-center">
-          {DIFFICULTIES.map(d => (
-            <button key={d.label} onClick={() => setDiff(d)}
-              className="px-4 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-              style={{
-                background: diff.label === d.label ? `${d.color}22` : theme.surface,
-                border: `1.5px solid ${diff.label === d.label ? d.color : theme.cardBorder}`,
-                color: diff.label === d.label ? d.color : theme.textSecondary,
-              }}>
-              {d.label}{d.mult > 1 && <span className="ml-1 opacity-80">×{d.mult}</span>}
-            </button>
-          ))}
-        </div>
-
-        <button onClick={start} className="px-10 py-3.5 rounded-2xl font-black text-base active:scale-95 transition-all"
-          style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight})`, color: theme.bg }}>
-          Başla
-        </button>
-      </div>
-    );
-  }
+  // ─── Jokerler ───
+  const useFifty = useCallback(() => {
+    if (!jokers.fifty || !q || q.type === 'tf' || overlay) return;
+    setJokers(j => ({ ...j, fifty: false }));
+    const wrongIdxs = options.map((_, i) => i).filter(i => i !== q.correct_index);
+    setHidden(wrongIdxs.sort(() => Math.random() - 0.5).slice(0, 2));
+  }, [jokers, q, options, overlay]);
+  const useTime = useCallback(() => {
+    if (!jokers.time || overlay) return;
+    setJokers(j => ({ ...j, time: false }));
+    setTimeLeft(t => t + 15);
+  }, [jokers, overlay]);
+  const useSecond = useCallback(() => {
+    if (!jokers.second || overlay) return;
+    setJokers(j => ({ ...j, second: false }));
+    setSecondChance(true);
+  }, [jokers, overlay]);
 
   if (phase === 'done') {
-    const isRecord = xp > 0 && xp >= best;
+    const avg = times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : '—';
+    const fastest = times.length ? Math.min(...times).toFixed(1) : '—';
     return (
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className="relative flex flex-col items-center justify-center px-6 py-10 text-center overflow-hidden">
-        {xp > 0 && <Confetti count={30} />}
-        <Trophy size={44} style={{ color: theme.gold }} className="mb-4" />
-        <h2 className="text-3xl font-black mb-1" style={{ color: theme.gold }}>+{xp} XP</h2>
-        <p className="text-sm mb-1" style={{ color: theme.textSecondary }}>{correct} doğru cevap · {diff.label} mod</p>
-        {isRecord && <p className="text-xs font-bold mb-4" style={{ color: '#10B981' }}>🏅 Yeni Rekor!</p>}
-        <button onClick={() => setPhase('idle')} className="mt-3 inline-flex items-center gap-2 px-8 py-3 rounded-2xl font-bold text-sm" style={{ background: theme.gold, color: theme.bg }}>
-          <RefreshCw size={16} /> Tekrar Oyna
-        </button>
-      </motion.div>
+      <ResultScreen theme={theme} title="Blitz Modu" correct={correct} total={questions.length} xp={xp}
+        stats={[
+          { val: `x${bestCombo}`, label: 'En Yüksek Combo' },
+          { val: `${avg}sn`, label: 'Ortalama Süre' },
+          { val: `${fastest}sn`, label: 'En Hızlı Cevap' },
+        ]}
+        wrongCount={wrongs.length}
+        onReplay={() => restart()}
+        onReplayWrongs={() => restart(wrongs)} />
     );
   }
 
   return (
-    <div className="px-4 w-full max-w-md mx-auto">
-      {/* Üst bar */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: timeLeft <= 10 ? '#EF444422' : theme.surface, color: timeLeft <= 10 ? '#EF4444' : theme.textPrimary }}>
-          <Timer size={15} /> {timeLeft}s
+    <motion.div animate={shake ? { x: [-8, 8, -6, 6, -3, 0] } : {}} transition={{ duration: 0.45 }}
+      className="px-4 w-full max-w-md mx-auto">
+      <FeedbackOverlay mode={overlay?.mode} data={overlay?.data || {}} theme={theme}
+        onContinue={() => overlay && advance(overlay.next.c, overlay.next.x)} />
+
+      {/* Üst bar: combo + kalpler + süre */}
+      <div className="flex items-center justify-between mb-3">
+        <AnimatePresence mode="wait">
+          <motion.div key={combo} initial={{ scale: 0.7 }} animate={{ scale: 1 }}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-black"
+            style={{ background: combo >= 2 ? '#F59E0B22' : theme.surface, color: combo >= 2 ? '#F59E0B' : theme.textSecondary }}>
+            <Flame size={14} /> {combo >= 2 ? `COMBO x${combo}` : 'Combo'}
+          </motion.div>
+        </AnimatePresence>
+        <div className="flex items-center gap-0.5">
+          {Array.from({ length: LIVES }).map((_, i) => (
+            <Heart key={i} size={17} fill={i < lives ? '#EF4444' : 'transparent'} style={{ color: i < lives ? '#EF4444' : `${theme.textSecondary}60` }} />
+          ))}
         </div>
-        <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: `${diff.color}18`, color: diff.color }}>{diff.label}</span>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: `${theme.gold}18`, color: theme.gold }}>
-          <Zap size={15} /> {xp} XP
+        {/* Süre halkası */}
+        <div className="relative w-11 h-11">
+          <svg width="44" height="44" viewBox="0 0 44 44" className="-rotate-90">
+            <circle cx="22" cy="22" r="18" fill="none" stroke={`${theme.textSecondary}25`} strokeWidth="4" />
+            <circle cx="22" cy="22" r="18" fill="none" stroke={timeLeft <= 8 ? '#EF4444' : '#10B981'} strokeWidth="4" strokeLinecap="round"
+              strokeDasharray={2 * Math.PI * 18} strokeDashoffset={2 * Math.PI * 18 * (1 - Math.min(1, timeLeft / DURATION))}
+              style={{ transition: 'stroke-dashoffset 1s linear' }} />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-xs font-black tabular-nums"
+            style={{ color: timeLeft <= 8 ? '#EF4444' : theme.textPrimary }}>{timeLeft}</span>
         </div>
       </div>
-      {/* Süre çubuğu */}
-      <div className="h-1.5 rounded-full overflow-hidden mb-6" style={{ background: `${theme.textSecondary}20` }}>
-        <div className="h-full rounded-full transition-all duration-1000 ease-linear" style={{ width: `${(timeLeft / DURATION) * 100}%`, background: timeLeft <= 10 ? '#EF4444' : theme.gold }} />
+
+      {/* İlerleme */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-[10px] font-black tabular-nums" style={{ color: theme.textSecondary }}>{idx + 1} / {questions.length}</span>
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}20` }}>
+          <motion.div className="h-full rounded-full" animate={{ width: `${((idx + 1) / questions.length) * 100}%` }} style={{ background: '#10B981' }} />
+        </div>
+        <span className="text-[10px] font-black flex items-center gap-0.5" style={{ color: theme.gold }}><Zap size={10} /> {xp}</span>
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={idx} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.18 }}>
-          <div className="rounded-2xl p-5 mb-4 min-h-[120px] flex items-center" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-            <div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}18`, color: theme.gold }}>{q?.category}</span>
-              <h3 className="text-base font-bold mt-2" style={{ color: theme.textPrimary }}>{q?.question}</h3>
-            </div>
+        <motion.div key={idx} initial={{ opacity: 0, x: 34 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -34 }} transition={{ duration: 0.18 }}>
+          {/* Soru kartı */}
+          <div className="rounded-2xl p-5 mb-4 min-h-[110px]" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}18`, color: theme.gold }}>{q?.category}</span>
+            <h3 className="text-base font-bold mt-2" style={{ color: theme.textPrimary }}>{q?.question}</h3>
           </div>
+
+          {/* Şıklar */}
           <div className={q?.type === 'tf' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5'}>
             {options.map((opt, i) => {
+              if (hidden.includes(i)) {
+                return <div key={i} className="p-3.5 rounded-xl text-sm" style={{ background: `${theme.textSecondary}06`, border: `1px dashed ${theme.cardBorder}`, color: `${theme.textSecondary}60` }}>—</div>;
+              }
               const chosen = flash === i;
               const isRight = flash !== null && i === q.correct_index;
               return (
@@ -167,8 +218,27 @@ export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
               );
             })}
           </div>
+
+          {/* Sosyal ipucu */}
+          <p className="text-center text-[10px] mt-3" style={{ color: theme.textSecondary }}>≈ %{estPercent(q || { id: '0' })} oyuncu bunu doğru cevapladı</p>
         </motion.div>
       </AnimatePresence>
-    </div>
+
+      {/* Joker çubuğu */}
+      <div className="flex justify-center gap-2.5 mt-4">
+        {[
+          { key: 'fifty', label: '50:50', icon: '➗', fn: useFifty, on: jokers.fifty && q?.type !== 'tf' },
+          { key: 'time', label: '+15sn', icon: '⏱️', fn: useTime, on: jokers.time },
+          { key: 'second', label: 'Çift Cevap', icon: '🎯', fn: useSecond, on: jokers.second && !secondChance },
+        ].map(j => (
+          <button key={j.key} onClick={j.fn} disabled={!j.on}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black transition-all active:scale-95 disabled:opacity-35"
+            style={{ background: `${theme.gold}12`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
+            <span className="text-sm">{j.icon}</span> {j.label}
+          </button>
+        ))}
+        {secondChance && <span className="text-[9px] font-bold self-center" style={{ color: '#10B981' }}>Çift cevap aktif ✓</span>}
+      </div>
+    </motion.div>
   );
 }

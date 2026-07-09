@@ -17,6 +17,8 @@ import AIDuel from './games/AIDuel';
 import BossBattle from './games/BossBattle';
 import OrderGame from './games/OrderGame';
 import VoiceGuess from './games/VoiceGuess';
+import StoryMode from './games/StoryMode';
+import GameLobby from './games/GameLobby';
 
 // ════════════════════════════════════════════════════════════
 // OYUN MERKEZİ — referans tasarım birebir (mobil düzene uyarlı)
@@ -35,9 +37,10 @@ const LEAGUES = [
   { name: 'Elmas Lig', min: 6000, color: '#60A5FA' },
 ];
 
-// ─── Oyun modları (referanstaki 11 kart) ───
+// ─── Oyun modları ───
 const GAME_MODES = [
-  { id: 'rapid', title: 'Hızlı Bilgi (Blitz)', desc: '30 saniye, 10 soru. Hızını ve bilgini test et!', emoji: '⚡', color: '#F59E0B', type: 'game_quiz', Comp: RapidQuiz },
+  { id: 'story', title: 'Hikâye Modu', desc: 'Kıssaları bölüm bölüm yaşa: Hz. Yusuf, Siyer, Halifeler, Fetihler!', emoji: '📜', color: '#D946EF', type: 'game_quiz', Comp: StoryMode, cta: 'Keşfet', xpHint: '55+', badge: 'Kıssa Alimi' },
+  { id: 'rapid', title: 'Hızlı Bilgi (Blitz)', desc: '30 saniye, 10 soru! Combo yap, jokerleri kullan.', emoji: '⚡', color: '#F59E0B', type: 'game_quiz', Comp: RapidQuiz, xpHint: '150+', badge: 'Blitz Ustası' },
   { id: 'survival', title: 'Sonsuz Mod', desc: 'Yanlış yapana kadar mücadele et!', emoji: '♾️', color: '#3B82F6', type: 'game_quiz', Comp: SurvivalGame },
   { id: 'classic', title: 'Klasik Test', desc: '10, 20, 50 veya 100 soru seç ve başla!', emoji: '📖', color: '#10B981', type: 'game_quiz', Comp: ClassicTest },
   { id: 'duel', title: 'Arkadaş Düellosu', desc: 'Arkadaşlarınla 1v1 düello yap, bilgini göster!', emoji: '⚔️', color: '#F97316', route: '/multiplayer', cta: 'Düello Başlat' },
@@ -136,6 +139,8 @@ export default function GamesPage() {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [active, setActive] = useState(null);
+  const [stage, setStage] = useState('hub'); // hub | lobby | play
+  const sessionXP = useRef(0);
   const [stats, setStats] = useState(() => getCachedStats() || { total_points: 0, level: 1, current_streak: 0 });
   const [daily, setDaily] = useState(loadDaily);
   const [totals, setTotals] = useState(loadTotals);
@@ -212,26 +217,49 @@ export default function GamesPage() {
     });
   }, []);
 
+  // Lobi akışı: karta bas → lobi → "Oyuna Başla" → oyun
   const openGame = useCallback((g) => {
     if (g.locked) return;
     if (g.route) { navigate(g.route); return; }
     setActive(g.id);
+    setStage('lobby');
+    try { localStorage.setItem('gc_last_mode', g.id); } catch { /* ignore */ }
+  }, [navigate]);
+
+  const startPlay = useCallback((gid) => {
+    sessionXP.current = 0;
+    setStage('play');
     setGameMeta(prev => {
-      const meta = { ...prev, [g.id]: { plays: (prev[g.id]?.plays || 0) + 1, xp: prev[g.id]?.xp || 0 } };
+      const m = prev[gid] || {};
+      const meta = { ...prev, [gid]: { ...m, plays: (m.plays || 0) + 1, xp: m.xp || 0 } };
       save('game_meta', meta);
       return meta;
     });
-  }, [navigate]);
+  }, []);
+
+  // Oyundan çıkarken oturum skorunu (son/en iyi) kaydet
+  const endPlay = useCallback((gid) => {
+    const score = sessionXP.current;
+    setGameMeta(prev => {
+      const m = prev[gid] || {};
+      const meta = { ...prev, [gid]: { ...m, last: score, best: Math.max(m.best || 0, score) } };
+      save('game_meta', meta);
+      return meta;
+    });
+    setStage('lobby');
+  }, []);
 
   const handleXP = useCallback(async (amount, type, label) => {
     const isDaily = active && dailyGameId === active;
     const finalAmount = isDaily ? amount * 2 : amount;
+    sessionXP.current += finalAmount;
     pushFloat(finalAmount, isDaily);
     setStats(prev => ({ ...prev, total_points: (prev.total_points || 0) + finalAmount }));
     setDaily(prev => { const d = { ...prev, xp: prev.xp + finalAmount }; save(`gc_daily_${todayKey()}`, d); return d; });
     if (active) {
       setGameMeta(prev => {
-        const meta = { ...prev, [active]: { plays: prev[active]?.plays || 1, xp: (prev[active]?.xp || 0) + finalAmount } };
+        const m = prev[active] || {};
+        const meta = { ...prev, [active]: { ...m, plays: m.plays || 1, xp: (m.xp || 0) + finalAmount } };
         save('game_meta', meta);
         return meta;
       });
@@ -284,8 +312,9 @@ export default function GamesPage() {
 
   const S = { card: { background: theme.cardBg, border: `1px solid ${theme.cardBorder}` } };
 
-  // ═══ OYUN İÇİ GÖRÜNÜM ═══
-  if (activeGame) {
+  // ═══ LOBİ + OYUN İÇİ GÖRÜNÜM ═══
+  if (activeGame && stage !== 'hub') {
+    const inPlay = stage === 'play';
     return (
       <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
@@ -300,7 +329,8 @@ export default function GamesPage() {
           </AnimatePresence>
         </div>
         <div className="px-5 pt-6 pb-4 flex items-center gap-2">
-          <button onClick={() => setActive(null)} className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
+          <button onClick={() => (inPlay ? endPlay(active) : (setActive(null), setStage('hub')))}
+            className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
             <ArrowLeft size={20} style={{ color: theme.gold }} />
           </button>
           <h1 className="text-xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{activeGame.title}</h1>
@@ -308,7 +338,9 @@ export default function GamesPage() {
             <span className="ml-auto text-[10px] font-black px-2.5 py-1 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B', border: '1px solid #F59E0B55' }}>🔥 2x XP</span>
           )}
         </div>
-        <activeGame.Comp theme={theme} onXP={handleXP} onEvent={handleEvent} />
+        {inPlay
+          ? <activeGame.Comp theme={theme} onXP={handleXP} onEvent={handleEvent} />
+          : <GameLobby game={activeGame} meta={gameMeta[active]} leaderboard={leaderboard} theme={theme} onStart={() => startPlay(active)} />}
       </div>
     );
   }
@@ -398,12 +430,46 @@ export default function GamesPage() {
         </div>
       </motion.div>
 
-      {/* ─── LİG PANELİ ─── */}
+      {/* ─── DEVAM ET (son oynanan mod) ─── */}
+      {(() => {
+        let lastId = null;
+        try { lastId = localStorage.getItem('gc_last_mode'); } catch { /* ignore */ }
+        const lastGame = GAME_MODES.find(g => g.id === lastId && g.Comp);
+        if (!lastGame) return null;
+        return (
+          <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}
+            onClick={() => openGame(lastGame)} whileTap={{ scale: 0.98 }}
+            className="mx-5 mb-3 w-[calc(100%-2.5rem)] rounded-2xl p-3.5 flex items-center gap-3 text-left"
+            style={{ background: `linear-gradient(135deg, ${lastGame.color}12, ${theme.surface})`, border: `1.5px solid ${lastGame.color}40` }}>
+            <span className="text-2xl">{lastGame.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{lastGame.title}</p>
+              <p className="text-[9px]" style={{ color: theme.textSecondary }}>Son oynadığın mod</p>
+            </div>
+            <span className="text-[11px] font-black px-3.5 py-2 rounded-xl" style={{ background: lastGame.color, color: '#fff' }}>Devam Et</span>
+          </motion.button>
+        );
+      })()}
+
+      {/* ─── LİG PANELİ + SEZON ─── */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
         className="mx-5 mb-5 rounded-2xl p-4 flex items-center gap-4" style={S.card}>
         <LeagueEmblem color={league.cur.color} />
         <div className="flex-1 min-w-0">
-          <p className="text-base font-black" style={{ color: league.cur.color }}>{league.cur.name}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-base font-black" style={{ color: league.cur.color }}>{league.cur.name}</p>
+            {(() => {
+              const now = new Date();
+              const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+              const daysLeft = Math.max(1, Math.ceil((monthEnd - now) / 86400000));
+              const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+              return (
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold }}>
+                  Sezon: {months[now.getMonth()]} · {daysLeft} gün
+                </span>
+              );
+            })()}
+          </div>
           <div className="h-2 rounded-full overflow-hidden mt-1.5" style={{ background: `${theme.textSecondary}20` }}>
             <motion.div className="h-full rounded-full" initial={{ width: 0 }} animate={{ width: `${league.pct}%` }} style={{ background: league.cur.color }} />
           </div>

@@ -6,8 +6,8 @@ import Confetti from './Confetti';
 
 // Sonsuz Mod: yanlış yapana kadar devam et. Seri arttıkça soru başı XP artar.
 export default function SurvivalGame({ theme, onXP, onEvent = () => {} }) {
-  const [phase, setPhase] = useState('idle'); // idle | playing | dead
-  const [queue, setQueue] = useState([]);
+  const [phase, setPhase] = useState('playing'); // playing | dead (lobi GamesPage'de)
+  const [queue, setQueue] = useState(() => drawQuestions(200));
   const [idx, setIdx] = useState(0);
   const [streak, setStreak] = useState(0);
   const [xp, setXp] = useState(0);

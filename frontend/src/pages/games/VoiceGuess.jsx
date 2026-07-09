@@ -5,30 +5,52 @@ import { SURAHS, FAMOUS_SURAHS, verseAudioUrl } from '../../data/surahData';
 import Confetti from './Confetti';
 
 const ROUNDS = 10;
+// Backend'deki QURAN_RECITERS ile aynı id/quality değerleri
+const RECITERS = [
+  { id: 'ar.alafasy', name: 'Mishary Alafasy', quality: 128 },
+  { id: 'ar.abdulbasitmurattal', name: 'Abdul Basit', quality: 192 },
+  { id: 'ar.husary', name: 'Halil el-Husarî', quality: 128 },
+  { id: 'ar.minshawi', name: 'Sıddîk el-Minşâvî', quality: 128 },
+  { id: 'ar.abdurrahmaansudais', name: 'Abdurrahman es-Südeys', quality: 192 },
+  { id: 'ar.ghamadi', name: "Sa'd el-Gâmidî", quality: 128 },
+];
+
 const MODES = [
   { id: 'easy', label: 'Kolay', desc: 'Bilinen sureler · ilk ayetler', xp: 15, color: '#10B981' },
   { id: 'hard', label: 'Zor', desc: 'Tüm sureler · rastgele ayet', xp: 30, color: '#EF4444' },
+  { id: 'reciter', label: 'Kâri Tahmini', desc: 'Hangi imam okuyor? Sesinden tanı!', xp: 25, color: '#8B5CF6' },
 ];
 
+function shuffleArr(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function pickRound(mode, prevSurah) {
-  const pool = mode === 'easy' ? FAMOUS_SURAHS : SURAHS.map(s => s.n);
+  const pool = mode === 'hard' ? SURAHS.map(s => s.n) : FAMOUS_SURAHS;
   let surahNo;
   do { surahNo = pool[Math.floor(Math.random() * pool.length)]; } while (surahNo === prevSurah && pool.length > 1);
   const surah = SURAHS[surahNo - 1];
-  // Kolay modda ilk ayetler (en tanıdık kısım); zorda rastgele
-  const ayah = mode === 'easy' ? 1 + Math.floor(Math.random() * Math.min(3, surah.ayahs)) : 1 + Math.floor(Math.random() * surah.ayahs);
-  // 3 çeldirici sure adı
+  // Kolay/kâri modda ilk ayetler (en tanıdık kısım); zorda rastgele
+  const ayah = mode === 'hard' ? 1 + Math.floor(Math.random() * surah.ayahs) : 1 + Math.floor(Math.random() * Math.min(3, surah.ayahs));
+
+  if (mode === 'reciter') {
+    // Kâri tahmini: rastgele imam okur, sesinden tanı
+    const reciter = RECITERS[Math.floor(Math.random() * RECITERS.length)];
+    const options = shuffleArr([reciter.name, ...shuffleArr(RECITERS.filter(r => r.id !== reciter.id).map(r => r.name)).slice(0, 3)]);
+    return { surah, ayah, reciter, answerText: reciter.name, options, prompt: 'Bu kıraat hangi kâriye (imama) ait?', url: verseAudioUrl(surahNo, ayah, reciter.id, reciter.quality) };
+  }
+
+  // Sure tahmini
   const options = [surah.name];
   while (options.length < 4) {
     const cand = SURAHS[pool[Math.floor(Math.random() * pool.length)] - 1].name;
     if (!options.includes(cand)) options.push(cand);
   }
-  // Karıştır
-  for (let i = options.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [options[i], options[j]] = [options[j], options[i]];
-  }
-  return { surah, ayah, options, url: verseAudioUrl(surahNo, ayah) };
+  return { surah, ayah, answerText: surah.name, options: shuffleArr(options), prompt: 'Bu kıraat hangi sureden?', url: verseAudioUrl(surahNo, ayah) };
 }
 
 // Sesli Tahmin: kıraati dinle, hangi sure olduğunu bil.
@@ -80,7 +102,7 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
     if (answered || !round) return;
     setAnswered(name);
     stopAudio();
-    const ok = name === round.surah.name;
+    const ok = name === round.answerText;
     onEvent('answer', { correct: ok, category: 'Kuran' });
     if (ok) { setCorrect(c => c + 1); setXp(x => x + mode.xp); }
     setTimeout(() => {
@@ -143,8 +165,8 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
   }
 
   // ─── Oyun ───
-  const isCorrectName = (name) => answered && name === round.surah.name;
-  const isWrongPick = (name) => answered === name && name !== round.surah.name;
+  const isCorrectName = (name) => answered && name === round.answerText;
+  const isWrongPick = (name) => answered === name && name !== round.answerText;
 
   return (
     <div className="px-4 w-full max-w-md mx-auto">
@@ -181,13 +203,13 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
         )}
         {answered && (
           <p className="text-xs mt-3 font-bold" style={{ color: theme.gold }}>
-            {round.surah.name} Suresi · {round.ayah}. ayet
+            {round.surah.name} Suresi · {round.ayah}. ayet{round.reciter ? ` · ${round.reciter.name}` : ''}
           </p>
         )}
       </div>
 
-      {/* Sure seçenekleri */}
-      <p className="text-xs font-bold mb-2 text-center" style={{ color: theme.textSecondary }}>Bu kıraat hangi sureden?</p>
+      {/* Seçenekler */}
+      <p className="text-xs font-bold mb-2 text-center" style={{ color: theme.textSecondary }}>{round.prompt}</p>
       <div className="grid grid-cols-2 gap-2.5">
         {round.options.map(name => (
           <button key={name} onClick={() => answer(name)} disabled={!!answered}
@@ -206,8 +228,8 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
         {answered && (
           <motion.p initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             className="text-center text-xs font-black mt-4"
-            style={{ color: answered === round.surah.name ? '#10B981' : '#EF4444' }}>
-            {answered === round.surah.name ? `Doğru! +${mode.xp} XP 🎉` : `Yanlış — doğrusu: ${round.surah.name}`}
+            style={{ color: answered === round.answerText ? '#10B981' : '#EF4444' }}>
+            {answered === round.answerText ? `Doğru! +${mode.xp} XP 🎉` : `Yanlış — doğrusu: ${round.answerText}`}
           </motion.p>
         )}
       </AnimatePresence>
