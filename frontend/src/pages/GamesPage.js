@@ -5,7 +5,7 @@ import { ArrowLeft, Flame, Star, Gem, Trophy, CheckCircle2, Gift, Crown, Medal, 
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { awardXP, fetchStats, subscribeStats, getCachedStats, getUsername } from '../services/gamification';
-import { BANK_SIZE, BANK_CATEGORIES } from '../data/questionBank';
+import { BANK_CATEGORIES } from '../data/questionBank';
 import api from '../api';
 import WheelGame from './games/WheelGame';
 import WordGame from './games/WordGame';
@@ -18,7 +18,9 @@ import BossBattle from './games/BossBattle';
 import OrderGame from './games/OrderGame';
 import VoiceGuess from './games/VoiceGuess';
 import StoryMode from './games/StoryMode';
+import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
+import { ADVENTURE } from '../data/adventureData';
 
 // ════════════════════════════════════════════════════════════
 // OYUN MERKEZİ — referans tasarım birebir (mobil düzene uyarlı)
@@ -37,20 +39,21 @@ const LEAGUES = [
   { name: 'Elmas Lig', min: 6000, color: '#60A5FA' },
 ];
 
-// ─── Oyun modları ───
+// ─── Oyun modları (premium tek satırlık metinler) ───
 const GAME_MODES = [
-  { id: 'story', title: 'Hikâye Modu', desc: 'Kıssaları bölüm bölüm yaşa: Hz. Yusuf, Siyer, Halifeler, Fetihler!', emoji: '📜', color: '#D946EF', type: 'game_quiz', Comp: StoryMode, cta: 'Keşfet', xpHint: '55+', badge: 'Kıssa Alimi' },
-  { id: 'rapid', title: 'Hızlı Bilgi (Blitz)', desc: '30 saniye, 10 soru! Combo yap, jokerleri kullan.', emoji: '⚡', color: '#F59E0B', type: 'game_quiz', Comp: RapidQuiz, xpHint: '150+', badge: 'Blitz Ustası' },
-  { id: 'survival', title: 'Sonsuz Mod', desc: 'Yanlış yapana kadar mücadele et!', emoji: '♾️', color: '#3B82F6', type: 'game_quiz', Comp: SurvivalGame },
-  { id: 'classic', title: 'Klasik Test', desc: '10, 20, 50 veya 100 soru seç ve başla!', emoji: '📖', color: '#10B981', type: 'game_quiz', Comp: ClassicTest },
-  { id: 'duel', title: 'Arkadaş Düellosu', desc: 'Arkadaşlarınla 1v1 düello yap, bilgini göster!', emoji: '⚔️', color: '#F97316', route: '/multiplayer', cta: 'Düello Başlat' },
-  { id: 'ai', title: 'AI Rakip', desc: 'Yapay zekaya karşı yarış. Zorlaştıkça puanın artar!', emoji: '🤖', color: '#8B5CF6', type: 'game_quiz', Comp: AIDuel },
-  { id: 'boss', title: 'Patron Savaşı', desc: 'Zorlu mücadele! Patronu yen, ödülleri kap!', emoji: '👹', color: '#7C3AED', type: 'game_quiz', Comp: BossBattle, cta: 'Savaşa Katıl' },
-  { id: 'memory', title: 'Hafıza Oyunu', desc: 'Kartları eşleştir, bilgini tazele!', emoji: '🧠', color: '#EC4899', type: 'game_match', Comp: MatchGame },
-  { id: 'order', title: 'Doğru Sırala', desc: 'Bilgileri doğru sıraya koy, ustalaş!', emoji: '🔢', color: '#EAB308', type: 'game_match', Comp: OrderGame },
-  { id: 'word', title: 'Kelime Bulmaca', desc: 'Kelimeyi bul, manayı keşfet! Eğlenerek öğren.', emoji: '🔤', color: '#6366F1', type: 'game_word', Comp: WordGame },
-  { id: 'wheel', title: 'Çarkıfelek', desc: 'Çarkı çevir, kategorinden soruyu bil!', emoji: '🎡', color: '#14B8A6', type: 'game_wheel', Comp: WheelGame },
-  { id: 'voice', title: 'Sesli Tahmin', desc: 'Kıraati dinle, surenin adını tahmin et!', emoji: '🎵', color: '#22C55E', type: 'game_quiz', Comp: VoiceGuess },
+  { id: 'adventure', title: 'İslam Tarihi Macerası', desc: "Mekke'den Veda'ya tarihte yolculuk et.", emoji: '🌍', color: '#F59E0B', type: 'game_quiz', Comp: AdventureMode, cta: 'Yolculuğa Çık', xpHint: '80+', badge: 'Siyer Kâşifi', featured: true },
+  { id: 'story', title: 'Hikâye Modu', desc: 'Kıssaların içinde yolculuğa çık.', emoji: '📜', color: '#D946EF', type: 'game_quiz', Comp: StoryMode, cta: 'Keşfet', xpHint: '55+', badge: 'Kıssa Alimi' },
+  { id: 'rapid', title: 'Hızlı Bilgi (Blitz)', desc: '30 saniyede refleksini test et.', emoji: '⚡', color: '#EAB308', type: 'game_quiz', Comp: RapidQuiz, xpHint: '150+', badge: 'Blitz Ustası' },
+  { id: 'survival', title: 'Sonsuz Mod', desc: 'Serini koru, sınırlarını zorla.', emoji: '♾️', color: '#3B82F6', type: 'game_quiz', Comp: SurvivalGame },
+  { id: 'classic', title: 'Klasik Test', desc: 'Dilediğin konuda kendini dene.', emoji: '📖', color: '#10B981', type: 'game_quiz', Comp: ClassicTest },
+  { id: 'duel', title: 'İlim Arenası', desc: 'Gerçek oyuncularla yarış.', emoji: '⚔️', color: '#F97316', route: '/multiplayer', cta: 'Düello Başlat' },
+  { id: 'ai', title: 'AI Rakip', desc: 'Sana meydan okuyan rakiple mücadele et.', emoji: '🤖', color: '#8B5CF6', type: 'game_quiz', Comp: AIDuel },
+  { id: 'boss', title: 'Patron Savaşı', desc: 'Bilginle cehaleti yen.', emoji: '👹', color: '#7C3AED', type: 'game_quiz', Comp: BossBattle, cta: 'Savaşa Katıl' },
+  { id: 'memory', title: 'Hafıza Oyunu', desc: 'Eşleştir, hafızanı kanıtla.', emoji: '🧠', color: '#EC4899', type: 'game_match', Comp: MatchGame },
+  { id: 'order', title: 'Doğru Sırala', desc: 'Olayları yerli yerine koy.', emoji: '🔢', color: '#06B6D4', type: 'game_match', Comp: OrderGame },
+  { id: 'word', title: 'Kelime Bulmaca', desc: 'Kelimeyi bul, manayı keşfet.', emoji: '🔤', color: '#6366F1', type: 'game_word', Comp: WordGame },
+  { id: 'wheel', title: 'Çarkıfelek', desc: 'Çevir — her tur farklı deneyim.', emoji: '🎡', color: '#14B8A6', type: 'game_wheel', Comp: WheelGame },
+  { id: 'voice', title: 'Sesli Tahmin', desc: 'Tilaveti dinle, doğru sureyi bul.', emoji: '🎵', color: '#22C55E', type: 'game_quiz', Comp: VoiceGuess },
 ];
 
 const CAT_ICONS = {
@@ -165,6 +168,13 @@ export default function GamesPage() {
     api.get('/gamification/leaderboard?limit=5').then(r => { if (Array.isArray(r.data)) setLeaderboard(r.data); }).catch(() => {});
     return unsub;
   }, [user]);
+
+  // Ekran değişince en üste kaydır — oyuna girince soru/menü hep görünür olsun
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const main = document.querySelector('main');
+    if (main) main.scrollTo({ top: 0 });
+  }, [stage, active]);
 
   // Gece yarısına geri sayım (günlük görevler)
   useEffect(() => {
@@ -637,14 +647,13 @@ export default function GamesPage() {
         <div className="rounded-2xl p-4" style={S.card}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}><Library size={14} style={{ color: theme.gold }} /> Kategoriler</h2>
-            <span className="text-[10px] font-bold" style={{ color: theme.gold }}>{BANK_SIZE.toLocaleString('tr-TR')} Soru</span>
+            <span className="text-[10px] font-bold" style={{ color: theme.gold }}>Sürekli yenilenen sorular</span>
           </div>
           <div className="grid grid-cols-4 gap-2">
             {BANK_CATEGORIES.map(c => (
               <div key={c.name} className="rounded-xl p-2 text-center" style={{ background: `${theme.gold}08`, border: `1px solid ${theme.cardBorder}` }}>
                 <span className="text-lg block">{CAT_ICONS[c.name] || '📚'}</span>
                 <p className="text-[9px] font-black mt-0.5 truncate" style={{ color: theme.textPrimary }}>{c.name}</p>
-                <p className="text-[8px]" style={{ color: theme.textSecondary }}>{c.count} Soru</p>
               </div>
             ))}
           </div>
@@ -682,6 +691,57 @@ export default function GamesPage() {
           </div>
         </div>
       </div>
+
+      {/* ─── KOLEKSİYON ALBÜMÜ ─── */}
+      {(() => {
+        let artifacts = []; let badges = [];
+        try { artifacts = JSON.parse(localStorage.getItem('gc_artifacts')) || []; } catch { /* ignore */ }
+        try { badges = JSON.parse(localStorage.getItem('gc_badges')) || []; } catch { /* ignore */ }
+        return (
+          <div className="px-5 mb-5">
+            <div className="rounded-2xl p-4" style={S.card}>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>🎒 Koleksiyon Albümü</h2>
+                <span className="text-[10px] font-bold" style={{ color: theme.gold }}>{artifacts.length + badges.length} parça</span>
+              </div>
+              {/* Macera hatıraları */}
+              <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>Macera Hatıraları</p>
+              <div className="grid grid-cols-6 gap-1.5 mb-3">
+                {ADVENTURE.map(c => {
+                  const owned = artifacts.includes(c.id);
+                  return (
+                    <div key={c.id} className="aspect-square rounded-xl flex items-center justify-center text-lg"
+                      title={c.artifactName}
+                      style={{
+                        background: owned ? `${theme.gold}14` : `${theme.textSecondary}08`,
+                        border: `1px solid ${owned ? `${theme.gold}45` : theme.cardBorder}`,
+                        filter: owned ? 'none' : 'grayscale(1)', opacity: owned ? 1 : 0.35,
+                      }}>
+                      {owned ? c.artifact : '❔'}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Rozetler */}
+              {badges.length > 0 && (
+                <>
+                  <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>Kazanılan Rozetler</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {badges.map(b => (
+                      <span key={b} className="text-[9px] font-black px-2.5 py-1 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold, border: `1px solid ${theme.gold}35` }}>
+                        🏅 {b}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {artifacts.length === 0 && badges.length === 0 && (
+                <p className="text-[10px] text-center py-2" style={{ color: theme.textSecondary }}>Macera duraklarını bitir, hatıraları topla! 🌍</p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ─── GÜNLÜK SERİ ─── */}
       <div className="px-5 mb-5">
