@@ -5,7 +5,7 @@ import { ArrowLeft, Flame, Star, Gem, Trophy, CheckCircle2, Gift, Crown, Medal, 
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { awardXP, fetchStats, subscribeStats, getCachedStats, getUsername } from '../services/gamification';
-import { BANK_CATEGORIES } from '../data/questionBank';
+import { BANK_CATEGORIES, QUESTION_BANK } from '../data/questionBank';
 import api from '../api';
 import WheelGame from './games/WheelGame';
 import WordGame from './games/WordGame';
@@ -88,6 +88,80 @@ function leagueInfo(points) {
   const next = LEAGUES[li + 1] || null;
   const pct = next ? Math.min(100, Math.round(((points - cur.min) / (next.min - cur.min)) * 100)) : 100;
   return { cur, next, pct };
+}
+
+// ─── 📌 Günün Sorusu — herkese aynı, günde bir kez, kendi serisi var ───
+function pickDailyQuestion(dateKey) {
+  let h = 0;
+  for (const ch of dateKey) h = (h * 31 + ch.charCodeAt(0)) % 1000003;
+  let i = h % QUESTION_BANK.length;
+  // tf soruları atla; şıklı (mc) soru bul
+  for (let tries = 0; tries < QUESTION_BANK.length; tries++) {
+    if (QUESTION_BANK[i].type === 'mc') return QUESTION_BANK[i];
+    i = (i + 1) % QUESTION_BANK.length;
+  }
+  return QUESTION_BANK[0];
+}
+
+function DailyQuestion({ theme, onXP, onEvent }) {
+  const dateKey = todayKey();
+  const q = useMemo(() => pickDailyQuestion(dateKey), [dateKey]);
+  const [answered, setAnswered] = useState(() => load(`dq_${dateKey}`, null));
+  const [streak, setStreak] = useState(() => Number(localStorage.getItem('dq_streak') || 0));
+
+  const answer = (choice) => {
+    if (answered) return;
+    const ok = choice === q.correct_index;
+    const rec = { choice, ok };
+    setAnswered(rec); save(`dq_${dateKey}`, rec);
+    onEvent('answer', { correct: ok, category: q.category });
+    // Günün sorusu serisi (her gün cevaplamak seriyi sürdürür)
+    try {
+      const last = localStorage.getItem('dq_last');
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const ns = last === yesterday ? Number(localStorage.getItem('dq_streak') || 0) + 1 : 1;
+      localStorage.setItem('dq_streak', String(ns));
+      localStorage.setItem('dq_last', dateKey);
+      setStreak(ns);
+    } catch { /* ignore */ }
+    if (ok) onXP(30, 'game_quiz', 'Günün Sorusu');
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}
+      className="mx-5 mb-3 rounded-2xl p-4 relative overflow-hidden"
+      style={{ background: `linear-gradient(150deg, #10B98112, ${theme.surface})`, border: '1.5px solid #10B98140' }}>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#10B981' }}>
+          📌 Günün Sorusu · +30 XP
+        </p>
+        {streak > 0 && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: '#F59E0B18', color: '#F59E0B' }}>🔁 {streak} gün</span>}
+      </div>
+      <p className="text-sm font-bold mb-3" style={{ color: theme.textPrimary }}>{q.question}</p>
+      <div className="grid grid-cols-2 gap-2">
+        {q.options.map((opt, i) => {
+          const chosen = answered?.choice === i;
+          const isRight = answered && i === q.correct_index;
+          return (
+            <button key={i} onClick={() => answer(i)} disabled={!!answered}
+              className="p-2.5 rounded-xl text-[11px] font-semibold text-left transition-all active:scale-95"
+              style={{
+                background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0d`,
+                border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
+                color: theme.textPrimary,
+              }}>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+      {answered && (
+        <p className="text-[10px] mt-2.5 leading-relaxed" style={{ color: answered.ok ? '#10B981' : theme.textSecondary }}>
+          {answered.ok ? '✅ Doğru! Yarın yeni soru seni bekliyor.' : `❌ Doğrusu: ${q.options[q.correct_index]}.`} {q.explanation}
+        </p>
+      )}
+    </motion.div>
+  );
 }
 
 // ─── Cami gece silueti (dış görsel yok — saf SVG) ───
@@ -440,6 +514,9 @@ export default function GamesPage() {
         </div>
       </motion.div>
 
+      {/* ─── GÜNÜN SORUSU ─── */}
+      <DailyQuestion theme={theme} onXP={handleXP} onEvent={handleEvent} />
+
       {/* ─── DEVAM ET (son oynanan mod) ─── */}
       {(() => {
         let lastId = null;
@@ -645,16 +722,22 @@ export default function GamesPage() {
       {/* ─── KATEGORİLER (Soru Havuzu) ─── */}
       <div className="px-5 mb-5">
         <div className="rounded-2xl p-4" style={S.card}>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2.5">
             <h2 className="text-sm font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}><Library size={14} style={{ color: theme.gold }} /> Kategoriler</h2>
-            <span className="text-[10px] font-bold" style={{ color: theme.gold }}>Sürekli yenilenen sorular</span>
+            <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>Dokun → o konuda test başlat</span>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          {/* Kompakt yatay şerit — dokununca o kategoriyle Klasik Test açılır */}
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
             {BANK_CATEGORIES.map(c => (
-              <div key={c.name} className="rounded-xl p-2 text-center" style={{ background: `${theme.gold}08`, border: `1px solid ${theme.cardBorder}` }}>
-                <span className="text-lg block">{CAT_ICONS[c.name] || '📚'}</span>
-                <p className="text-[9px] font-black mt-0.5 truncate" style={{ color: theme.textPrimary }}>{c.name}</p>
-              </div>
+              <button key={c.name}
+                onClick={() => {
+                  try { localStorage.setItem('gc_preset_category', c.name); } catch { /* ignore */ }
+                  openGame(GAME_MODES.find(g => g.id === 'classic'));
+                }}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-black active:scale-95 transition-transform"
+                style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}25`, color: theme.textPrimary }}>
+                <span className="text-sm">{CAT_ICONS[c.name] || '📚'}</span> {c.name}
+              </button>
             ))}
           </div>
         </div>

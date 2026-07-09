@@ -18,7 +18,14 @@ const DIFFS = [
 export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
   const [phase, setPhase] = useState('setup'); // setup | playing | done
   const [count, setCount] = useState(10);
-  const [category, setCategory] = useState(null);
+  // Hub'daki kategori çipinden gelen ön-seçim (varsa)
+  const [category, setCategory] = useState(() => {
+    try {
+      const preset = localStorage.getItem('gc_preset_category');
+      if (preset) { localStorage.removeItem('gc_preset_category'); return preset; }
+    } catch { /* ignore */ }
+    return null;
+  });
   const [diff, setDiff] = useState(DIFFS[0]);
   const [retryWrongs, setRetryWrongs] = useState(true);
   const [catOpen, setCatOpen] = useState(false);
