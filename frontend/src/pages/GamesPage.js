@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Flame, Star, Gem, Trophy, CheckCircle2, Gift, Crown, Medal, ChevronRight, Library, Users, Award, Swords, Lock } from 'lucide-react';
+import { ArrowLeft, Flame, Star, Gem, Trophy, CheckCircle2, Gift, Crown, Medal, ChevronRight, Library, Award, Swords } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { awardXP, fetchStats, subscribeStats, getCachedStats, getUsername } from '../services/gamification';
@@ -341,13 +341,15 @@ export default function GamesPage() {
   }, []);
 
   // Lobi akışı: karta bas → lobi → "Oyuna Başla" → oyun
+  const lobbyFrom = useRef('hub'); // lobiden geri dönülecek ekran
   const openGame = useCallback((g) => {
     if (g.locked) return;
     if (g.route) { navigate(g.route); return; }
+    lobbyFrom.current = stage === 'modes' ? 'modes' : 'hub';
     setActive(g.id);
     setStage('lobby');
     try { localStorage.setItem('gc_last_mode', g.id); } catch { /* ignore */ }
-  }, [navigate]);
+  }, [navigate, stage]);
 
   const startPlay = useCallback((gid) => {
     sessionXP.current = 0;
@@ -493,7 +495,7 @@ export default function GamesPage() {
           </AnimatePresence>
         </div>
         <div className="px-5 pt-6 pb-4 flex items-center gap-2">
-          <button onClick={() => (inPlay ? endPlay(active) : (setActive(null), setStage('hub')))}
+          <button onClick={() => (inPlay ? endPlay(active) : (setActive(null), setStage(lobbyFrom.current)))}
             className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
             <ArrowLeft size={20} style={{ color: theme.gold }} />
           </button>
@@ -505,6 +507,72 @@ export default function GamesPage() {
         {inPlay
           ? <activeGame.Comp theme={theme} onXP={handleXP} onEvent={handleEvent} />
           : <GameLobby game={activeGame} meta={gameMeta[active]} leaderboard={leaderboard} theme={theme} onStart={() => startPlay(active)} />}
+      </div>
+    );
+  }
+
+  // ═══ OYUN MODLARI EKRANI (şık liste) ═══
+  if (stage === 'modes') {
+    const featured = GAME_MODES.find(g => g.featured) || GAME_MODES[0];
+    const rest = GAME_MODES.filter(g => g.id !== featured.id);
+    return (
+      <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
+        {levelUpOverlay}
+        <div className="px-5 pt-6 pb-4 flex items-center gap-2">
+          <button onClick={() => setStage('hub')} className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
+            <ArrowLeft size={20} style={{ color: theme.gold }} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Oyun Modları</h1>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{GAME_MODES.length} mod · her biri farklı bir deneyim</p>
+          </div>
+        </div>
+
+        {/* Öne çıkan: Macera (tam genişlik, sinematik) */}
+        <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          onClick={() => openGame(featured)} whileTap={{ scale: 0.98 }}
+          className="mx-5 mb-4 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-left relative overflow-hidden"
+          style={{ background: `linear-gradient(150deg, ${featured.color}1e, ${theme.surface})`, border: `1.5px solid ${featured.color}55`, boxShadow: `0 8px 34px ${featured.color}20` }}>
+          <div className="absolute -top-12 -right-8 w-44 h-44 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${featured.color}35, transparent 65%)` }} />
+          <div className="flex items-center gap-4 relative">
+            <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 2.4, repeat: Infinity }}
+              className="text-5xl" style={{ filter: `drop-shadow(0 6px 16px ${featured.color}80)` }}>{featured.emoji}</motion.span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: featured.color }}>Öne Çıkan</p>
+              <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{featured.title}</p>
+              <p className="text-[11px]" style={{ color: theme.textSecondary }}>{featured.desc}</p>
+            </div>
+            <span className="text-[11px] font-black px-3.5 py-2 rounded-xl shrink-0" style={{ background: featured.color, color: '#fff' }}>{featured.cta || 'Oyna'}</span>
+          </div>
+        </motion.button>
+
+        {/* Diğer modlar: 2 sütun zarif grid */}
+        <div className="px-5 grid grid-cols-2 gap-3">
+          {rest.map((g, i) => {
+            const meta = gameMeta[g.id];
+            const isDaily = dailyGameId === g.id;
+            return (
+              <motion.button key={g.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 + i * 0.035 }}
+                onClick={() => openGame(g)} whileTap={{ scale: 0.97 }}
+                className="rounded-2xl p-4 flex flex-col text-left relative overflow-hidden"
+                style={{
+                  background: `linear-gradient(160deg, ${theme.surface}, ${g.color}0c)`,
+                  border: `1.5px solid ${isDaily ? '#F59E0B66' : `${g.color}30`}`,
+                }}>
+                <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 pointer-events-none" style={{ background: `radial-gradient(circle, ${g.color}, transparent)` }} />
+                <div className="flex items-start justify-between">
+                  <span className="text-3xl mb-2 block" style={{ filter: `drop-shadow(0 2px 8px ${g.color}60)` }}>{g.emoji}</span>
+                  {isDaily && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B' }}>🔥 2x</span>}
+                </div>
+                <p className="text-sm font-black leading-tight" style={{ color: theme.textPrimary }}>{g.title}</p>
+                <p className="text-[10px] mt-1 flex-1 leading-relaxed" style={{ color: theme.textSecondary }}>{g.desc}</p>
+                <p className="text-[9px] font-bold mt-2" style={{ color: g.color }}>
+                  {meta ? `${meta.plays} oyun · ${meta.xp} XP` : 'Hiç oynanmadı'}
+                </p>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
     );
   }
@@ -608,9 +676,24 @@ export default function GamesPage() {
           <span className="text-lg">{amb.playing ? '⏸️' : '🎵'}</span>
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-black" style={{ color: theme.textPrimary }}>
-            Atmosfer {amb.playing && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ color: '#10B981' }}>· çalıyor</motion.span>}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-black shrink-0" style={{ color: theme.textPrimary }}>
+              Atmosfer {amb.playing && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ color: '#10B981' }}>·</motion.span>}
+            </p>
+            <div className="flex gap-1">
+              {amb.tracks.map(t => (
+                <button key={t.id} onClick={() => ambient.setTrack(t.id)}
+                  className="text-[8px] font-black px-2 py-0.5 rounded-full transition-all"
+                  style={{
+                    background: amb.track === t.id ? `${theme.gold}20` : 'transparent',
+                    border: `1px solid ${amb.track === t.id ? `${theme.gold}50` : theme.cardBorder}`,
+                    color: amb.track === t.id ? theme.gold : theme.textSecondary,
+                  }}>
+                  {t.id === 'ney' ? '🎋 Ney' : t.id === 'serenity' ? '✨ Sükûnet' : t.name}
+                </button>
+              ))}
+            </div>
+          </div>
           <input type="range" min="0" max="1" step="0.05" value={amb.volume}
             onChange={e => ambient.setVolume(Number(e.target.value))}
             className="w-full h-1 mt-1.5 accent-current cursor-pointer"
@@ -675,45 +758,49 @@ export default function GamesPage() {
         </div>
       </motion.div>
 
-      {/* ─── OYUN MODLARI ─── */}
-      <div className="px-5 mb-6">
-        <h2 className="text-base font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Oyun Modları</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {GAME_MODES.map((g, i) => {
-            const meta = gameMeta[g.id];
-            const isDaily = dailyGameId === g.id;
-            return (
-              <motion.div key={g.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 + i * 0.04 }}
-                className="rounded-2xl p-4 flex flex-col relative overflow-hidden"
-                style={{
-                  background: `linear-gradient(160deg, ${theme.surface}, ${g.color}0c)`,
-                  border: `1.5px solid ${isDaily ? '#F59E0B66' : `${g.color}30`}`,
-                  opacity: g.locked ? 0.65 : 1,
-                }}>
-                <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 pointer-events-none" style={{ background: `radial-gradient(circle, ${g.color}, transparent)` }} />
-                <div className="flex items-start justify-between">
-                  <span className="text-3xl mb-2 block" style={{ filter: `drop-shadow(0 2px 8px ${g.color}60)` }}>{g.emoji}</span>
-                  {isDaily && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B' }}>🔥 2x</span>}
-                  {g.locked && <Lock size={14} style={{ color: theme.textSecondary }} />}
-                </div>
-                <p className="text-sm font-black leading-tight" style={{ color: theme.textPrimary }}>{g.title}</p>
-                <p className="text-[10px] mt-1 flex-1 leading-relaxed" style={{ color: theme.textSecondary }}>{g.desc}</p>
-                <div className="flex items-center gap-1 mt-2 mb-2.5">
-                  <Users size={10} style={{ color: g.color }} />
-                  <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>
-                    {g.locked ? 'Yakında' : meta ? `${meta.plays} oyun · ${meta.xp} XP` : 'Hiç oynanmadı'}
-                  </span>
-                </div>
-                <button onClick={() => openGame(g)} disabled={g.locked}
-                  className="w-full py-2 rounded-xl text-xs font-black active:scale-95 transition-all disabled:opacity-50"
-                  style={{ background: g.locked ? `${theme.textSecondary}15` : `${g.color}1c`, border: `1px solid ${g.color}50`, color: g.locked ? theme.textSecondary : g.color }}>
-                  {g.locked ? 'Yakında' : g.cta || 'Oyna'}
-                </button>
-              </motion.div>
-            );
-          })}
+      {/* ─── OYUN MODLARI VİTRİNİ (özet görsel → mod listesi ekranı) ─── */}
+      <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+        onClick={() => setStage('modes')} whileTap={{ scale: 0.98 }}
+        className="mx-5 mb-6 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-left relative overflow-hidden"
+        style={{
+          background: `linear-gradient(150deg, ${theme.gold}16, ${theme.surface} 55%, #10B98110)`,
+          border: `1.5px solid ${theme.gold}45`,
+          boxShadow: `0 10px 40px ${theme.gold}18`,
+        }}>
+        {/* Parıltı süpürmesi */}
+        <motion.div className="absolute inset-0 pointer-events-none" animate={{ x: ['-100%', '160%'] }}
+          transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 1.6, ease: 'easeInOut' }}
+          style={{ background: `linear-gradient(105deg, transparent 42%, ${theme.gold}14 50%, transparent 58%)` }} />
+        <div className="flex items-center justify-between relative mb-3.5">
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: theme.gold }}>Oyun Modları</p>
+            <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
+              {GAME_MODES.length} farklı deneyim
+            </p>
+            <p className="text-[10px]" style={{ color: theme.textSecondary }}>Blitz'ten Maceraya — hepsi seni bekliyor</p>
+          </div>
+          <span className="text-[11px] font-black px-4 py-2.5 rounded-xl shrink-0 flex items-center gap-1"
+            style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight})`, color: theme.bg }}>
+            Modlara Git <ChevronRight size={13} />
+          </span>
         </div>
-      </div>
+        {/* Emoji mozaiği — modların vitrini */}
+        <div className="flex gap-1.5 relative">
+          {GAME_MODES.slice(0, 8).map((g, i) => (
+            <motion.span key={g.id}
+              animate={{ y: [0, i % 2 === 0 ? -3 : 3, 0] }}
+              transition={{ duration: 2 + (i % 3) * 0.4, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0"
+              style={{ background: `${g.color}16`, border: `1px solid ${g.color}35`, filter: `drop-shadow(0 2px 6px ${g.color}40)` }}>
+              {g.emoji}
+            </motion.span>
+          ))}
+          <span className="w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0"
+            style={{ background: `${theme.gold}12`, border: `1px dashed ${theme.gold}45`, color: theme.gold }}>
+            +{GAME_MODES.length - 8}
+          </span>
+        </div>
+      </motion.button>
 
       {/* ─── GÜNLÜK GÖREVLER ─── */}
       <div className="px-5 mb-5">

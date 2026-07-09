@@ -1,28 +1,30 @@
 /**
  * AMBIENT — dini atmosfer arka plan sesi.
  * ────────────────────────────────────────
- * Varsayılan parça 'Sükûnet' tamamen Web Audio ile ÜRETİLİR:
- * alçak perdeden yumuşak bir pad + ara ara Hicaz dizisinden nazik
- * çan sesleri. Dosya yok → %100 telifsiz.
+ * Varsayılan parça 'Ney Taksimi': Web Audio ile ÜRETİLEN gerçekçi ney sesi —
+ * nefes (üflenen hava) dokusu + yumuşak vibrato + notalar arası kayma
+ * (portamento) ile Hicaz makamında ağır, tefekkürlü bir taksim çalar.
+ * Cümleler arasında nefes payı bırakır; mekanik döngü hissi yoktur.
+ * Not: Bu, herhangi bir filmin/eserin kaydı DEĞİLDİR; o üslubu andıran
+ * özgün bir sentezdir → %100 telifsiz.
  *
  * KENDİ İLAHİNİ EKLEMEK İÇİN (senin kayıtların = telif sorunu yok):
  *   1. mp3 dosyanı  frontend/public/audio/  klasörüne koy (örn: ilahi1.mp3)
- *   2. Aşağıdaki TRACKS listesine ekle:
+ *   2. TRACKS listesine ekle:
  *      { id: 'ilahi1', name: 'Benim İlahim', type: 'file', url: '/audio/ilahi1.mp3' }
  *   3. Hepsi bu — oynatıcıda seçilebilir olur, döngüde çalar.
- *
- * Sayfalar arasında çalmaya devam eder (modül seviyesinde tekil durum).
  */
 
 export const TRACKS = [
+  { id: 'ney', name: 'Ney Taksimi (üretilmiş)', type: 'gen' },
   { id: 'serenity', name: 'Sükûnet (üretilmiş)', type: 'gen' },
   // { id: 'ilahi1', name: 'Benim İlahim', type: 'file', url: '/audio/ilahi1.mp3' },
 ];
 
 let ctx = null;
 let master = null;
-let padNodes = [];
-let chimeTimer = null;
+let liveNodes = [];   // durdurulacak osilatör/kaynaklar
+let timers = [];      // durdurulacak zamanlayıcılar
 let fileEl = null;
 let playing = false;
 let currentTrack = TRACKS[0].id;
@@ -46,87 +48,164 @@ function getCtx() {
   return ctx;
 }
 
-// Hicaz dizisi — nazik çanlar için
-const CHIME_NOTES = [587.33, 622.25, 739.99, 783.99, 880.0];
+function makeMaster(c) {
+  master = c.createGain();
+  master.gain.value = volume * 0.5;
+  master.connect(c.destination);
+}
 
-function playChime() {
-  const c = getCtx();
-  if (!c || !master) return;
-  const f = CHIME_NOTES[Math.floor(Math.random() * CHIME_NOTES.length)];
-  const t0 = c.currentTime;
-  [f, f * 2].forEach((freq, i) => {
+// ══════════════════════════════════════════════════════════════
+//  NEY TAKSİMİ — sentezlenmiş kamış flüt
+// ══════════════════════════════════════════════════════════════
+// D4 kök Hicaz dizisi: D, Eb, F#, G, A, Bb, C, D5 (yarım ton ofsetleri)
+const ROOT = 293.66; // D4
+const HICAZ_STEPS = [0, 1, 4, 5, 7, 8, 10, 12, 13, 16];
+const freqOf = (deg) => ROOT * Math.pow(2, HICAZ_STEPS[deg] / 12);
+
+// Taksim cümleleri: {n: dizi derecesi, d: süre çarpanı} — ağır, tefekkürlü
+const PHRASES = [
+  [{ n: 4, d: 2.2 }, { n: 5, d: 0.9 }, { n: 4, d: 1.1 }, { n: 3, d: 1.0 }, { n: 2, d: 2.6 }],
+  [{ n: 2, d: 1.2 }, { n: 3, d: 0.8 }, { n: 4, d: 1.8 }, { n: 3, d: 0.7 }, { n: 2, d: 0.9 }, { n: 1, d: 1.1 }, { n: 0, d: 3.0 }],
+  [{ n: 0, d: 1.6 }, { n: 2, d: 1.0 }, { n: 3, d: 0.8 }, { n: 4, d: 2.4 }, { n: 6, d: 0.9 }, { n: 5, d: 1.0 }, { n: 4, d: 2.2 }],
+  [{ n: 7, d: 1.8 }, { n: 6, d: 0.8 }, { n: 5, d: 1.0 }, { n: 4, d: 1.4 }, { n: 5, d: 0.9 }, { n: 4, d: 1.1 }, { n: 2, d: 2.8 }],
+  [{ n: 4, d: 1.5 }, { n: 5, d: 0.7 }, { n: 6, d: 0.7 }, { n: 7, d: 2.0 }, { n: 8, d: 1.2 }, { n: 7, d: 2.6 }],
+  [{ n: 3, d: 1.3 }, { n: 2, d: 0.9 }, { n: 1, d: 1.6 }, { n: 2, d: 0.8 }, { n: 0, d: 3.4 }],
+];
+
+/** Beyaz gürültü tamponu (nefes dokusu için) */
+function noiseBuffer(c) {
+  const buf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buf;
+}
+
+/** Tek ney notası: gövde + nefes + vibrato + önceki notadan kayma */
+function neyNote(c, out, freq, t0, dur, prevFreq) {
+  // Gövde: sine + zayıf 2. ve 3. armonik → kamış sıcaklığı
+  [[1, 0.30], [2, 0.10], [3, 0.035]].forEach(([mult, amp]) => {
     const o = c.createOscillator();
     const g = c.createGain();
     o.type = 'sine';
-    o.frequency.value = freq;
-    const v = i === 0 ? 0.08 : 0.02;
+    // Portamento: önceki notadan yumuşak kayma
+    o.frequency.setValueAtTime((prevFreq || freq) * mult, t0);
+    o.frequency.exponentialRampToValueAtTime(freq * mult, t0 + 0.09);
+    // Vibrato: notanın içinde yavaşça belirir (ney üslubu)
+    const lfo = c.createOscillator();
+    const lfoG = c.createGain();
+    lfo.frequency.value = 4.6 + Math.random() * 0.8;
+    lfoG.gain.setValueAtTime(0, t0);
+    lfoG.gain.linearRampToValueAtTime(freq * mult * 0.007, t0 + Math.min(0.5, dur * 0.4));
+    lfo.connect(lfoG).connect(o.frequency);
+    // Zarf: yumuşak üfleme girişi, nefesli bırakış
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(v, t0 + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
-    o.connect(g).connect(master);
-    o.start(t0);
-    o.stop(t0 + 2.8);
+    g.gain.exponentialRampToValueAtTime(amp, t0 + 0.14);
+    g.gain.setValueAtTime(amp, t0 + Math.max(0.14, dur - 0.35));
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(out);
+    o.start(t0); o.stop(t0 + dur + 0.1);
+    lfo.start(t0); lfo.stop(t0 + dur + 0.1);
+    liveNodes.push(o, lfo);
   });
+  // Nefes: nota boyunca bant geçirenden hışırtı
+  const noise = c.createBufferSource();
+  noise.buffer = noiseBuffer(c);
+  noise.loop = true;
+  const bp = c.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = freq * 2.2;
+  bp.Q.value = 1.6;
+  const ng = c.createGain();
+  ng.gain.setValueAtTime(0.0001, t0);
+  ng.gain.exponentialRampToValueAtTime(0.035, t0 + 0.1);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  noise.connect(bp).connect(ng).connect(out);
+  noise.start(t0); noise.stop(t0 + dur + 0.1);
+  liveNodes.push(noise);
 }
 
-function startGenerative() {
-  const c = getCtx();
-  if (!c) return false;
-  master = c.createGain();
-  master.gain.value = volume * 0.4;
-  master.connect(c.destination);
+function startNey(c) {
+  makeMaster(c);
+  // Hafif yankı hissi: gecikme + geri besleme (mağara/mescit havası)
+  const delay = c.createDelay(1.0);
+  delay.delayTime.value = 0.34;
+  const fb = c.createGain(); fb.gain.value = 0.28;
+  const wet = c.createGain(); wet.gain.value = 0.35;
+  delay.connect(fb).connect(delay);
+  delay.connect(wet).connect(master);
+  const voice = c.createGain();
+  voice.gain.value = 1;
+  voice.connect(master);
+  voice.connect(delay);
 
-  // Yumuşak pad: D3 + A3 + D4, alçak geçiren filtre, yavaş nefes LFO'su
-  const filter = c.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 650;
-  filter.connect(master);
-
-  const padGain = c.createGain();
-  padGain.gain.value = 0.16;
-  padGain.connect(filter);
-
-  padNodes = [146.83, 220.0, 293.66].map((f, i) => {
-    const o = c.createOscillator();
-    o.type = 'triangle';
-    o.frequency.value = f;
-    o.detune.value = i * 3 - 3; // hafif genişlik
-    const g = c.createGain();
-    g.gain.value = 0.33;
-    o.connect(g).connect(padGain);
-    o.start();
-    return o;
-  });
-
-  // Nefes hissi: pad seviyesini çok yavaş dalgalandır
-  const lfo = c.createOscillator();
-  lfo.frequency.value = 0.07;
-  const lfoGain = c.createGain();
-  lfoGain.gain.value = 0.06;
-  lfo.connect(lfoGain).connect(padGain.gain);
-  lfo.start();
-  padNodes.push(lfo);
-
-  // Ara ara nazik çan (8-16 sn arası)
-  const scheduleChime = () => {
-    chimeTimer = setTimeout(() => { playChime(); scheduleChime(); }, 8000 + Math.random() * 8000);
+  let lastPhrase = -1;
+  const playPhrase = () => {
+    if (!playing) return;
+    let pi;
+    do { pi = Math.floor(Math.random() * PHRASES.length); } while (pi === lastPhrase && PHRASES.length > 1);
+    lastPhrase = pi;
+    const phrase = PHRASES[pi];
+    let t = c.currentTime + 0.15;
+    let prev = null;
+    const tempo = 0.95 + Math.random() * 0.25; // her cümlede küçük tempo nüansı
+    phrase.forEach(({ n, d }) => {
+      const f = freqOf(n);
+      const dur = d * tempo;
+      neyNote(c, voice, f, t, dur, prev);
+      prev = f;
+      t += dur + 0.06;
+    });
+    // Cümle bitince nefes payı, sonra yeni cümle
+    const wait = (t - c.currentTime) * 1000 + 2200 + Math.random() * 2600;
+    timers.push(setTimeout(playPhrase, wait));
   };
-  playChime();
-  scheduleChime();
-  return true;
+  playPhrase();
 }
 
-function stopGenerative() {
-  if (chimeTimer) { clearTimeout(chimeTimer); chimeTimer = null; }
-  padNodes.forEach(n => { try { n.stop(); } catch { /* ignore */ } });
-  padNodes = [];
+// ══════════════════════════════════════════════════════════════
+//  SÜKÛNET — yumuşak pad + nazik çanlar (eski parça, seçenek olarak durur)
+// ══════════════════════════════════════════════════════════════
+function startSerenity(c) {
+  makeMaster(c);
+  const filter = c.createBiquadFilter();
+  filter.type = 'lowpass'; filter.frequency.value = 650;
+  filter.connect(master);
+  const padGain = c.createGain(); padGain.gain.value = 0.14; padGain.connect(filter);
+  [146.83, 220.0, 293.66].forEach((f, i) => {
+    const o = c.createOscillator();
+    o.type = 'triangle'; o.frequency.value = f; o.detune.value = i * 3 - 3;
+    const g = c.createGain(); g.gain.value = 0.33;
+    o.connect(g).connect(padGain); o.start();
+    liveNodes.push(o);
+  });
+  const chime = () => {
+    if (!playing) return;
+    const notes = [587.33, 622.25, 739.99, 783.99, 880.0];
+    const f = notes[Math.floor(Math.random() * notes.length)];
+    const t0 = c.currentTime;
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.07, t0 + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+    o.connect(g).connect(master); o.start(t0); o.stop(t0 + 2.8);
+    liveNodes.push(o);
+    timers.push(setTimeout(chime, 8000 + Math.random() * 8000));
+  };
+  chime();
+}
+
+function stopGenerated() {
+  timers.forEach(t => clearTimeout(t)); timers = [];
+  liveNodes.forEach(n => { try { n.stop(); } catch { /* zaten durdu */ } });
+  liveNodes = [];
   if (master) { try { master.disconnect(); } catch { /* ignore */ } master = null; }
 }
 
-export function getState() {
-  return { playing, volume, track: currentTrack, tracks: TRACKS };
-}
-
+// ══════════════════════════════════════════════════════════════
+//  Genel API
+// ══════════════════════════════════════════════════════════════
+export function getState() { return { playing, volume, track: currentTrack, tracks: TRACKS }; }
 export function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 
 export function start() {
@@ -136,17 +215,22 @@ export function start() {
     fileEl = new Audio(track.url);
     fileEl.loop = true;
     fileEl.volume = volume;
+    playing = true;
     fileEl.play().catch(() => { playing = false; notify(); });
-  } else if (!startGenerative()) return;
-  playing = true;
+  } else {
+    const c = getCtx();
+    if (!c) return;
+    playing = true;
+    if (track.id === 'serenity') startSerenity(c); else startNey(c);
+  }
   notify();
 }
 
 export function stop() {
   if (!playing) return;
-  stopGenerative();
-  if (fileEl) { fileEl.pause(); fileEl = null; }
   playing = false;
+  stopGenerated();
+  if (fileEl) { fileEl.pause(); fileEl = null; }
   notify();
 }
 
@@ -155,7 +239,7 @@ export function toggle() { playing ? stop() : start(); }
 export function setVolume(v) {
   volume = Math.max(0, Math.min(1, v));
   try { localStorage.setItem(LS_VOL, String(volume)); } catch { /* ignore */ }
-  if (master) master.gain.value = volume * 0.4;
+  if (master) master.gain.value = volume * 0.5;
   if (fileEl) fileEl.volume = volume;
   notify();
 }
