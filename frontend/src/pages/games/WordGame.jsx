@@ -13,7 +13,7 @@ function newPuzzle(prevWord) {
   return p;
 }
 
-export default function WordGame({ theme, onXP }) {
+export default function WordGame({ theme, onXP, onEvent = () => {} }) {
   const [puzzle, setPuzzle] = useState(() => newPuzzle(null));
   const [guessed, setGuessed] = useState(new Set());
   const [lives, setLives] = useState(MAX_LIVES);
@@ -29,11 +29,12 @@ export default function WordGame({ theme, onXP }) {
       const pts = 15 + lives * 5; // canlar kaldıkça daha çok XP
       setStatus('won');
       setSessionXP(x => x + pts);
+      onEvent('win');
       onXP(pts, 'game_word', 'Kelime Tamamlama');
     } else if (lives <= 0) {
       setStatus('lost');
     }
-  }, [revealed, lives, status, onXP]);
+  }, [revealed, lives, status, onXP, onEvent]);
 
   const guess = useCallback((letter) => {
     if (status !== 'playing' || guessed.has(letter)) return;

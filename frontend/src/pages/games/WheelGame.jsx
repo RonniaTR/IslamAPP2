@@ -18,7 +18,7 @@ function slicePath(cx, cy, r, start, end) {
   return `M${cx},${cy} L${p1.x},${p1.y} A${r},${r} 0 ${large} 1 ${p2.x},${p2.y} Z`;
 }
 
-export default function WheelGame({ theme, onXP }) {
+export default function WheelGame({ theme, onXP, onEvent = () => {} }) {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [category, setCategory] = useState(null);
@@ -55,12 +55,13 @@ export default function WheelGame({ theme, onXP }) {
     if (answered || !question) return;
     const correct = index === question.correct_index;
     setAnswered({ correct, index });
+    onEvent('answer', { correct, category: question.category });
     if (correct) {
       const pts = question.points || 10;
       setSessionXP(x => x + pts);
       onXP(pts, 'game_wheel', 'Çarkıfelek');
     }
-  }, [answered, question, onXP]);
+  }, [answered, question, onXP, onEvent]);
 
   const isTF = question?.type === 'tf';
   const options = isTF ? ['Doğru', 'Yanlış'] : (question?.options || []);

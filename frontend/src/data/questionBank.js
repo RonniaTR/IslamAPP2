@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────
 import raw from './quizQuestionsBig.json';
 import { quizQuestions } from './quizData';
+import { EXTRA_QUESTIONS } from './questionBankExtra';
 
 // Backend kategori id'leri → görünen ad
 const CAT_MAP = {
@@ -46,7 +47,20 @@ const fromLocal = quizQuestions.map(q => ({
   difficulty: q.points >= 20 ? 'hard' : q.points >= 15 ? 'medium' : 'easy',
 }));
 
-export const QUESTION_BANK = [...fromLocal, ...fromBig];
+// Ek paket: yeni kategoriler (Esmaül Hüsna, Dualar, İlmihal, Çocuk...)
+const fromExtra = EXTRA_QUESTIONS.map((q, i) => ({
+  id: `x_${i}`,
+  type: 'mc',
+  category: q.cat,
+  points: DIFF_POINTS[q.d] || 10,
+  question: q.q,
+  options: q.o,
+  correct_index: q.a,
+  explanation: q.exp || '',
+  difficulty: q.d || 'easy',
+}));
+
+export const QUESTION_BANK = [...fromLocal, ...fromBig, ...fromExtra];
 export const BANK_SIZE = QUESTION_BANK.length;
 
 // Kategori listesi + soru sayıları (rozet/gösterge için)

@@ -133,5 +133,22 @@ export const WHEEL_CATEGORIES = [
   { name: 'Ramazan', color: '#A855F7' },
 ];
 
+// ─── Doğru Sırala (öğeleri doğru sıraya koy) ───
+// items: DOĞRU sırada verilir; oyun karıştırıp oynatır.
+export const ORDER_PUZZLES = [
+  { title: 'Namaz vakitlerini sıraya koy', items: ['Sabah', 'Öğle', 'İkindi', 'Akşam', 'Yatsı'] },
+  { title: "İslam'ın şartlarını klasik sırayla diz", items: ['Kelime-i Şehadet', 'Namaz', 'Oruç', 'Zekat', 'Hac'] },
+  { title: 'Peygamberimizin hayatındaki olayları kronolojik sırala', items: ['Doğumu (571)', 'İlk Vahiy (610)', 'Hicret (622)', "Mekke'nin Fethi (630)", 'Vefatı (632)'] },
+  { title: 'Dört halifeyi görev sırasına koy', items: ['Hz. Ebubekir', 'Hz. Ömer', 'Hz. Osman', 'Hz. Ali'] },
+  { title: "Kur'an'ın ilk dört suresini sırala", items: ['Fatiha', 'Bakara', 'Al-i İmran', 'Nisa'] },
+  { title: 'Abdestin farzlarını uygulama sırasına koy', items: ['Yüzü yıkamak', 'Kolları yıkamak', 'Başı meshetmek', 'Ayakları yıkamak'] },
+  { title: 'Namazın rükünlerini sırala', items: ['İftitah Tekbiri', 'Kıyam', 'Rüku', 'Secde', 'Son Oturuş'] },
+  { title: 'Hicri yılın ilk dört ayını sırala', items: ['Muharrem', 'Safer', 'Rebiülevvel', 'Rebiülahir'] },
+  { title: 'Savaşları kronolojik sıraya koy', items: ['Bedir (624)', 'Uhud (625)', 'Hendek (627)', 'Mekke Fethi (630)'] },
+  { title: 'İlahi kitapları veriliş sırasına koy', items: ['Tevrat', 'Zebur', 'İncil', "Kur'an-ı Kerim"] },
+  { title: 'Ramazan gününü sıraya koy', items: ['Sahur', 'İmsak', 'İftar', 'Teravih'] },
+  { title: 'Tarihi olayları kronolojik sırala', items: ['Hicret (622)', 'Endülüs Fethi (711)', 'Malazgirt (1071)', "İstanbul'un Fethi (1453)"] },
+];
+
 // Türk alfabesi (kelime oyunu klavyesi)
 export const TR_ALPHABET = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ'.split('');

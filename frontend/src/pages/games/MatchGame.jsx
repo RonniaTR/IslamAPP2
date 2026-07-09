@@ -23,7 +23,7 @@ function buildRound() {
   };
 }
 
-export default function MatchGame({ theme, onXP }) {
+export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
   const [round, setRound] = useState(() => buildRound());
   const [selLeft, setSelLeft] = useState(null);
   const [selRight, setSelRight] = useState(null);
@@ -61,9 +61,10 @@ export default function MatchGame({ theme, onXP }) {
       const perfect = total;
       const efficiency = Math.max(0, perfect - (moves - perfect)); // fazla hamle bonusu düşürür
       const pts = 10 + efficiency * 5;
+      onEvent('win');
       onXP(pts, 'game_match', 'Eşleştirme');
     }
-  }, [matched, total, done, moves, onXP]);
+  }, [matched, total, done, moves, onXP, onEvent]);
 
   const cellStyle = (selected, isMatched, isWrong, color) => ({
     background: isMatched ? '#10B98118' : isWrong ? '#EF444422' : selected ? `${theme.gold}22` : theme.surface,

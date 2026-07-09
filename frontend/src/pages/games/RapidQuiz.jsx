@@ -4,7 +4,9 @@ import { Timer, Zap, RefreshCw, Trophy } from 'lucide-react';
 import { drawQuestions, BANK_SIZE } from '../../data/questionBank';
 import Confetti from './Confetti';
 
-const DURATION = 60;
+// Blitz: 30 saniye, 10 soru — hangisi önce biterse
+const DURATION = 30;
+const MAX_Q = 10;
 
 const DIFFICULTIES = [
   { id: null, label: 'Karışık', color: '#C8A55A', mult: 1 },
@@ -13,7 +15,7 @@ const DIFFICULTIES = [
   { id: 'hard', label: 'Zor', color: '#EF4444', mult: 1.5 },
 ];
 
-export default function RapidQuiz({ theme, onXP }) {
+export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
   const [phase, setPhase] = useState('idle'); // idle | playing | done
   const [diff, setDiff] = useState(DIFFICULTIES[0]);
   const [questions, setQuestions] = useState([]);
@@ -26,17 +28,18 @@ export default function RapidQuiz({ theme, onXP }) {
   const timerRef = useRef(null);
 
   const start = useCallback(() => {
-    setQuestions(drawQuestions(50, { difficulty: diff.id }));
+    setQuestions(drawQuestions(MAX_Q, { difficulty: diff.id }));
     setIdx(0); setCorrect(0); setXp(0); setTimeLeft(DURATION); setFlash(null);
     setPhase('playing');
   }, [diff]);
 
-  const finish = useCallback((finalXp) => {
+  const finish = useCallback((finalXp, finalCorrect) => {
     setPhase('done');
     if (timerRef.current) clearInterval(timerRef.current);
     if (finalXp > best) { setBest(finalXp); try { localStorage.setItem('rapid_best', String(finalXp)); } catch { /* ignore */ } }
+    if ((finalCorrect ?? 0) >= 5) onEvent('win');
     if (finalXp > 0) onXP(finalXp, 'game_quiz', `Hızlı Bilgi (${diff.label})`);
-  }, [onXP, best, diff]);
+  }, [onXP, onEvent, best, diff]);
 
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -51,8 +54,8 @@ export default function RapidQuiz({ theme, onXP }) {
 
   // Süre bitince sonuç (xp'nin güncel değeriyle)
   useEffect(() => {
-    if (phase === 'playing' && timeLeft === 0) finish(xp);
-  }, [timeLeft, phase, xp, finish]);
+    if (phase === 'playing' && timeLeft === 0) finish(xp, correct);
+  }, [timeLeft, phase, xp, correct, finish]);
 
   const q = questions[idx];
   const options = q ? (q.type === 'tf' ? ['Doğru', 'Yanlış'] : q.options) : [];
@@ -61,14 +64,15 @@ export default function RapidQuiz({ theme, onXP }) {
     if (flash !== null || !q) return;
     setFlash(choice);
     const ok = choice === q.correct_index;
+    onEvent('answer', { correct: ok, category: q.category });
     let gained = 0;
     if (ok) { gained = Math.round((q.points || 10) * diff.mult); setCorrect(c => c + 1); setXp(x => x + gained); }
     setTimeout(() => {
       setFlash(null);
-      if (idx + 1 >= questions.length) { finish(xp + gained); }
+      if (idx + 1 >= questions.length) { finish(xp + gained, correct + (ok ? 1 : 0)); }
       else setIdx(i => i + 1);
     }, 260);
-  }, [flash, q, idx, questions.length, xp, finish, diff]);
+  }, [flash, q, idx, questions.length, xp, correct, finish, diff, onEvent]);
 
   if (phase === 'idle') {
     return (
@@ -76,8 +80,8 @@ export default function RapidQuiz({ theme, onXP }) {
         <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-4" style={{ background: `${theme.gold}18` }}>
           <Zap size={36} style={{ color: theme.gold }} />
         </div>
-        <h2 className="text-xl font-black mb-1" style={{ color: theme.textPrimary }}>Hızlı Bilgi</h2>
-        <p className="text-sm mb-1 max-w-xs" style={{ color: theme.textSecondary }}>60 saniyede ne kadar çok soruyu doğru bilirsen o kadar XP!</p>
+        <h2 className="text-xl font-black mb-1" style={{ color: theme.textPrimary }}>Hızlı Bilgi (Blitz)</h2>
+        <p className="text-sm mb-1 max-w-xs" style={{ color: theme.textSecondary }}>30 saniye, 10 soru! Hızını ve bilgini test et.</p>
         <p className="text-[11px] mb-5" style={{ color: theme.gold }}>{BANK_SIZE} soruluk bankadan · {best > 0 ? `Rekorun: ${best} XP` : 'İlk rekorunu kır!'}</p>
 
         {/* Zorluk seçimi */}
