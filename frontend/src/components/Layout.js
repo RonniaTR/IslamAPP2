@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, BookOpen, MessageCircle, Compass, Settings, ScrollText, Heart, Gamepad2 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
@@ -32,6 +32,13 @@ export default memo(function Layout() {
   const hideNav = pathname.match(/\/quran\/\d+/);
   const isRtl = lang === 'ar';
 
+  // Tablet/PC'de konteyner dışı "siyah çerçeve" (letterbox) kalmasın:
+  // sayfa arka planı temayla birleşsin
+  useEffect(() => {
+    document.body.style.background = theme.bg;
+    document.documentElement.style.background = theme.bg;
+  }, [theme.bg]);
+
   const safeT = t || {};
   const tabs = useMemo(() => [
     { path: '/', icon: Home, label: safeT.home || 'Ana Sayfa' },
@@ -45,14 +52,14 @@ export default memo(function Layout() {
   ], [safeT]);
 
   return (
-    <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[760px] lg:max-w-[1000px] xl:max-w-[1140px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
+    <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[880px] lg:max-w-[1060px] xl:max-w-[1200px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
       style={{ background: theme.bg }}
       data-testid="app-layout" dir={isRtl ? 'rtl' : 'ltr'}>
       <main className="flex-1 overflow-y-auto pb-20 scrollbar-hide">
         <Outlet />
       </main>
       {!hideNav && (
-        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] md:max-w-[760px] lg:max-w-[1000px] xl:max-w-[1140px] z-50 safe-bottom"
+        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] md:max-w-[880px] lg:max-w-[1060px] xl:max-w-[1200px] z-50 safe-bottom"
           style={{
             background: theme.navBg,
             backdropFilter: 'blur(24px)',

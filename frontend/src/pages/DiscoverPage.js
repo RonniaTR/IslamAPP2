@@ -72,7 +72,7 @@ export default function DiscoverPage() {
         {SECTIONS.map((section, si) => (
           <div key={si}>
             <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: theme.textSecondary }}>{section.title}</p>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {section.items.map((item, i) => (
                 <motion.button key={item.path}
                   initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: si * 0.05 + i * 0.03 }}

@@ -592,15 +592,17 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <PrayerHero prayerTimes={prayerTimes} theme={theme} t={t} />
-      <QuickActions theme={theme} t={t} />
-      <MoodSection theme={theme} t={t} />
-      <DailyVerse verse={randomVerse} theme={theme} t={t} />
-      <DailyHadith hadith={randomHadith} theme={theme} t={t} />
-      <KnowledgeCards theme={theme} t={t} />
-      <WorshipTracker theme={theme} t={t} user={user} />
-      <DhikrWidget theme={theme} t={t} />
-      <RamadanMini prayerTimes={prayerTimes} theme={theme} t={t} />
+      <div className="hub-grid">
+        <div className="hub-span"><PrayerHero prayerTimes={prayerTimes} theme={theme} t={t} /></div>
+        <QuickActions theme={theme} t={t} />
+        <div className="hub-span"><MoodSection theme={theme} t={t} /></div>
+        <DailyVerse verse={randomVerse} theme={theme} t={t} />
+        <DailyHadith hadith={randomHadith} theme={theme} t={t} />
+        <div className="hub-span"><KnowledgeCards theme={theme} t={t} /></div>
+        <WorshipTracker theme={theme} t={t} user={user} />
+        <DhikrWidget theme={theme} t={t} />
+        <RamadanMini prayerTimes={prayerTimes} theme={theme} t={t} />
+      </div>
     </div>
   );
 }

@@ -98,19 +98,29 @@ export default function LibraryPage() {
           <div className="h-full transition-all duration-150" style={{ width: `${progress * 100}%`, background: theme.gold }} />
         </div>
 
-        {/* Kapak */}
-        <div className="relative overflow-hidden flex items-end" style={{ height: 190, background: `linear-gradient(140deg, ${article.grad[0]}, ${article.grad[1]})` }}>
+        {/* Kapak — sade şerit */}
+        <div className="relative overflow-hidden flex items-center justify-center" style={{ height: 140, background: `linear-gradient(140deg, ${article.grad[0]}, ${article.grad[1]})` }}>
           <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-25" style={{ background: 'radial-gradient(circle, #ffd36960, transparent 65%)' }} />
-          <span className="absolute top-1/2 right-6 -translate-y-1/2 text-7xl opacity-90" style={{ filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.4))' }}>{article.emoji}</span>
+          <span className="text-6xl" style={{ filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.4))' }}>{article.emoji}</span>
           <button onClick={closeArticle} className="absolute top-4 left-4 w-9 h-9 rounded-xl flex items-center justify-center active:scale-90" style={{ background: 'rgba(0,0,0,0.35)' }} aria-label="Geri">
             <ArrowLeft size={18} style={{ color: '#f7e6ae' }} />
           </button>
-          <div className="p-5 relative">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: '#ffd369' }}>
-              {SHELVES.find(s => s.id === article.shelf)?.title} · {readingTime(article)} dk okuma
-            </p>
-            <h1 className="text-2xl font-black mt-1 max-w-[75%]" style={{ fontFamily: 'Playfair Display, serif', color: '#f7e6ae' }}>{article.title}</h1>
+        </div>
+
+        {/* Kitap tarzı başlık bloğu (ortalanmış) */}
+        <div className="px-6 pt-6 pb-1 text-center max-w-[44rem] mx-auto">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: theme.gold }}>
+            {SHELVES.find(s => s.id === article.shelf)?.title}
+          </p>
+          <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: theme.textPrimary }}>
+            {article.title}
+          </h1>
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <span className="h-px w-12" style={{ background: `${theme.gold}50` }} />
+            <span className="text-xs" style={{ color: theme.gold }}>✦</span>
+            <span className="h-px w-12" style={{ background: `${theme.gold}50` }} />
           </div>
+          <p className="text-[10px] mt-2" style={{ color: theme.textSecondary }}>{readingTime(article)} dakikalık okuma</p>
         </div>
 
         {/* Araç çubuğu */}
@@ -146,14 +156,17 @@ export default function LibraryPage() {
           </div>
         </div>
 
-        {/* Metin */}
-        <div className="px-5 pt-5 max-w-2xl mx-auto">
+        {/* Metin — kitap tipografisi */}
+        <div className="px-6 pt-5 max-w-[44rem] mx-auto article-body"
+          style={{ fontSize: FONT_SIZES[fontIdx], color: `${theme.textPrimary}ee`, '--gold': theme.gold }}>
           {article.paragraphs.map((p, i) => typeof p === 'string' ? (
-            <p key={i} className="mb-5 leading-[1.85]" style={{ fontSize: FONT_SIZES[fontIdx], color: theme.textPrimary }}>{p}</p>
+            <p key={i}>{p}</p>
           ) : (
-            <blockquote key={i} className="mb-5 rounded-2xl p-4" style={{ background: `${theme.gold}0c`, borderLeft: `3px solid ${theme.gold}` }}>
-              <p className="italic leading-relaxed" style={{ fontSize: FONT_SIZES[fontIdx] - 1, color: theme.textPrimary }}>“{p.quote}”</p>
-              <p className="text-[11px] mt-2 font-bold" style={{ color: theme.gold }}>— {p.source}</p>
+            <blockquote key={i} className="article-quote my-6 mx-2 py-4 px-5 rounded-2xl relative"
+              style={{ background: `${theme.gold}0a`, border: `1px solid ${theme.gold}25` }}>
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 text-sm" style={{ background: theme.bg, color: theme.gold }}>✦</span>
+              <p className="italic leading-relaxed" style={{ fontSize: FONT_SIZES[fontIdx] - 0.5, color: theme.textPrimary }}>“{p.quote}”</p>
+              <p className="text-[11px] mt-2.5 font-bold not-italic" style={{ color: theme.gold, fontFamily: 'Inter, sans-serif' }}>{p.source}</p>
             </blockquote>
           ))}
 
@@ -232,9 +245,9 @@ export default function LibraryPage() {
           {favList.length > 0 && (
             <div className="mb-5">
               <p className="px-5 text-sm font-black mb-2.5" style={{ color: theme.textPrimary }}>⭐ Kaydettiklerin</p>
-              <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
+              <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1 md:grid md:grid-cols-4 md:overflow-visible">
                 {favList.map(a => (
-                  <button key={a.id} onClick={() => openArticle(a.id)} className="shrink-0 w-40 rounded-2xl overflow-hidden text-left active:scale-97 transition-transform" style={{ background: theme.surface, border: `1px solid ${theme.gold}30` }}>
+                  <button key={a.id} onClick={() => openArticle(a.id)} className="shrink-0 w-40 md:w-auto rounded-2xl overflow-hidden text-left active:scale-97 transition-transform" style={{ background: theme.surface, border: `1px solid ${theme.gold}30` }}>
                     <Cover a={a} h={92} />
                     <div className="p-2.5"><p className="text-[11px] font-black leading-snug line-clamp-2" style={{ color: theme.textPrimary }}>{a.title}</p></div>
                   </button>
@@ -252,12 +265,12 @@ export default function LibraryPage() {
                   <p className="text-sm font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{shelf.icon} {shelf.title}</p>
                   <span className="text-[10px] font-bold" style={{ color: theme.textSecondary }}>{items.filter(a => readIds.includes(a.id)).length}/{items.length}</span>
                 </div>
-                <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
+                <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1 md:grid md:grid-cols-3 xl:grid-cols-4 md:overflow-visible">
                   {items.map(a => {
                     const isRead = readIds.includes(a.id);
                     return (
                       <button key={a.id} onClick={() => openArticle(a.id)}
-                        className="shrink-0 w-48 rounded-2xl overflow-hidden text-left active:scale-97 transition-transform relative"
+                        className="shrink-0 w-48 md:w-auto rounded-2xl overflow-hidden text-left active:scale-97 transition-transform relative"
                         style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
                         <Cover a={a} />
                         {isRead && <span className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#10B981' }}><Check size={13} color="#fff" /></span>}
