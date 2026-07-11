@@ -19,6 +19,7 @@ import AIDuel from './games/AIDuel';
 import BossBattle from './games/BossBattle';
 import OrderGame from './games/OrderGame';
 import VoiceGuess from './games/VoiceGuess';
+import WhichSurah from './games/WhichSurah';
 import StoryMode from './games/StoryMode';
 import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
@@ -57,6 +58,7 @@ const GAME_MODES = [
   { id: 'word', title: 'Kelime Bulmaca', desc: 'Kelimeyi bul, manayı keşfet.', emoji: '🔤', color: '#6366F1', type: 'game_word', Comp: WordGame },
   { id: 'wheel', title: 'Çarkıfelek', desc: 'Çevir — her tur farklı deneyim.', emoji: '🎡', color: '#14B8A6', type: 'game_wheel', Comp: WheelGame },
   { id: 'voice', title: 'Sesli Tahmin', desc: 'Tilaveti dinle, doğru sureyi bul.', emoji: '🎵', color: '#22C55E', type: 'game_quiz', Comp: VoiceGuess },
+  { id: 'whichsurah', title: 'Hangi Sure?', desc: 'İpuçlarından sureyi tanı, dedektif ol.', emoji: '🔎', color: '#0EA5E9', type: 'game_quiz', Comp: WhichSurah, badge: 'Sure Dedektifi' },
 ];
 
 const CAT_ICONS = {
