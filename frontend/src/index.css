@@ -514,3 +514,24 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
   color: rgba(212,175,55,0.6);
   animation: twinkle 2s ease-in-out infinite;
 }
+
+/* ═══════════════ RESPONSIVE (tablet & PC) ═══════════════ */
+/* Kök yazı ölçeği: tablet ve masaüstünde her şey orantılı büyür */
+@media (min-width: 768px) {
+  html { font-size: 17px; }
+}
+@media (min-width: 1024px) {
+  html { font-size: 17.5px; }
+}
+
+/* Oyun Merkezi hub'ı geniş ekranda iki sütuna akar */
+@media (min-width: 1024px) {
+  .hub-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 4px;
+    align-items: start;
+  }
+  .hub-grid > * { min-width: 0; }
+  .hub-span { grid-column: 1 / -1; }
+}

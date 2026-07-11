@@ -19,7 +19,6 @@ import AIDuel from './games/AIDuel';
 import BossBattle from './games/BossBattle';
 import OrderGame from './games/OrderGame';
 import VoiceGuess from './games/VoiceGuess';
-import VerseComplete from './games/VerseComplete';
 import StoryMode from './games/StoryMode';
 import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
@@ -58,7 +57,6 @@ const GAME_MODES = [
   { id: 'word', title: 'Kelime Bulmaca', desc: 'Kelimeyi bul, manayı keşfet.', emoji: '🔤', color: '#6366F1', type: 'game_word', Comp: WordGame },
   { id: 'wheel', title: 'Çarkıfelek', desc: 'Çevir — her tur farklı deneyim.', emoji: '🎡', color: '#14B8A6', type: 'game_wheel', Comp: WheelGame },
   { id: 'voice', title: 'Sesli Tahmin', desc: 'Tilaveti dinle, doğru sureyi bul.', emoji: '🎵', color: '#22C55E', type: 'game_quiz', Comp: VoiceGuess },
-  { id: 'verse', title: 'Ayet Tamamlama', desc: 'Mealin devamını bul, sureyi tanı.', emoji: '🧩', color: '#0EA5E9', type: 'game_quiz', Comp: VerseComplete, badge: 'Meal Yolcusu' },
 ];
 
 const CAT_ICONS = {
@@ -548,8 +546,8 @@ export default function GamesPage() {
           </div>
         </motion.button>
 
-        {/* Diğer modlar: 2 sütun zarif grid */}
-        <div className="px-5 grid grid-cols-2 gap-3">
+        {/* Diğer modlar: telefonda 2, tablette 3, PC'de 4 sütun */}
+        <div className="px-5 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
           {rest.map((g, i) => {
             const meta = gameMeta[g.id];
             const isDaily = dailyGameId === g.id;
@@ -617,9 +615,10 @@ export default function GamesPage() {
         </div>
       </div>
 
+      <div className="hub-grid">
       {/* ─── HERO: profil + cami sahnesi ─── */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="mx-5 mb-3 rounded-3xl relative overflow-hidden" style={{ border: `1px solid ${theme.gold}30`, minHeight: 150 }}>
+        className="hub-span mx-5 mb-3 rounded-3xl relative overflow-hidden" style={{ border: `1px solid ${theme.gold}30`, minHeight: 150 }}>
         <MosqueScene theme={theme} />
         <div className="relative z-10 p-5">
           <div className="flex items-center gap-4">
@@ -691,7 +690,7 @@ export default function GamesPage() {
                     border: `1px solid ${amb.track === t.id ? `${theme.gold}50` : theme.cardBorder}`,
                     color: amb.track === t.id ? theme.gold : theme.textSecondary,
                   }}>
-                  {t.id === 'ney' ? '🎋 Ney' : t.id === 'serenity' ? '✨ Sükûnet' : t.name}
+                  {t.icon || '🎙️'} {t.name.split(' ')[0]}
                 </button>
               ))}
             </div>
@@ -763,7 +762,7 @@ export default function GamesPage() {
       {/* ─── OYUN MODLARI VİTRİNİ (özet görsel → mod listesi ekranı) ─── */}
       <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
         onClick={() => setStage('modes')} whileTap={{ scale: 0.98 }}
-        className="mx-5 mb-6 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-left relative overflow-hidden"
+        className="hub-span mx-5 mb-6 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-left relative overflow-hidden"
         style={{
           background: `linear-gradient(150deg, ${theme.gold}16, ${theme.surface} 55%, #10B98110)`,
           border: `1.5px solid ${theme.gold}45`,
@@ -1095,7 +1094,7 @@ export default function GamesPage() {
       </div>
 
       {/* ─── HIZLI ERİŞİM ─── */}
-      <div className="px-5 flex gap-2">
+      <div className="hub-span px-5 flex gap-2">
         {[
           { icon: <Library size={14} />, label: 'Soru Havuzu', to: '/quiz' },
           { icon: <Award size={14} />, label: 'Rozetler', to: '/achievements' },
@@ -1109,6 +1108,7 @@ export default function GamesPage() {
             <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>{l.label}</span>
           </button>
         ))}
+      </div>
       </div>
     </div>
   );

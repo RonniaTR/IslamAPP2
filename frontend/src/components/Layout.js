@@ -45,14 +45,14 @@ export default memo(function Layout() {
   ], [safeT]);
 
   return (
-    <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[768px] lg:max-w-[520px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
+    <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[760px] lg:max-w-[1000px] xl:max-w-[1140px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
       style={{ background: theme.bg }}
       data-testid="app-layout" dir={isRtl ? 'rtl' : 'ltr'}>
       <main className="flex-1 overflow-y-auto pb-20 scrollbar-hide">
         <Outlet />
       </main>
       {!hideNav && (
-        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] md:max-w-[768px] lg:max-w-[520px] z-50 safe-bottom"
+        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] md:max-w-[760px] lg:max-w-[1000px] xl:max-w-[1140px] z-50 safe-bottom"
           style={{
             background: theme.navBg,
             backdropFilter: 'blur(24px)',

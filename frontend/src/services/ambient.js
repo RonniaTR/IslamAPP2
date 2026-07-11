@@ -16,9 +16,11 @@
  */
 
 export const TRACKS = [
-  { id: 'ney', name: 'Ney Taksimi (üretilmiş)', type: 'gen' },
-  { id: 'serenity', name: 'Sükûnet (üretilmiş)', type: 'gen' },
-  // { id: 'ilahi1', name: 'Benim İlahim', type: 'file', url: '/audio/ilahi1.mp3' },
+  { id: 'ney', name: 'Ney Taksimi · Hicaz', icon: '🎋', type: 'gen' },
+  { id: 'gece', name: 'Gece Neyi · Nihavend', icon: '🌙', type: 'gen' },
+  { id: 'su', name: 'Şadırvan · Su Sesi', icon: '⛲', type: 'gen' },
+  { id: 'serenity', name: 'Sükûnet · Pad', icon: '✨', type: 'gen' },
+  // { id: 'ilahi1', name: 'Benim İlahim', icon: '🎙️', type: 'file', url: '/audio/ilahi1.mp3' },
 ];
 
 let ctx = null;
@@ -55,22 +57,35 @@ function makeMaster(c) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  NEY TAKSİMİ — sentezlenmiş kamış flüt
+//  NEY TAKSİMİ — sentezlenmiş kamış flüt (makam parametrik)
 // ══════════════════════════════════════════════════════════════
-// D4 kök Hicaz dizisi: D, Eb, F#, G, A, Bb, C, D5 (yarım ton ofsetleri)
-const ROOT = 293.66; // D4
-const HICAZ_STEPS = [0, 1, 4, 5, 7, 8, 10, 12, 13, 16];
-const freqOf = (deg) => ROOT * Math.pow(2, HICAZ_STEPS[deg] / 12);
-
-// Taksim cümleleri: {n: dizi derecesi, d: süre çarpanı} — ağır, tefekkürlü
-const PHRASES = [
-  [{ n: 4, d: 2.2 }, { n: 5, d: 0.9 }, { n: 4, d: 1.1 }, { n: 3, d: 1.0 }, { n: 2, d: 2.6 }],
-  [{ n: 2, d: 1.2 }, { n: 3, d: 0.8 }, { n: 4, d: 1.8 }, { n: 3, d: 0.7 }, { n: 2, d: 0.9 }, { n: 1, d: 1.1 }, { n: 0, d: 3.0 }],
-  [{ n: 0, d: 1.6 }, { n: 2, d: 1.0 }, { n: 3, d: 0.8 }, { n: 4, d: 2.4 }, { n: 6, d: 0.9 }, { n: 5, d: 1.0 }, { n: 4, d: 2.2 }],
-  [{ n: 7, d: 1.8 }, { n: 6, d: 0.8 }, { n: 5, d: 1.0 }, { n: 4, d: 1.4 }, { n: 5, d: 0.9 }, { n: 4, d: 1.1 }, { n: 2, d: 2.8 }],
-  [{ n: 4, d: 1.5 }, { n: 5, d: 0.7 }, { n: 6, d: 0.7 }, { n: 7, d: 2.0 }, { n: 8, d: 1.2 }, { n: 7, d: 2.6 }],
-  [{ n: 3, d: 1.3 }, { n: 2, d: 0.9 }, { n: 1, d: 1.6 }, { n: 2, d: 0.8 }, { n: 0, d: 3.4 }],
-];
+const MAKAMS = {
+  // D4 kök Hicaz: D, Eb, F#, G, A, Bb, C, D5...
+  hicaz: {
+    root: 293.66,
+    steps: [0, 1, 4, 5, 7, 8, 10, 12, 13, 16],
+    phrases: [
+      [{ n: 4, d: 2.2 }, { n: 5, d: 0.9 }, { n: 4, d: 1.1 }, { n: 3, d: 1.0 }, { n: 2, d: 2.6 }],
+      [{ n: 2, d: 1.2 }, { n: 3, d: 0.8 }, { n: 4, d: 1.8 }, { n: 3, d: 0.7 }, { n: 2, d: 0.9 }, { n: 1, d: 1.1 }, { n: 0, d: 3.0 }],
+      [{ n: 0, d: 1.6 }, { n: 2, d: 1.0 }, { n: 3, d: 0.8 }, { n: 4, d: 2.4 }, { n: 6, d: 0.9 }, { n: 5, d: 1.0 }, { n: 4, d: 2.2 }],
+      [{ n: 7, d: 1.8 }, { n: 6, d: 0.8 }, { n: 5, d: 1.0 }, { n: 4, d: 1.4 }, { n: 5, d: 0.9 }, { n: 4, d: 1.1 }, { n: 2, d: 2.8 }],
+      [{ n: 4, d: 1.5 }, { n: 5, d: 0.7 }, { n: 6, d: 0.7 }, { n: 7, d: 2.0 }, { n: 8, d: 1.2 }, { n: 7, d: 2.6 }],
+      [{ n: 3, d: 1.3 }, { n: 2, d: 0.9 }, { n: 1, d: 1.6 }, { n: 2, d: 0.8 }, { n: 0, d: 3.4 }],
+    ],
+  },
+  // C4 kök Nihavend (yumuşak minör): gece havası, daha alçak ve durgun
+  nihavend: {
+    root: 261.63,
+    steps: [0, 2, 3, 5, 7, 8, 10, 12, 14, 15],
+    phrases: [
+      [{ n: 4, d: 2.6 }, { n: 3, d: 1.2 }, { n: 2, d: 1.4 }, { n: 0, d: 3.2 }],
+      [{ n: 0, d: 1.8 }, { n: 1, d: 1.0 }, { n: 2, d: 1.6 }, { n: 3, d: 0.9 }, { n: 2, d: 2.8 }],
+      [{ n: 5, d: 2.0 }, { n: 4, d: 1.0 }, { n: 3, d: 1.2 }, { n: 4, d: 0.9 }, { n: 2, d: 3.0 }],
+      [{ n: 2, d: 1.4 }, { n: 3, d: 1.0 }, { n: 5, d: 2.2 }, { n: 4, d: 1.2 }, { n: 3, d: 2.6 }],
+      [{ n: 7, d: 2.4 }, { n: 6, d: 1.0 }, { n: 5, d: 1.3 }, { n: 4, d: 2.9 }],
+    ],
+  },
+};
 
 /** Beyaz gürültü tamponu (nefes dokusu için) */
 function noiseBuffer(c) {
@@ -124,7 +139,9 @@ function neyNote(c, out, freq, t0, dur, prevFreq) {
   liveNodes.push(noise);
 }
 
-function startNey(c) {
+function startNey(c, makam = MAKAMS.hicaz) {
+  const freqOf = (deg) => makam.root * Math.pow(2, makam.steps[deg] / 12);
+  const PHRASES = makam.phrases;
   makeMaster(c);
   // Hafif yankı hissi: gecikme + geri besleme (mağara/mescit havası)
   const delay = c.createDelay(1.0);
@@ -195,6 +212,46 @@ function startSerenity(c) {
   chime();
 }
 
+// ══════════════════════════════════════════════════════════════
+//  ŞADIRVAN — akan su + ara ara damlalar (tamamen sentez)
+// ══════════════════════════════════════════════════════════════
+function startWater(c) {
+  makeMaster(c);
+  // Akış: alçak geçirilmiş gürültü, yavaş dalgalanan iki katman
+  [[420, 0.16, 0.13], [950, 0.07, 0.21]].forEach(([cutoff, amp, lfoRate]) => {
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c);
+    src.loop = true;
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = cutoff; lp.Q.value = 0.6;
+    const g = c.createGain(); g.gain.value = amp;
+    const lfo = c.createOscillator(); lfo.frequency.value = lfoRate;
+    const lfoG = c.createGain(); lfoG.gain.value = amp * 0.35;
+    lfo.connect(lfoG).connect(g.gain);
+    src.connect(lp).connect(g).connect(master);
+    src.start(); lfo.start();
+    liveNodes.push(src, lfo);
+  });
+  // Damlalar: kısa, perdesi düşen çınlamalar (şadırvan taşına düşen su)
+  const drop = () => {
+    if (!playing) return;
+    const t0 = c.currentTime;
+    const f = 900 + Math.random() * 900;
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(f, t0);
+    o.frequency.exponentialRampToValueAtTime(f * 0.55, t0 + 0.12);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.05, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+    o.connect(g).connect(master);
+    o.start(t0); o.stop(t0 + 0.4);
+    liveNodes.push(o);
+    timers.push(setTimeout(drop, 700 + Math.random() * 2600));
+  };
+  drop();
+}
+
 function stopGenerated() {
   timers.forEach(t => clearTimeout(t)); timers = [];
   liveNodes.forEach(n => { try { n.stop(); } catch { /* zaten durdu */ } });
@@ -221,7 +278,10 @@ export function start() {
     const c = getCtx();
     if (!c) return;
     playing = true;
-    if (track.id === 'serenity') startSerenity(c); else startNey(c);
+    if (track.id === 'serenity') startSerenity(c);
+    else if (track.id === 'su') startWater(c);
+    else if (track.id === 'gece') startNey(c, MAKAMS.nihavend);
+    else startNey(c, MAKAMS.hicaz);
   }
   notify();
 }
