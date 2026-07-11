@@ -27,6 +27,7 @@ const SECTIONS = [
   {
     title: 'Kur\'an & Hadis',
     items: [
+      { path: '/library', icon: '📚', title: 'Makale Kütüphanesi', desc: 'Okudukça derinleşen yazılar', color: '#10B981' },
       { path: '/quran', icon: '📖', title: 'Kur\'an-ı Kerim', desc: 'Arapça metin + Türkçe meal', color: '#C8A55A' },
       { path: '/hadith', icon: '📜', title: 'Hadis-i Şerifler', desc: 'Buhari, Müslim koleksiyonu', color: '#EF4444' },
       { path: '/bookmarks', icon: '🔖', title: 'Yer İmleri & Cüz', desc: 'Okuma takibi', color: '#6366F1' },
