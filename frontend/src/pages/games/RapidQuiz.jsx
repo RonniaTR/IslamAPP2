@@ -4,6 +4,7 @@ import { Zap, Heart, Flame } from 'lucide-react';
 import { drawQuestions } from '../../data/questionBank';
 import FeedbackOverlay from './FeedbackOverlay';
 import ResultScreen from './ResultScreen';
+import QuizCore from './QuizCore';
 
 // ⚡ BLITZ — 30 saniye, 10 soru, 3 kalp, combo sistemi, jokerler.
 const DURATION = 30;
@@ -190,37 +191,8 @@ export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
 
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, x: 34 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -34 }} transition={{ duration: 0.18 }}>
-          {/* Soru kartı */}
-          <div className="rounded-2xl p-5 mb-4 min-h-[110px]" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}18`, color: theme.gold }}>{q?.category}</span>
-            <h3 className="text-base font-bold mt-2" style={{ color: theme.textPrimary }}>{q?.question}</h3>
-          </div>
-
-          {/* Şıklar */}
-          <div className={q?.type === 'tf' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5'}>
-            {options.map((opt, i) => {
-              if (hidden.includes(i)) {
-                return <div key={i} className="p-3.5 rounded-xl text-sm" style={{ background: `${theme.textSecondary}06`, border: `1px dashed ${theme.cardBorder}`, color: `${theme.textSecondary}60` }}>—</div>;
-              }
-              const chosen = flash === i;
-              const isRight = flash !== null && i === q.correct_index;
-              return (
-                <button key={i} onClick={() => answer(i)} disabled={flash !== null}
-                  className="p-3.5 rounded-xl text-sm font-semibold text-left transition-all active:scale-98"
-                  style={{
-                    background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0f`,
-                    border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
-                    color: theme.textPrimary,
-                  }}>
-                  {q?.type !== 'tf' && <span className="font-bold mr-2" style={{ color: theme.gold }}>{['A', 'B', 'C', 'D'][i]}.</span>}
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Sosyal ipucu */}
-          <p className="text-center text-[10px] mt-3" style={{ color: theme.textSecondary }}>≈ %{estPercent(q || { id: '0' })} oyuncu bunu doğru cevapladı</p>
+          <QuizCore q={q} accent={theme.gold} theme={theme} flash={flash} hidden={hidden} onPick={answer}
+            percentHint={estPercent(q || { id: '0' })} />
         </motion.div>
       </AnimatePresence>
 

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Swords, RefreshCw, Heart, Shield } from 'lucide-react';
 import { drawQuestions } from '../../data/questionBank';
 import Confetti from './Confetti';
+import QuizCore from './QuizCore';
 
 // 👹 PATRON SAVAŞI — cehalet ordusuna karşı ilim meydanları.
 // Doğru cevap patrona hasar verir, yanlış senden can götürür.
@@ -200,33 +201,9 @@ export default function BossBattle({ theme, onXP, onEvent = () => {} }) {
 
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.18 }}>
-          <div className="rounded-2xl p-5 mb-4 min-h-[100px]" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1" style={{ background: `${arena.color}18`, color: arena.color }}>
-              <Shield size={10} /> {q?.category} · {q?.difficulty === 'hard' ? 'Zor' : 'Orta'}
-            </span>
-            <h3 className="text-base font-bold mt-2" style={{ color: theme.textPrimary }}>{q?.question}</h3>
-          </div>
-          <div className={q?.type === 'tf' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5'}>
-            {options.map((opt, i) => {
-              if (hidden.includes(i)) {
-                return <div key={i} className="p-3.5 rounded-xl text-sm" style={{ background: `${theme.textSecondary}06`, border: `1px dashed ${theme.cardBorder}`, color: `${theme.textSecondary}60` }}>—</div>;
-              }
-              const chosen = flash === i;
-              const isRight = flash !== null && i === q.correct_index;
-              return (
-                <button key={i} onClick={() => answer(i)} disabled={flash !== null}
-                  className="p-3.5 rounded-xl text-sm font-semibold text-left transition-all active:scale-98"
-                  style={{
-                    background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0f`,
-                    border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
-                    color: theme.textPrimary,
-                  }}>
-                  {q?.type !== 'tf' && <span className="font-bold mr-2" style={{ color: arena.color }}>{['A', 'B', 'C', 'D'][i]}.</span>}
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
+          <QuizCore
+            q={q ? { ...q, category: `🛡️ ${q.category} · ${q.difficulty === 'hard' ? 'Zor' : 'Orta'}` } : q}
+            accent={arena.color} theme={theme} flash={flash} hidden={hidden} onPick={answer} minHeight={100} />
         </motion.div>
       </AnimatePresence>
     </div>

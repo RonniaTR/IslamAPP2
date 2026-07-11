@@ -5,6 +5,7 @@ import { STORIES } from '../../data/storyData';
 import { drawQuestions } from '../../data/questionBank';
 import FeedbackOverlay from './FeedbackOverlay';
 import Confetti from './Confetti';
+import QuizCore from './QuizCore';
 
 // 📜 HİKÂYE MODU — kıssaları bölüm bölüm ilerle.
 // Bölümü geçmek için en az %60 doğru gerekir; her bölüm XP,
@@ -249,26 +250,7 @@ export default function StoryMode({ theme, onXP, onEvent = () => {} }) {
       </div>
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.18 }}>
-          <div className="rounded-2xl p-5 mb-4 min-h-[110px]" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-            <h3 className="text-base font-bold" style={{ color: theme.textPrimary }}>{q?.question}</h3>
-          </div>
-          <div className="flex flex-col gap-2.5">
-            {options.map((opt, i) => {
-              const chosen = flash === i;
-              const isRight = flash !== null && i === q.correct_index;
-              return (
-                <button key={i} onClick={() => answer(i)} disabled={flash !== null}
-                  className="p-3.5 rounded-xl text-sm font-semibold text-left transition-all active:scale-98"
-                  style={{
-                    background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0f`,
-                    border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
-                    color: theme.textPrimary,
-                  }}>
-                  <span className="font-bold mr-2" style={{ color: story.color }}>{['A', 'B', 'C', 'D'][i]}.</span>{opt}
-                </button>
-              );
-            })}
-          </div>
+          <QuizCore q={q} accent={story.color} theme={theme} flash={flash} onPick={answer} />
         </motion.div>
       </AnimatePresence>
     </div>

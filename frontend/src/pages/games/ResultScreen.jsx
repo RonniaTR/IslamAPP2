@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, RefreshCw, Share2, RotateCcw, Star } from 'lucide-react';
 import { shareOrCopy } from '../../hooks/useShared';
@@ -9,12 +9,31 @@ import Confetti from './Confetti';
  * yıldızlar, N/M doğru, +XP, +İlmi, istatistik kutuları,
  * Sonuçları Paylaş / Tekrar Oyna / Yanlışları Tekrar Çöz.
  */
+// Sayı animasyonu: 0'dan hedefe yumuşak sayım (juice)
+function useCountUp(target, dur = 1000) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    let raf;
+    const t0 = performance.now();
+    const tick = (t) => {
+      const p = Math.min(1, (t - t0) / dur);
+      setVal(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, dur]);
+  return val;
+}
+
 export default function ResultScreen({
   title, correct, total, xp, stats = [], wrongCount = 0,
   onReplay, onReplayWrongs, theme,
 }) {
   const pctRight = total > 0 ? correct / total : 0;
   const starCount = pctRight >= 0.9 ? 5 : pctRight >= 0.75 ? 4 : pctRight >= 0.55 ? 3 : pctRight >= 0.35 ? 2 : pctRight > 0 ? 1 : 0;
+  const animCorrect = useCountUp(correct, 800);
+  const animXp = useCountUp(xp, 1100);
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
@@ -40,12 +59,12 @@ export default function ResultScreen({
       {/* Skor paneli */}
       <div className="rounded-2xl p-5 mb-3" style={{ background: `linear-gradient(160deg, ${theme.gold}14, ${theme.surface})`, border: `1.5px solid ${theme.gold}35` }}>
         <p className="text-4xl font-black tabular-nums" style={{ color: theme.gold }}>
-          {correct} <span className="text-lg" style={{ color: theme.textSecondary }}>/ {total}</span>
+          {animCorrect} <span className="text-lg" style={{ color: theme.textSecondary }}>/ {total}</span>
         </p>
         <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: theme.textSecondary }}>Doğru Cevap</p>
         <div className="flex justify-center gap-2">
-          <span className="text-xs font-black px-3 py-1.5 rounded-full" style={{ background: `${theme.gold}18`, color: theme.gold }}>⚡ +{xp} XP</span>
-          <span className="text-xs font-black px-3 py-1.5 rounded-full" style={{ background: '#10B98118', color: '#10B981' }}>💎 +{correct} İlmi</span>
+          <span className="text-xs font-black px-3 py-1.5 rounded-full tabular-nums" style={{ background: `${theme.gold}18`, color: theme.gold }}>⚡ +{animXp} XP</span>
+          <span className="text-xs font-black px-3 py-1.5 rounded-full tabular-nums" style={{ background: '#10B98118', color: '#10B981' }}>💎 +{animCorrect} İlmi</span>
         </div>
       </div>
 

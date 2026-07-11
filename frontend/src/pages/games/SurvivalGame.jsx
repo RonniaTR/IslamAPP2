@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Infinity as InfinityIcon, RefreshCw, Skull, Flame } from 'lucide-react';
 import { drawQuestions } from '../../data/questionBank';
 import Confetti from './Confetti';
+import QuizCore from './QuizCore';
 
 // Sonsuz Mod: yanlış yapana kadar devam et. Seri arttıkça soru başı XP artar.
 export default function SurvivalGame({ theme, onXP, onEvent = () => {} }) {
@@ -92,30 +93,7 @@ export default function SurvivalGame({ theme, onXP, onEvent = () => {} }) {
 
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.18 }}>
-          <div className="rounded-2xl p-5 mb-4 min-h-[120px] flex items-center" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-            <div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#3B82F618', color: '#3B82F6' }}>{q?.category}</span>
-              <h3 className="text-base font-bold mt-2" style={{ color: theme.textPrimary }}>{q?.question}</h3>
-            </div>
-          </div>
-          <div className={q?.type === 'tf' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2.5'}>
-            {options.map((opt, i) => {
-              const chosen = flash === i;
-              const isRight = flash !== null && i === q.correct_index;
-              return (
-                <button key={i} onClick={() => answer(i)} disabled={flash !== null}
-                  className="p-3.5 rounded-xl text-sm font-semibold text-left transition-all active:scale-98"
-                  style={{
-                    background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0f`,
-                    border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
-                    color: theme.textPrimary,
-                  }}>
-                  {q?.type !== 'tf' && <span className="font-bold mr-2" style={{ color: '#3B82F6' }}>{['A', 'B', 'C', 'D'][i]}.</span>}
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
+          <QuizCore q={q} accent="#3B82F6" theme={theme} flash={flash} onPick={answer} />
         </motion.div>
       </AnimatePresence>
     </div>

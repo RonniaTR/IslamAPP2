@@ -2,7 +2,14 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw, Trophy, Link2 } from 'lucide-react';
 import { MATCH_PAIRS } from '../../data/gameData';
+import { ESMAUL_HUSNA } from '../../data/surahData';
 import Confetti from './Confetti';
+
+// Desteler: klasik terim-anlam + Esmaül Hüsna (99 isim-anlam)
+const DECKS = [
+  { id: 'mixed', label: '🔗 Karışık', pairs: MATCH_PAIRS },
+  { id: 'esma', label: '💎 Esmaül Hüsna', pairs: ESMAUL_HUSNA.map(e => ({ a: e.name, b: e.meaning })) },
+];
 
 const ROUND = 6; // her turda 6 çift
 
@@ -15,8 +22,8 @@ function shuffle(arr) {
   return a;
 }
 
-function buildRound() {
-  const picked = shuffle(MATCH_PAIRS).slice(0, ROUND);
+function buildRound(pairs = MATCH_PAIRS) {
+  const picked = shuffle(pairs).slice(0, ROUND);
   return {
     left: picked.map((p, i) => ({ id: i, text: p.a })),
     right: shuffle(picked.map((p, i) => ({ id: i, text: p.b }))),
@@ -24,6 +31,7 @@ function buildRound() {
 }
 
 export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
+  const [deck, setDeck] = useState(DECKS[0]);
   const [round, setRound] = useState(() => buildRound());
   const [selLeft, setSelLeft] = useState(null);
   const [selRight, setSelRight] = useState(null);
@@ -34,10 +42,13 @@ export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
 
   const total = round.left.length;
 
-  const reset = useCallback(() => {
-    setRound(buildRound());
+  const reset = useCallback((d) => {
+    const useDeck = d || deck;
+    setRound(buildRound(useDeck.pairs));
     setSelLeft(null); setSelRight(null); setMatched(new Set()); setWrong(null); setMoves(0); setDone(false);
-  }, []);
+  }, [deck]);
+
+  const switchDeck = useCallback((d) => { setDeck(d); reset(d); }, [reset]);
 
   const tryMatch = useCallback((l, r) => {
     setMoves(m => m + 1);
@@ -82,6 +93,20 @@ export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
     <div className="px-4 w-full max-w-md mx-auto">
       <div className="text-center mb-4">
         <p className="text-xs" style={{ color: theme.textSecondary }}>Terimi doğru anlamıyla eşleştir. Ne kadar az hamle, o kadar çok XP!</p>
+        {/* Deste seçimi */}
+        <div className="flex justify-center gap-1.5 mt-2">
+          {DECKS.map(d => (
+            <button key={d.id} onClick={() => switchDeck(d)}
+              className="text-[10px] font-black px-3 py-1.5 rounded-full transition-all active:scale-95"
+              style={{
+                background: deck.id === d.id ? `${theme.gold}20` : `${theme.textSecondary}0d`,
+                border: `1px solid ${deck.id === d.id ? `${theme.gold}50` : theme.cardBorder}`,
+                color: deck.id === d.id ? theme.gold : theme.textSecondary,
+              }}>
+              {d.label}
+            </button>
+          ))}
+        </div>
         <p className="text-sm font-bold mt-1" style={{ color: theme.gold }}>{matched.size}/{total} eşleşti · {moves} hamle</p>
       </div>
 
@@ -92,7 +117,7 @@ export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
           <Trophy size={40} style={{ color: theme.gold }} className="mx-auto mb-3" />
           <p className="text-xl font-black mb-1" style={{ color: theme.gold }}>+{earned} XP</p>
           <p className="text-sm mb-5" style={{ color: theme.textSecondary }}>{moves} hamlede tamamladın</p>
-          <button onClick={reset} className="inline-flex items-center gap-2 px-8 py-3 rounded-2xl font-bold text-sm" style={{ background: theme.gold, color: theme.bg }}>
+          <button onClick={() => reset()} className="inline-flex items-center gap-2 px-8 py-3 rounded-2xl font-bold text-sm" style={{ background: theme.gold, color: theme.bg }}>
             <RefreshCw size={16} /> Yeni Tur
           </button>
         </motion.div>

@@ -4,6 +4,7 @@ import { Lock, Check, Play, ChevronLeft, Star, Clock, Target, Gift } from 'lucid
 import { ADVENTURE, ADVENTURE_BADGE } from '../../data/adventureData';
 import FeedbackOverlay from './FeedbackOverlay';
 import Confetti from './Confetti';
+import QuizCore from './QuizCore';
 
 // 🌍 İSLAM TARİHİ MACERASI — Mekke'den Veda Hutbesi'ne 12 durak.
 // Harita → görev sayfası → karışık etkileşimler → RPG tadında zafer ekranı.
@@ -286,28 +287,9 @@ export default function AdventureMode({ theme, onXP, onEvent = () => {} }) {
           {step.type === 'order' ? (
             <OrderStep step={step} theme={theme} color={gold} onDone={orderDone} />
           ) : (
-            <>
-              <div className="rounded-2xl p-5 mb-4 min-h-[110px]" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-                <h3 className="text-base font-bold" style={{ color: theme.textPrimary }}>{step.q}</h3>
-              </div>
-              <div className="flex flex-col gap-2.5">
-                {step.o.map((opt, i) => {
-                  const chosen = flash === i;
-                  const isRight = flash !== null && i === step.a;
-                  return (
-                    <button key={i} onClick={() => answerMc(i)} disabled={flash !== null}
-                      className="p-3.5 rounded-xl text-sm font-semibold text-left transition-all active:scale-98"
-                      style={{
-                        background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0f`,
-                        border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
-                        color: theme.textPrimary,
-                      }}>
-                      <span className="font-bold mr-2" style={{ color: gold }}>{['A', 'B', 'C', 'D'][i]}.</span>{opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
+            <QuizCore
+              q={{ id: `adv_${ch.id}_${stepIdx}`, type: 'mc', question: step.q, options: step.o, correct_index: step.a }}
+              accent={gold} theme={theme} flash={flash} onPick={answerMc} />
           )}
         </motion.div>
       </AnimatePresence>
