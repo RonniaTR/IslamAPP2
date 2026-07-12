@@ -8,6 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useTTS, shareOrCopy } from '../hooks/useShared';
 import { fetchWithCache } from '../services/cache';
 import { awardXPOnce } from '../services/gamification';
+import EmotionWidget from '../components/EmotionWidget';
 import notifications from '../services/notifications';
 import logger from '../services/logger';
 import api from '../api';
@@ -595,6 +596,7 @@ export default function Dashboard() {
       <div className="hub-grid">
         <div className="hub-span"><PrayerHero prayerTimes={prayerTimes} theme={theme} t={t} /></div>
         <QuickActions theme={theme} t={t} />
+        <div className="hub-span"><EmotionWidget theme={theme} /></div>
         <div className="hub-span"><MoodSection theme={theme} t={t} /></div>
         <DailyVerse verse={randomVerse} theme={theme} t={t} />
         <DailyHadith hadith={randomHadith} theme={theme} t={t} />
