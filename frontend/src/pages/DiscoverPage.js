@@ -19,6 +19,7 @@ const SECTIONS = [
     title: 'İbadet & İlim',
     items: [
       { path: '/fiqh', icon: '⚖️', title: 'İslami Bilgi (Fıkıh)', desc: 'Abdest, namaz, oruç rehberi', color: '#10B981' },
+      { path: '/journal', icon: '📔', title: 'Amel Defteri', desc: 'Günün muhasebesi — 3 soru, 1 kalp', color: '#F59E0B' },
       { path: '/dhikr', icon: '📿', title: 'Zikir & Tesbih', desc: 'Günlük zikir takibi', color: '#8B5CF6' },
       { path: '/qibla', icon: '🧭', title: 'Kıble Pusulası', desc: 'Kıble yönünü bul', color: '#F59E0B' },
       { path: '/scholars', icon: '📚', title: 'Âlimlerle Sohbet', desc: 'AI destekli âlim görüşleri', color: '#3B82F6' },

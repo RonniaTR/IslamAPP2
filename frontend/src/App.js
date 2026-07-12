@@ -42,6 +42,7 @@ const FiqhPage = lazy(() => import('./pages/FiqhPage'));
 const DhikrPage = lazy(() => import('./pages/DhikrPage'));
 const GamesPage = lazy(() => import('./pages/GamesPage'));
 const LibraryPage = lazy(() => import('./pages/LibraryPage'));
+const JournalPage = lazy(() => import('./pages/JournalPage'));
 
 // --- DEEN CONNECT SAYFALARI ---
 const JourneyTracker = lazy(() => import('./pages/JourneyTracker'));
@@ -83,6 +84,7 @@ function AppRouter() {
             <Route path="/quiz" element={<PageTransition><QuizEngine /></PageTransition>} />
             <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
             <Route path="/library" element={<PageTransition><LibraryPage /></PageTransition>} />
+            <Route path="/journal" element={<PageTransition><JournalPage /></PageTransition>} />
             <Route path="/success" element={<PageTransition><SuccessScreen /></PageTransition>} />
             <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
             <Route path="/profile/knowledge" element={<PageTransition><KnowledgeProfile /></PageTransition>} />
