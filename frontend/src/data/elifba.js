@@ -72,6 +72,54 @@ export const KELIMELER = [
   { ar: 'قَلْب', read: 'Kalb', mean: 'Kalp' },
   { ar: 'كِتَاب', read: 'Kitâb', mean: 'Kitap' },
   { ar: 'سَلَام', read: 'Selâm', mean: 'Selam, esenlik' },
+  { ar: 'رَحْمَة', read: 'Rahme(t)', mean: 'Rahmet, merhamet' },
+  { ar: 'جَنَّة', read: 'Cenne(t)', mean: 'Cennet, bahçe' },
+  { ar: 'دُعَاء', read: 'Duâ', mean: 'Dua, yakarış' },
+  { ar: 'عِلْم', read: 'İlm', mean: 'İlim, bilgi' },
+  { ar: 'اِيمَان', read: 'Îmân', mean: 'İman, inanç' },
+  { ar: 'شُكْر', read: 'Şükr', mean: 'Şükür' },
+];
+
+// 🎵 TECVİDE GİRİŞ — Kur'an'ı güzel okumanın temel kuralları.
+// Standart, üzerinde ittifak edilen tecvid bilgileridir; 'ileri' vitrin
+// yapısıyla aynı formatta sunulur: { id, name, sound?, desc, ex[] }.
+export const TECVID = [
+  {
+    id: 'kalkale', name: 'Kalkale', sound: 'ق ط ب ج د',
+    desc: 'Bu beş harf (toplayıcısı: "kutbu ced") cezimli/sakin olduğunda, ses hafifçe geri sıçratılarak vurgulu okunur.',
+    ex: [
+      { ar: 'قَدْ', read: 'kad (sıçratmalı)' },
+      { ar: 'اَحَدْ', read: 'ehad' },
+      { ar: 'وَتَبْ', read: 'veteb' },
+    ],
+  },
+  {
+    id: 'tefhim', name: 'Kalın Okunan Harfler (Tefhîm)', sound: 'خ ص ض غ ط ق ظ',
+    desc: 'Bu yedi harf her zaman kalın (dolgun) okunur; Arapça toplayıcısı: خُصَّ ضَغْطٍ قِظْ. Diğer harfler ince okunur (Ra ve Lâm bazı durumlarda değişir).',
+    ex: [
+      { ar: 'خَلَقَ', read: 'halaka' },
+      { ar: 'صِرَاط', read: 'sırât' },
+      { ar: 'عَظِيم', read: 'azîm' },
+    ],
+  },
+  {
+    id: 'nun-sakin', name: 'Nûn-i Sâkin ve Tenvin', sound: 'نْ / ً ٍ ٌ',
+    desc: 'Cezimli nûn veya tenvinden SONRA gelen harfe göre dört okuyuş vardır: İZHÂR (boğaz harfleri ء ه ع ح غ خ → nun açıkça okunur), İDGAM (ي ر م ل و ن → nun sonrakine katılır), İKLÂB (ب → nun "m" sesine döner), İHFÂ (kalan 15 harf → nun genizden gizlenerek okunur).',
+    ex: [
+      { ar: 'مِنْ عِلْمٍ', read: 'izhâr: min ılmin' },
+      { ar: 'مَنْ يَقُولُ', read: 'idgam: mey-yekûlü' },
+      { ar: 'مِنْ بَعْدِ', read: "iklâb: mim-ba'di" },
+      { ar: 'مِنْ قَبْلُ', read: 'ihfâ: min(n)-kablü' },
+    ],
+  },
+  {
+    id: 'mim-sakin', name: 'Mîm-i Sâkin', sound: 'مْ',
+    desc: 'Cezimli mîmden sonra ب gelirse dudak ihfâsı (hafif gizleme), م gelirse idgam (katma), diğer harflerde izhâr (açık okuma) yapılır.',
+    ex: [
+      { ar: 'هُمْ فِيهَا', read: 'izhâr: hüm fîhâ' },
+      { ar: 'لَهُمْ مَا', read: 'idgam: lehüm-mâ' },
+    ],
+  },
 ];
 
 // Dersler (modül yapısı) — her ders bir kart, tamamlanınca XP
@@ -81,6 +129,7 @@ export const DERSLER = [
   { id: 'tenvin', title: 'Tenvin', emoji: 'ً', desc: 'Çift harekeler: en, in, un sesleri', color: '#8B5CF6', type: 'tenvin' },
   { id: 'ileri', title: 'Cezm · Şedde · Med', emoji: '◌ّ', desc: 'Sükûn, şedde ve uzatma kuralları', color: '#F59E0B', type: 'ileri' },
   { id: 'kelimeler', title: 'İlk Kelimeler', emoji: '✨', desc: 'Öğrendiklerinle ilk kelimeleri oku', color: '#EC4899', type: 'kelimeler' },
+  { id: 'tecvid', title: 'Tecvide Giriş', emoji: '🎵', desc: 'Kalkale, kalın harfler, nûn-i sâkin kuralları', color: '#06B6D4', type: 'tecvid' },
   { id: 'sinav', title: 'Alıştırma', emoji: '🎯', desc: 'Harfi tanı, sesini eşleştir', color: '#EF4444', type: 'quiz' },
 ];
 

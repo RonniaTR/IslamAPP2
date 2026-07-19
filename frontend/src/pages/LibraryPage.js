@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, Star, Volume2, Pause, Loader, BookOpen, Check, Share2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search, Star, Volume2, Pause, Loader, BookOpen, Check, Share2, ChevronRight, Type } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTTS, shareOrCopy } from '../hooks/useShared';
 import { awardXPOnce } from '../services/gamification';
+import { useReadingSettings } from '../services/readingSettings';
+import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
 import { SHELVES, ARTICLES, readingTime } from '../data/articles';
 
 // 📚 MAKALE KÜTÜPHANESİ — raflar halinde makaleler + kitap tadında okuma.
@@ -12,8 +14,6 @@ import { SHELVES, ARTICLES, readingTime } from '../data/articles';
 
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* quota */ } };
-
-const FONT_SIZES = [15, 17.5, 20];
 
 function Cover({ a, h = 130 }) {
   return (
@@ -35,8 +35,10 @@ export default function LibraryPage() {
   const [openId, setOpenId] = useState(null);
   const [favs, setFavs] = useState(() => load('lib_favs', []));
   const [readIds, setReadIds] = useState(() => load('lib_read', []));
-  const [fontIdx, setFontIdx] = useState(() => load('lib_fontsize', 1));
   const [progress, setProgress] = useState(0);
+  // Okuma ayarları (tema + boyut) — Mushaf/Kıssa ile ortak
+  const { settings: rs, theme: rrt } = useReadingSettings();
+  const [showRS, setShowRS] = useState(false);
   const readerRef = useRef(null);
 
   const article = ARTICLES.find(a => a.id === openId);
@@ -92,10 +94,10 @@ export default function LibraryPage() {
     const fav = favs.includes(article.id);
     const isRead = readIds.includes(article.id);
     return (
-      <div ref={readerRef} className="min-h-screen pb-28" style={{ background: theme.bg }}>
+      <div ref={readerRef} className="min-h-screen pb-28" style={{ background: rrt.bg }}>
         {/* İlerleme çubuğu */}
-        <div className="fixed top-0 left-0 right-0 z-50 h-1" style={{ background: `${theme.textSecondary}15` }}>
-          <div className="h-full transition-all duration-150" style={{ width: `${progress * 100}%`, background: theme.gold }} />
+        <div className="fixed top-0 left-0 right-0 z-50 h-1" style={{ background: `${rrt.secondary}15` }}>
+          <div className="h-full transition-all duration-150" style={{ width: `${progress * 100}%`, background: rrt.accent }} />
         </div>
 
         {/* Kapak — sade şerit */}
@@ -109,71 +111,65 @@ export default function LibraryPage() {
 
         {/* Kitap tarzı başlık bloğu (ortalanmış) */}
         <div className="px-6 pt-6 pb-1 text-center max-w-[44rem] mx-auto">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: theme.gold }}>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: rrt.accent }}>
             {SHELVES.find(s => s.id === article.shelf)?.title}
           </p>
-          <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: theme.textPrimary }}>
+          <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: rrt.text }}>
             {article.title}
           </h1>
           <div className="flex items-center justify-center gap-3 mt-3">
-            <span className="h-px w-12" style={{ background: `${theme.gold}50` }} />
-            <span className="text-xs" style={{ color: theme.gold }}>✦</span>
-            <span className="h-px w-12" style={{ background: `${theme.gold}50` }} />
+            <span className="h-px w-12" style={{ background: `${rrt.accent}50` }} />
+            <span className="text-xs" style={{ color: rrt.accent }}>✦</span>
+            <span className="h-px w-12" style={{ background: `${rrt.accent}50` }} />
           </div>
-          <p className="text-[10px] mt-2" style={{ color: theme.textSecondary }}>{readingTime(article)} dakikalık okuma</p>
+          <p className="text-[10px] mt-2" style={{ color: rrt.secondary }}>{readingTime(article)} dakikalık okuma</p>
         </div>
 
         {/* Araç çubuğu */}
-        <div className="px-5 py-3 flex items-center gap-2 sticky top-0 z-40" style={{ background: `${theme.bg}f2`, backdropFilter: 'blur(12px)', borderBottom: `1px solid ${theme.cardBorder}` }}>
+        <div className="px-5 py-3 flex items-center gap-2 sticky top-0 z-40" style={{ background: `${rrt.bg}f2`, backdropFilter: 'blur(12px)', borderBottom: `1px solid ${rrt.border}` }}>
           <button onClick={() => (tts.playing ? tts.stop() : speakArticle())}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-black active:scale-95"
-            style={{ background: `${theme.gold}14`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
+            style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }}>
             {tts.loading ? <Loader size={13} className="animate-spin" /> : tts.playing ? <Pause size={13} /> : <Volume2 size={13} />}
             {tts.playing ? 'Durdur' : 'Dinle'}
           </button>
           <button onClick={() => toggleFav(article.id)}
             className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
-            style={{ background: fav ? `${theme.gold}18` : `${theme.textSecondary}10`, border: `1px solid ${fav ? `${theme.gold}45` : theme.cardBorder}` }}
+            style={{ background: fav ? `${rrt.accent}18` : `${rrt.secondary}10`, border: `1px solid ${fav ? `${rrt.accent}45` : rrt.border}` }}
             aria-label="Favorilere ekle">
-            <Star size={15} fill={fav ? theme.gold : 'transparent'} style={{ color: fav ? theme.gold : theme.textSecondary }} />
+            <Star size={15} fill={fav ? rrt.accent : 'transparent'} style={{ color: fav ? rrt.accent : rrt.secondary }} />
           </button>
           <button onClick={() => shareOrCopy(article.title, `${article.excerpt}\n\n(İslami Yaşam Asistanı — Kütüphane)`)}
             className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
-            style={{ background: `${theme.textSecondary}10`, border: `1px solid ${theme.cardBorder}` }} aria-label="Paylaş">
-            <Share2 size={15} style={{ color: theme.textSecondary }} />
+            style={{ background: `${rrt.secondary}10`, border: `1px solid ${rrt.border}` }} aria-label="Paylaş">
+            <Share2 size={15} style={{ color: rrt.secondary }} />
           </button>
-          <div className="ml-auto flex items-center gap-1">
-            {['A', 'A', 'A'].map((ch, i) => (
-              <button key={i} onClick={() => { setFontIdx(i); save('lib_fontsize', i); }}
-                className="w-8 h-8 rounded-lg font-black active:scale-90"
-                style={{
-                  fontSize: 10 + i * 3,
-                  background: fontIdx === i ? `${theme.gold}18` : 'transparent',
-                  border: `1px solid ${fontIdx === i ? `${theme.gold}45` : theme.cardBorder}`,
-                  color: fontIdx === i ? theme.gold : theme.textSecondary,
-                }}>{ch}</button>
-            ))}
-          </div>
+          {/* Okuma ayarları: tema + boyut (Mushaf/Kıssa ile ortak) */}
+          <button onClick={() => setShowRS(true)}
+            className="ml-auto flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-black active:scale-95"
+            style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }} aria-label="Okuma ayarları">
+            <Type size={13} /> Görünüm
+          </button>
         </div>
 
         {/* Metin — kitap tipografisi */}
         <div className="px-6 pt-5 max-w-[44rem] mx-auto article-body"
-          style={{ fontSize: FONT_SIZES[fontIdx], color: `${theme.textPrimary}ee`, '--gold': theme.gold }}>
+          style={{ fontSize: rs.fontSize, color: `${rrt.text}ee`, '--gold': rrt.accent }}>
           {article.paragraphs.map((p, i) => typeof p === 'string' ? (
             <p key={i}>{p}</p>
           ) : (
             <blockquote key={i} className="article-quote my-6 mx-2 py-4 px-5 rounded-2xl relative"
-              style={{ background: `${theme.gold}0a`, border: `1px solid ${theme.gold}25` }}>
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 text-sm" style={{ background: theme.bg, color: theme.gold }}>✦</span>
-              <p className="italic leading-relaxed" style={{ fontSize: FONT_SIZES[fontIdx] - 0.5, color: theme.textPrimary }}>“{p.quote}”</p>
-              <p className="text-[11px] mt-2.5 font-bold not-italic" style={{ color: theme.gold, fontFamily: 'Inter, sans-serif' }}>{p.source}</p>
+              style={{ background: `${rrt.accent}0a`, border: `1px solid ${rrt.accent}25` }}>
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 text-sm" style={{ background: rrt.bg, color: rrt.accent }}>✦</span>
+              <p className="italic leading-relaxed" style={{ fontSize: rs.fontSize - 0.5, color: rrt.text }}>“{p.quote}”</p>
+              <p className="text-[11px] mt-2.5 font-bold not-italic" style={{ color: rrt.accent, fontFamily: 'Inter, sans-serif' }}>{p.source}</p>
             </blockquote>
           ))}
 
           {/* Kaynaklar */}
-          <div className="rounded-2xl p-4 mt-2 mb-6" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-            <p className="text-[10px] font-black uppercase tracking-wider mb-1.5" style={{ color: theme.gold }}>Kaynaklar</p>
-            <p className="text-xs leading-relaxed" style={{ color: theme.textSecondary }}>{article.refs.join(' · ')}</p>
+          <div className="rounded-2xl p-4 mt-2 mb-6" style={{ background: rrt.surface, border: `1px solid ${rrt.border}` }}>
+            <p className="text-[10px] font-black uppercase tracking-wider mb-1.5" style={{ color: rrt.accent }}>Kaynaklar</p>
+            <p className="text-xs leading-relaxed" style={{ color: rrt.secondary }}>{article.refs.join(' · ')}</p>
           </div>
 
           {/* Okudum */}
@@ -193,17 +189,20 @@ export default function LibraryPage() {
             if (!next) return null;
             return (
               <button onClick={() => openArticle(next.id)} className="w-full flex items-center gap-3 p-3 rounded-2xl text-left active:scale-98 transition-transform"
-                style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
+                style={{ background: rrt.surface, border: `1px solid ${rrt.border}` }}>
                 <span className="text-2xl">{next.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-bold uppercase" style={{ color: theme.textSecondary }}>Sıradaki</p>
-                  <p className="text-xs font-black truncate" style={{ color: theme.textPrimary }}>{next.title}</p>
+                  <p className="text-[9px] font-bold uppercase" style={{ color: rrt.secondary }}>Sıradaki</p>
+                  <p className="text-xs font-black truncate" style={{ color: rrt.text }}>{next.title}</p>
                 </div>
-                <ChevronRight size={15} style={{ color: theme.gold }} />
+                <ChevronRight size={15} style={{ color: rrt.accent }} />
               </button>
             );
           })()}
         </div>
+
+        {/* Okuma ayarları sayfası */}
+        <ReadingSettingsSheet open={showRS} onClose={() => setShowRS(false)} />
       </div>
     );
   }

@@ -4,7 +4,7 @@ import { ArrowLeft, Volume2, Check, X, ChevronLeft, ChevronRight, RefreshCw, Tro
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
-import { LETTERS, HAREKELER, TENVIN, ILERI, KELIMELER, DERSLER } from '../data/elifba';
+import { LETTERS, HAREKELER, TENVIN, ILERI, TECVID, KELIMELER, DERSLER } from '../data/elifba';
 import Confetti from './games/Confetti';
 
 // 📖 ELİF BA — interaktif Kur'an okuma başlangıç modülü.
@@ -173,8 +173,8 @@ export default function ElifBaPage() {
   }
 
   // ═══════════ HAREKELER / TENVİN / İLERİ (ortak vitrin) ═══════════
-  if (['harekeler', 'tenvin', 'ileri'].includes(lesson.type)) {
-    const groups = lesson.type === 'harekeler' ? HAREKELER : lesson.type === 'tenvin' ? TENVIN : ILERI;
+  if (['harekeler', 'tenvin', 'ileri', 'tecvid'].includes(lesson.type)) {
+    const groups = lesson.type === 'harekeler' ? HAREKELER : lesson.type === 'tenvin' ? TENVIN : lesson.type === 'tecvid' ? TECVID : ILERI;
     return (
       <div className="min-h-screen pb-24 max-w-3xl mx-auto" style={{ background: theme.bg }}>
         <Header title={lesson.title} />

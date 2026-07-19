@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Pause, Loader, Sparkles, Check, Star, ChevronRight, ChevronDown, Lightbulb, Moon, Gem, HeartHandshake } from 'lucide-react';
+import { ArrowLeft, Volume2, Pause, Loader, Sparkles, Check, Star, ChevronRight, ChevronDown, Lightbulb, Moon, Gem, HeartHandshake, Type } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTTS } from '../hooks/useShared';
 import { awardXPOnce } from '../services/gamification';
+import { useReadingSettings } from '../services/readingSettings';
+import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
 import { STORIES, STORY_CATEGORIES, STORY_GEMS, STORY_APPLY } from '../data/stories';
 import Confetti from './games/Confetti';
 
@@ -98,6 +100,9 @@ export default function StoriesPage() {
   // Katmanlı kıssa durumu
   const [cpOpen, setCpOpen] = useState(0);            // tamamlanan durak sayısı
   const [cpPicked, setCpPicked] = useState({});        // durak -> seçilen şık
+  // Okuma ayarları (tema + boyut) — Mushaf/Makale ile ortak
+  const { settings: rs, theme: rrt } = useReadingSettings();
+  const [showRS, setShowRS] = useState(false);
   const scrollRef = useRef(null);
 
   const story = STORIES.find(s => s.id === openId);
@@ -174,7 +179,7 @@ export default function StoriesPage() {
     const activeCp = !allCpDone ? checkpoints[cpOpen] : null;
 
     return (
-      <div ref={scrollRef} className="min-h-screen pb-28" style={{ background: theme.bg }}>
+      <div ref={scrollRef} className="min-h-screen pb-28" style={{ background: rrt.bg }}>
         {celebrate && <Confetti count={26} />}
         {/* Kapak */}
         <div className="relative overflow-hidden flex items-center justify-center" style={{ height: 130, background: `linear-gradient(140deg, ${story.grad[0]}, ${story.grad[1]})` }}>
@@ -194,16 +199,21 @@ export default function StoriesPage() {
           <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: isDeep ? '#818CF8' : theme.gold }}>
             {STORY_CATEGORIES.find(c => c.id === story.cat)?.title}
           </p>
-          <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: theme.textPrimary }}>{story.title}</h1>
+          <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: rrt.text }}>{story.title}</h1>
           <div className="flex items-center justify-center gap-3 mt-3">
-            <span className="h-px w-10" style={{ background: `${theme.gold}50` }} />
+            <span className="h-px w-10" style={{ background: `${rrt.accent}50` }} />
             <button onClick={() => (tts.playing ? tts.stop() : speak())}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black active:scale-95"
-              style={{ background: `${theme.gold}14`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
+              style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }}>
               {tts.loading ? <Loader size={11} className="animate-spin" /> : tts.playing ? <Pause size={11} /> : <Volume2 size={11} />}
               {tts.playing ? 'Durdur' : 'Dinle'}
             </button>
-            <span className="h-px w-10" style={{ background: `${theme.gold}50` }} />
+            <button onClick={() => setShowRS(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black active:scale-95"
+              style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }} aria-label="Okuma ayarları">
+              <Type size={11} /> Görünüm
+            </button>
+            <span className="h-px w-10" style={{ background: `${rrt.accent}50` }} />
           </div>
           {isDeep && !allCpDone && (
             <p className="text-[10px] mt-3 font-bold" style={{ color: '#818CF8' }}>
@@ -213,7 +223,7 @@ export default function StoriesPage() {
         </div>
 
         {/* Metin — katmanlı kıssalarda sınıra kadar */}
-        <div className="px-6 pt-4 max-w-[42rem] mx-auto article-body" style={{ fontSize: 17.5, color: `${theme.textPrimary}f0`, '--gold': theme.gold }}>
+        <div className="px-6 pt-4 max-w-[42rem] mx-auto article-body" style={{ fontSize: rs.fontSize, color: `${rrt.text}f0`, '--gold': rrt.accent }}>
           {story.paragraphs.slice(0, revealLimit + 1).map((p, i) => (
             <motion.p key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>{p}</motion.p>
           ))}
@@ -357,6 +367,9 @@ export default function StoriesPage() {
           })()}
         </div>
         )}
+
+        {/* Okuma ayarları sayfası */}
+        <ReadingSettingsSheet open={showRS} onClose={() => setShowRS(false)} />
       </div>
     );
   }

@@ -276,6 +276,48 @@ export const ARTICLES = [
       "Ümit ile korku, kuşun iki kanadı gibidir: Yalnız korkuyla uçan ümitsizliğe, yalnız ümitle uçan gevşekliğe düşer. Denge şudur: Günaha bakarken adaleti hatırla ki cesaretlenme; tevbeye yönelirken rahmeti hatırla ki yıkılma. Ve bugün hangi noktadaysan, şunu bil: Dönüş yolu, düşülen kuyudan her zaman kısadır.",
     ],
   },
+  {
+    id: 'komsu', shelf: 'ahlak', emoji: '🏘️', grad: ['#0A2E4E', '#155E75'],
+    title: 'Komşu Hakkı: Duvarın Öte Yanındaki Emanet',
+    excerpt: 'Cebrail (a.s.) komşuyu o kadar tavsiye etti ki, Peygamberimiz "mirasçı kılacak sandım" buyurdu.',
+    refs: ['Nisâ 36', 'Buhârî, Edeb 28', 'Buhârî, Edeb 31; Müslim, Îmân 74', 'Müslim, Îmân 73'],
+    paragraphs: [
+      'Peygamber Efendimiz (s.a.v.) şöyle buyurur: "Cebrail bana komşuyu o kadar tavsiye edip durdu ki, onu mirasçı kılacağını sandım." (Buhârî, Edeb 28). Vahiy meleğinin ısrarla hatırlattığı bu hak, İslam ahlakında komşuluğun sıradan bir sosyal ilişki değil, dinin özünden bir emanet olduğunu gösterir.',
+      { quote: "Allah'a ibadet edin ve O'na hiçbir şeyi ortak koşmayın. Ana babaya, akrabaya, yetimlere, yoksullara, yakın komşuya, uzak komşuya, yanınızdaki arkadaşa, yolcuya ve elinizin altındakilere iyilik edin...", source: 'Nisâ 36 (meal)' },
+      'Ayet, komşuyu ana-baba ve akrabayla aynı listede sayar — üstelik "yakın komşu" ve "uzak komşu" diye ikisini de ayrı ayrı zikrederek. Müfessirler bunu hem mesafe hem de yakınlık derecesi olarak yorumlamıştır: Kapı komşun da, mahallenin öbür ucundaki de, hatta bugün apartman grubundaki tanımadığın isim de bu dairenin içindedir.',
+      'Ölçü net konmuştur: "Allah\'a ve ahiret gününe iman eden, komşusuna iyilik etsin." (Buhârî, Edeb 31; Müslim, Îmân 74). Bir başka rivayette ise komşusu, şerrinden emin olmayan kişinin imanının kemale ermeyeceği bildirilir (Müslim, Îmân 73). Yani komşuluk, iman iddiasının sahadaki testidir: Sesini yükseltirken, park yeri paylaşırken, koku ve gürültüde onu hesaba katıyor musun?',
+      'Komşu hakkının asgarisi zarar vermemek, ortası selam ve güler yüz, zirvesi ise derdini sormaktır. Rivayetlerde, pişen yemeğin suyunu çoğaltıp komşuya da göndermek gibi son derece somut tavsiyeler yer alır. Bugün için karşılığı belki şudur: Kapıda karşılaşınca telefonu indirip selam vermek, yaşlı komşunun poşetini taşımak, uzun süre görünmeyeni yoklamak.',
+      'Duvarın öte yanındaki insan, senin seçmediğin ama Allah\'ın sana emanet ettiği bir yakındır. Bugün küçük bir adım: Adını bilmediğin bir komşunla selamlaş — belki de o duvarın arkasında, tek selamlık yakınlıkta bir dost bekliyordur.',
+    ],
+  },
+  {
+    id: 'annebaba', shelf: 'ahlak', emoji: '🤍', grad: ['#3B1D4E', '#701A75'],
+    title: 'Ana-Baba Hakkı: "Öf" Bile Deme',
+    excerpt: "Kur'an, Allah'a kulluktan hemen sonra ana-babaya iyiliği emreder — tek harflik itiraz bile yasaktır.",
+    refs: ['İsrâ 23-24', 'Lokmân 14', 'Buhârî, Mevâkît 5', 'Müslim, Birr 1-3'],
+    paragraphs: [
+      'Kur\'an\'da bir edep inceliği vardır ki üzerinde ne kadar düşünülse azdır: Allah, kendisine kulluğu emrettiği ayetin devamında, araya başka hiçbir şey koymadan ana-babaya iyiliği emreder. Sıralama bilinçlidir — tevhidden hemen sonra gelen ilk kul hakkı, bizi büyütenlerin hakkıdır.',
+      { quote: 'Rabbin, yalnız kendisine kulluk etmenizi ve ana-babaya iyilik etmenizi kesin olarak emretti. Onlardan biri veya her ikisi senin yanında yaşlanırsa onlara "öf" bile deme, onları azarlama; ikisine de gönül alıcı güzel söz söyle.', source: 'İsrâ 23 (meal)' },
+      'Ayetin ölçüsü çarpıcıdır: Yasaklanan şey hakaret ya da bağırmak değil — "öf", yani Arapçadaki en kısa bıkkınlık ünlemidir. Tek heceye bile izin verilmeyen yerde, yükselen sesin, sabırsız bakışın, "yine mi anlatıyorsun" iç çekişinin hükmünü varın siz düşünün. Devamındaki ayet ise ölçüyü duayla taçlandırır: "Rabbim! Küçüklüğümde onlar beni nasıl büyüttülerse, sen de onlara öyle merhamet et." (İsrâ 24)',
+      'Lokmân Suresi, annenin hakkını ayrıca vurgular: "Annesi onu zorluk üstüne zorlukla taşıdı; sütten kesilmesi de iki yıl içindedir. Bana ve ana-babana şükret." (Lokmân 14). Sahabeden biri Peygamberimize "İyi davranmama en layık kim?" diye sorduğunda üç kez "Annen" cevabını almış, dördüncüde "baban" denmiştir (Müslim, Birr 1-3 çerçevesindeki rivayet).',
+      'Bir sahabi, Allah katında en sevimli amelin ne olduğunu sorduğunda Efendimiz sıralar: "Vaktinde kılınan namaz, sonra ana-babaya iyilik, sonra Allah yolunda cihad." (Buhârî, Mevâkît 5). Ana-babaya iyiliğin cihaddan önce sayılması, bu hakkın ağırlığını gösterir.',
+      'Onlar hayattaysa fırsat da hâlâ ayaktadır: Bugün bir telefon, bir ziyaret, bir "hakkını helal et" — yarına bırakılmayacak kadar kıymetli. Vefat ettilerse kapı yine kapanmamıştır: Onlar için dua ve istiğfar etmek, vasiyetlerini yerine getirmek ve dostlarını gözetmek, rivayetlerde öğretilen devam yollarıdır.',
+    ],
+  },
+  {
+    id: 'cuma', shelf: 'ibadet', emoji: '🕌', grad: ['#0E3B2E', '#166534'],
+    title: 'Cuma: Haftanın Kalbindeki Bayram',
+    excerpt: 'Müminin haftalık buluşması: ezan okununca alışverişi bırakıp o çağrıya koşmak.',
+    refs: ["Cum'a 9-10", "Müslim, Cum'a 17-18", "Buhârî, Cum'a 6"],
+    paragraphs: [
+      'Peygamber Efendimiz (s.a.v.), üzerine güneş doğan en hayırlı günün cuma olduğunu bildirir; rivayete göre Âdem (a.s.) o gün yaratılmış, o gün cennete konmuştur (Müslim, Cum\'a 17-18). İslam toplumunun haftalık ritmi bu günün etrafında kurulur: Toplanma, hutbe, ortak dua — adı bile "toplanma günü" demektir.',
+      { quote: 'Ey iman edenler! Cuma günü namaz için çağrı yapıldığında Allah\'ı anmaya koşun ve alışverişi bırakın. Eğer bilirseniz bu sizin için daha hayırlıdır. Namaz kılınınca artık yeryüzüne dağılın ve Allah\'ın lütfundan arayın.', source: "Cum'a 9-10 (meal)" },
+      'Ayetin dengesi dikkat çeker: Ezan okununca dünya işi durur; namaz bitince ise "yeryüzüne dağılın, rızkınızı arayın" denir. İslam ne dünyayı din için iptal eder, ne dini dünya için erteler — cuma, haftanın ortasına konmuş bir ayar noktasıdır: Dur, topla, yönünü tazele, sonra işine bereketle dön.',
+      'Cumanın kendine has bir edep listesi rivayetlerde yer alır: Gusletmek, temiz ve güzel giyinmek, güzel koku sürünmek, erken gitmek, hutbeyi sessizce dinlemek. Efendimiz, hutbe sırasında yanındakine "sus" demenin bile kişinin cuma sevabını zedeleyeceğini bildirmiştir (Buhârî, Cum\'a 36 çerçevesi). Ayrıca o gün Kehf Suresi okumak ve Peygamberimize çokça salavat getirmek rivayetlerle teşvik edilmiştir.',
+      'Cumanın içinde bir de gizli hazine vardır: Efendimiz, cuma gününde öyle bir an bulunduğunu, Müslüman bir kulun o âna denk gelip Allah\'tan bir hayır istemesi hâlinde Allah\'ın ona mutlaka vereceğini haber vermiştir (Buhârî, Cum\'a 6 çerçevesi). Âlimlerin çoğu bu ânı ikindi ile akşam arasında aramıştır — o saatlerde açık bir kalple yapılacak kısa bir dua, haftanın en kıymetli yatırımı olabilir.',
+      'Bugünden bir niyet: Bu cuma, ezandan önce hazır olmak; hutbede telefonu cebe değil, kalbi mihraba çevirmek. Cuma bir bayramsa, bayrama geç kalınmaz.',
+    ],
+  },
 ];
 
 export function readingTime(article) {

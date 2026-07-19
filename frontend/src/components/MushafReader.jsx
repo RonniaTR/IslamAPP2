@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Maximize, Minimize, Play, Pause, X, Type, Sun, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useReadingSettings } from '../services/readingSettings';
+import ReadingSettingsSheet from './ReadingSettingsSheet';
 import api from '../api';
 
 // 🕌 MUSHAF GÖRÜNÜMÜ — tam ekran, kesintisiz sağdan-sola Arapça okuma.
@@ -15,20 +16,16 @@ import api from '../api';
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
 const toArabicDigits = (n) => String(n).replace(/\d/g, d => AR_DIGITS[d]);
 
-const FONT_SIZES = [22, 26, 30, 34, 40];
-const LS_FONT = 'mushaf_font';
 const LS_AWAKE = 'mushaf_awake';
 
 export default function MushafReader({ surah, initialVerse, onClose, onPosition }) {
-  const { theme } = useTheme();
+  // Okuma ayarları: tema paleti + Arapça boyutu (ReadingSettingsSheet yönetir)
+  const { settings, theme: rt, arabicSize } = useReadingSettings();
+  const [showSettings, setShowSettings] = useState(false);
 
   // Yüklü sureler (akış sırasıyla) — ilk eleman girilen sure
   const [chapters, setChapters] = useState(() => [surah]);
   const [loadingNext, setLoadingNext] = useState(false);
-  const [fontIdx, setFontIdx] = useState(() => {
-    const v = parseInt(localStorage.getItem(LS_FONT), 10);
-    return Number.isInteger(v) && v >= 0 && v < FONT_SIZES.length ? v : 2;
-  });
   const [chrome, setChrome] = useState(true);            // üst/alt barlar görünür mü
   const [active, setActive] = useState(null);            // { chapter, verse } (meal kartı)
   const [isFull, setIsFull] = useState(false);
@@ -181,14 +178,14 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
     document.getElementById(`mushaf-v-${chapter.number}-${target.number}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [active]);
 
-  const fontSize = FONT_SIZES[fontIdx];
+  const fontSize = arabicSize;
   const lastChapter = chapters[chapters.length - 1];
 
   return (
-    <div className="fixed inset-0 z-[80] flex flex-col" style={{ background: theme.bg }}>
+    <div className="fixed inset-0 z-[80] flex flex-col" style={{ background: rt.bg }}>
       {/* İlerleme çizgisi */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 z-20" style={{ background: `${theme.gold}15` }}>
-        <div className="h-full transition-all duration-200" style={{ width: `${progress * 100}%`, background: theme.gold }} />
+      <div className="absolute top-0 left-0 right-0 h-0.5 z-20" style={{ background: `${rt.accent}15` }}>
+        <div className="h-full transition-all duration-200" style={{ width: `${progress * 100}%`, background: rt.accent }} />
       </div>
 
       {/* Üst bar */}
@@ -196,36 +193,36 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
         {chrome && (
           <motion.div initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
             className="flex items-center gap-3 px-4 py-3 z-10"
-            style={{ background: `${theme.surface}f2`, borderBottom: `1px solid ${theme.cardBorder}`, backdropFilter: 'blur(14px)' }}>
+            style={{ background: `${rt.surface}f2`, borderBottom: `1px solid ${rt.border}`, backdropFilter: 'blur(14px)' }}>
             <button onClick={close} className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
-              style={{ background: `${theme.gold}10` }} aria-label="Kapat">
-              <ArrowLeft size={17} style={{ color: theme.gold }} />
+              style={{ background: `${rt.accent}10` }} aria-label="Kapat">
+              <ArrowLeft size={17} style={{ color: rt.accent }} />
             </button>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black truncate" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
+              <p className="text-sm font-black truncate" style={{ color: rt.text, fontFamily: 'Playfair Display, serif' }}>
                 {current.no}. {current.name}
               </p>
-              <p className="text-[10px]" style={{ color: theme.textSecondary }}>
+              <p className="text-[10px]" style={{ color: rt.secondary }}>
                 🕌 Mushaf Görünümü · {current.ayah}. ayet · akış sonraki sureye devam eder
               </p>
             </div>
             {/* Yazı boyutu */}
-            <button onClick={() => setFontIdx(i => { const n = (i + 1) % FONT_SIZES.length; localStorage.setItem(LS_FONT, String(n)); return n; })}
+            <button onClick={() => setShowSettings(true)}
               className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
-              style={{ background: `${theme.gold}10` }} aria-label="Yazı boyutu">
-              <Type size={15} style={{ color: theme.gold }} />
+              style={{ background: `${rt.accent}10` }} aria-label="Okuma ayarları">
+              <Type size={15} style={{ color: rt.accent }} />
             </button>
             {/* Ekranı açık tut */}
             <button onClick={() => setKeepAwake(k => { localStorage.setItem(LS_AWAKE, k ? '0' : '1'); return !k; })}
               className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
-              style={{ background: keepAwake ? `${theme.gold}25` : `${theme.gold}10` }}
+              style={{ background: keepAwake ? `${rt.accent}25` : `${rt.accent}10` }}
               aria-label="Ekranı açık tut" title="Ekranı açık tut">
-              <Sun size={15} style={{ color: keepAwake ? theme.gold : theme.textSecondary }} />
+              <Sun size={15} style={{ color: keepAwake ? rt.accent : rt.secondary }} />
             </button>
             {/* Tam ekran */}
             <button onClick={toggleFullscreen} className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
-              style={{ background: `${theme.gold}10` }} aria-label="Tam ekran">
-              {isFull ? <Minimize size={15} style={{ color: theme.gold }} /> : <Maximize size={15} style={{ color: theme.gold }} />}
+              style={{ background: `${rt.accent}10` }} aria-label="Tam ekran">
+              {isFull ? <Minimize size={15} style={{ color: rt.accent }} /> : <Maximize size={15} style={{ color: rt.accent }} />}
             </button>
           </motion.div>
         )}
@@ -240,17 +237,17 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
               {/* Sure başlığı süslemesi */}
               <div className="text-center mb-6 mt-2 select-none">
                 <div className="inline-block px-8 py-3 rounded-2xl relative"
-                  style={{ border: `1.5px solid ${theme.gold}35`, background: `${theme.gold}06` }}>
-                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[10px] px-2" style={{ background: theme.bg, color: theme.gold }}>✦</span>
-                  <p className="text-3xl" dir="rtl" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: theme.gold }}>
+                  style={{ border: `1.5px solid ${rt.accent}35`, background: `${rt.accent}06` }}>
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[10px] px-2" style={{ background: rt.bg, color: rt.accent }}>✦</span>
+                  <p className="text-3xl" dir="rtl" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: rt.accent }}>
                     {ch.arabic_name}
                   </p>
-                  <p className="text-[9px] mt-1 font-bold uppercase tracking-[0.3em]" style={{ color: theme.textSecondary }}>
+                  <p className="text-[9px] mt-1 font-bold uppercase tracking-[0.3em]" style={{ color: rt.secondary }}>
                     {ch.number}. {ch.name} · {ch.total_verses || ch.verses.length} ayet
                   </p>
                 </div>
                 {ch.number !== 1 && ch.number !== 9 && (
-                  <p className="mt-5 text-xl" dir="rtl" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: `${theme.gold}99` }}>
+                  <p className="mt-5 text-xl" dir="rtl" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: `${rt.accent}99` }}>
                     بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
                   </p>
                 )}
@@ -258,16 +255,16 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
 
               {/* Akan mushaf metni */}
               <p dir="rtl" className="mushaf-text select-none"
-                style={{ fontSize, lineHeight: 2.15, color: `${theme.textPrimary}f2`, '--gold': theme.gold }}>
+                style={{ fontSize, lineHeight: 2.15, color: `${rt.text}f2`, '--gold': rt.accent }}>
                 {ch.verses.map(v => (
                   <span key={v.number} id={`mushaf-v-${ch.number}-${v.number}`}
                     onClick={(e) => tapVerse(ch, v, e)}
                     className="mushaf-ayah"
                     style={(active && active.chapter.number === ch.number && active.verse.number === v.number) || playingKey === `${ch.number}-${v.number}`
-                      ? { background: `${theme.gold}1c`, borderRadius: 8 }
+                      ? { background: `${rt.accent}1c`, borderRadius: 8 }
                       : undefined}>
                     {v.arabic}
-                    <span className="mushaf-medallion" style={{ borderColor: `${theme.gold}70`, color: theme.gold }}>
+                    <span className="mushaf-medallion" style={{ borderColor: `${rt.accent}70`, color: rt.accent }}>
                       {toArabicDigits(v.number)}
                     </span>
                   </span>
@@ -276,8 +273,8 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
 
               {/* Sure sonu ayracı */}
               <div className="text-center mt-7 mb-8 select-none">
-                <span className="text-xs tracking-[0.5em]" style={{ color: `${theme.gold}70` }}>✦ ✦ ✦</span>
-                <p className="text-[10px] mt-2" style={{ color: theme.textSecondary }}>
+                <span className="text-xs tracking-[0.5em]" style={{ color: `${rt.accent}70` }}>✦ ✦ ✦</span>
+                <p className="text-[10px] mt-2" style={{ color: rt.secondary }}>
                   {ch.name} sûresi sona erdi{ch.number < 114 ? ' · akış devam ediyor' : ' · Sadakallahülazîm'}
                 </p>
               </div>
@@ -287,16 +284,16 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
           {/* Sonraki sure yükleniyor / hatim sonu */}
           {lastChapter?.number < 114 ? (
             <div className="flex items-center justify-center gap-2 pb-24 select-none">
-              {loadingNext && <Loader2 size={14} className="animate-spin" style={{ color: theme.gold }} />}
-              <span className="text-[11px] font-bold" style={{ color: theme.textSecondary }}>
+              {loadingNext && <Loader2 size={14} className="animate-spin" style={{ color: rt.accent }} />}
+              <span className="text-[11px] font-bold" style={{ color: rt.secondary }}>
                 {loadingNext ? 'Sonraki sure yükleniyor...' : 'Kaydırmaya devam et — sonraki sure otomatik gelir'}
               </span>
             </div>
           ) : (
             <div className="text-center pb-24 select-none">
               <p className="text-2xl mb-2">🤲</p>
-              <p className="text-sm font-black" style={{ color: theme.gold }}>Kur'an-ı Kerîm'in sonuna ulaştın</p>
-              <p className="text-[11px] mt-1" style={{ color: theme.textSecondary }}>Allah kabul etsin, hatmin mübarek olsun</p>
+              <p className="text-sm font-black" style={{ color: rt.accent }}>Kur'an-ı Kerîm'in sonuna ulaştın</p>
+              <p className="text-[11px] mt-1" style={{ color: rt.secondary }}>Allah kabul etsin, hatmin mübarek olsun</p>
             </div>
           )}
         </div>
@@ -307,11 +304,11 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
         {chrome && !active && (
           <motion.div initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
             className="flex items-center justify-between px-5 py-2.5 z-10"
-            style={{ background: `${theme.surface}f2`, borderTop: `1px solid ${theme.cardBorder}`, backdropFilter: 'blur(14px)' }}>
-            <span className="text-[10px] font-bold" style={{ color: theme.textSecondary }}>
+            style={{ background: `${rt.surface}f2`, borderTop: `1px solid ${rt.border}`, backdropFilter: 'blur(14px)' }}>
+            <span className="text-[10px] font-bold" style={{ color: rt.secondary }}>
               Ayete dokun: meal · Boşluğa dokun: sade ekran
             </span>
-            <span className="text-[10px] font-black" style={{ color: theme.gold }}>
+            <span className="text-[10px] font-black" style={{ color: rt.accent }}>
               {current.name} · {current.ayah}. ayet
             </span>
           </motion.div>
@@ -325,11 +322,11 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
             transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
             className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-4" onClick={e => e.stopPropagation()}>
             <div className="max-w-[42rem] mx-auto rounded-2xl p-4 shadow-2xl"
-              style={{ background: theme.surface, border: `1.5px solid ${theme.gold}35` }}>
+              style={{ background: rt.surface, border: `1.5px solid ${rt.accent}35` }}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black shrink-0"
-                  style={{ border: `1.5px solid ${theme.gold}70`, color: theme.gold }}>{active.verse.number}</span>
-                <span className="text-[11px] font-bold truncate" style={{ color: theme.textSecondary }}>
+                  style={{ border: `1.5px solid ${rt.accent}70`, color: rt.accent }}>{active.verse.number}</span>
+                <span className="text-[11px] font-bold truncate" style={{ color: rt.secondary }}>
                   {active.chapter.name} · {active.verse.number}. ayet
                 </span>
                 <div className="ml-auto flex items-center gap-1.5">
@@ -337,28 +334,28 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
                     <button onClick={() => playVerse(active.chapter, active.verse)}
                       className="w-8 h-8 rounded-xl flex items-center justify-center active:scale-90"
                       style={{
-                        background: playingKey === `${active.chapter.number}-${active.verse.number}` ? theme.gold : `${theme.gold}12`,
-                        color: playingKey === `${active.chapter.number}-${active.verse.number}` ? '#0A1F14' : theme.gold,
+                        background: playingKey === `${active.chapter.number}-${active.verse.number}` ? rt.accent : `${rt.accent}12`,
+                        color: playingKey === `${active.chapter.number}-${active.verse.number}` ? (rt.dark ? '#111' : '#fff') : rt.accent,
                       }}>
                       {playingKey === `${active.chapter.number}-${active.verse.number}` ? <Pause size={13} /> : <Play size={13} className="ml-0.5" />}
                     </button>
                   )}
                   <button onClick={() => setActive(null)} className="w-8 h-8 rounded-xl flex items-center justify-center active:scale-90"
-                    style={{ background: `${theme.textSecondary}10`, color: theme.textSecondary }}>
+                    style={{ background: `${rt.secondary}10`, color: rt.secondary }}>
                     <X size={13} />
                   </button>
                 </div>
               </div>
-              <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>
+              <p className="leading-relaxed" style={{ color: rt.text, fontSize: Math.max(13, settings.fontSize - 3) }}>
                 {active.verse.turkish || 'Bu ayet için meal verisi yüklenemedi.'}
               </p>
-              <div className="flex items-center justify-between mt-3 pt-2" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+              <div className="flex items-center justify-between mt-3 pt-2" style={{ borderTop: `1px solid ${rt.border}` }}>
                 <button disabled={active.verse.number <= 1} onClick={() => gotoSibling(-1)}
-                  className="flex items-center gap-1 text-[11px] font-bold active:scale-95 disabled:opacity-30" style={{ color: theme.gold }}>
+                  className="flex items-center gap-1 text-[11px] font-bold active:scale-95 disabled:opacity-30" style={{ color: rt.accent }}>
                   <ChevronLeft size={13} /> Önceki
                 </button>
                 <button disabled={active.verse.number >= active.chapter.verses.length} onClick={() => gotoSibling(1)}
-                  className="flex items-center gap-1 text-[11px] font-bold active:scale-95 disabled:opacity-30" style={{ color: theme.gold }}>
+                  className="flex items-center gap-1 text-[11px] font-bold active:scale-95 disabled:opacity-30" style={{ color: rt.accent }}>
                   Sonraki <ChevronRight size={13} />
                 </button>
               </div>
@@ -366,6 +363,9 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Okuma ayarları sayfası */}
+      <ReadingSettingsSheet open={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }

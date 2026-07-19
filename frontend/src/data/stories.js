@@ -470,6 +470,46 @@ export const STORIES = [
     lesson: 'İyilik, tek yönlü bir bağış değildir; taşıyanı da korur. Sadaka veren malını, güzel söz söyleyen gönlünü, ilim öğreten bilgisini bereketlendirir. "Ben görmüyorum ki" diyen adam, herkesten çok görüyordu aslında — çünkü faydayı kendi penceresinden değil, ümmetin penceresinden hesaplıyordu. Elindeki kandil küçük olabilir; karanlık büyükse ışığın kıymeti artar, küçüklüğü değil.',
     verse: { text: '"...İyilik ve takva üzere yardımlaşın; günah ve düşmanlık üzere yardımlaşmayın..."', source: 'Mâide 2' },
   },
+  {
+    id: 'bir-yudum-su', cat: 'hikmet', emoji: '💧', grad: ['#0A2E4E', '#0E7490'],
+    title: 'Bir Yudum Su',
+    read: 3,
+    paragraphs: [
+      'Rivayet edilir ki hikmet ehli İbnü\'s-Semmâk, bir gün halifenin meclisine girdi. Halife tam su içmek üzereydi; elinde kâse, dudağına götürmüştü. İbnü\'s-Semmâk "Ey müminlerin emiri, bir sorum var" dedi, "şu kâseyi içmeden önce cevapla."',
+      '"Sor," dedi halife. Bilge sordu: "Çölde kalsan, susuzluktan ölmek üzere olsan ve bu bir yudum su sana verilmese — onu almak için ne verirdin?" Halife düşündü: "Mülkümün yarısını verirdim." "İç öyleyse," dedi bilge. Halife içti.',
+      'Su bitince ikinci soru geldi: "Peki bu içtiğin su vücudundan dışarı çıkmasa, hastalanıp ölecek olsan — çıkması için ne verirdin?" Halife sustu, sonra itiraf etti: "Mülkümün tamamını."',
+      'İbnü\'s-Semmâk başını salladı: "Ey müminlerin emiri! Değeri bir yudum su ile onun bedenden çıkışına denk olan bir saltanat, uğrunda ahiretin satılacağı bir şey değildir."',
+    ],
+    question: 'Bilgenin iki sorusu, saltanatın gerçek değerini neyle ölçtü?',
+    choices: [
+      'İnsanın en çaresiz anındaki bir yudum suyla',
+      'Hazinedeki altının miktarıyla',
+      'Ordunun büyüklüğüyle',
+    ],
+    correct: 0,
+    lesson: 'Sahip olduklarımızın değeri, pazarda değil, çaresizlik anında ortaya çıkar. Bir yudum su, bir nefes hava, bir gece uykusu... Bunlar paha biçilmez nimetlerdir de, biz onları "sıfır maliyetli" sandığımız için şükür listemize bile yazmayız. Kıssa iki şey öğretir: Birincisi, elindeki serveti büyütmeden önce bedenindeki serveti gör. İkincisi, hiçbir dünyalık — velev ki saltanat olsun — bir yudum suya muhtaç olan insanın kibrine gerekçe olamaz.',
+    verse: { text: '"O size istediğiniz her şeyden verdi. Allah\'ın nimetini saymaya kalksanız, sayamazsınız..."', source: 'İbrâhîm 34' },
+  },
+  {
+    id: 'iki-kus', cat: 'hikmet', emoji: '🐦', grad: ['#1E3A2E', '#0F5132'],
+    title: 'İki Kuş',
+    read: 3,
+    paragraphs: [
+      'Rivayet edilir ki bir derviş, tevekkülü öğrenmek istedi: "Kuşlar rızık peşinde koşmuyor; Allah onları doyuruyor. Ben de bir köşeye çekilir, tevekkül ederim." Issız bir yere gitti, oturdu ve beklemeye başladı.',
+      'Bir süre sonra gözü bir kuşa takıldı: Kanadı kırıktı, uçamıyordu. "Bu kuş şimdi nasıl doyacak?" diye düşünürken bir başka kuş çıkageldi; gagasında taşıdığı yiyeceği, kanadı kırık kuşun ağzına bıraktı. Derviş sevindi: "İşte! Allah, oturana da rızkını gönderiyor. Ben doğru yoldayım."',
+      'O günlerde yolu bir bilgeye düştü ve gördüğünü anlattı. Bilge gülümsedi: "Evladım, manzarada iki kuş vardı. Sen neden kanadı kırık kuşu örnek aldın? Neden rızkı taşıyan kuş olmayı seçmedin?"',
+      '"Veren el, alan elden hayırlıdır. Tevekkül, kanadın sağlamken kırık gibi yaşamak değil; kanadını sonuna kadar çırpıp sonucu Allah\'a bırakmaktır. Kırık kanatlıya yiyecek taşıyan o kuş da tevekkül ediyordu — hem de en güzelinden."',
+    ],
+    question: 'Bilgeye göre dervişin yanlışı neydi?',
+    choices: [
+      'Manzaradaki iki kuştan güçsüz olanı örnek alması',
+      'Kuşları izleyerek vakit kaybetmesi',
+      'Issız yere gitmesi',
+    ],
+    correct: 0,
+    lesson: 'Aynı manzaradan iki ders çıkar: Biri "otur, beklersen gelir" der; öbürü "kalk, sen de birine taşı" der. Peygamber Efendimiz (s.a.v.) "Üstteki (veren) el, alttaki (alan) elden hayırlıdır" buyurmuştur (Buhârî, Zekât 18). Gerçek tevekkül pasiflik değildir; deveyi bağlayıp Allah\'a güvenmektir, tohumu ekip rahmeti beklemektir, kanat çırpıp rüzgârı O\'na bırakmaktır. Gücün yettiği sürece taşıyan kuş ol — taşıyamadığın gün, taşıyanı sana gönderecek olan zaten O\'dur.',
+    verse: { text: '"...Kim Allah\'a tevekkül ederse, O ona yeter..."', source: 'Talâk 3' },
+  },
 ];
 
 // ═══════════════ 💎 HİKMET CEVHERLERİ ═══════════════
@@ -492,6 +532,8 @@ export const STORY_GEMS = {
   'tuz':        { emoji: '🧂', name: 'Genişlik Mührü',   hue: '#06B6D4' },
   'uc-soru':    { emoji: '⏰', name: 'Şimdi Mührü',      hue: '#8B5CF6' },
   'kandil':     { emoji: '🏮', name: 'Işık Mührü',       hue: '#EAB308' },
+  'bir-yudum-su': { emoji: '💧', name: 'Nimet Cevheri',  hue: '#0EA5E9' },
+  'iki-kus':    { emoji: '🐦', name: 'Gayret Cevheri',   hue: '#22C55E' },
 };
 
 // ═══════════════ 🤲 HAYATA TAŞI ═══════════════
@@ -514,6 +556,8 @@ export const STORY_APPLY = {
   'tuz':        'Bugün canını sıkan şeye "neden ben?" yerine "bununla nasıl genişlerim?" diye sor ve tek cümle cevap yaz.',
   'uc-soru':    'Sonraya bıraktığın bir iyiliği (mesaj, ziyaret, özür, sadaka) bugün — şimdi — yap.',
   'kandil':     'Bildiğin faydalı bir şeyi bugün bir kişiyle paylaş; kandilini evde bırakma.',
+  'bir-yudum-su': 'Bugün su içerken bir kez dur ve "bu yudum için elhamdülillah" de — bedeli saltanat olan yudum için.',
+  'iki-kus':    'Bugün "taşıyan kuş" ol: Bir ihtiyaç sahibine küçük de olsa somut bir yardım ulaştır.',
 };
 
 export default STORIES;
