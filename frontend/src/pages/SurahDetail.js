@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import PreReadingDua from '../components/PreReadingDua';
 import MushafReader from '../components/MushafReader';
+import { getWordMeal, hasWordMeal } from '../data/kelimeMeal';
 import api from '../api';
 
 // "Kaldığın yer" kaydı — QuranList'teki Devam Et kartı bunu okur
@@ -364,7 +365,10 @@ export default function SurahDetail() {
       {showMushaf && (
         <MushafReader surah={surah} initialVerse={targetAyah.current || 1}
           onClose={() => setShowMushaf(false)}
-          onPosition={(ayah) => { targetAyah.current = ayah; saveLastRead(surahNumber, surah?.name, ayah); }} />
+          onPosition={(sNo, sName, ayah) => {
+            if (Number(sNo) === Number(surahNumber)) targetAyah.current = ayah;
+            saveLastRead(sNo, sName, ayah);
+          }} />
       )}
 
       {/* Premium Header */}
@@ -413,6 +417,11 @@ export default function SurahDetail() {
               🕌 Mushaf Görünümü
             </button>
           </motion.div>
+          {hasWordMeal(surahNumber) && (
+            <p className="text-[10px] text-center mb-3 -mt-1" style={{ color: '#ec4899' }}>
+              🔤 Bu surede ayetlerin altında "Kelime Meal" sekmesi var — ibare ibare açıklamalı meal
+            </p>
+          )}
 
           {/* Audio Player Card */}
           <motion.div
@@ -597,6 +606,7 @@ export default function SurahDetail() {
               <div className="flex gap-1.5 mt-4 pt-3 overflow-x-auto scrollbar-hide" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
                 {[
                   { id: 'meal', label: txt.meal, icon: BookOpen, color: '#3b82f6' },
+                  ...(getWordMeal(surahNumber, verse.number) ? [{ id: 'kelime', label: 'Kelime Meal', icon: Languages, color: '#ec4899' }] : []),
                   { id: 'tafsir', label: txt.tafsir, icon: BookMarked, color: '#f59e0b' },
                   { id: 'ai-tafsir', label: 'AI Tefsir', icon: Sparkles, color: '#8b5cf6' },
                   { id: 'kissa', label: txt.kissa, icon: Sparkles, color: theme.gold },
@@ -635,6 +645,48 @@ export default function SurahDetail() {
                     )}
                   </motion.div>
                 )}
+              </AnimatePresence>
+
+              {/* Kelime Meal Tab — ibare ibare açıklamalı meal */}
+              <AnimatePresence>
+                {currentTab === 'kelime' && (() => {
+                  const segments = getWordMeal(surahNumber, verse.number);
+                  if (!segments) return null;
+                  return (
+                    <motion.div className="mt-3 rounded-xl p-4" style={{ background: '#ec489908', border: '1px solid #ec489915' }}
+                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Languages size={14} style={{ color: '#ec4899' }} />
+                        <span className="text-xs font-semibold" style={{ color: '#ec4899' }}>Kelime Kelime Açıklamalı Meal</span>
+                        <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
+                      </div>
+                      <div dir="rtl" className="flex flex-wrap gap-x-1 gap-y-3 justify-start">
+                        {segments.map((seg, si) => (
+                          <div key={si} className="text-center px-2.5 py-2 rounded-xl min-w-[72px] max-w-full"
+                            style={{ background: si % 2 === 0 ? '#ec48990a' : `${theme.gold}06` }}>
+                            <p className="text-[1.45rem] leading-[1.9] mb-1"
+                              style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: si % 2 === 0 ? '#f472b6' : `${theme.textPrimary}f0` }}>
+                              {seg.ar}
+                            </p>
+                            <p dir="ltr" className="text-[11.5px] font-semibold leading-snug"
+                              style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>
+                              {seg.tr}
+                            </p>
+                            {seg.q && (
+                              <p dir="ltr" className="text-[9.5px] italic mt-0.5" style={{ color: si % 2 === 0 ? '#f472b6aa' : theme.textSecondary }}>
+                                {seg.q}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[9px] mt-3 pt-2 text-center" style={{ color: theme.textSecondary, borderTop: `1px solid ${theme.cardBorder}` }}>
+                        İbare ibare karşılıklar anlama ve ezber desteği içindir; bütünlüklü anlam için Meal sekmesine bakınız.
+                      </p>
+                    </motion.div>
+                  );
+                })()}
               </AnimatePresence>
 
               {/* Tafsir Tab */}
