@@ -7,6 +7,13 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SECTIONS = [
   {
+    title: '🛤️ Yolculuğun',
+    items: [
+      { path: '/yol', icon: '🛤️', title: 'Nur Yolu', desc: 'Sana özel günlük plan, seri ve mertebeler', color: '#C8A55A' },
+      { path: '/hifz', icon: '📿', title: 'Ezber Asistanı', desc: 'Aralıklı tekrarla kalıcı sure ezberi', color: '#10B981' },
+    ],
+  },
+  {
     title: '🎮 Oyun & Yarışma',
     items: [
       { path: '/games', icon: '🎡', title: 'Çarkıfelek', desc: 'Çevir, soruyu bil, XP kazan', color: '#10B981' },

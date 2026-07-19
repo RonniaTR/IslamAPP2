@@ -9,6 +9,49 @@ import { useTTS, shareOrCopy } from '../hooks/useShared';
 import { fetchWithCache } from '../services/cache';
 import { awardXPOnce } from '../services/gamification';
 import EmotionWidget from '../components/EmotionWidget';
+import { getProfile as getNurProfile, getTodayPlan, isTaskDone, getStreak, getStage } from '../services/pathEngine';
+
+// 🛤️ Nur Yolu özet kartı — ana sayfanın omurga girişi
+function NurYoluCard({ theme }) {
+  const navigate = useNavigate();
+  const profile = getNurProfile();
+  const plan = profile ? getTodayPlan() : null;
+  const done = plan ? plan.tasks.filter(t => isTaskDone(plan, t)).length : 0;
+  const total = plan ? plan.tasks.length : 0;
+  const streak = getStreak();
+  const stage = getStage();
+  return (
+    <button onClick={() => navigate('/yol')}
+      className="w-full text-left rounded-2xl p-4 relative overflow-hidden active:scale-[0.98] transition-transform"
+      style={{ background: `linear-gradient(120deg, ${theme.gold}16, ${theme.surface})`, border: `1.5px solid ${theme.gold}35` }}>
+      <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full opacity-20 pointer-events-none"
+        style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
+      <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: theme.gold }}>🛤️ Nur Yolu</p>
+      {!profile ? (
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-black" style={{ color: theme.textPrimary }}>Sana özel günlük yolunu çizelim</p>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>4 soruluk değerlendirme · 1 dakika</p>
+          </div>
+          <span className="shrink-0 px-3.5 py-2 rounded-xl text-xs font-black" style={{ background: theme.gold, color: '#0A1F14' }}>Başla →</span>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-black" style={{ color: theme.textPrimary }}>
+              {stage.current.emoji} {stage.current.name} · Bugün {done}/{total} görev
+            </p>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>🔥 {streak} gün seri · dokun ve yoluna devam et</p>
+          </div>
+          <div className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xs font-black"
+            style={{ border: `3px solid ${done >= total && total > 0 ? '#10B981' : theme.gold}`, color: theme.textPrimary }}>
+            {total ? Math.round((done / total) * 100) : 0}%
+          </div>
+        </div>
+      )}
+    </button>
+  );
+}
 import notifications from '../services/notifications';
 import logger from '../services/logger';
 import api from '../api';
@@ -594,6 +637,7 @@ export default function Dashboard() {
       </div>
 
       <div className="hub-grid">
+        <div className="hub-span"><NurYoluCard theme={theme} /></div>
         <div className="hub-span"><PrayerHero prayerTimes={prayerTimes} theme={theme} t={t} /></div>
         <QuickActions theme={theme} t={t} />
         <div className="hub-span"><EmotionWidget theme={theme} /></div>

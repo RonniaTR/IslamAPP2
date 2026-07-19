@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, MessageCircle, Compass, Settings, ScrollText, Heart, Gamepad2 } from 'lucide-react';
+import { Home, BookOpen, MessageCircle, Compass, Settings, Heart, Gamepad2, Route } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -42,8 +42,8 @@ export default memo(function Layout() {
   const safeT = t || {};
   const tabs = useMemo(() => [
     { path: '/', icon: Home, label: safeT.home || 'Ana Sayfa' },
+    { path: '/yol', icon: Route, label: 'Yol' },
     { path: '/quran', icon: BookOpen, label: safeT.quran || "Kur'an" },
-    { path: '/hadith', icon: ScrollText, label: safeT.hadith || 'Hadis' },
     { path: '/games', icon: Gamepad2, label: safeT.games || 'Oyun' },
     { path: '/fiqh', icon: Heart, label: 'İbadet' },
     { path: '/discover', icon: Compass, label: safeT.explore || 'Keşfet' },
