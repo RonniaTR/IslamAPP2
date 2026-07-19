@@ -593,3 +593,6 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
   padding: 0 0.15em;
   user-select: none;
 }
+
+/* Yıldız parıltısı (Gece Modu + Nur Yolu) */
+@keyframes nightTwinkle { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.85; } }

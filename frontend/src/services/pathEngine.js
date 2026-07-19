@@ -110,6 +110,138 @@ const TASKS = {
 };
 export const TASK_POOL = TASKS;
 
+// ─── Haftalık tema müfredatı ───
+// Yol, haftalara bölünmüş temalarla ilerler; her temanın bir "yıldız
+// görevi" vardır ve o hafta plana öncelikli girer. Ayet mealleri özgün
+// ifadeyle, kaynaklı verilmiştir.
+export const WEEKLY_THEMES = [
+  { id: 'niyet',  emoji: '🌱', title: 'Niyet ve Başlangıç', focus: 'muhasebe',
+    verse: '"Ameller ancak niyetlere göredir..."', source: "Buhârî, Bedü'l-Vahy 1",
+    desc: 'Bu hafta kalbi ayarlıyoruz: her işin başı niyet.' },
+  { id: 'namaz',  emoji: '🕌', title: 'Namazla Diriliş', focus: 'niyet',
+    verse: '"Şüphesiz namaz, hayâsızlıktan ve kötülükten alıkoyar."', source: 'Ankebût 45',
+    desc: 'Bu hafta vakitlerin etrafında bir hayat kuruyoruz.' },
+  { id: 'quran',  emoji: '📖', title: "Kur'an'la Bağ", focus: 'quran',
+    verse: '"Andolsun biz Kur\'an\'ı, düşünüp öğüt almak için kolaylaştırdık..."', source: 'Kamer 17',
+    desc: 'Bu hafta her gün Kitab\'ımızla buluşuyoruz.' },
+  { id: 'zikir',  emoji: '📿', title: 'Dilin Zikri', focus: 'zikir',
+    verse: '"...Bilesiniz ki kalpler ancak Allah\'ı anmakla huzur bulur."', source: "Ra'd 28",
+    desc: 'Bu hafta dili ve kalbi zikirle yumuşatıyoruz.' },
+  { id: 'ahlak',  emoji: '🌿', title: 'Güzel Ahlak', focus: 'kissa',
+    verse: '"Ve sen elbette yüce bir ahlâk üzeresin."', source: 'Kalem 4',
+    desc: 'Bu hafta kıssalardan karaktere yol çiziyoruz.' },
+  { id: 'sukur',  emoji: '🌸', title: 'Şükür ve Sabır', focus: 'makale',
+    verse: '"...Andolsun, şükrederseniz elbette size (nimetimi) artırırım..."', source: 'İbrâhîm 7',
+    desc: 'Bu hafta nimeti görmeyi ve zorlukta durmayı öğreniyoruz.' },
+  { id: 'ilim',   emoji: '🕯️', title: 'İlim Yolu', focus: 'oyun',
+    verse: '"...De ki: Rabbim, ilmimi artır."', source: 'Tâhâ 114',
+    desc: 'Bu hafta bilgiyi tazeliyor, öğrendiğini sınıyorsun.' },
+  { id: 'ezber',  emoji: '💎', title: 'Ezber ve Sebat', focus: 'hifz',
+    verse: '"Andolsun biz Kur\'an\'ı, düşünüp öğüt almak için kolaylaştırdık. Öğüt alan yok mu?"', source: 'Kamer 22',
+    desc: 'Bu hafta ayetleri kalbe nakşediyoruz — az ama devamlı.' },
+];
+
+export function getWeekTheme(profile = getProfile()) {
+  if (!profile) return WEEKLY_THEMES[0];
+  const day = Math.max(0, Math.floor((Date.now() - (profile.createdAt || Date.now())) / 86400000));
+  const week = Math.floor(day / 7) % WEEKLY_THEMES.length;
+  return { ...WEEKLY_THEMES[week], weekNo: Math.floor(day / 7) + 1 };
+}
+
+// ─── Günün sözü (âlim sözleri + hadisler, kaynaklı, dönüşümlü) ───
+export const DAILY_QUOTES = [
+  { text: 'İlim, amelle güzelleşir; amel, ihlasla değer kazanır.', by: 'İmam Şâfiî (nakledilir)' },
+  { text: "Az da olsa devamlı olan amel, Allah'a en sevimli olandır.", by: 'Buhârî, Rikāk 18' },
+  { text: 'Kolaylaştırınız, zorlaştırmayınız; müjdeleyiniz, nefret ettirmeyiniz.', by: 'Buhârî, İlim 11' },
+  { text: 'İnsanların en hayırlısı, insanlara en faydalı olandır.', by: 'Hadis (Taberânî, rivayet)' },
+  { text: 'Nerede olursan ol, Allah\'a karşı gelmekten sakın ve kötülüğün ardından bir iyilik yap ki onu silsin.', by: 'Tirmizî, Birr 55' },
+  { text: 'Sabır, ilk sarsıntı anındadır.', by: 'Buhârî, Cenâiz 32' },
+  { text: 'Temizlik imanın yarısıdır.', by: 'Müslim, Tahâret 1' },
+  { text: 'Mümin, bir delikten iki kez sokulmaz.', by: 'Buhârî, Edeb 83' },
+  { text: 'Kalpler de bedenler gibi yorulur; onları hikmet sözleriyle dinlendirin.', by: 'Hz. Ali (r.a.) — nakledilir' },
+  { text: 'Dünya ahiretin tarlasıdır.', by: 'Meşhur hikmet sözü' },
+];
+export function getDailyQuote() {
+  const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return DAILY_QUOTES[doy % DAILY_QUOTES.length];
+}
+
+// ─── Günün duası (Arapça + okunuş/meal + kaynak) ───
+export const DAILY_DUAS = [
+  { ar: 'رَبِّ زِدْنِي عِلْمًا', tr: 'Rabbim! İlmimi artır.', source: 'Tâhâ 114' },
+  { ar: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ', tr: 'Rabbimiz! Bize dünyada da iyilik ver, ahirette de iyilik ver; bizi ateş azabından koru.', source: 'Bakara 201' },
+  { ar: 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي', tr: 'Rabbim! Göğsüme genişlik ver, işimi kolaylaştır.', source: 'Tâhâ 25-26' },
+  { ar: 'يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ', tr: 'Ey kalpleri evirip çeviren! Kalbimi dinin üzere sabit kıl.', source: 'Tirmizî, Deavât 89' },
+  { ar: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلًا مُتَقَبَّلًا', tr: "Allah'ım! Senden faydalı ilim, temiz rızık ve kabul olunmuş amel isterim.", source: 'İbn Mâce, İkāmet 32' },
+];
+export function getDailyDua() {
+  const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return DAILY_DUAS[doy % DAILY_DUAS.length];
+}
+
+// ─── Nur Yolu rozetleri (mevcut modül izlerinden hesaplanır) ───
+export const NUR_BADGES = [
+  { id: 'ilk-adim',  emoji: '👣', name: 'İlk Adım',      desc: 'İlk görevini tamamla',
+    test: (ctx) => ctx.anyDone },
+  { id: 'tam-gun',   emoji: '☀️', name: 'Tam Gün',       desc: 'Bir günün tüm görevlerini bitir',
+    test: (ctx) => ctx.fullDays >= 1 },
+  { id: 'seri-7',    emoji: '🔥', name: 'Yedi Kandil',   desc: '7 gün üst üste yolda kal',
+    test: (ctx) => ctx.streak >= 7 },
+  { id: 'fidan',     emoji: '🪴', name: 'Fidan',         desc: '7 tam gün doldur',
+    test: (ctx) => ctx.fullDays >= 7 },
+  { id: 'cinar',     emoji: '🌲', name: 'Çınar',         desc: '30 tam gün doldur',
+    test: (ctx) => ctx.fullDays >= 30 },
+  { id: 'ezber-1',   emoji: '📿', name: 'İlk Nakış',     desc: 'İlk ayetini sağlamlaştır',
+    test: (ctx) => ctx.solidAyah >= 1 },
+  { id: 'ezber-sure',emoji: '💎', name: 'Sure Tamam',    desc: 'Bir sureyi baştan sona sağlamlaştır',
+    test: (ctx) => ctx.fullSurah },
+  { id: 'cevher-5',  emoji: '🌌', name: 'Cevher Avcısı', desc: '5 hikmet cevheri topla',
+    test: (ctx) => ctx.gems >= 5 },
+  { id: 'okur',      emoji: '📚', name: 'Okur',          desc: '5 makale bitir',
+    test: (ctx) => ctx.articles >= 5 },
+  { id: 'muhasebeci',emoji: '📔', name: 'Muhasebeci',    desc: '7 gün amel defteri doldur',
+    test: (ctx) => ctx.journal >= 7 },
+];
+
+export function getBadges() {
+  const hist = getHistory();
+  let fullSurah = false, solidAyah = 0;
+  try {
+    const hs = load('hifz_state', {});
+    const bySurah = {};
+    Object.entries(hs).forEach(([k, c]) => {
+      if ((c.interval || 0) >= 7) {
+        solidAyah += 1;
+        const s = k.split(':')[0];
+        bySurah[s] = (bySurah[s] || 0) + 1;
+      }
+    });
+    const VERSES = { 1: 7, 103: 3, 105: 5, 106: 4, 107: 7, 108: 3, 109: 6, 110: 3, 111: 5, 112: 4, 113: 5, 114: 6 };
+    fullSurah = Object.entries(bySurah).some(([s, n]) => VERSES[s] && n >= VERSES[s]);
+  } catch { /* ignore */ }
+  const ctx = {
+    anyDone: Object.values(hist).some(h => h.done > 0),
+    fullDays: getFullDays(),
+    streak: getStreak(),
+    solidAyah, fullSurah,
+    gems: Object.keys(load('gc_gems', {})).length,
+    articles: (load('lib_read', []) || []).length,
+    journal: (load('journal_entries', []) || []).length,
+  };
+  return NUR_BADGES.map(b => ({ ...b, earned: (() => { try { return !!b.test(ctx); } catch { return false; } })() }));
+}
+
+// ─── Mertebe atlama kutlaması (bir kez gösterilir) ───
+export function checkStageCelebration() {
+  const stage = getStage();
+  const seen = load('nur_stage_seen', 0);
+  if (stage.current.id > seen) {
+    save('nur_stage_seen', stage.current.id);
+    return stage.current.id > 0 ? stage.current : null; // Tohum için kutlama yok
+  }
+  return null;
+}
+
 // ─── Günlük plan üretimi (deterministik) ───
 export function generatePlan(profile) {
   const count = profile.sure === 'kisa' ? 3 : profile.sure === 'orta' ? 4 : 5;
@@ -129,6 +261,14 @@ export function generatePlan(profile) {
   extras.push('oyun', 'zikir');
   if (profile.hedef === 'ezber' && !ids.includes('hifz')) extras.unshift('hifz');
   for (const e of extras) { if (ids.length >= count) break; if (!ids.includes(e)) ids.push(e); }
+  // Haftanın yıldız görevi plana öncelikli girer (seviyeye uygunsa)
+  const focus = getWeekTheme(profile).focus;
+  const blocked = (profile.quran === 'yok' || profile.quran === 'elifba') && (focus === 'quran' || focus === 'hifz');
+  if (TASKS[focus] && !ids.includes(focus) && !blocked) {
+    if (ids.length < count) ids.push(focus);
+    else if (ids[ids.length - 1] !== 'muhasebe') ids[ids.length - 1] = focus;
+    else if (focus !== 'muhasebe') ids[1] = focus;
+  }
   return ids;
 }
 
@@ -223,9 +363,10 @@ export function getStage() {
 }
 
 const pathEngine = {
-  ASSESSMENT, TASK_POOL, STAGES,
+  ASSESSMENT, TASK_POOL, STAGES, WEEKLY_THEMES, DAILY_QUOTES, DAILY_DUAS, NUR_BADGES,
   getProfile, saveProfile, resetProfile,
   getTodayPlan, isTaskDone, toggleTask,
   getHistory, getStreak, getFullDays, getStage, syncHistory, todayKey,
+  getWeekTheme, getDailyQuote, getDailyDua, getBadges, checkStageCelebration,
 };
 export default pathEngine;
