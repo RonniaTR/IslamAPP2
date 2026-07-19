@@ -45,6 +45,7 @@ const LibraryPage = lazy(() => import('./pages/LibraryPage'));
 const JournalPage = lazy(() => import('./pages/JournalPage'));
 const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 const ElifBaPage = lazy(() => import('./pages/ElifBaPage'));
+const NightPage = lazy(() => import('./pages/NightPage'));
 
 // --- DEEN CONNECT SAYFALARI ---
 const JourneyTracker = lazy(() => import('./pages/JourneyTracker'));
@@ -89,6 +90,7 @@ function AppRouter() {
             <Route path="/journal" element={<PageTransition><JournalPage /></PageTransition>} />
             <Route path="/stories" element={<PageTransition><StoriesPage /></PageTransition>} />
             <Route path="/elifba" element={<PageTransition><ElifBaPage /></PageTransition>} />
+            <Route path="/night" element={<PageTransition><NightPage /></PageTransition>} />
             <Route path="/success" element={<PageTransition><SuccessScreen /></PageTransition>} />
             <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
             <Route path="/profile/knowledge" element={<PageTransition><KnowledgeProfile /></PageTransition>} />

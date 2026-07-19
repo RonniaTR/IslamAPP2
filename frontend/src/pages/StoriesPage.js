@@ -1,14 +1,19 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Pause, Loader, Sparkles, Check, Star, ChevronRight, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Volume2, Pause, Loader, Sparkles, Check, Star, ChevronRight, ChevronDown, Lightbulb, Moon, Gem, HeartHandshake } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTTS } from '../hooks/useShared';
 import { awardXPOnce } from '../services/gamification';
-import { STORIES, STORY_CATEGORIES } from '../data/stories';
+import { STORIES, STORY_CATEGORIES, STORY_GEMS, STORY_APPLY } from '../data/stories';
 import Confetti from './games/Confetti';
 
 // 🕯️ İBRETLİK HİKAYELER — kıssa → düşündürücü soru → hikmet.
+// 🌌 Katmanlı kıssalar: paragraflar checkpoint duraklarıyla adım adım açılır;
+//    okur soruya cevap vermeden devamı görünmez, cevaptan sonra "iç görü" açılır.
+// 💎 Her tamamlanan kıssa bir Hikmet Cevheri kazandırır (gc_gems).
+// 🤲 "Hayata Taşı": kıssanın bugün yapılabilir küçük amel önerisi (+8 XP).
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* quota */ } };
 
@@ -21,52 +26,153 @@ function Cover({ s, h = 120 }) {
   );
 }
 
+// ─── Checkpoint durağı: soru → iç görü → devam ───
+function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl p-4 my-5 relative overflow-hidden"
+      style={{ background: `linear-gradient(160deg, #312E8114, ${theme.surface})`, border: `1.5px solid #818CF845` }}>
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5" style={{ color: '#818CF8' }}>
+        <Sparkles size={12} /> Durak {idx + 1} · Birlikte düşünelim
+      </p>
+      <p className="text-[15px] font-bold mb-3" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{cp.q}</p>
+      {!answered ? (
+        <div className="space-y-2">
+          {cp.choices.map((c, i) => (
+            <button key={i} onClick={() => onPick(i)}
+              className="w-full text-left p-3 rounded-xl text-sm font-semibold transition-all active:scale-98"
+              style={{ background: `${theme.textSecondary}0c`, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary }}>
+              {c}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="space-y-2 mb-3">
+            {cp.choices.map((c, i) => {
+              const isCorrect = i === cp.correct; const chosen = picked === i;
+              return (
+                <div key={i} className="w-full text-left p-3 rounded-xl text-sm font-semibold flex items-center justify-between gap-2"
+                  style={{
+                    background: isCorrect ? '#10B98115' : chosen ? '#EF444412' : 'transparent',
+                    border: `1px solid ${isCorrect ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
+                    color: theme.textPrimary, opacity: isCorrect || chosen ? 1 : 0.5,
+                  }}>
+                  <span>{c}</span>
+                  {isCorrect && <Check size={15} style={{ color: '#10B981', flexShrink: 0 }} />}
+                </div>
+              );
+            })}
+          </div>
+          <div className="rounded-xl p-3.5 mb-3" style={{ background: '#818CF810', border: '1px solid #818CF830' }}>
+            <p className="text-[10px] font-black uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: '#818CF8' }}>
+              <Lightbulb size={11} /> İç görü
+            </p>
+            <p className="text-[13.5px] leading-[1.7]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{cp.insight}</p>
+          </div>
+          <button onClick={onContinue}
+            className="w-full py-3 rounded-xl text-sm font-black flex items-center justify-center gap-1.5 active:scale-98"
+            style={{ background: 'linear-gradient(135deg, #6366F1, #818CF8)', color: '#fff' }}>
+            Kıssanın Devamı <ChevronDown size={15} />
+          </button>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
 export default function StoriesPage() {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const tts = useTTS();
   const [openId, setOpenId] = useState(null);
   const [readIds, setReadIds] = useState(() => load('story_read', []));
-  // Okuma akışı: reading -> question -> lesson
+  const [gems, setGems] = useState(() => load('gc_gems', {}));
+  const [appliedIds, setAppliedIds] = useState(() => load('story_applied', []));
+  // Okuma akışı: reading -> lesson (final soru metin altında)
   const [phase, setPhase] = useState('reading');
   const [picked, setPicked] = useState(null);
   const [celebrate, setCelebrate] = useState(false);
+  const [gemPop, setGemPop] = useState(false);
+  // Katmanlı kıssa durumu
+  const [cpOpen, setCpOpen] = useState(0);            // tamamlanan durak sayısı
+  const [cpPicked, setCpPicked] = useState({});        // durak -> seçilen şık
   const scrollRef = useRef(null);
 
   const story = STORIES.find(s => s.id === openId);
+  const checkpoints = useMemo(() => (story?.checkpoints || []), [story]);
+  const allCpDone = cpOpen >= checkpoints.length;
+  // Görünen paragraf sınırı: sıradaki durağın 'after' indexine kadar
+  const revealLimit = allCpDone ? (story?.paragraphs.length ?? 0) - 1 : checkpoints[cpOpen].after;
 
   const openStory = useCallback((id) => {
     tts.stop(); setOpenId(id); setPhase('reading'); setPicked(null);
+    setCpOpen(0); setCpPicked({}); setGemPop(false);
     const main = document.querySelector('main'); if (main) main.scrollTo({ top: 0 });
   }, [tts]);
 
   const closeStory = useCallback(() => { tts.stop(); setOpenId(null); }, [tts]);
 
+  const finishStory = useCallback(() => {
+    setPhase('lesson');
+    setCelebrate(true);
+    setTimeout(() => setCelebrate(false), 1800);
+    if (!story) return;
+    if (!readIds.includes(story.id)) {
+      const next = [...readIds, story.id];
+      setReadIds(next); save('story_read', next);
+      awardXPOnce(user, `story_${story.id}`, 'hadith_read', { points: story.deep ? 20 : 12, details: story.title });
+    }
+    if (STORY_GEMS[story.id] && !gems[story.id]) {
+      const g = { ...gems, [story.id]: Date.now() };
+      setGems(g); save('gc_gems', g);
+      setTimeout(() => setGemPop(true), 500);
+    }
+  }, [story, readIds, gems, user]);
+
   const pickAnswer = useCallback((i) => {
     if (picked !== null) return;
     setPicked(i);
-    setTimeout(() => {
-      setPhase('lesson');
-      setCelebrate(true);
-      setTimeout(() => setCelebrate(false), 1800);
-      if (story && !readIds.includes(story.id)) {
-        const next = [...readIds, story.id];
-        setReadIds(next); save('story_read', next);
-        awardXPOnce(user, `story_${story.id}`, 'hadith_read', { points: 12, details: story.title });
-      }
-    }, 650);
-  }, [picked, story, readIds, user]);
+    setTimeout(finishStory, 650);
+  }, [picked, finishStory]);
+
+  const pickCheckpoint = useCallback((cpIdx, i) => {
+    setCpPicked(prev => (prev[cpIdx] !== undefined ? prev : { ...prev, [cpIdx]: i }));
+  }, []);
+
+  const applyTask = useCallback(() => {
+    if (!story || appliedIds.includes(story.id)) return;
+    const next = [...appliedIds, story.id];
+    setAppliedIds(next); save('story_applied', next);
+    awardXPOnce(user, `apply_${story.id}`, 'worship_task', { points: 8, details: `Hayata taşı: ${story.title}` });
+  }, [story, appliedIds, user]);
+
+  const listenAtNight = useCallback(() => {
+    if (!story) return;
+    tts.stop();
+    save('night_preset', { type: 'story', id: story.id });
+    navigate('/night');
+  }, [story, tts, navigate]);
 
   const speak = useCallback(() => {
     if (!story) return;
-    const text = [story.title, ...story.paragraphs].join('. ');
+    const text = [story.title, ...story.paragraphs.slice(0, revealLimit + 1)].join('. ');
     tts.speak(text);
-  }, [story, tts]);
+  }, [story, tts, revealLimit]);
 
-  useEffect(() => { if (openId) { const m = document.querySelector('main'); if (m) m.scrollTo({ top: 0 }); } }, [phase, openId]);
+  useEffect(() => { if (openId) { const m = document.querySelector('main'); if (m) m.scrollTo({ top: 0 }); } }, [openId]);
+
+  const gemCount = Object.keys(gems).length;
 
   // ═══ OKUMA GÖRÜNÜMÜ ═══
   if (story) {
+    const gem = STORY_GEMS[story.id];
+    const applyText = STORY_APPLY[story.id];
+    const applied = appliedIds.includes(story.id);
+    const isDeep = !!story.deep;
+    const activeCp = !allCpDone ? checkpoints[cpOpen] : null;
+
     return (
       <div ref={scrollRef} className="min-h-screen pb-28" style={{ background: theme.bg }}>
         {celebrate && <Confetti count={26} />}
@@ -77,11 +183,15 @@ export default function StoriesPage() {
           <button onClick={closeStory} className="absolute top-4 left-4 w-9 h-9 rounded-xl flex items-center justify-center active:scale-90" style={{ background: 'rgba(0,0,0,0.35)' }} aria-label="Geri">
             <ArrowLeft size={18} style={{ color: '#f7e6ae' }} />
           </button>
+          <button onClick={listenAtNight} className="absolute top-4 right-4 h-9 px-3 rounded-xl flex items-center gap-1.5 active:scale-90" style={{ background: 'rgba(0,0,0,0.35)' }} aria-label="Gece modunda dinle">
+            <Moon size={14} style={{ color: '#f7e6ae' }} />
+            <span className="text-[10px] font-black" style={{ color: '#f7e6ae' }}>Gece</span>
+          </button>
         </div>
 
         {/* Başlık */}
         <div className="px-6 pt-6 pb-2 text-center max-w-[42rem] mx-auto">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: theme.gold }}>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: isDeep ? '#818CF8' : theme.gold }}>
             {STORY_CATEGORIES.find(c => c.id === story.cat)?.title}
           </p>
           <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: theme.textPrimary }}>{story.title}</h1>
@@ -95,14 +205,33 @@ export default function StoriesPage() {
             </button>
             <span className="h-px w-10" style={{ background: `${theme.gold}50` }} />
           </div>
+          {isDeep && !allCpDone && (
+            <p className="text-[10px] mt-3 font-bold" style={{ color: '#818CF8' }}>
+              🌌 Katmanlı kıssa · {cpOpen}/{checkpoints.length} durak geçildi — kıssa adım adım açılır
+            </p>
+          )}
         </div>
 
-        {/* Metin */}
+        {/* Metin — katmanlı kıssalarda sınıra kadar */}
         <div className="px-6 pt-4 max-w-[42rem] mx-auto article-body" style={{ fontSize: 17.5, color: `${theme.textPrimary}f0`, '--gold': theme.gold }}>
-          {story.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+          {story.paragraphs.slice(0, revealLimit + 1).map((p, i) => (
+            <motion.p key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>{p}</motion.p>
+          ))}
         </div>
 
-        {/* Düşündürücü soru */}
+        {/* Aktif checkpoint durağı */}
+        {activeCp && (
+          <div className="px-6 max-w-[42rem] mx-auto">
+            <Checkpoint key={cpOpen} cp={activeCp} idx={cpOpen}
+              answered={cpPicked[cpOpen] !== undefined} picked={cpPicked[cpOpen]}
+              onPick={(i) => pickCheckpoint(cpOpen, i)}
+              onContinue={() => setCpOpen(n => n + 1)}
+              theme={theme} />
+          </div>
+        )}
+
+        {/* Final soru + hikmet — duraklar bitince */}
+        {allCpDone && (
         <div className="px-6 max-w-[42rem] mx-auto mt-2">
           <AnimatePresence mode="wait">
             {phase !== 'lesson' ? (
@@ -150,18 +279,72 @@ export default function StoriesPage() {
                 )}
                 <div className="flex items-center gap-1.5 mt-4 relative">
                   <Check size={14} style={{ color: '#10B981' }} />
-                  <span className="text-xs font-bold" style={{ color: '#10B981' }}>Okundu · +12 XP</span>
+                  <span className="text-xs font-bold" style={{ color: '#10B981' }}>Okundu · +{story.deep ? 20 : 12} XP</span>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* 💎 Kazanılan cevher */}
+          {phase === 'lesson' && gem && (
+            <AnimatePresence>
+              {gemPop && (
+                <motion.div initial={{ opacity: 0, scale: 0.6, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ type: 'spring', bounce: 0.55 }}
+                  className="rounded-2xl p-4 mt-4 flex items-center gap-3 relative overflow-hidden"
+                  style={{ background: `linear-gradient(135deg, ${gem.hue}14, ${theme.surface})`, border: `1.5px solid ${gem.hue}55` }}>
+                  <motion.span className="text-4xl" animate={{ rotate: [0, -8, 8, 0] }} transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 1.5 }}
+                    style={{ filter: `drop-shadow(0 0 14px ${gem.hue}80)` }}>{gem.emoji}</motion.span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1" style={{ color: gem.hue }}>
+                      <Gem size={11} /> Hikmet Cevheri kazandın
+                    </p>
+                    <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{gem.name}</p>
+                    <p className="text-[10px]" style={{ color: theme.textSecondary }}>Koleksiyon: {gemCount}/{Object.keys(STORY_GEMS).length} cevher</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+
+          {/* 🤲 Hayata Taşı */}
+          {phase === 'lesson' && applyText && (
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="rounded-2xl p-4 mt-4" style={{ background: '#10B9810c', border: '1.5px solid #10B98135' }}>
+              <p className="text-[10px] font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#10B981' }}>
+                <HeartHandshake size={12} /> Hayata Taşı · Bugünün küçük ameli
+              </p>
+              <p className="text-[13.5px] leading-[1.7] mb-3" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{applyText}</p>
+              <button onClick={applyTask} disabled={applied}
+                className="w-full py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 active:scale-98"
+                style={applied
+                  ? { background: '#10B98115', border: '1px solid #10B98140', color: '#10B981' }
+                  : { background: 'linear-gradient(135deg, #059669, #10B981)', color: '#fff' }}>
+                {applied ? (<><Check size={13} /> Hayata taşındı</>) : 'Uyguladım · +8 XP'}
+              </button>
+            </motion.div>
+          )}
+
+          {/* 🌙 Gece modunda dinle */}
+          {phase === 'lesson' && (
+            <button onClick={listenAtNight}
+              className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left active:scale-98 transition-transform mt-4"
+              style={{ background: 'linear-gradient(135deg, #1E1B4B, #312E81)', border: '1px solid #6366F150' }}>
+              <span className="text-2xl">🌙</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-black" style={{ color: '#E0E7FF' }}>Gece Modunda Dinle</p>
+                <p className="text-[10px]" style={{ color: '#A5B4FC' }}>Ney eşliğinde sesli okuma + uyku zamanlayıcısı</p>
+              </div>
+              <ChevronRight size={15} style={{ color: '#A5B4FC' }} />
+            </button>
+          )}
 
           {/* Sıradaki hikaye */}
           {phase === 'lesson' && (() => {
             const next = STORIES.find(s => !readIds.includes(s.id) && s.id !== story.id) || STORIES.find(s => s.id !== story.id);
             if (!next) return null;
             return (
-              <button onClick={() => openStory(next.id)} className="w-full flex items-center gap-3 p-3 rounded-2xl text-left active:scale-98 transition-transform mt-4"
+              <button onClick={() => openStory(next.id)} className="w-full flex items-center gap-3 p-3 rounded-2xl text-left active:scale-98 transition-transform mt-3"
                 style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
                 <span className="text-2xl">{next.emoji}</span>
                 <div className="flex-1 min-w-0">
@@ -173,6 +356,7 @@ export default function StoriesPage() {
             );
           })()}
         </div>
+        )}
       </div>
     );
   }
@@ -188,25 +372,80 @@ export default function StoriesPage() {
         <p className="text-xs" style={{ color: theme.textSecondary }}>Bir kıssa, bir soru, bir hikmet · {readIds.length}/{STORIES.length} okundu</p>
       </div>
 
+      {/* 💎 Cevher rafı */}
+      <div className="px-5 mb-5">
+        <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #312E8118, ${theme.surface})`, border: `1px solid ${theme.cardBorder}` }}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}>
+              <Gem size={13} style={{ color: '#818CF8' }} /> Hikmet Cevherlerin
+            </p>
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: '#818CF818', color: '#818CF8' }}>
+              {gemCount}/{Object.keys(STORY_GEMS).length}
+            </span>
+          </div>
+          {gemCount === 0 ? (
+            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Her tamamlanan kıssa bir cevher kazandırır. İlk cevherin seni bekliyor ✨</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {Object.entries(STORY_GEMS).map(([sid, g]) => {
+                const owned = !!gems[sid];
+                return (
+                  <span key={sid} title={owned ? g.name : '???'} className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+                    style={{
+                      background: owned ? `${g.hue}18` : `${theme.textSecondary}0a`,
+                      border: `1px solid ${owned ? `${g.hue}55` : theme.cardBorder}`,
+                      filter: owned ? 'none' : 'grayscale(1) opacity(0.35)',
+                    }}>{g.emoji}</span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 🌙 Gece Modu girişi */}
+      <div className="px-5 mb-6">
+        <button onClick={() => { save('night_preset', null); navigate('/night'); }}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl text-left active:scale-98 transition-transform relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #0F0D2E, #1E1B4B, #312E81)', border: '1px solid #6366F145' }}>
+          <span className="absolute top-2 right-8 text-[8px]" style={{ color: '#C7D2FE' }}>✦</span>
+          <span className="absolute top-5 right-16 text-[6px]" style={{ color: '#A5B4FC' }}>✦</span>
+          <span className="absolute bottom-3 right-24 text-[7px]" style={{ color: '#818CF8' }}>✦</span>
+          <span className="text-3xl">🌙</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-black" style={{ color: '#E0E7FF' }}>Gece Modu</p>
+            <p className="text-[11px]" style={{ color: '#A5B4FC' }}>Ney sesi · sesli kıssa okuma · uyku zamanlayıcısı</p>
+          </div>
+          <ChevronRight size={16} style={{ color: '#A5B4FC' }} />
+        </button>
+      </div>
+
       {STORY_CATEGORIES.map((cat, ci) => {
         const items = STORIES.filter(s => s.cat === cat.id);
         if (!items.length) return null;
+        const isDeepCat = cat.id === 'derin';
         return (
           <motion.div key={cat.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: ci * 0.06 }} className="mb-6">
-            <p className="px-5 text-sm font-black mb-2.5" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{cat.emoji} {cat.title}</p>
+            <div className="px-5 flex items-center gap-2 mb-2.5">
+              <p className="text-sm font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{cat.emoji} {cat.title}</p>
+              {isDeepCat && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider" style={{ background: '#818CF820', color: '#818CF8' }}>Duraklı okuma</span>}
+            </div>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1 md:grid md:grid-cols-3 md:overflow-visible">
               {items.map(s => {
                 const isRead = readIds.includes(s.id);
                 return (
                   <button key={s.id} onClick={() => openStory(s.id)}
                     className="shrink-0 w-48 md:w-auto rounded-2xl overflow-hidden text-left active:scale-97 transition-transform relative"
-                    style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+                    style={{ background: theme.surface, border: `1px solid ${s.deep ? '#6366F140' : theme.cardBorder}` }}>
                     <Cover s={s} />
                     {isRead && <span className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#10B981' }}><Check size={13} color="#fff" /></span>}
+                    {gems[s.id] && STORY_GEMS[s.id] && (
+                      <span className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: 'rgba(0,0,0,0.4)' }}>{STORY_GEMS[s.id].emoji}</span>
+                    )}
                     <div className="p-3">
                       <p className="text-xs font-black leading-snug mb-1" style={{ color: theme.textPrimary }}>{s.title}</p>
                       <p className="text-[10px] flex items-center gap-1" style={{ color: theme.textSecondary }}>
-                        <Star size={9} style={{ color: theme.gold }} /> {s.read} dk · düşündüren son
+                        <Star size={9} style={{ color: theme.gold }} /> {s.read} dk · {s.deep ? `${(s.checkpoints || []).length} durak` : 'düşündüren son'}
                       </p>
                     </div>
                   </button>

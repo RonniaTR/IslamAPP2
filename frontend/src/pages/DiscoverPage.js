@@ -30,7 +30,8 @@ const SECTIONS = [
     items: [
       { path: '/elifba', icon: '🔤', title: 'Elif Ba', desc: 'Kur\'an okumayı sıfırdan öğren', color: '#10B981' },
       { path: '/library', icon: '📚', title: 'Makale Kütüphanesi', desc: 'Okudukça derinleşen yazılar', color: '#10B981' },
-      { path: '/stories', icon: '🕯️', title: 'İbretlik Hikayeler', desc: 'Kıssa, soru, hikmet', color: '#F59E0B' },
+      { path: '/stories', icon: '🕯️', title: 'İbretlik Hikayeler', desc: 'Katmanlı kıssalar, cevher koleksiyonu', color: '#F59E0B' },
+      { path: '/night', icon: '🌙', title: 'Gece Modu', desc: 'Ney, sesli kıssa, uyku zamanlayıcısı', color: '#6366F1' },
       { path: '/quran', icon: '📖', title: 'Kur\'an-ı Kerim', desc: 'Arapça metin + Türkçe meal', color: '#C8A55A' },
       { path: '/hadith', icon: '📜', title: 'Hadis-i Şerifler', desc: 'Buhari, Müslim koleksiyonu', color: '#EF4444' },
       { path: '/bookmarks', icon: '🔖', title: 'Yer İmleri & Cüz', desc: 'Okuma takibi', color: '#6366F1' },

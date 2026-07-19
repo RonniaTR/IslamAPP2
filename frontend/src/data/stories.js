@@ -7,6 +7,7 @@
 //       kullanıcı seçince "Hikmet" açılır (ders + varsa ayet).
 
 export const STORY_CATEGORIES = [
+  { id: 'derin', title: 'Derin Hikmet · Katmanlı', emoji: '🌌' },
   { id: 'ahlak', title: 'Ahlak & Karakter', emoji: '🌿' },
   { id: 'sabir', title: 'Sabır & Şükür', emoji: '⏳' },
   { id: 'hikmet', title: 'Hikmet & Basiret', emoji: '💎' },
@@ -235,6 +236,284 @@ export const STORIES = [
     lesson: 'Çoğumuz, yıllar önce yaşadığımız bir başarısızlığın ipiyle bağlı yaşarız: "Ben zaten beceremem, ben değişemem, benden adam olmaz." O ip belki bir zamanlar gerçekti — ama sen büyüdün, güçlendin, değiştin; inancın ise küçük kaldı. Allah tevbe kapısını hep açık tutar; "geçmişte böyleydim" demek, "hep böyle kalacağım" demek değildir. Seni bağlayan ipi bir kez sınamaya değer — çoğu zaman koparması sandığından kolaydır. Rahmetten ümit kesmemek, o ipi koparmakla başlar.',
     verse: { text: '"...Allah\'ın rahmetinden ümit kesmeyin. Şüphesiz Allah bütün günahları bağışlar."', source: 'Zümer 53' },
   },
+  // ═══════════════ 🌌 DERİN HİKMET · KATMANLI KISSALAR ═══════════════
+  // Bu kıssalar adım adım açılır: paragraflar arasında "checkpoint" durakları
+  // vardır. Okur durağın sorusuna cevap vermeden devamı gösterilmez; cevaptan
+  // sonra kısa bir "iç görü" (insight) kartı açılır. Böylece kıssa pasif
+  // okunmaz, birlikte düşünülür.
+  {
+    id: 'kuyu', cat: 'derin', emoji: '🕳️', grad: ['#111827', '#312E81'],
+    title: 'Kuyudaki Yolcu',
+    read: 6, deep: true,
+    paragraphs: [
+      'Bir yolcu, ıssız bir çölde yürürken arkasından bir aslanın geldiğini fark etti. Kaçacak yer yoktu; az ileride eski bir kuyu gördü ve kendini içine attı. Düşerken kuyunun ağzından sarkan bir dala tutundu ve havada asılı kaldı.',
+      'Aşağı baktı: Kuyunun dibinde kocaman bir yılan, ağzını açmış onu bekliyordu. Yukarı baktı: Aslan kuyunun ağzında dolanıyordu. Ve sonra bir ses duydu — biri beyaz, biri siyah iki fare, tutunduğu dalın kökünü kemiriyordu.',
+      'Tam o sırada gözü, kuyunun duvarındaki küçük bir arı kovanına takıldı. Kovandan bal damlıyordu. Yolcu elini uzattı, parmağıyla baldan aldı ve tattı. Bal o kadar tatlıydı ki — bir anlığına aslanı da, yılanı da, dalı kemiren fareleri de unuttu.',
+      'Bu kıssayı anlatan hikmet ehli şöyle der: O kuyu dünyadır. Aslan ecel, yılan kabirdir. Dal, ömürdür. Biri gündüz biri gece olan o iki fare, tutunduğun ömrü hiç durmadan kemiren zamandır.',
+      'Ya bal? Bal, dünyanın tadıdır: mal, makam, eğlence... Tatlıdır, tatlı olmasında bir kusur da yoktur — kusur, bir damla balın sana dalı, fareleri ve yolculuğun sonunu unutturmasındadır.',
+      'Akıllı yolcu balı tatmaz mı? Tadar. Ama dalın kemirildiğini hiç unutmadan tadar; ve asıl gücünü, kuyudan çıkış yolunu aramaya saklar.',
+    ],
+    checkpoints: [
+      {
+        after: 2,
+        q: 'Yolcu ölümle burun burunayken bir damla bal her şeyi unutturdu. Sence bu bal neyi temsil ediyor olabilir?',
+        choices: ['Dünyanın geçici tatlarını', 'Gerçek kurtuluşu', 'Şans eseri bulunan bir ödülü'],
+        correct: 0,
+        insight: 'Kıssanın sırrı burada: Tehlike hiç kaybolmadı — sadece unutuldu. Dünyanın tadı da böyledir; tehlikeyi ortadan kaldırmaz, yalnızca perdeler.',
+      },
+      {
+        after: 3,
+        q: 'Biri beyaz, biri siyah iki fare dalı kemiriyor. Bu ikili sana neyi düşündürüyor?',
+        choices: ['Gündüz ve gece — yani akıp giden zamanı', 'İyilik ve kötülüğü', 'İki farklı düşmanı'],
+        correct: 0,
+        insight: 'Her sabah ve her akşam, ömür dalından bir lif daha eksilir. Fareleri durduramazsın; ama dala tutunmuşken ne yaptığın tamamen senin elindedir.',
+      },
+    ],
+    question: 'Kıssanın son cümlesi "akıllı yolcu balı tadar ama..." diye bitiyor. Denge nerede kurulur?',
+    choices: [
+      'Dünyadan el etek çekmekte değil; tadarken yolculuğu unutmamakta',
+      'Balı hiç tatmamakta',
+      'Kuyuda kalıcı bir düzen kurmakta',
+    ],
+    correct: 0,
+    lesson: 'İslam dünyayı yasaklamaz; dünyaya "aldanmayı" yasaklar. Nimet ayrı şeydir, gaflet ayrı. Aynı bal, şükürle tadılırsa nimet olur; yolculuğu unutturursa tuzak. Bu kıssayı hatırlamanın pratik yolu şudur: Bir şeyden zevk alırken kendine sor — "Bu tat bana yolculuğumu hatırlatıyor mu, unutturuyor mu?" Cevap, balın hangi tarafta durduğunu söyler.',
+    verse: { text: '"Bilin ki dünya hayatı ancak bir oyun, bir eğlence, bir süs, aranızda bir övünme ve daha çok mal ve evlat sahibi olma yarışıdır..."', source: 'Hadîd 20' },
+  },
+  {
+    id: 'yasli-fidan', cat: 'derin', emoji: '🌳', grad: ['#14352A', '#15803D'],
+    title: 'Ektiler, Yedik',
+    read: 5, deep: true,
+    paragraphs: [
+      'Bir hükümdar, maiyetiyle yoldan geçerken doksanlık bir ihtiyarın toprağa ceviz fidanı diktiğini gördü. Atını durdurdu; manzara ona tuhaf gelmişti. Çünkü ceviz ağacı geç meyve verir — belki yirmi yıl, belki daha fazla.',
+      '"Baba," dedi hükümdar, "bu yaşta ceviz mi dikilir? Bu ağacın meyvesini yiyeceğini mi sanıyorsun?"',
+      'İhtiyar doğruldu, alnındaki teri sildi ve gülümsedi: "Sultanım, biz bugüne kadar dikilmiş ağaçlardan yedik. Bizden öncekiler ekti, biz yedik. Şimdi biz ekiyoruz ki bizden sonrakiler yesin."',
+      'Cevap hükümdarın çok hoşuna gitti; "Aferin!" deyip ihtiyara bir kese altın verdi. İhtiyar keseyi alırken gözleri parladı: "Gördünüz mü sultanım? Herkesin fidanı yirmi yılda meyve verir — benimki daha dikilirken verdi." Hükümdar bu zarafete bir kese daha verdi ve gülerek uzaklaştı.',
+      'O fidanın meyvesini ihtiyar görmedi belki. Ama bugün o kıssayı okuyan herkes, o ihtiyarın diktiği asıl ağacın — bir hikmet cümlesinin — gölgesinde oturuyor.',
+    ],
+    checkpoints: [
+      {
+        after: 1,
+        q: 'Hükümdarın sorusu aslında hepimizin içindeki bir sesin sorusu: "Faydasını görmeyeceksen niye yapasın?" Sen olsan ne cevap verirdin?',
+        choices: ['Fayda sadece "benim görmem" değildir; ekilen her hayır birilerine ulaşır', 'Haklı, bu yaşta boşuna emek', 'Belki mucize olur, erken meyve verir'],
+        correct: 0,
+        insight: 'İhtiyarın cevabını okumadan sen de aynı kapıya vardıysan, kıssanın yarısı zaten kalbinde ekiliymiş demektir.',
+      },
+      {
+        after: 3,
+        q: '"Benimki daha dikilirken meyve verdi" sözündeki ikinci hikmet ne?',
+        choices: ['İhlasla yapılan işin bereketi beklenmedik kapılardan gelir', 'Para her zaman emeğin karşılığıdır', 'Hükümdarlar cömert olmalıdır'],
+        correct: 0,
+        insight: 'İhtiyar altın için dikmedi; ama niyeti sağlam olunca dünyalık da peşinden geldi. Bereket, hesap edilerek değil, ihlasla çağrılır.',
+      },
+    ],
+    question: 'Kıssaya göre "sadaka-i cariye" — kesintisiz hayır — en çok neye benzer?',
+    choices: [
+      'Meyvesini başkalarının yiyeceği bir ağaç dikmeye',
+      'Bir kerelik büyük bir bağışa',
+      'Adının anılacağı bir esere',
+    ],
+    correct: 0,
+    lesson: 'Ömür kısa, ama amelin ömrü uzun olabilir. Öğrettiğin bir bilgi, diktiğin bir ağaç, büyüttüğün bir evlat, yazdığın faydalı bir satır — sen gittikten sonra da senin hesabına akmaya devam eder. "Bugün ne biriktirdim?" sorusunun yanına bir soru daha koy: "Bugün, benden sonraya ne ektim?" Bu sorunun cevabı olan her iş, ölümü küçültür; çünkü amel defterini açık tutar.',
+    verse: { text: '"Şüphesiz ölüleri ancak biz diriltiriz. Onların yaptıkları her işi ve bıraktıkları her izi yazarız."', source: 'Yâsîn 12' },
+  },
+  {
+    id: 'catlak-testi', cat: 'derin', emoji: '🏺', grad: ['#3B1D0A', '#9A3412'],
+    title: 'Çatlak Testi',
+    read: 5, deep: true,
+    paragraphs: [
+      'Bir sucu, her sabah omzundaki sırıkla iki büyük testiyi dereden doldurur, efendisinin evine taşırdı. Testilerden biri kusursuzdu; taşıdığı suyun tamamını eve ulaştırırdı. Diğeri ise çatlaktı; yol boyunca sızdırır, eve yarı dolu varırdı.',
+      'Bu iki yıl boyunca her gün böyle sürdü. Kusursuz testi hâlinden memnundu. Çatlak testi ise utanç içindeydi. Bir gün dayanamayıp sucuya seslendi: "Kendimden utanıyorum. Çatlağımdan su sızdırıyorum, emeğinin yarısı boşa gidiyor. Beni değiştir artık."',
+      'Sucu gülümsedi: "Yarın dönüş yolunda, yolun kenarına bakmanı istiyorum."',
+      'Ertesi gün çatlak testi yol kenarına baktı ve gördü: Yolun kendi tarafı boyunca rengârenk çiçekler açmıştı — öbür tarafta ise hiçbir şey yoktu. Sucu konuştu: "Çatlağını ilk gün fark ettim. Ve senin tarafına çiçek tohumları ektim. İki yıldır her gün, sen farkında olmadan onları suladın. Ben o çiçeklerle efendimin sofrasını süsledim. Sen \'kusur\' dediğin şeyle, kimsenin yapamadığını yaptın."',
+    ],
+    checkpoints: [
+      {
+        after: 1,
+        q: 'Çatlak testi kendini "yarım" görüyor. Bu bakışın asıl eksiği ne olabilir?',
+        choices: ['Resmin tamamını görmemesi — sızan suyun nereye gittiğini bilmemesi', 'Yeterince çabalamaması', 'Kusurunu gizlemeyi bilmemesi'],
+        correct: 0,
+        insight: 'Kendimiz hakkındaki en acımasız yargıları, çoğu zaman resmin sadece bir köşesine bakarak veririz. Sızan suyun düştüğü toprağı görmeyiz.',
+      },
+      {
+        after: 3,
+        q: 'Sucu çatlağı tamir etmedi; onun yoluna tohum ekti. Bu sana ne söylüyor?',
+        choices: ['Hikmet, kusuru yok saymak değil; onu hayra dönüştürecek yolu bulmaktır', 'Kusurlar asla düzeltilmemelidir', 'Sucu tembellik etmiştir'],
+        correct: 0,
+        insight: 'Allah kullarını farklı "çatlaklarla" yaratmıştır. Kimi çatlak sabırla, kimi tevazuyla, kimi başkasının derdini anlamakla çiçek açtırır.',
+      },
+    ],
+    question: 'Bu kıssadan sonra kendi "çatlağına" nasıl bakmalısın?',
+    choices: [
+      '"Bu kusurum hangi çiçeği suluyor olabilir?" diye sormalıyım',
+      'Kusursuz olana kadar kendimi geri çekmeliyim',
+      'Kusurumu kimseye göstermemeliyim',
+    ],
+    correct: 0,
+    lesson: 'Utandığın şey, hikâyenin sonu değil; çoğu zaman hikâyenin gizli kahramanıdır. Yaşadığın zorluk seni başkalarının derdini anlayan biri yaptıysa, o çatlak çiçek açtırmış demektir. Bu, kusurları düzeltme çabasını bırakmak değildir — kendini düzeltmeye çalışırken kendinden nefret etmemektir. Allah\'ın takdirinde israf yoktur; senin "keşke"lerin bile, doğru toprağa akıtılırsa bahçe olur.',
+    verse: { text: '"...Olur ki bir şey hoşunuza gitmez de o sizin için hayırlı olur; olur ki bir şeyi seversiniz de o sizin için şerdir. Allah bilir, siz bilmezsiniz."', source: 'Bakara 216' },
+  },
+  {
+    id: 'tuz', cat: 'derin', emoji: '🧂', grad: ['#0C3B4E', '#0E7490'],
+    title: 'Bir Avuç Tuz',
+    read: 5, deep: true,
+    paragraphs: [
+      'Genç bir adam, yaşlı bir bilgeye geldi. Yorgundu, kırgındı: "Hayatın sıkıntıları beni ezdi. Aynı dertler, aynı acılar... Artık taşıyamıyorum."',
+      'Bilge ona bir avuç tuz uzattı: "Bunu şu bardağa at ve suyundan iç." Genç içti ve yüzünü buruşturdu: "Zehir gibi. İçilecek gibi değil."',
+      'Bilge bu kez onu evin arkasındaki berrak göle götürdü. Aynı avuç dolusu tuzu göle attırdı: "Şimdi de gölden iç." Genç avucuyla içti. "Nasıl?" dedi bilge. "Tatlı," dedi genç, "tuzun tadı bile yok."',
+      'Bilge yanına oturdu: "Evlat, hayatın acıları bir avuç tuz kadardır; ne eksik ne fazla. Herkese aynı avuç verilir. Ama acının tadı, onu koyduğun kabın büyüklüğüne bağlıdır. Bardak olursan bir avuç tuz seni zehirler. Göl olursan, aynı tuz içinde kaybolur."',
+      '"Öyleyse acını inkâr etme; kabını büyüt. Kalbin genişlesin: ilimle, şükürle, insanlara faydayla, Allah\'ı anmakla... Bardak olmaktan çık, göl ol."',
+    ],
+    checkpoints: [
+      {
+        after: 1,
+        q: 'Bilge derdi dinleyince önce tuzlu su içirdi. Neden söze nasihatle değil, tecrübeyle başladı olabilir?',
+        choices: ['Tatmadan anlaşılmaz; hikmet yaşatılarak öğretilir', 'Genci cezalandırmak istedi', 'Nasihat edecek sözü yoktu'],
+        correct: 0,
+        insight: 'Kalbe inecek dersin yolu bazen dilden değil, damaktan geçer. En kalıcı ilim, tecrübeyle mühürlenen ilimdir.',
+      },
+      {
+        after: 3,
+        q: '"Herkese aynı avuç verilir" cümlesi sence doğru mu?',
+        choices: ['Dertlerin şekli farklı olsa da imtihansız kul yoktur; fark, kabın genişliğindedir', 'Hayır, bazı insanların hiç derdi yoktur', 'Doğru ama kabı büyütmek imkânsızdır'],
+        correct: 0,
+        insight: 'Uzaktan "dertsiz" görünen herkesin bardağında da tuz vardır. Kimin göl, kimin bardak olduğunu dışarıdan göremeyiz.',
+      },
+    ],
+    question: 'Kabı büyütmek somut olarak nasıl olur?',
+    choices: [
+      'İlim, şükür, insanlara fayda ve zikirle kalbe genişlik kazandırarak',
+      'Acıyı görmezden gelerek',
+      'Dertleri başkalarına anlatmayarak',
+    ],
+    correct: 0,
+    lesson: 'Acıyı yok edemezsin; ama acının içinde eridiği hayatı büyütebilirsin. Namaz, bir göl kazısıdır; ilim, gölün derinliğidir; başkasına uzattığın el, göle karışan yeni bir kaynaktır. Dert aynı dert kalır ama sen aynı sen kalmazsın — ve aynı tuz, büyüyen gölde tadını kaybeder. Sıkıntıya "neden ben?" diye sormak bardağın sorusudur; "bununla nasıl genişlerim?" diye sormak gölün sorusu.',
+    verse: { text: '"Şüphesiz güçlükle beraber bir kolaylık vardır. Gerçekten, güçlükle beraber bir kolaylık vardır."', source: 'İnşirâh 5-6' },
+  },
+  {
+    id: 'uc-soru', cat: 'derin', emoji: '⏰', grad: ['#2E1065', '#5B21B6'],
+    title: 'Üç Soru',
+    read: 6, deep: true,
+    paragraphs: [
+      'Bir hükümdar, üç sorunun cevabını bilirse hiç hata yapmayacağına inanıyordu: En önemli zaman hangisidir? En önemli insan kimdir? En önemli iş nedir? Ülkesinin bilginleri farklı farklı cevaplar verdi; hiçbiri onu tatmin etmedi. Sonunda, dağda yaşayan bir zâhidin hikmetini duyup kılık değiştirerek yanına gitti.',
+      'Zâhidi bahçesini bellerken buldu. Sorularını sordu; zâhid cevap vermedi, bellemeye devam etti. Yaşlı adam yoruldukça hükümdar küreği aldı, onun yerine çalıştı. Saatler geçti, sorular hâlâ cevapsızdı.',
+      'Tam ayrılacakken ormandan yaralı bir adam çıkageldi; karnından kan akıyordu. Hükümdar onu yatırdı, yarasını kendi gömleğiyle sardı, su taşıdı, gece boyunca başında bekledi. Sabah, yaralı adam gözlerini açtı ve fısıldadı: "Beni affet. Ben senin düşmanındım; kardeşimi idam ettirmiştin. Bugün seni dönüş yolunda öldürmek için pusuya yatmıştım. Muhafızların beni yaralayınca kaçtım — ve beni düşmanım olan sen kurtardın. Bundan sonra hayatım sana hizmetle geçsin."',
+      'Hükümdar şaşkınlıkla zâhide döndü: "Sorularımın cevabını hâlâ alamadım." Zâhid gülümsedi: "Cevaplarını dün yaşadın. Dün bana acıyıp küreği almasaydın, dönüş yolunda pusuya düşecektin: Demek en önemli zaman, o an — yani şimdiydi. En önemli insan, yanındaki insandı. Ve en önemli iş, ona iyilik etmekti."',
+      '"Bunu hiç unutma: Tek gerçek vaktin şimdidir; çünkü elinde olan yalnız odur. En önemli insan, şu an karşındakidir; çünkü bir daha karşılaşacağını bilemezsin. En önemli iş iyiliktir; çünkü insan onun için gönderilmiştir."',
+    ],
+    checkpoints: [
+      {
+        after: 1,
+        q: 'Zâhid sorulara cevap vermedi, bellemeye devam etti. Sence bu sessizlik ne anlatıyor olabilir?',
+        choices: ['Cevabın sözle değil, yaşanarak verileceğini', 'Soruları duymadığını', 'Cevabı bilmediğini'],
+        correct: 0,
+        insight: 'Bazı sorular ağızdan çıkan cevaplarla değil, başından geçen olaylarla cevaplanır. Zâhid hükümdarı bir derse değil, bir imtihana aldı.',
+      },
+      {
+        after: 2,
+        q: 'Hükümdar, kim olduğunu bilmeden düşmanının hayatını kurtardı. Buradaki incelik ne?',
+        choices: ['İyilik hesapla yapılmaz; karşındaki "kim" diye sormadan yapılır', 'Şans eseri doğru insana denk geldi', 'Düşman olduğunu bilse de kurtarırdı, fark etmezdi'],
+        correct: 0,
+        insight: 'Hükümdar "bu adam bana ne sağlar?" diye sormadı. İyiliğin bereketi, karşılık hesabı yapılmayan anda gizlidir — pusu, tam da o hesapsızlıkla bozuldu.',
+      },
+      {
+        after: 3,
+        q: 'Üç cevabı kendi hayatına çevir: "En önemli zaman şimdi" sana en çok neyi bıraktırır?',
+        choices: ['"Sonra yaparım" ertelemesini', 'Plan yapmayı', 'Geçmişten ders almayı'],
+        correct: 0,
+        insight: 'Tevbe için, namaz için, gönül almak için hep "müsait bir yarın" bekleriz. Oysa elimizde olduğu kesin olan tek vakit, bu nefestir.',
+      },
+    ],
+    question: 'Bu kıssanın üç cevabı tek cümlede toplansa, hangisi olurdu?',
+    choices: [
+      '"Şimdi, yanındakine, iyilik yap" — gerisi Allah\'ın takdiridir',
+      '"Geleceği planla, doğru insanları seç, büyük işler yap"',
+      '"Geçmişi incele, önemli insanları tanı, kalıcı eser bırak"',
+    ],
+    correct: 0,
+    lesson: 'İnsan hep uzaktakini önemser: gelecek planlar, ulaşılmaz insanlar, büyük projeler... Oysa din, yakını kutsar: vakit namazı "şimdi"nin, ana-baba ve komşu "yanındakinin", sadaka ve güler yüz "iyiliğin" ibadetidir. Hayırda acele etmek de bundandır: Yarın ne senin, ne de karşındakinin elindedir. Bugün ertelediğin her iyilik, sahibine ulaşacağı garanti olmayan bir mektuptur.',
+    verse: { text: '"Rabbinizin bağışına ve genişliği göklerle yer arası kadar olan cennete koşun..."', source: 'Âl-i İmrân 133' },
+  },
+  {
+    id: 'kandil', cat: 'derin', emoji: '🏮', grad: ['#422006', '#A16207'],
+    title: 'Kör Adamın Kandili',
+    read: 5, deep: true,
+    paragraphs: [
+      'Gece yarısı, karanlık bir köy yolunda bir yolcu ilerliyordu. Karşıdan, elinde kandille bir adamın geldiğini gördü. Yaklaşınca fark etti: Kandili taşıyan adam kördü.',
+      'Yolcu dayanamayıp sordu: "Sen görmüyorsun ki... Bu kandil senin neyine?"',
+      'Kör adam durdu ve sakince cevap verdi: "Bu kandili kendim için taşımıyorum. Benim için gece ile gündüz birdir, doğru. Ama bu kandil sayesinde gözü görenler beni karanlıkta fark eder, bana çarpmazlar. Üstelik onların yolu da benim kandilimle aydınlanır."',
+      '"Yani," dedi gülümseyerek, "ışığın faydası, yalnız taşıyanın görmesi değildir. Bazen insan, kendisinin göremediği bir ışığı başkaları için taşır."',
+      'Yolcu, yoluna devam ederken düşündü: Kaç insan, "benim işime yaramaz" diye elindeki ışığı — bildiğini, tecrübesini, güler yüzünü — evde bırakıyordu?',
+    ],
+    checkpoints: [
+      {
+        after: 1,
+        q: 'Yolcunun sorusu gayet mantıklı: "Görmeyene kandil ne lazım?" Bu mantığın gözden kaçırdığı şey ne?',
+        choices: ['Faydanın sadece "kendine fayda" sanılması', 'Kandilin pahalı olması', 'Kör adamın yolu ezbere bilmesi'],
+        correct: 0,
+        insight: 'Aklımız çoğu zaman "bunun bana ne faydası var?" diye hesap yapar. Kör adamın hesabı başkaydı: "Benim ışığımdan kim faydalanır?"',
+      },
+      {
+        after: 3,
+        q: '"İnsan, kendisinin göremediği bir ışığı başkaları için taşır." Senin taşıdığın böyle bir ışık var mı?',
+        choices: ['Var — bildiğim, yaşadığım, elimden gelen her hayır bir kandildir', 'Yok — ışık taşımak âlimlerin işidir', 'Işık taşımak için önce kusursuz olmak gerekir'],
+        correct: 0,
+        insight: 'Bir ilmihal bilgisi, bir tecrübe, bir özür, bir tebessüm... Sana sıradan gelen şey, karanlıkta kalan biri için yol ışığı olabilir.',
+      },
+    ],
+    question: 'Kör adamın kandili aynı anda iki iş görüyordu. Hangi ikisi?',
+    choices: [
+      'Kendini korudu ve başkalarının yolunu aydınlattı — iyilik iki yöne akar',
+      'Isıttı ve aydınlattı',
+      'Yol gösterdi ve süs oldu',
+    ],
+    correct: 0,
+    lesson: 'İyilik, tek yönlü bir bağış değildir; taşıyanı da korur. Sadaka veren malını, güzel söz söyleyen gönlünü, ilim öğreten bilgisini bereketlendirir. "Ben görmüyorum ki" diyen adam, herkesten çok görüyordu aslında — çünkü faydayı kendi penceresinden değil, ümmetin penceresinden hesaplıyordu. Elindeki kandil küçük olabilir; karanlık büyükse ışığın kıymeti artar, küçüklüğü değil.',
+    verse: { text: '"...İyilik ve takva üzere yardımlaşın; günah ve düşmanlık üzere yardımlaşmayın..."', source: 'Mâide 2' },
+  },
 ];
+
+// ═══════════════ 💎 HİKMET CEVHERLERİ ═══════════════
+// Her kıssanın sonunda kazanılan koleksiyon taşı. localStorage 'gc_gems'.
+export const STORY_GEMS = {
+  'kor-cocuk':  { emoji: '🔷', name: 'Şükür Cevheri',    hue: '#38BDF8' },
+  'marangoz':   { emoji: '🟠', name: 'İhlas Cevheri',    hue: '#FB923C' },
+  'tohum':      { emoji: '🟢', name: 'Dürüstlük Cevheri', hue: '#4ADE80' },
+  'iki-deniz':  { emoji: '🔵', name: 'Cömertlik Cevheri', hue: '#60A5FA' },
+  'civi':       { emoji: '🟤', name: 'Dil Cevheri',      hue: '#A78BFA' },
+  'kelebek':    { emoji: '🟣', name: 'Sabır Cevheri',    hue: '#C084FC' },
+  'balikci':    { emoji: '🩵', name: 'Kanaat Cevheri',   hue: '#22D3EE' },
+  'bin-deve':   { emoji: '🟡', name: 'Tevazu Cevheri',   hue: '#FACC15' },
+  'kartal':     { emoji: '⚪', name: 'Fıtrat Cevheri',   hue: '#E5E7EB' },
+  'iki-tohum':  { emoji: '🌾', name: 'Tevekkül Cevheri', hue: '#A3E635' },
+  'fil':        { emoji: '⛓️', name: 'Azim Cevheri',     hue: '#94A3B8' },
+  'kuyu':       { emoji: '🌌', name: 'Basiret Mührü',    hue: '#818CF8' },
+  'yasli-fidan':{ emoji: '🌳', name: 'Cariye Mührü',     hue: '#34D399' },
+  'catlak-testi':{ emoji: '🏺', name: 'Rıza Mührü',      hue: '#F97316' },
+  'tuz':        { emoji: '🧂', name: 'Genişlik Mührü',   hue: '#06B6D4' },
+  'uc-soru':    { emoji: '⏰', name: 'Şimdi Mührü',      hue: '#8B5CF6' },
+  'kandil':     { emoji: '🏮', name: 'Işık Mührü',       hue: '#EAB308' },
+};
+
+// ═══════════════ 🤲 HAYATA TAŞI ═══════════════
+// Her kıssanın ardından önerilen küçük, bugün yapılabilir bir amel.
+export const STORY_APPLY = {
+  'kor-cocuk':  'Bugün sahip olduğun ama hiç düşünmediğin 3 nimeti yaz ve her biri için içinden "elhamdülillah" de.',
+  'marangoz':   'Bugün yapacağın en sıradan işi, "bu benim ahiret evimin tuğlası" diyerek özenle yap.',
+  'tohum':      'Bugün küçük de olsa bir konuda dürüst olmanın zor yolunu seç; kolay olan kaçamağı bırak.',
+  'iki-deniz':  'Bugün karşılık beklemeden bir şey ver: bir bilgi, bir yardım, bir tebessüm.',
+  'civi':       'Bugün ağzından kırıcı bir söz çıkmak üzereyken 3 saniye dur ve o çiviyi çakma.',
+  'kelebek':    'Zorlandığın bir işte bugün "keşke kolay olsa" yerine "bu beni güçlendiriyor" de ve devam et.',
+  'balikci':    'Bugün "daha fazlası lazım" dediğin bir şeyi yaz; gerçekten mi lazım, yoksa kanaat mi lazım — dürüstçe cevapla.',
+  'bin-deve':   'Bugün bir tartışmada haklı bile olsan bir kez "sen haklısın, ben hata etmişim" demeyi dene.',
+  'kartal':     'Bugün seni aşağı çeken bir alışkanlığını tespit et ve bir günlüğüne ondan uzak dur.',
+  'iki-tohum':  'Ertelediğin o işin ilk küçük adımını bugün at; sonucu Allah\'a bırak.',
+  'fil':        '"Ben yapamam" dediğin bir şeyi bugün bir kez dene — sadece bir kez.',
+  'kuyu':       'Bugün bir zevk anında (yemek, dizi, telefon) bir kez dur ve kendine sor: "Yolculuğumu hatırlıyor muyum?"',
+  'yasli-fidan':'Bugün senden sonraya kalacak bir şey ek: birine faydalı bir şey öğret ya da kalıcı bir hayra küçük bir katkı yap.',
+  'catlak-testi':'Utandığın bir "kusurunu" yaz ve yanına şunu ekle: "Bu çatlak hangi çiçeği suluyor olabilir?"',
+  'tuz':        'Bugün canını sıkan şeye "neden ben?" yerine "bununla nasıl genişlerim?" diye sor ve tek cümle cevap yaz.',
+  'uc-soru':    'Sonraya bıraktığın bir iyiliği (mesaj, ziyaret, özür, sadaka) bugün — şimdi — yap.',
+  'kandil':     'Bildiğin faydalı bir şeyi bugün bir kişiyle paylaş; kandilini evde bırakma.',
+};
 
 export default STORIES;
