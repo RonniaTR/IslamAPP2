@@ -1,30 +1,28 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Check, Flame, RefreshCw, Sparkles, Star, Medal } from 'lucide-react';
+import { ChevronRight, Check, RefreshCw, Sparkles, Star, Medal, Share2, Map, ScrollText, Sun } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce, getCachedStats } from '../services/gamification';
 import {
-  ASSESSMENT, TASK_POOL, STAGES,
+  ASSESSMENT, TASK_POOL, STAGES, WEEKLY_THEMES,
   getProfile, saveProfile, resetProfile,
   getTodayPlan, isTaskDone, toggleTask, getHistory, getStreak, getStage, syncHistory, todayKey,
   getWeekTheme, getDailyQuote, getDailyDua, getBadges, checkStageCelebration,
+  getEvents, detectNewEvents,
 } from '../services/pathEngine';
 import Confetti from './games/Confetti';
 
-// 🛤️ NUR YOLU — uygulamanın omurgası, KENDİNE ÖZEL TEMASIYLA.
-// Tema: "Zümrüt Gece" — koyu zümrüt gökyüzü, altın hilal ve yıldızlar,
-// cami silueti; referans tasarımlardaki Günlük Hedef ikon dizisi,
-// İlim Yolcusu tarzı seviye kartı, âlim sözü başlığı ve rozet rafı
-// bu sayfaya özgün paletle uyarlanmıştır (birebir kopya değildir).
+// 🛤️ NUR YOLU — uygulamanın omurgası, "Zümrüt Gece" temasıyla.
+// Katmanlar: BUGÜN (kişisel plan + hedef ikonları + dua) · HARİTA
+// (hafta hafta yılan-yol durakları, aylık ısı takvimi, mertebeler,
+// rozet rafı) · GÜNLÜK (otomatik yolculuk günlüğü + paylaşım).
 
 const NUR = {
   bg: 'linear-gradient(180deg, #03130B 0%, #06231A 40%, #0A3524 100%)',
   bgSolid: '#06231A',
   surface: 'rgba(13, 51, 36, 0.75)',
-  card: 'rgba(232, 197, 108, 0.05)',
   gold: '#E8C56C',
-  goldDeep: '#C8A55A',
   green: '#34D399',
   text: '#EAF5EE',
   dim: '#93B8A6',
@@ -32,7 +30,6 @@ const NUR = {
   borderSoft: 'rgba(147, 184, 166, 0.15)',
 };
 
-// Cami silueti + hilal — kendi çizimimiz (telifsiz, tek path)
 function Skyline() {
   return (
     <div className="absolute bottom-0 left-0 right-0 pointer-events-none" aria-hidden>
@@ -71,7 +68,9 @@ export default function PathPage() {
   const [qIdx, setQIdx] = useState(0);
   const [, force] = useState(0);
   const [celebrate, setCelebrate] = useState(false);
-  const [stagePop, setStagePop] = useState(null);      // mertebe kutlaması
+  const [stagePop, setStagePop] = useState(null);
+  const [badgeToast, setBadgeToast] = useState(null);
+  const [tab, setTab] = useState('bugun'); // bugun | harita | gunluk
 
   const plan = profile ? getTodayPlan() : null;
   const doneCount = plan ? plan.tasks.filter(t => isTaskDone(plan, t)).length : 0;
@@ -85,15 +84,16 @@ export default function PathPage() {
   const badges = useMemo(() => getBadges(), [doneCount, profile]); // eslint bilinçli
   const earnedCount = badges.filter(b => b.earned).length;
   const stats = getCachedStats();
+  const events = useMemo(() => getEvents(), [doneCount, stagePop, badgeToast]); // eslint bilinçli
 
-  // Sayfa arka planını Nur temasına eşitle (Layout body senkronundan sonra)
+  // Sayfa arka planını Nur temasına eşitle
   useEffect(() => {
     const prev = document.body.style.background;
     document.body.style.background = NUR.bgSolid;
     return () => { document.body.style.background = prev; };
   }, []);
 
-  // Tüm görevler bitince günün XP'si + mertebe kutlaması kontrolü
+  // Gün XP'si + mertebe kutlaması + yeni rozet bildirimi + günlük kaydı
   useEffect(() => {
     if (plan) syncHistory(plan);
     if (allDone) {
@@ -101,6 +101,11 @@ export default function PathPage() {
     }
     const popped = checkStageCelebration();
     if (popped) setStagePop(popped);
+    const fresh = detectNewEvents();
+    if (fresh.length) {
+      setBadgeToast(fresh[0]);
+      setTimeout(() => setBadgeToast(null), 4000);
+    }
   }, [allDone, doneCount]); // eslint bilinçli
 
   const pickAnswer = useCallback((qid, oid) => {
@@ -114,6 +119,12 @@ export default function PathPage() {
   }, [answers, qIdx]);
 
   const retake = useCallback(() => { resetProfile(); setProfile(null); setAnswers({}); setQIdx(0); }, []);
+
+  const shareJourney = useCallback(() => {
+    const text = `🛤️ Nur Yolu'ndaki yolculuğum:\n${stage.current.emoji} Mertebe: ${stage.current.name} · ☀️ ${stage.days} tam gün · 🔥 ${streak} gün seri · 🎖️ ${earnedCount} rozet\n\nİslami Yaşam Asistanı ile her gün küçük ama devamlı adımlar 🤲`;
+    if (navigator.share) navigator.share({ title: 'Nur Yolu', text }).catch(() => {});
+    else { navigator.clipboard?.writeText(text).catch(() => {}); }
+  }, [stage, streak, earnedCount]);
 
   // ═══════════ DEĞERLENDİRME ═══════════
   if (!profile) {
@@ -166,7 +177,7 @@ export default function PathPage() {
     );
   }
 
-  // ═══════════ BUGÜNÜN YOLU ═══════════
+  // ═══════════ ANA GÖRÜNÜM ═══════════
   const pct = plan ? doneCount / plan.tasks.length : 0;
   const R = 30, CIRC = 2 * Math.PI * R;
   const last7 = Array.from({ length: 7 }, (_, i) => {
@@ -175,29 +186,45 @@ export default function PathPage() {
     const h = history[k];
     return { k, day: ['Pz', 'Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct'][d.getDay()], full: h && h.total > 0 && h.done >= h.total, some: h && h.done > 0 };
   });
+  // Aylık ısı takvimi (son 28 gün, 4 hafta)
+  const heat = Array.from({ length: 28 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (27 - i));
+    const k = d.toISOString().slice(0, 10);
+    const h = history[k];
+    return { k, n: d.getDate(), full: h && h.total > 0 && h.done >= h.total, some: h && h.done > 0 };
+  });
+  // Yılan-yol harita verisi: her satır 1 hafta (7 durak), tam günlerle ilerler
+  const currentStation = stage.days + 1;
+  const weekCount = Math.min(12, Math.max(Math.ceil(currentStation / 7) + 1, 4));
 
   return (
     <div className="min-h-screen pb-24 relative" style={{ background: NUR.bg }}>
       {celebrate && <Confetti count={30} />}
 
-      {/* ── HERO: hilal + yıldızlar + cami silueti + âlim sözü ── */}
+      {/* ── HERO ── */}
       <div className="relative overflow-hidden pb-2" style={{ borderBottom: `1px solid ${NUR.borderSoft}` }}>
         <Stars n={22} />
         <span className="absolute top-5 right-7 text-2xl" style={{ filter: 'drop-shadow(0 0 12px rgba(232,197,108,0.6))' }}>🌙</span>
         <div className="px-5 pt-7 relative max-w-3xl mx-auto">
-          <p className="text-[9px] font-black uppercase tracking-[0.35em]" style={{ color: NUR.gold }}>Nur Yolu</p>
-          <h1 className="text-2xl font-black mt-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-            Selamün Aleyküm{user?.name ? `, ${user.name}` : ''} 👋
-          </h1>
-          {/* Günün sözü */}
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.35em]" style={{ color: NUR.gold }}>Nur Yolu</p>
+              <h1 className="text-2xl font-black mt-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
+                Selamün Aleyküm{user?.name ? `, ${user.name}` : ''} 👋
+              </h1>
+            </div>
+            <button onClick={shareJourney} className="mt-1 w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 shrink-0"
+              style={{ background: 'rgba(232,197,108,0.12)', border: `1px solid ${NUR.border}` }} aria-label="Yolculuğu paylaş">
+              <Share2 size={15} style={{ color: NUR.gold }} />
+            </button>
+          </div>
           <div className="mt-3 mb-4 pl-3" style={{ borderLeft: `2px solid ${NUR.gold}` }}>
             <p className="text-[12.5px] italic leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd` }}>
               "{quote.text}"
             </p>
             <p className="text-[10px] mt-1 font-bold" style={{ color: NUR.gold }}>— {quote.by}</p>
           </div>
-          {/* İstatistik şeridi */}
-          <div className="grid grid-cols-3 gap-2 mb-5 relative z-10">
+          <div className="grid grid-cols-3 gap-2 mb-4 relative z-10">
             {[
               { icon: '🔥', value: streak, label: 'Günlük seri' },
               { icon: '⭐', value: stats?.total_points ?? '—', label: 'Puanım' },
@@ -212,235 +239,390 @@ export default function PathPage() {
               </div>
             ))}
           </div>
+          {/* Sekmeler */}
+          <div className="flex gap-1.5 mb-4 relative z-10">
+            {[
+              { id: 'bugun', label: 'Bugün', icon: Sun },
+              { id: 'harita', label: 'Harita', icon: Map },
+              { id: 'gunluk', label: 'Günlük', icon: ScrollText },
+            ].map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className="flex-1 py-2.5 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                style={tab === t.id
+                  ? { background: NUR.gold, color: '#03130B' }
+                  : { background: NUR.surface, border: `1px solid ${NUR.borderSoft}`, color: NUR.dim }}>
+                <t.icon size={13} /> {t.label}
+              </button>
+            ))}
+          </div>
         </div>
         <Skyline />
       </div>
 
       <div className="max-w-3xl mx-auto">
-        {/* ── HAFTANIN TEMASI ── */}
-        {weekTheme && (
-          <div className="px-5 mt-4">
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl p-4 relative overflow-hidden"
-              style={{ background: 'linear-gradient(120deg, rgba(232,197,108,0.14), rgba(13,51,36,0.6))', border: `1.5px solid ${NUR.border}` }}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[9px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full" style={{ background: 'rgba(232,197,108,0.15)', color: NUR.gold }}>
-                  {weekTheme.weekNo}. Hafta Teması
-                </span>
-              </div>
-              <p className="text-base font-black" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-                {weekTheme.emoji} {weekTheme.title}
-              </p>
-              <p className="text-[11px] mt-1" style={{ color: NUR.dim }}>{weekTheme.desc}</p>
-              <p className="text-[11.5px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}cc` }}>
-                {weekTheme.verse} <span className="not-italic font-bold" style={{ color: NUR.gold }}>· {weekTheme.source}</span>
-              </p>
-              {TASK_POOL[weekTheme.focus] && (
-                <p className="text-[10px] mt-2 font-bold" style={{ color: NUR.green }}>
-                  ⭐ Haftanın yıldız görevi: {TASK_POOL[weekTheme.focus].icon} {TASK_POOL[weekTheme.focus].title}
-                </p>
-              )}
-            </motion.div>
-          </div>
-        )}
-
-        {/* ── BUGÜNÜN YOLU: halka + hedef ikonları ── */}
-        <div className="px-5 mt-4">
-          <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: NUR.surface, border: `1.5px solid ${NUR.border}` }}>
-            <div className="flex items-center gap-4">
-              <div className="relative shrink-0" style={{ width: 76, height: 76 }}>
-                <svg width="76" height="76" viewBox="0 0 76 76" className="-rotate-90">
-                  <circle cx="38" cy="38" r={R} fill="none" stroke="rgba(232,197,108,0.15)" strokeWidth="7" />
-                  <circle cx="38" cy="38" r={R} fill="none" stroke={allDone ? NUR.green : NUR.gold} strokeWidth="7" strokeLinecap="round"
-                    strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - pct)} style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-black" style={{ color: NUR.text }}>{doneCount}/{plan.tasks.length}</span>
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: NUR.gold }}>Bugünün Yolu</p>
-                <p className="text-lg font-black mt-0.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-                  {stage.current.emoji} {stage.current.name}
-                </p>
-                {stage.next ? (
-                  <p className="text-[10px] mt-0.5" style={{ color: NUR.dim }}>
-                    {stage.next.emoji} {stage.next.name} için {stage.days}/{stage.next.need} tam gün
+        {/* ════════ SEKME: BUGÜN ════════ */}
+        {tab === 'bugun' && (
+          <>
+            {weekTheme && (
+              <div className="px-5 mt-4">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl p-4 relative overflow-hidden"
+                  style={{ background: 'linear-gradient(120deg, rgba(232,197,108,0.14), rgba(13,51,36,0.6))', border: `1.5px solid ${NUR.border}` }}>
+                  <span className="text-[9px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full" style={{ background: 'rgba(232,197,108,0.15)', color: NUR.gold }}>
+                    {weekTheme.weekNo}. Hafta Teması
+                  </span>
+                  <p className="text-base font-black mt-1.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
+                    {weekTheme.emoji} {weekTheme.title}
                   </p>
-                ) : (
-                  <p className="text-[10px] mt-0.5" style={{ color: NUR.dim }}>Yolun zirvesindesin — devamlılık en büyük mertebedir</p>
+                  <p className="text-[11px] mt-1" style={{ color: NUR.dim }}>{weekTheme.desc}</p>
+                  <p className="text-[11.5px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}cc` }}>
+                    {weekTheme.verse} <span className="not-italic font-bold" style={{ color: NUR.gold }}>· {weekTheme.source}</span>
+                  </p>
+                  {TASK_POOL[weekTheme.focus] && (
+                    <p className="text-[10px] mt-2 font-bold" style={{ color: NUR.green }}>
+                      ⭐ Haftanın yıldız görevi: {TASK_POOL[weekTheme.focus].icon} {TASK_POOL[weekTheme.focus].title}
+                    </p>
+                  )}
+                </motion.div>
+              </div>
+            )}
+
+            {/* Bugünün Yolu */}
+            <div className="px-5 mt-4">
+              <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: NUR.surface, border: `1.5px solid ${NUR.border}` }}>
+                <div className="flex items-center gap-4">
+                  <div className="relative shrink-0" style={{ width: 76, height: 76 }}>
+                    <svg width="76" height="76" viewBox="0 0 76 76" className="-rotate-90">
+                      <circle cx="38" cy="38" r={R} fill="none" stroke="rgba(232,197,108,0.15)" strokeWidth="7" />
+                      <circle cx="38" cy="38" r={R} fill="none" stroke={allDone ? NUR.green : NUR.gold} strokeWidth="7" strokeLinecap="round"
+                        strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - pct)} style={{ transition: 'stroke-dashoffset 0.6s ease' }} />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-black" style={{ color: NUR.text }}>{doneCount}/{plan.tasks.length}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: NUR.gold }}>Bugünün Yolu</p>
+                    <p className="text-lg font-black mt-0.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
+                      {stage.current.emoji} {stage.current.name}
+                    </p>
+                    {stage.next ? (
+                      <p className="text-[10px] mt-0.5" style={{ color: NUR.dim }}>
+                        {stage.next.emoji} {stage.next.name} için {stage.days}/{stage.next.need} tam gün
+                      </p>
+                    ) : (
+                      <p className="text-[10px] mt-0.5" style={{ color: NUR.dim }}>Yolun zirvesindesin — devamlılık en büyük mertebedir</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Hedef ikon dizisi */}
+                <div className="flex justify-between mt-5 px-1">
+                  {plan.tasks.map(tid => {
+                    const t = TASK_POOL[tid];
+                    if (!t) return null;
+                    const done = isTaskDone(plan, tid);
+                    return (
+                      <button key={tid} onClick={() => navigate(t.route)} className="flex flex-col items-center gap-1.5 active:scale-90 transition-transform" style={{ width: `${100 / plan.tasks.length}%` }}>
+                        <span className="relative w-12 h-12 rounded-full flex items-center justify-center text-xl"
+                          style={{
+                            background: done ? 'rgba(52,211,153,0.15)' : 'rgba(232,197,108,0.08)',
+                            border: `2px solid ${done ? NUR.green : NUR.borderSoft}`,
+                          }}>
+                          {t.icon}
+                          {done && (
+                            <span className="absolute -bottom-0.5 -right-0.5 rounded-full flex items-center justify-center" style={{ background: NUR.green, width: 17, height: 17 }}>
+                              <Check size={11} color="#03130B" strokeWidth={3.5} />
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-[8px] font-bold text-center leading-tight" style={{ color: done ? NUR.green : NUR.dim }}>
+                          {t.title.split(' ')[0]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {allDone && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 rounded-xl p-2.5 text-center" style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.35)' }}>
+                    <p className="text-xs font-black" style={{ color: NUR.green }}>
+                      <Sparkles size={12} className="inline mr-1" />Bugünün yolu tamamlandı · +25 XP — Allah kabul etsin 🤲
+                    </p>
+                  </motion.div>
                 )}
               </div>
             </div>
 
-            {/* Hedef ikon dizisi (referans: Günlük Hedef) */}
-            <div className="flex justify-between mt-5 px-1">
-              {plan.tasks.map(tid => {
+            {/* 7 günlük dizilim */}
+            <div className="px-5 mt-4 flex items-center justify-between">
+              {last7.map((d, i) => (
+                <div key={d.k} className="flex flex-col items-center gap-1">
+                  <span className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black"
+                    style={{
+                      background: d.full ? NUR.gold : d.some ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.04)',
+                      color: d.full ? '#03130B' : d.some ? NUR.green : NUR.dim,
+                      border: `1.5px solid ${d.full ? NUR.gold : d.some ? 'rgba(52,211,153,0.4)' : NUR.borderSoft}`,
+                    }}>
+                    {d.full ? '✓' : d.some ? '·' : ''}
+                  </span>
+                  <span className="text-[8px] font-bold" style={{ color: i === 6 ? NUR.gold : NUR.dim }}>{d.day}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Görev kartları */}
+            <div className="px-5 mt-5 space-y-2.5">
+              {plan.tasks.map((tid, i) => {
                 const t = TASK_POOL[tid];
                 if (!t) return null;
                 const done = isTaskDone(plan, tid);
+                const isFocus = weekTheme && weekTheme.focus === tid;
+                const isCuma = tid === 'cuma';
                 return (
-                  <button key={tid} onClick={() => navigate(t.route)} className="flex flex-col items-center gap-1.5 active:scale-90 transition-transform" style={{ width: `${100 / plan.tasks.length}%` }}>
-                    <span className="relative w-12 h-12 rounded-full flex items-center justify-center text-xl"
-                      style={{
-                        background: done ? 'rgba(52,211,153,0.15)' : 'rgba(232,197,108,0.08)',
-                        border: `2px solid ${done ? NUR.green : NUR.borderSoft}`,
-                      }}>
-                      {t.icon}
-                      {done && (
-                        <span className="absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 rounded-full flex items-center justify-center" style={{ background: NUR.green, width: 17, height: 17 }}>
-                          <Check size={11} color="#03130B" strokeWidth={3.5} />
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-[8px] font-bold text-center leading-tight" style={{ color: done ? NUR.green : NUR.dim }}>
-                      {t.title.split(' ')[0]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {allDone && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className="mt-4 rounded-xl p-2.5 text-center" style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.35)' }}>
-                <p className="text-xs font-black" style={{ color: NUR.green }}>
-                  <Sparkles size={12} className="inline mr-1" />Bugünün yolu tamamlandı · +25 XP — Allah kabul etsin 🤲
-                </p>
-              </motion.div>
-            )}
-          </div>
-        </div>
-
-        {/* ── 7 GÜNLÜK DİZİLİM ── */}
-        <div className="px-5 mt-4 flex items-center justify-between">
-          {last7.map((d, i) => (
-            <div key={d.k} className="flex flex-col items-center gap-1">
-              <span className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black"
-                style={{
-                  background: d.full ? NUR.gold : d.some ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.04)',
-                  color: d.full ? '#03130B' : d.some ? NUR.green : NUR.dim,
-                  border: `1.5px solid ${d.full ? NUR.gold : d.some ? 'rgba(52,211,153,0.4)' : NUR.borderSoft}`,
-                }}>
-                {d.full ? '✓' : d.some ? '·' : ''}
-              </span>
-              <span className="text-[8px] font-bold" style={{ color: i === 6 ? NUR.gold : NUR.dim }}>{d.day}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* ── GÖREV KARTLARI ── */}
-        <div className="px-5 mt-5 space-y-2.5">
-          {plan.tasks.map((tid, i) => {
-            const t = TASK_POOL[tid];
-            if (!t) return null;
-            const done = isTaskDone(plan, tid);
-            const isFocus = weekTheme && weekTheme.focus === tid;
-            return (
-              <motion.div key={tid} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                className="rounded-2xl p-3.5 flex items-center gap-3 relative overflow-hidden"
-                style={{
-                  background: NUR.surface,
-                  border: `1.5px solid ${done ? 'rgba(52,211,153,0.4)' : isFocus ? NUR.border : NUR.borderSoft}`,
-                  opacity: done ? 0.85 : 1,
-                }}>
-                {isFocus && !done && (
-                  <span className="absolute top-0 right-0 text-[7px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-wider" style={{ background: 'rgba(232,197,108,0.2)', color: NUR.gold }}>
-                    ⭐ Yıldız görev
-                  </span>
-                )}
-                <button onClick={() => { toggleTask(tid); force(x => x + 1); }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-                  style={{ background: done ? NUR.green : 'rgba(255,255,255,0.06)', border: done ? 'none' : `1.5px solid ${NUR.borderSoft}` }}
-                  aria-label={done ? 'Geri al' : 'Tamamlandı işaretle'}>
-                  {done && <Check size={15} color="#03130B" strokeWidth={3} />}
-                </button>
-                <button onClick={() => navigate(t.route)} className="flex-1 min-w-0 text-left active:opacity-70">
-                  <p className="text-sm font-black flex items-center gap-1.5" style={{ color: NUR.text, textDecoration: done ? 'line-through' : 'none' }}>
-                    <span>{t.icon}</span> {t.title}
-                  </p>
-                  <p className="text-[10px] mt-0.5 leading-snug" style={{ color: NUR.dim }}>{t.desc}</p>
-                </button>
-                <div className="text-right shrink-0">
-                  <p className="text-[10px] font-black flex items-center gap-0.5 justify-end" style={{ color: NUR.gold }}>
-                    <Star size={9} fill={NUR.gold} /> +{t.xp}
-                  </p>
-                  <p className="text-[9px]" style={{ color: NUR.dim }}>{t.minutes} dk</p>
-                </div>
-                <ChevronRight size={14} className="shrink-0" style={{ color: NUR.dim }} />
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* ── MERTEBE YOLU (bağlantı çizgili) ── */}
-        <div className="px-5 mt-7">
-          <p className="text-sm font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>🗺️ Yol Haritan</p>
-          <div className="relative">
-            <div className="absolute left-0 right-0 h-0.5 top-[38px]" style={{ background: `linear-gradient(90deg, ${NUR.gold}, rgba(232,197,108,0.1))` }} />
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 relative">
-              {STAGES.map(s => {
-                const reached = stage.days >= s.need;
-                const isCurrent = stage.current.id === s.id;
-                return (
-                  <div key={s.id} className="shrink-0 w-[100px] rounded-2xl p-3 text-center relative"
+                  <motion.div key={tid} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                    className="rounded-2xl p-3.5 flex items-center gap-3 relative overflow-hidden"
                     style={{
-                      background: isCurrent ? 'rgba(232,197,108,0.12)' : NUR.surface,
-                      border: `1.5px solid ${isCurrent ? NUR.gold : reached ? 'rgba(52,211,153,0.4)' : NUR.borderSoft}`,
-                      opacity: reached || isCurrent ? 1 : 0.55,
+                      background: isCuma ? 'linear-gradient(120deg, rgba(232,197,108,0.1), rgba(13,51,36,0.75))' : NUR.surface,
+                      border: `1.5px solid ${done ? 'rgba(52,211,153,0.4)' : (isFocus || isCuma) ? NUR.border : NUR.borderSoft}`,
+                      opacity: done ? 0.85 : 1,
                     }}>
-                    <p className="text-2xl" style={isCurrent ? { filter: 'drop-shadow(0 0 10px rgba(232,197,108,0.7))' } : undefined}>{s.emoji}</p>
-                    <p className="text-[11px] font-black mt-1" style={{ color: NUR.text }}>{s.name}</p>
-                    <p className="text-[8px]" style={{ color: NUR.dim }}>{s.desc}</p>
-                    {reached && !isCurrent && <span className="absolute top-1.5 right-1.5 text-[9px]" style={{ color: NUR.green }}>✓</span>}
-                    {isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background: NUR.gold, color: '#03130B' }}>BURADASIN</span>}
-                  </div>
+                    {(isFocus || isCuma) && !done && (
+                      <span className="absolute top-0 right-0 text-[7px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-wider" style={{ background: 'rgba(232,197,108,0.2)', color: NUR.gold }}>
+                        {isCuma ? '🕌 Cuma bonusu' : '⭐ Yıldız görev'}
+                      </span>
+                    )}
+                    <button onClick={() => { toggleTask(tid); force(x => x + 1); }}
+                      className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+                      style={{ background: done ? NUR.green : 'rgba(255,255,255,0.06)', border: done ? 'none' : `1.5px solid ${NUR.borderSoft}` }}
+                      aria-label={done ? 'Geri al' : 'Tamamlandı işaretle'}>
+                      {done && <Check size={15} color="#03130B" strokeWidth={3} />}
+                    </button>
+                    <button onClick={() => navigate(t.route)} className="flex-1 min-w-0 text-left active:opacity-70">
+                      <p className="text-sm font-black flex items-center gap-1.5" style={{ color: NUR.text, textDecoration: done ? 'line-through' : 'none' }}>
+                        <span>{t.icon}</span> {t.title}
+                      </p>
+                      <p className="text-[10px] mt-0.5 leading-snug" style={{ color: NUR.dim }}>{t.desc}</p>
+                    </button>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] font-black flex items-center gap-0.5 justify-end" style={{ color: NUR.gold }}>
+                        <Star size={9} fill={NUR.gold} /> +{t.xp}
+                      </p>
+                      <p className="text-[9px]" style={{ color: NUR.dim }}>{t.minutes} dk</p>
+                    </div>
+                    <ChevronRight size={14} className="shrink-0" style={{ color: NUR.dim }} />
+                  </motion.div>
                 );
               })}
             </div>
-          </div>
-          <p className="text-[10px] mt-2" style={{ color: NUR.dim }}>
-            Mertebe, günün TÜM görevlerini bitirdiğin "tam gün" sayısıyla büyür. Şu an: {stage.days} tam gün.
-          </p>
-        </div>
 
-        {/* ── ROZET RAFI ── */}
-        <div className="px-5 mt-6">
-          <p className="text-sm font-black mb-3 flex items-center gap-1.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-            <Medal size={15} style={{ color: NUR.gold }} /> Rozetlerin · {earnedCount}/{badges.length}
-          </p>
-          <div className="grid grid-cols-5 gap-2">
-            {badges.map(b => (
-              <div key={b.id} title={`${b.name} — ${b.desc}`} className="rounded-2xl py-2.5 px-1 text-center"
-                style={{
-                  background: b.earned ? 'rgba(232,197,108,0.1)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${b.earned ? NUR.border : NUR.borderSoft}`,
-                  filter: b.earned ? 'none' : 'grayscale(1) opacity(0.45)',
-                }}>
-                <p className="text-xl" style={b.earned ? { filter: 'drop-shadow(0 0 8px rgba(232,197,108,0.5))' } : undefined}>{b.emoji}</p>
-                <p className="text-[7.5px] font-black mt-1 leading-tight" style={{ color: b.earned ? NUR.gold : NUR.dim }}>{b.name}</p>
+            {/* Günün duası */}
+            <div className="px-5 mt-6">
+              <div className="rounded-2xl p-4 text-center relative overflow-hidden" style={{ background: NUR.surface, border: `1.5px solid ${NUR.border}` }}>
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: NUR.gold }}>🤲 Günün Duası</p>
+                <p dir="rtl" className="text-xl leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: NUR.gold }}>{dua.ar}</p>
+                <p className="text-[12px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd` }}>"{dua.tr}"</p>
+                <p className="text-[9.5px] mt-1.5 font-bold" style={{ color: NUR.dim }}>— {dua.source}</p>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* ── GÜNÜN DUASI ── */}
-        <div className="px-5 mt-6">
-          <div className="rounded-2xl p-4 text-center relative overflow-hidden" style={{ background: NUR.surface, border: `1.5px solid ${NUR.border}` }}>
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: NUR.gold }}>🤲 Günün Duası</p>
-            <p dir="rtl" className="text-xl leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: NUR.gold }}>{dua.ar}</p>
-            <p className="text-[12px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd` }}>"{dua.tr}"</p>
-            <p className="text-[9.5px] mt-1.5 font-bold" style={{ color: NUR.dim }}>— {dua.source}</p>
-          </div>
-        </div>
+            <div className="px-5 mt-6">
+              <button onClick={retake} className="flex items-center gap-1.5 text-[11px] font-bold mx-auto" style={{ color: NUR.dim }}>
+                <RefreshCw size={12} /> Değerlendirmeyi yenile — yol seviyene göre yeniden çizilir
+              </button>
+            </div>
+          </>
+        )}
 
-        {/* ── Yeniden ayarla ── */}
-        <div className="px-5 mt-6">
-          <button onClick={retake} className="flex items-center gap-1.5 text-[11px] font-bold mx-auto" style={{ color: NUR.dim }}>
-            <RefreshCw size={12} /> Değerlendirmeyi yenile — yol seviyene göre yeniden çizilir
-          </button>
-        </div>
+        {/* ════════ SEKME: HARİTA ════════ */}
+        {tab === 'harita' && (
+          <>
+            {/* Yılan-yol durakları: her satır 1 hafta */}
+            <div className="px-5 mt-4">
+              <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>🗺️ Yol Durakları</p>
+              <p className="text-[10px] mb-3" style={{ color: NUR.dim }}>
+                Her tam gün bir durak ilerletir. Şu an <span style={{ color: NUR.gold }}>{currentStation}. duraktasın</span> — her satır bir haftalık temadır.
+              </p>
+              <div className="space-y-3">
+                {Array.from({ length: weekCount }, (_, w) => {
+                  const theme = WEEKLY_THEMES[w % WEEKLY_THEMES.length];
+                  const reverse = w % 2 === 1;
+                  return (
+                    <div key={w} className="rounded-2xl p-3" style={{ background: NUR.surface, border: `1px solid ${NUR.borderSoft}` }}>
+                      <p className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color: NUR.gold }}>
+                        {theme.emoji} {w + 1}. Hafta · {theme.title}
+                      </p>
+                      <div className={`flex items-center justify-between ${reverse ? 'flex-row-reverse' : ''}`}>
+                        {Array.from({ length: 7 }, (_, d) => {
+                          const station = w * 7 + d + 1;
+                          const done = station <= stage.days;
+                          const current = station === currentStation;
+                          return (
+                            <motion.span key={station}
+                              animate={current ? { scale: [1, 1.12, 1] } : {}}
+                              transition={current ? { duration: 1.6, repeat: Infinity } : {}}
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-black relative"
+                              style={{
+                                background: done ? NUR.gold : current ? 'rgba(232,197,108,0.15)' : 'rgba(255,255,255,0.04)',
+                                color: done ? '#03130B' : current ? NUR.gold : NUR.dim,
+                                border: `2px solid ${done ? NUR.gold : current ? NUR.gold : NUR.borderSoft}`,
+                                boxShadow: current ? '0 0 14px rgba(232,197,108,0.5)' : 'none',
+                              }}>
+                              {done ? '✓' : station}
+                              {current && (
+                                <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[6.5px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: NUR.gold, color: '#03130B' }}>
+                                  SEN
+                                </span>
+                              )}
+                            </motion.span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Aylık ısı takvimi */}
+            <div className="px-5 mt-6">
+              <p className="text-sm font-black mb-2.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>📆 Son 4 Hafta</p>
+              <div className="rounded-2xl p-3.5" style={{ background: NUR.surface, border: `1px solid ${NUR.borderSoft}` }}>
+                <div className="grid grid-cols-7 gap-1.5">
+                  {heat.map(d => (
+                    <div key={d.k} title={d.k} className="aspect-square rounded-lg flex items-center justify-center text-[8px] font-bold"
+                      style={{
+                        background: d.full ? NUR.gold : d.some ? 'rgba(52,211,153,0.35)' : 'rgba(255,255,255,0.04)',
+                        color: d.full ? '#03130B' : d.some ? '#03130B' : NUR.dim,
+                        border: `1px solid ${d.full ? NUR.gold : d.some ? 'rgba(52,211,153,0.4)' : NUR.borderSoft}`,
+                      }}>
+                      {d.n}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-3 mt-2.5 justify-end">
+                  <span className="flex items-center gap-1 text-[8px] font-bold" style={{ color: NUR.dim }}>
+                    <span className="w-2.5 h-2.5 rounded" style={{ background: NUR.gold }} /> Tam gün
+                  </span>
+                  <span className="flex items-center gap-1 text-[8px] font-bold" style={{ color: NUR.dim }}>
+                    <span className="w-2.5 h-2.5 rounded" style={{ background: 'rgba(52,211,153,0.5)' }} /> Kısmi
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mertebe yolu */}
+            <div className="px-5 mt-6">
+              <p className="text-sm font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>🏔️ Mertebeler</p>
+              <div className="relative">
+                <div className="absolute left-0 right-0 h-0.5 top-[38px]" style={{ background: `linear-gradient(90deg, ${NUR.gold}, rgba(232,197,108,0.1))` }} />
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 relative">
+                  {STAGES.map(s => {
+                    const reached = stage.days >= s.need;
+                    const isCurrent = stage.current.id === s.id;
+                    return (
+                      <div key={s.id} className="shrink-0 w-[100px] rounded-2xl p-3 text-center relative"
+                        style={{
+                          background: isCurrent ? 'rgba(232,197,108,0.12)' : NUR.surface,
+                          border: `1.5px solid ${isCurrent ? NUR.gold : reached ? 'rgba(52,211,153,0.4)' : NUR.borderSoft}`,
+                          opacity: reached || isCurrent ? 1 : 0.55,
+                        }}>
+                        <p className="text-2xl" style={isCurrent ? { filter: 'drop-shadow(0 0 10px rgba(232,197,108,0.7))' } : undefined}>{s.emoji}</p>
+                        <p className="text-[11px] font-black mt-1" style={{ color: NUR.text }}>{s.name}</p>
+                        <p className="text-[8px]" style={{ color: NUR.dim }}>{s.desc}</p>
+                        {reached && !isCurrent && <span className="absolute top-1.5 right-1.5 text-[9px]" style={{ color: NUR.green }}>✓</span>}
+                        {isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background: NUR.gold, color: '#03130B' }}>BURADASIN</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Rozet rafı */}
+            <div className="px-5 mt-6">
+              <p className="text-sm font-black mb-3 flex items-center gap-1.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
+                <Medal size={15} style={{ color: NUR.gold }} /> Rozetlerin · {earnedCount}/{badges.length}
+              </p>
+              <div className="grid grid-cols-5 gap-2">
+                {badges.map(b => (
+                  <div key={b.id} title={`${b.name} — ${b.desc}`} className="rounded-2xl py-2.5 px-1 text-center"
+                    style={{
+                      background: b.earned ? 'rgba(232,197,108,0.1)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${b.earned ? NUR.border : NUR.borderSoft}`,
+                      filter: b.earned ? 'none' : 'grayscale(1) opacity(0.45)',
+                    }}>
+                    <p className="text-xl" style={b.earned ? { filter: 'drop-shadow(0 0 8px rgba(232,197,108,0.5))' } : undefined}>{b.emoji}</p>
+                    <p className="text-[7.5px] font-black mt-1 leading-tight" style={{ color: b.earned ? NUR.gold : NUR.dim }}>{b.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ════════ SEKME: GÜNLÜK ════════ */}
+        {tab === 'gunluk' && (
+          <div className="px-5 mt-4">
+            <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>📜 Yolculuk Günlüğün</p>
+            <p className="text-[10px] mb-4" style={{ color: NUR.dim }}>
+              Mertebe atlamaların, rozetlerin ve tam günlerin buraya kendiliğinden yazılır.
+            </p>
+            {events.length === 0 ? (
+              <div className="rounded-2xl p-6 text-center" style={{ background: NUR.surface, border: `1px solid ${NUR.borderSoft}` }}>
+                <p className="text-3xl mb-2">🌰</p>
+                <p className="text-xs font-bold" style={{ color: NUR.text }}>Günlük henüz boş</p>
+                <p className="text-[10px] mt-1" style={{ color: NUR.dim }}>İlk görevini tamamla — ilk satır bugün yazılsın.</p>
+              </div>
+            ) : (
+              <div className="relative pl-5">
+                <div className="absolute left-[9px] top-2 bottom-2 w-0.5" style={{ background: 'linear-gradient(180deg, rgba(232,197,108,0.6), rgba(232,197,108,0.05))' }} />
+                <div className="space-y-3">
+                  {events.slice(0, 40).map((e, i) => (
+                    <motion.div key={`${e.ts}-${i}`} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(i, 10) * 0.04 }}
+                      className="relative rounded-2xl p-3 flex items-center gap-3"
+                      style={{ background: NUR.surface, border: `1px solid ${e.type === 'stage' ? NUR.border : NUR.borderSoft}` }}>
+                      <span className="absolute -left-5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full" style={{ background: e.type === 'stage' ? NUR.gold : e.type === 'badge' ? NUR.green : 'rgba(232,197,108,0.5)' }} />
+                      <span className="text-xl shrink-0">{e.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-black leading-snug" style={{ color: NUR.text }}>{e.title}</p>
+                        <p className="text-[9px] mt-0.5" style={{ color: NUR.dim }}>
+                          {new Date(e.ts).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <button onClick={shareJourney}
+              className="w-full mt-5 py-3.5 rounded-2xl text-sm font-black flex items-center justify-center gap-2 active:scale-97"
+              style={{ background: NUR.gold, color: '#03130B' }}>
+              <Share2 size={15} /> Yolculuğumu Paylaş
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* ── ROZET BİLDİRİMİ ── */}
+      <AnimatePresence>
+        {badgeToast && (
+          <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[85] w-[calc(100%-48px)] max-w-sm">
+            <div className="rounded-2xl p-3.5 flex items-center gap-3 shadow-2xl"
+              style={{ background: 'linear-gradient(120deg, rgba(232,197,108,0.2), #0D3324)', border: `1.5px solid ${NUR.gold}` }}>
+              <motion.span className="text-3xl" animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 0.6 }}
+                style={{ filter: 'drop-shadow(0 0 10px rgba(232,197,108,0.7))' }}>{badgeToast.emoji}</motion.span>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-wider" style={{ color: NUR.gold }}>Yeni Rozet</p>
+                <p className="text-sm font-black" style={{ color: NUR.text }}>{badgeToast.name}</p>
+                <p className="text-[9px]" style={{ color: NUR.dim }}>{badgeToast.desc}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── MERTEBE KUTLAMASI ── */}
       <AnimatePresence>

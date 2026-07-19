@@ -107,6 +107,14 @@ const TASKS = {
     desc: 'Tesbihatını çek — kalbe cila',
     detect: null,
   },
+  cuma: {
+    id: 'cuma', icon: '🕌', title: 'Cuma Bereketi', minutes: 8, xp: 20, route: '/quran/18',
+    desc: "Kehf Sûresi'nden bir bölüm oku, Efendimize (s.a.v.) çokça salavat getir",
+    detect: (snap) => {
+      const last = load('quran_last', {});
+      return last.surah === 18 && (last.ts || 0) > snap.planTime;
+    },
+  },
 };
 export const TASK_POOL = TASKS;
 
@@ -231,13 +239,49 @@ export function getBadges() {
   return NUR_BADGES.map(b => ({ ...b, earned: (() => { try { return !!b.test(ctx); } catch { return false; } })() }));
 }
 
+// ─── Yolculuk Günlüğü (olay kaydı) ───
+// Mertebe atlamaları, rozet kazanımları ve tam günler otomatik yazılır.
+export function logEvent(type, title, emoji) {
+  const ev = load('nur_events', []);
+  ev.unshift({ ts: Date.now(), type, title, emoji });
+  save('nur_events', ev.slice(0, 200));
+}
+export function getEvents() { return load('nur_events', []); }
+
+// Yeni kazanımları algıla: yeni rozetler döner (bildirim için), günlüğe yazar
+export function detectNewEvents() {
+  const fresh = [];
+  const earned = getBadges().filter(b => b.earned).map(b => b.id);
+  const seen = load('nur_badges_seen', []);
+  const newOnes = earned.filter(id => !seen.includes(id));
+  if (newOnes.length) {
+    save('nur_badges_seen', earned);
+    newOnes.forEach(id => {
+      const b = NUR_BADGES.find(x => x.id === id);
+      if (b) { logEvent('badge', `"${b.name}" rozeti kazanıldı`, b.emoji); fresh.push(b); }
+    });
+  }
+  // Tam gün kaydı
+  const hist = getHistory();
+  const t = todayKey();
+  const logged = load('nur_fulldays_logged', []);
+  if (hist[t] && hist[t].total > 0 && hist[t].done >= hist[t].total && !logged.includes(t)) {
+    logged.push(t); save('nur_fulldays_logged', logged);
+    logEvent('fullday', 'Günün tüm görevleri tamamlandı', '☀️');
+  }
+  return fresh;
+}
+
 // ─── Mertebe atlama kutlaması (bir kez gösterilir) ───
 export function checkStageCelebration() {
   const stage = getStage();
   const seen = load('nur_stage_seen', 0);
   if (stage.current.id > seen) {
     save('nur_stage_seen', stage.current.id);
-    return stage.current.id > 0 ? stage.current : null; // Tohum için kutlama yok
+    if (stage.current.id > 0) {
+      logEvent('stage', `${stage.current.emoji} ${stage.current.name} mertebesine ulaşıldı`, '🏆');
+      return stage.current;
+    }
   }
   return null;
 }
@@ -269,6 +313,8 @@ export function generatePlan(profile) {
     else if (ids[ids.length - 1] !== 'muhasebe') ids[ids.length - 1] = focus;
     else if (focus !== 'muhasebe') ids[1] = focus;
   }
+  // Cuma günü: plana BONUS görev eklenir (yuva saymaz — bereket fazladan)
+  if (new Date().getDay() === 5 && !ids.includes('cuma')) ids.push('cuma');
   return ids;
 }
 
@@ -368,5 +414,6 @@ const pathEngine = {
   getTodayPlan, isTaskDone, toggleTask,
   getHistory, getStreak, getFullDays, getStage, syncHistory, todayKey,
   getWeekTheme, getDailyQuote, getDailyDua, getBadges, checkStageCelebration,
+  logEvent, getEvents, detectNewEvents,
 };
 export default pathEngine;
