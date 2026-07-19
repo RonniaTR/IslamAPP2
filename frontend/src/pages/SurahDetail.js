@@ -7,7 +7,15 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import PreReadingDua from '../components/PreReadingDua';
+import MushafReader from '../components/MushafReader';
 import api from '../api';
+
+// "Kaldığın yer" kaydı — QuranList'teki Devam Et kartı bunu okur
+function saveLastRead(surahNo, surahName, ayah) {
+  try {
+    localStorage.setItem('quran_last', JSON.stringify({ surah: Number(surahNo), name: surahName || '', ayah: ayah || 1, ts: Date.now() }));
+  } catch { /* quota */ }
+}
 import { openDB } from 'idb';
 
 const TAFSIR_DB_NAME = 'tafsir-offline';
@@ -85,6 +93,9 @@ export default function SurahDetail() {
   const [aiTafsirData, setAiTafsirData] = useState({});
   const [aiTafsirLoading, setAiTafsirLoading] = useState(null);
   const [aiTafsirStyle, setAiTafsirStyle] = useState('simple');
+  // 🕌 Mushaf Görünümü (tam ekran akan Arapça okuma)
+  const [showMushaf, setShowMushaf] = useState(false);
+  const targetAyah = useRef(parseInt(new URLSearchParams(window.location.search).get('ayet'), 10) || null);
 
   const AI_TAFSIR_STYLES = [
     { id: 'simple', name: 'Basit', icon: '📖', color: '#3b82f6' },
@@ -140,6 +151,12 @@ export default function SurahDetail() {
       setSurah(surahRes.data); setMealVideo(mealRes.data); setLoading(false);
       // Kur'an okuma XP'si (aynı sure için günde bir kez)
       awardXPOnce(user, `surah_${surahNumber}`, 'quran_read', { details: `Sure ${surahNumber}` });
+      // Kaldığın yeri kaydet + ?ayet=N ile gelindiyse o ayete kaydır
+      saveLastRead(surahNumber, surahRes.data?.name, targetAyah.current || 1);
+      if (targetAyah.current) {
+        const n = targetAyah.current;
+        setTimeout(() => document.querySelector(`[data-testid="verse-${n}"]`)?.scrollIntoView({ block: 'center' }), 350);
+      }
     }).catch(() => setLoading(false));
   }, [surahNumber, reciter]);
 
@@ -157,13 +174,14 @@ export default function SurahDetail() {
   }, []);
 
   const playVerse = useCallback((verse) => {
+    saveLastRead(surahNumber, surah?.name, verse.number);
     if (playingVerse === verse.number) { audioRef.current.pause(); setPlayingVerse(null); return; }
     audioRef.current.pause(); fullAudioRef.current.pause(); setPlayingFull(false);
     audioRef.current.src = verse.audio_url;
     audioRef.current.play().catch(() => {});
     setPlayingVerse(verse.number);
     audioRef.current.onended = () => setPlayingVerse(null);
-  }, [playingVerse]);
+  }, [playingVerse, surahNumber, surah]);
 
   const playFullSurah = () => {
     if (playingFull) { fullAudioRef.current.pause(); setPlayingFull(false); return; }
@@ -342,6 +360,13 @@ export default function SurahDetail() {
     <div className="animate-fade-in pb-4" style={{ direction: isRTL ? 'rtl' : 'ltr' }} data-testid="surah-detail">
       <PreReadingDua show={showDua} onClose={() => { setShowDua(false); sessionStorage.setItem('quran_dua_seen', '1'); }} />
 
+      {/* 🕌 Mushaf Görünümü (tam ekran) */}
+      {showMushaf && (
+        <MushafReader surah={surah} initialVerse={targetAyah.current || 1}
+          onClose={() => setShowMushaf(false)}
+          onPosition={(ayah) => { targetAyah.current = ayah; saveLastRead(surahNumber, surah?.name, ayah); }} />
+      )}
+
       {/* Premium Header */}
       <div className="quran-header-bg px-4 pt-5 pb-3">
         {/* Decorative geometric bg */}
@@ -374,6 +399,19 @@ export default function SurahDetail() {
               <span className="text-[10px]" style={{ color: `${theme.textSecondary}60` }}>·</span>
               <span className="text-xs" style={{ color: theme.textSecondary }}>{surah.revelation}</span>
             </div>
+          </motion.div>
+
+          {/* Görünüm seçici: Meal (dinamik) / Mushaf (tam ekran akış) */}
+          <motion.div className="flex gap-2 mb-3" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <div className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl text-xs font-black"
+              style={{ background: `${theme.gold}18`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
+              <BookOpen size={14} /> Meal Görünümü
+            </div>
+            <button onClick={() => setShowMushaf(true)} data-testid="open-mushaf"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl text-xs font-black active:scale-97 transition-transform"
+              style={{ background: `${theme.surface}90`, border: `1px solid ${theme.cardBorder}`, color: theme.textSecondary }}>
+              🕌 Mushaf Görünümü
+            </button>
           </motion.div>
 
           {/* Audio Player Card */}

@@ -564,3 +564,32 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
   font-family: Georgia, 'Noto Serif', serif;
   text-align: center;
 }
+
+/* ═══════════════ MUSHAF GÖRÜNÜMÜ ═══════════════ */
+.mushaf-text {
+  font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+  text-align: justify;
+  text-align-last: center;
+  direction: rtl;
+  word-spacing: 0.08em;
+}
+.mushaf-ayah {
+  cursor: pointer;
+  transition: background 0.25s ease;
+  padding: 0 0.08em;
+  -webkit-tap-highlight-color: transparent;
+}
+.mushaf-medallion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.55em;
+  height: 1.55em;
+  font-size: 0.5em;
+  border: 1px solid;
+  border-radius: 9999px;
+  margin: 0 0.35em;
+  vertical-align: 0.35em;
+  padding: 0 0.15em;
+  user-select: none;
+}
