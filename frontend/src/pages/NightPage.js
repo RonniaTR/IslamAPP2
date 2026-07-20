@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Square, Volume2, VolumeX, Moon, Timer, BookOpen, Music } from 'lucide-react';
 import { useTTS } from '../hooks/useShared';
+import { useTx } from '../i18n';
 import ambient, { TRACKS } from '../services/ambient';
 import { STORIES } from '../data/stories';
 import { ARTICLES } from '../data/articles';
@@ -59,6 +60,7 @@ function Stars() {
 export default function NightPage() {
   const navigate = useNavigate();
   const tts = useTTS();
+  const tt = useTx();
 
   // Kurulum durumu
   const preset = useMemo(() => load('night_preset', null), []);
@@ -167,9 +169,9 @@ export default function NightPage() {
         </button>
         <div>
           <h1 className="text-xl font-black flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: NIGHT.text }}>
-            <Moon size={18} style={{ color: NIGHT.gold }} /> Gece Modu
+            <Moon size={18} style={{ color: NIGHT.gold }} /> {tt('Gece Modu')}
           </h1>
-          <p className="text-[10px]" style={{ color: NIGHT.dim }}>Ney · sesli okuma · uyku zamanlayıcısı</p>
+          <p className="text-[10px]" style={{ color: NIGHT.dim }}>{tt('Ney · sesli okuma · uyku zamanlayıcısı')}</p>
         </div>
       </div>
 
@@ -180,13 +182,13 @@ export default function NightPage() {
             <motion.div key="setup" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
               {/* Ne dinlemek istersin */}
               <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-6 mb-2 flex items-center gap-1.5" style={{ color: NIGHT.accent }}>
-                <BookOpen size={12} /> Ne dinlemek istersin?
+                <BookOpen size={12} /> {tt('Ne dinlemek istersin?')}
               </p>
               <div className="flex gap-2">
                 {[
-                  { id: 'story', label: '🕯️ Kıssa' },
-                  { id: 'article', label: '📚 Makale' },
-                  { id: 'ambient', label: '🎵 Sadece Atmosfer' },
+                  { id: 'story', label: tt('🕯️ Kıssa') },
+                  { id: 'article', label: tt('📚 Makale') },
+                  { id: 'ambient', label: tt('🎵 Sadece Atmosfer') },
                 ].map(t => (
                   <button key={t.id} onClick={() => { setContentType(t.id); if (t.id === 'story') setContentId(STORIES[0].id); if (t.id === 'article') setContentId(ARTICLES[0].id); }}
                     className="flex-1 py-2.5 rounded-xl text-[11px] font-black active:scale-95 transition-all"
@@ -215,7 +217,7 @@ export default function NightPage() {
 
               {/* Atmosfer */}
               <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-6 mb-2 flex items-center gap-1.5" style={{ color: NIGHT.accent }}>
-                <Music size={12} /> Atmosfer
+                <Music size={12} /> {tt('Atmosfer')}
               </p>
               <div className="flex gap-2 flex-wrap">
                 {TRACKS.map(t => (
@@ -231,7 +233,7 @@ export default function NightPage() {
 
               {/* Süre */}
               <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-6 mb-2 flex items-center gap-1.5" style={{ color: NIGHT.accent }}>
-                <Timer size={12} /> Uyku zamanlayıcısı
+                <Timer size={12} /> {tt('Uyku zamanlayıcısı')}
               </p>
               <div className="flex gap-2">
                 {DURATIONS.map(d => (
@@ -245,17 +247,17 @@ export default function NightPage() {
                 ))}
               </div>
               <p className="text-[10px] mt-2 text-center" style={{ color: NIGHT.dim }}>
-                Süre dolarken ses yavaşça kısılır ve her şey kendiliğinden kapanır 😴
+                {tt('Süre dolarken ses yavaşça kısılır ve her şey kendiliğinden kapanır 😴')}
               </p>
 
               {/* Başlat */}
               <motion.button whileTap={{ scale: 0.97 }} onClick={begin}
                 className="w-full mt-6 py-4 rounded-2xl text-base font-black flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(135deg, #4338CA, #6366F1)', color: '#fff', boxShadow: '0 8px 30px rgba(99,102,241,0.35)' }}>
-                <Play size={18} /> Geceyi Başlat
+                <Play size={18} /> {tt('Geceyi Başlat')}
               </motion.button>
               <p className="text-[10px] mt-3 text-center leading-relaxed" style={{ color: NIGHT.dim }}>
-                Ney sesi cihazında üretilir, okuma Türkçe seslendirme ile yapılır.<br />Telefonunu şarja tak, ekranı kapatma — iyi geceler 🌙
+                {tt('Ney sesi cihazında üretilir, okuma Türkçe seslendirme ile yapılır.')}<br />{tt('Telefonunu şarja tak, ekranı kapatma — iyi geceler 🌙')}
               </p>
             </motion.div>
           )}
@@ -282,7 +284,7 @@ export default function NightPage() {
                   <motion.span className="text-3xl mb-1" animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 4, repeat: Infinity }}>🌙</motion.span>
                   <span className="text-4xl font-black tabular-nums" style={{ color: NIGHT.text }}>{mm}:{ss}</span>
                   <span className="text-[10px] mt-1" style={{ color: NIGHT.dim }}>
-                    {remaining <= FADE_SECONDS ? 'ses kısılıyor...' : 'uykuya hazırlık'}
+                    {remaining <= FADE_SECONDS ? tt('ses kısılıyor...') : tt('uykuya hazırlık')}
                   </span>
                 </div>
               </div>
@@ -295,7 +297,7 @@ export default function NightPage() {
                 {contentType !== 'ambient' && selected && (
                   <p className="text-sm font-bold mt-1.5" style={{ fontFamily: 'Georgia, serif', color: NIGHT.text }}>
                     {selected.emoji} {selected.title}
-                    {tts.loading && <span className="text-[10px] font-normal ml-1.5" style={{ color: NIGHT.dim }}>(ses hazırlanıyor...)</span>}
+                    {tts.loading && <span className="text-[10px] font-normal ml-1.5" style={{ color: NIGHT.dim }}>{tt('(ses hazırlanıyor...)')}</span>}
                   </p>
                 )}
               </div>
@@ -312,7 +314,7 @@ export default function NightPage() {
               <button onClick={() => endSession(true)}
                 className="mt-8 px-6 py-3 rounded-2xl text-sm font-black flex items-center gap-2 active:scale-95"
                 style={{ background: NIGHT.card, border: `1px solid ${NIGHT.border}`, color: NIGHT.text }}>
-                <Square size={14} /> Bitir ve Duayı Gör
+                <Square size={14} /> {tt('Bitir ve Duayı Gör')}
               </button>
             </motion.div>
           )}
@@ -322,7 +324,7 @@ export default function NightPage() {
             <motion.div key="done" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center pt-10 text-center">
               <motion.span className="text-5xl" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 5, repeat: Infinity }}>🌙</motion.span>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-5" style={{ color: NIGHT.accent }}>Uyku Duası</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-5" style={{ color: NIGHT.accent }}>{tt('Uyku Duası')}</p>
               <p className="mt-5 text-2xl leading-loose" dir="rtl" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: NIGHT.gold }}>
                 {SLEEP_DUA.ar}
               </p>
@@ -333,12 +335,12 @@ export default function NightPage() {
                 </p>
                 <p className="text-[10px] mt-2 font-bold" style={{ color: NIGHT.accent }}>— {SLEEP_DUA.source}</p>
               </div>
-              <p className="text-xs mt-6" style={{ color: NIGHT.dim }}>Hayırlı geceler. Allah rahatlık versin 💫</p>
+              <p className="text-xs mt-6" style={{ color: NIGHT.dim }}>{tt('Hayırlı geceler. Allah rahatlık versin 💫')}</p>
               <div className="flex gap-2 mt-6">
                 <button onClick={() => setStage('setup')}
                   className="px-5 py-3 rounded-2xl text-xs font-black active:scale-95"
                   style={{ background: NIGHT.card, border: `1px solid ${NIGHT.border}`, color: NIGHT.text }}>
-                  Yeniden Kur
+                  {tt('Yeniden Kur')}
                 </button>
                 <button onClick={() => navigate('/')}
                   className="px-5 py-3 rounded-2xl text-xs font-black active:scale-95"

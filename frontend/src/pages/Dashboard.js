@@ -9,11 +9,13 @@ import { useTTS, shareOrCopy } from '../hooks/useShared';
 import { fetchWithCache } from '../services/cache';
 import { awardXPOnce } from '../services/gamification';
 import EmotionWidget from '../components/EmotionWidget';
+import { useTx } from '../i18n';
 import { getProfile as getNurProfile, getTodayPlan, isTaskDone, getStreak, getStage } from '../services/pathEngine';
 
 // 🛤️ Nur Yolu özet kartı — ana sayfanın omurga girişi
 function NurYoluCard({ theme }) {
   const navigate = useNavigate();
+  const tt = useTx();
   const profile = getNurProfile();
   const plan = profile ? getTodayPlan() : null;
   const done = plan ? plan.tasks.filter(t => isTaskDone(plan, t)).length : 0;
@@ -26,22 +28,22 @@ function NurYoluCard({ theme }) {
       style={{ background: `linear-gradient(120deg, ${theme.gold}16, ${theme.surface})`, border: `1.5px solid ${theme.gold}35` }}>
       <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full opacity-20 pointer-events-none"
         style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
-      <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: theme.gold }}>🛤️ Nur Yolu</p>
+      <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: theme.gold }}>🛤️ {tt('Nur Yolu')}</p>
       {!profile ? (
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-black" style={{ color: theme.textPrimary }}>Sana özel günlük yolunu çizelim</p>
-            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>4 soruluk değerlendirme · 1 dakika</p>
+            <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{tt('Sana özel günlük yolunu çizelim')}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{tt('4 soruluk değerlendirme · 1 dakika')}</p>
           </div>
-          <span className="shrink-0 px-3.5 py-2 rounded-xl text-xs font-black" style={{ background: theme.gold, color: '#0A1F14' }}>Başla →</span>
+          <span className="shrink-0 px-3.5 py-2 rounded-xl text-xs font-black" style={{ background: theme.gold, color: '#0A1F14' }}>{tt('Başla')} →</span>
         </div>
       ) : (
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-black" style={{ color: theme.textPrimary }}>
-              {stage.current.emoji} {stage.current.name} · Bugün {done}/{total} görev
+              {stage.current.emoji} {tt(stage.current.name)} · {tt('Bugün')} {done}/{total} {tt('görev')}
             </p>
-            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>🔥 {streak} gün seri · dokun ve yoluna devam et</p>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>🔥 {streak} {tt('gün seri · dokun ve yoluna devam et')}</p>
           </div>
           <div className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xs font-black"
             style={{ border: `3px solid ${done >= total && total > 0 ? '#10B981' : theme.gold}`, color: theme.textPrimary }}>

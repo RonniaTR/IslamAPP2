@@ -5,6 +5,7 @@ import { Search, ChevronRight, BookOpen, Youtube, X, BookMarked, Star, Filter } 
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import PreReadingDua from '../components/PreReadingDua';
+import { useTx } from '../i18n';
 import api from '../api';
 
 const quranI18n = {
@@ -36,6 +37,7 @@ export default function QuranList() {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { theme } = useTheme();
+  const tt = useTx();
   const txt = quranI18n[lang] || quranI18n.tr;
   const isRTL = lang === 'ar';
   const [surahs, setSurahs] = useState([]);
@@ -202,7 +204,7 @@ export default function QuranList() {
             <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full opacity-20 pointer-events-none"
               style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
             <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1 flex items-center gap-1.5" style={{ color: theme.gold }}>
-              🕐 Kaldığınız yer
+              🕐 {tt('Kaldığınız yer')}
             </p>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -213,7 +215,7 @@ export default function QuranList() {
               </div>
               <span className="shrink-0 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1"
                 style={{ background: theme.gold, color: '#0A1F14' }}>
-                Devam et <ChevronRight size={13} />
+                {tt('Devam et')} <ChevronRight size={13} />
               </span>
             </div>
           </motion.button>

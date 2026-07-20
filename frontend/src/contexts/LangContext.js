@@ -48,6 +48,13 @@ export function LangProvider({ children }) {
 
   useEffect(() => { loadTranslations(lang); }, [lang, loadTranslations]);
 
+  // HTML lang/dir'i dile göre ayarla — büyük harf (uppercase) kuralları
+  // ve ekran okuyucular doğru dili kullansın (ör. TR'nin "İ" sorunu).
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }, [lang]);
+
   const setLang = (newLang) => {
     setLangState(newLang);
     localStorage.setItem('app_lang', newLang);

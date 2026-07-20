@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check, RefreshCw, Sparkles, Star, Medal, Share2, Map, ScrollText, Sun, Gem } from 'lucide-react';
 import { HazineCards } from './HazinePage';
 import { useAuth } from '../contexts/AuthContext';
+import { useTx } from '../i18n';
 import { awardXPOnce, getCachedStats } from '../services/gamification';
 import {
   ASSESSMENT, TASK_POOL, STAGES, WEEKLY_THEMES,
@@ -63,6 +64,7 @@ function Stars({ n = 20 }) {
 
 export default function PathPage() {
   const { user } = useAuth();
+  const tt = useTx();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(() => getProfile());
   const [answers, setAnswers] = useState({});
@@ -142,9 +144,9 @@ export default function PathPage() {
         <Stars n={26} />
         <div className="px-6 pt-10 text-center relative max-w-xl mx-auto">
           <motion.p initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-5xl mb-3">🕌</motion.p>
-          <h1 className="text-3xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: NUR.gold }}>Nur Yolu</h1>
+          <h1 className="text-3xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: NUR.gold }}>{tt('Nur Yolu')}</h1>
           <p className="text-xs mt-2 leading-relaxed" style={{ color: NUR.dim }}>
-            Birkaç soruyla seni tanıyalım; her sabah sana özel, 10-30 dakikalık bir yol çizelim.
+            {tt('Birkaç soruyla seni tanıyalım; her sabah sana özel, 10-30 dakikalık bir yol çizelim.')}
           </p>
           <div className="flex justify-center gap-2 mt-5">
             {ASSESSMENT.map((_, i) => (
@@ -158,7 +160,7 @@ export default function PathPage() {
             className="px-6 mt-8 relative max-w-xl mx-auto">
             <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: NUR.surface, border: `1.5px solid ${NUR.border}`, backdropFilter: 'blur(8px)' }}>
               <p className="text-3xl mb-2 text-center">{q.icon}</p>
-              <p className="text-base font-black text-center mb-4" style={{ color: NUR.text }}>{q.q}</p>
+              <p className="text-base font-black text-center mb-4" style={{ color: NUR.text }}>{tt(q.q)}</p>
               <div className="space-y-2">
                 {q.options.map(o => (
                   <button key={o.id} onClick={() => pickAnswer(q.id, o.id)}
@@ -168,7 +170,7 @@ export default function PathPage() {
                       border: `1.5px solid ${answers[q.id] === o.id ? NUR.gold : NUR.borderSoft}`,
                       color: NUR.text,
                     }}>
-                    {o.label}
+                    {tt(o.label)}
                     <ChevronRight size={15} style={{ color: NUR.gold }} />
                   </button>
                 ))}
@@ -176,7 +178,7 @@ export default function PathPage() {
             </div>
             {qIdx > 0 && (
               <button onClick={() => setQIdx(i => i - 1)} className="mt-3 text-[11px] font-bold mx-auto block" style={{ color: NUR.dim }}>
-                ← Önceki soru
+                {tt('← Önceki soru')}
               </button>
             )}
           </motion.div>
@@ -216,9 +218,9 @@ export default function PathPage() {
         <div className="px-5 pt-7 relative max-w-3xl mx-auto">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.35em]" style={{ color: NUR.gold }}>Nur Yolu</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.35em]" style={{ color: NUR.gold }}>{tt('Nur Yolu')}</p>
               <h1 className="text-2xl font-black mt-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-                Selamün Aleyküm{user?.name ? `, ${user.name}` : ''} 👋
+                {tt('Selamün Aleyküm')}{user?.name ? `, ${user.name}` : ''} 👋
               </h1>
             </div>
             <button onClick={shareJourney} className="mt-1 w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 shrink-0"
@@ -234,9 +236,9 @@ export default function PathPage() {
           </div>
           <div className="grid grid-cols-3 gap-2 mb-4 relative z-10">
             {[
-              { icon: '🔥', value: streak, label: 'Günlük seri' },
-              { icon: '⭐', value: stats?.total_points ?? '—', label: 'Puanım' },
-              { icon: '🎖️', value: `${earnedCount}/${badges.length}`, label: 'Rozet' },
+              { icon: '🔥', value: streak, label: tt('Günlük seri') },
+              { icon: '⭐', value: stats?.total_points ?? '—', label: tt('Puanım') },
+              { icon: '🎖️', value: `${earnedCount}/${badges.length}`, label: tt('Rozet') },
             ].map(s => (
               <div key={s.label} className="rounded-2xl px-3 py-2.5 flex items-center gap-2" style={{ background: NUR.surface, border: `1px solid ${NUR.borderSoft}` }}>
                 <span className="text-lg">{s.icon}</span>
@@ -250,10 +252,10 @@ export default function PathPage() {
           {/* Sekmeler */}
           <div className="flex gap-1.5 mb-4 relative z-10">
             {[
-              { id: 'bugun', label: 'Bugün', icon: Sun },
-              { id: 'hazine', label: 'Hazine', icon: Gem },
-              { id: 'harita', label: 'Harita', icon: Map },
-              { id: 'gunluk', label: 'Günlük', icon: ScrollText },
+              { id: 'bugun', label: tt('Bugün'), icon: Sun },
+              { id: 'hazine', label: tt('Hazine'), icon: Gem },
+              { id: 'harita', label: tt('Harita'), icon: Map },
+              { id: 'gunluk', label: tt('Günlük'), icon: ScrollText },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className="flex-1 py-2.5 rounded-xl text-[11px] font-black flex items-center justify-center gap-1.5 active:scale-95 transition-all"
@@ -278,18 +280,18 @@ export default function PathPage() {
                   className="rounded-2xl p-4 relative overflow-hidden"
                   style={{ background: 'linear-gradient(120deg, rgba(232,197,108,0.14), rgba(13,51,36,0.6))', border: `1.5px solid ${NUR.border}` }}>
                   <span className="text-[9px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full" style={{ background: 'rgba(232,197,108,0.15)', color: NUR.gold }}>
-                    {weekTheme.weekNo}. Hafta Teması
+                    {weekTheme.weekNo}. {tt('Hafta Teması')}
                   </span>
                   <p className="text-base font-black mt-1.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-                    {weekTheme.emoji} {weekTheme.title}
+                    {weekTheme.emoji} {tt(weekTheme.title)}
                   </p>
-                  <p className="text-[11px] mt-1" style={{ color: NUR.dim }}>{weekTheme.desc}</p>
+                  <p className="text-[11px] mt-1" style={{ color: NUR.dim }}>{tt(weekTheme.desc)}</p>
                   <p className="text-[11.5px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}cc` }}>
                     {weekTheme.verse} <span className="not-italic font-bold" style={{ color: NUR.gold }}>· {weekTheme.source}</span>
                   </p>
                   {TASK_POOL[weekTheme.focus] && (
                     <p className="text-[10px] mt-2 font-bold" style={{ color: NUR.green }}>
-                      ⭐ Haftanın yıldız görevi: {TASK_POOL[weekTheme.focus].icon} {TASK_POOL[weekTheme.focus].title}
+                      ⭐ {tt('Haftanın yıldız görevi:')} {TASK_POOL[weekTheme.focus].icon} {tt(TASK_POOL[weekTheme.focus].title)}
                     </p>
                   )}
                 </motion.div>
@@ -311,16 +313,16 @@ export default function PathPage() {
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: NUR.gold }}>Bugünün Yolu</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: NUR.gold }}>{tt('Bugünün Yolu')}</p>
                     <p className="text-lg font-black mt-0.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-                      {stage.current.emoji} {stage.current.name}
+                      {stage.current.emoji} {tt(stage.current.name)}
                     </p>
                     {stage.next ? (
                       <p className="text-[10px] mt-0.5" style={{ color: NUR.dim }}>
-                        {stage.next.emoji} {stage.next.name} için {stage.days}/{stage.next.need} tam gün
+                        {stage.next.emoji} {tt(stage.next.name)} {tt('için')} {stage.days}/{stage.next.need} {tt('tam gün')}
                       </p>
                     ) : (
-                      <p className="text-[10px] mt-0.5" style={{ color: NUR.dim }}>Yolun zirvesindesin — devamlılık en büyük mertebedir</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: NUR.dim }}>{tt('Yolun zirvesindesin — devamlılık en büyük mertebedir')}</p>
                     )}
                   </div>
                 </div>
@@ -346,7 +348,7 @@ export default function PathPage() {
                           )}
                         </span>
                         <span className="text-[8px] font-bold text-center leading-tight" style={{ color: done ? NUR.green : NUR.dim }}>
-                          {t.title.split(' ')[0]}
+                          {tt(t.title).split(' ')[0]}
                         </span>
                       </button>
                     );
@@ -357,7 +359,7 @@ export default function PathPage() {
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                     className="mt-4 rounded-xl p-2.5 text-center" style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.35)' }}>
                     <p className="text-xs font-black" style={{ color: NUR.green }}>
-                      <Sparkles size={12} className="inline mr-1" />Bugünün yolu tamamlandı · +25 XP — Allah kabul etsin 🤲
+                      <Sparkles size={12} className="inline mr-1" />{tt('Bugünün yolu tamamlandı · +25 XP — Allah kabul etsin 🤲')}
                     </p>
                   </motion.div>
                 )}
@@ -399,7 +401,7 @@ export default function PathPage() {
                     }}>
                     {(isFocus || isCuma) && !done && (
                       <span className="absolute top-0 right-0 text-[7px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-wider" style={{ background: 'rgba(232,197,108,0.2)', color: NUR.gold }}>
-                        {isCuma ? '🕌 Cuma bonusu' : '⭐ Yıldız görev'}
+                        {isCuma ? `🕌 ${tt('Cuma bonusu')}` : `⭐ ${tt('Yıldız görev')}`}
                       </span>
                     )}
                     <button onClick={() => { toggleTask(tid); force(x => x + 1); }}
@@ -410,15 +412,15 @@ export default function PathPage() {
                     </button>
                     <button onClick={() => navigate(t.route)} className="flex-1 min-w-0 text-left active:opacity-70">
                       <p className="text-sm font-black flex items-center gap-1.5" style={{ color: NUR.text, textDecoration: done ? 'line-through' : 'none' }}>
-                        <span>{t.icon}</span> {t.title}
+                        <span>{t.icon}</span> {tt(t.title)}
                       </p>
-                      <p className="text-[10px] mt-0.5 leading-snug" style={{ color: NUR.dim }}>{t.desc}</p>
+                      <p className="text-[10px] mt-0.5 leading-snug" style={{ color: NUR.dim }}>{tt(t.desc)}</p>
                     </button>
                     <div className="text-right shrink-0">
                       <p className="text-[10px] font-black flex items-center gap-0.5 justify-end" style={{ color: NUR.gold }}>
                         <Star size={9} fill={NUR.gold} /> +{t.xp}
                       </p>
-                      <p className="text-[9px]" style={{ color: NUR.dim }}>{t.minutes} dk</p>
+                      <p className="text-[9px]" style={{ color: NUR.dim }}>{t.minutes} {tt('dk')}</p>
                     </div>
                     <ChevronRight size={14} className="shrink-0" style={{ color: NUR.dim }} />
                   </motion.div>
@@ -429,7 +431,7 @@ export default function PathPage() {
             {/* Günün duası */}
             <div className="px-5 mt-6">
               <div className="rounded-2xl p-4 text-center relative overflow-hidden" style={{ background: NUR.surface, border: `1.5px solid ${NUR.border}` }}>
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: NUR.gold }}>🤲 Günün Duası</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: NUR.gold }}>{tt('🤲 Günün Duası')}</p>
                 <p dir="rtl" className="text-xl leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: NUR.gold }}>{dua.ar}</p>
                 <p className="text-[12px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd` }}>"{dua.tr}"</p>
                 <p className="text-[9.5px] mt-1.5 font-bold" style={{ color: NUR.dim }}>— {dua.source}</p>
@@ -438,7 +440,7 @@ export default function PathPage() {
 
             <div className="px-5 mt-6">
               <button onClick={retake} className="flex items-center gap-1.5 text-[11px] font-bold mx-auto" style={{ color: NUR.dim }}>
-                <RefreshCw size={12} /> Değerlendirmeyi yenile — yol seviyene göre yeniden çizilir
+                <RefreshCw size={12} /> {tt('Değerlendirmeyi yenile — yol seviyene göre yeniden çizilir')}
               </button>
             </div>
           </>
@@ -447,9 +449,9 @@ export default function PathPage() {
         {/* ════════ SEKME: HAZİNE ════════ */}
         {tab === 'hazine' && (
           <div className="px-5 mt-4">
-            <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>💛 Nur Hazinesi</p>
+            <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt('💛 Nur Hazinesi')}</p>
             <p className="text-[10px] mb-4" style={{ color: NUR.dim }}>
-              Yolun azığı: dualar, tesbihat, kıssalar, tarih ve mucizeler — kartı seç, hazine açılsın.
+              {tt('Yolun azığı: dualar, tesbihat, kıssalar, tarih ve mucizeler — kartı seç, hazine açılsın.')}
             </p>
             <HazineCards navigate={navigate} compact />
           </div>
@@ -460,9 +462,9 @@ export default function PathPage() {
           <>
             {/* Yılan-yol durakları: her satır 1 hafta */}
             <div className="px-5 mt-4">
-              <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>🗺️ Yol Durakları</p>
+              <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt('🗺️ Yol Durakları')}</p>
               <p className="text-[10px] mb-3" style={{ color: NUR.dim }}>
-                Her tam gün bir durak ilerletir. Şu an <span style={{ color: NUR.gold }}>{currentStation}. duraktasın</span> — her satır bir haftalık temadır.
+                {tt('Her tam gün bir durak ilerletir. Şu an')} <span style={{ color: NUR.gold }}>#{currentStation}</span> — {tt('her satır bir haftalık temadır')}.
               </p>
               <div className="space-y-3">
                 {Array.from({ length: weekCount }, (_, w) => {
@@ -471,7 +473,7 @@ export default function PathPage() {
                   return (
                     <div key={w} className="rounded-2xl p-3" style={{ background: NUR.surface, border: `1px solid ${NUR.borderSoft}` }}>
                       <p className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color: NUR.gold }}>
-                        {theme.emoji} {w + 1}. Hafta · {theme.title}
+                        {theme.emoji} {w + 1}. {tt('Hafta Teması').split(' ')[0]} · {tt(theme.title)}
                       </p>
                       <div className={`flex items-center justify-between ${reverse ? 'flex-row-reverse' : ''}`}>
                         {Array.from({ length: 7 }, (_, d) => {
@@ -492,7 +494,7 @@ export default function PathPage() {
                               {done ? '✓' : station}
                               {current && (
                                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[6.5px] font-black px-1.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: NUR.gold, color: '#03130B' }}>
-                                  SEN
+                                  {tt('SEN')}
                                 </span>
                               )}
                             </motion.span>
@@ -507,7 +509,7 @@ export default function PathPage() {
 
             {/* Aylık ısı takvimi */}
             <div className="px-5 mt-6">
-              <p className="text-sm font-black mb-2.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>📆 Son 4 Hafta</p>
+              <p className="text-sm font-black mb-2.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt('📆 Son 4 Hafta')}</p>
               <div className="rounded-2xl p-3.5" style={{ background: NUR.surface, border: `1px solid ${NUR.borderSoft}` }}>
                 <div className="grid grid-cols-7 gap-1.5">
                   {heat.map(d => (
@@ -523,10 +525,10 @@ export default function PathPage() {
                 </div>
                 <div className="flex items-center gap-3 mt-2.5 justify-end">
                   <span className="flex items-center gap-1 text-[8px] font-bold" style={{ color: NUR.dim }}>
-                    <span className="w-2.5 h-2.5 rounded" style={{ background: NUR.gold }} /> Tam gün
+                    <span className="w-2.5 h-2.5 rounded" style={{ background: NUR.gold }} /> {tt('Tam gün')}
                   </span>
                   <span className="flex items-center gap-1 text-[8px] font-bold" style={{ color: NUR.dim }}>
-                    <span className="w-2.5 h-2.5 rounded" style={{ background: 'rgba(52,211,153,0.5)' }} /> Kısmi
+                    <span className="w-2.5 h-2.5 rounded" style={{ background: 'rgba(52,211,153,0.5)' }} /> {tt('Kısmi')}
                   </span>
                 </div>
               </div>
@@ -534,7 +536,7 @@ export default function PathPage() {
 
             {/* Mertebe yolu */}
             <div className="px-5 mt-6">
-              <p className="text-sm font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>🏔️ Mertebeler</p>
+              <p className="text-sm font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt('🏔️ Mertebeler')}</p>
               <div className="relative">
                 <div className="absolute left-0 right-0 h-0.5 top-[38px]" style={{ background: `linear-gradient(90deg, ${NUR.gold}, rgba(232,197,108,0.1))` }} />
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 relative">
@@ -549,10 +551,10 @@ export default function PathPage() {
                           opacity: reached || isCurrent ? 1 : 0.55,
                         }}>
                         <p className="text-2xl" style={isCurrent ? { filter: 'drop-shadow(0 0 10px rgba(232,197,108,0.7))' } : undefined}>{s.emoji}</p>
-                        <p className="text-[11px] font-black mt-1" style={{ color: NUR.text }}>{s.name}</p>
-                        <p className="text-[8px]" style={{ color: NUR.dim }}>{s.desc}</p>
+                        <p className="text-[11px] font-black mt-1" style={{ color: NUR.text }}>{tt(s.name)}</p>
+                        <p className="text-[8px]" style={{ color: NUR.dim }}>{tt(s.desc)}</p>
                         {reached && !isCurrent && <span className="absolute top-1.5 right-1.5 text-[9px]" style={{ color: NUR.green }}>✓</span>}
-                        {isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background: NUR.gold, color: '#03130B' }}>BURADASIN</span>}
+                        {isCurrent && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background: NUR.gold, color: '#03130B' }}>{tt('BURADASIN')}</span>}
                       </div>
                     );
                   })}
@@ -563,7 +565,7 @@ export default function PathPage() {
             {/* Rozet rafı */}
             <div className="px-5 mt-6">
               <p className="text-sm font-black mb-3 flex items-center gap-1.5" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
-                <Medal size={15} style={{ color: NUR.gold }} /> Rozetlerin · {earnedCount}/{badges.length}
+                <Medal size={15} style={{ color: NUR.gold }} /> {tt('Rozetlerin')} · {earnedCount}/{badges.length}
               </p>
               <div className="grid grid-cols-5 gap-2">
                 {badges.map(b => (
@@ -574,7 +576,7 @@ export default function PathPage() {
                       filter: b.earned ? 'none' : 'grayscale(1) opacity(0.45)',
                     }}>
                     <p className="text-xl" style={b.earned ? { filter: 'drop-shadow(0 0 8px rgba(232,197,108,0.5))' } : undefined}>{b.emoji}</p>
-                    <p className="text-[7.5px] font-black mt-1 leading-tight" style={{ color: b.earned ? NUR.gold : NUR.dim }}>{b.name}</p>
+                    <p className="text-[7.5px] font-black mt-1 leading-tight" style={{ color: b.earned ? NUR.gold : NUR.dim }}>{tt(b.name)}</p>
                   </div>
                 ))}
               </div>
@@ -585,15 +587,15 @@ export default function PathPage() {
         {/* ════════ SEKME: GÜNLÜK ════════ */}
         {tab === 'gunluk' && (
           <div className="px-5 mt-4">
-            <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>📜 Yolculuk Günlüğün</p>
+            <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt('📜 Yolculuk Günlüğün')}</p>
             <p className="text-[10px] mb-4" style={{ color: NUR.dim }}>
-              Mertebe atlamaların, rozetlerin ve tam günlerin buraya kendiliğinden yazılır.
+              {tt('Mertebe atlamaların, rozetlerin ve tam günlerin buraya kendiliğinden yazılır.')}
             </p>
             {events.length === 0 ? (
               <div className="rounded-2xl p-6 text-center" style={{ background: NUR.surface, border: `1px solid ${NUR.borderSoft}` }}>
                 <p className="text-3xl mb-2">🌰</p>
-                <p className="text-xs font-bold" style={{ color: NUR.text }}>Günlük henüz boş</p>
-                <p className="text-[10px] mt-1" style={{ color: NUR.dim }}>İlk görevini tamamla — ilk satır bugün yazılsın.</p>
+                <p className="text-xs font-bold" style={{ color: NUR.text }}>{tt('Günlük henüz boş')}</p>
+                <p className="text-[10px] mt-1" style={{ color: NUR.dim }}>{tt('İlk görevini tamamla — ilk satır bugün yazılsın.')}</p>
               </div>
             ) : (
               <div className="relative pl-5">
@@ -619,7 +621,7 @@ export default function PathPage() {
             <button onClick={shareJourney}
               className="w-full mt-5 py-3.5 rounded-2xl text-sm font-black flex items-center justify-center gap-2 active:scale-97"
               style={{ background: NUR.gold, color: '#03130B' }}>
-              <Share2 size={15} /> Yolculuğumu Paylaş
+              <Share2 size={15} /> {tt('Yolculuğumu Paylaş')}
             </button>
           </div>
         )}
@@ -635,9 +637,9 @@ export default function PathPage() {
               <motion.span className="text-3xl" animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 0.6 }}
                 style={{ filter: 'drop-shadow(0 0 10px rgba(232,197,108,0.7))' }}>{badgeToast.emoji}</motion.span>
               <div>
-                <p className="text-[9px] font-black uppercase tracking-wider" style={{ color: NUR.gold }}>Yeni Rozet</p>
-                <p className="text-sm font-black" style={{ color: NUR.text }}>{badgeToast.name}</p>
-                <p className="text-[9px]" style={{ color: NUR.dim }}>{badgeToast.desc}</p>
+                <p className="text-[9px] font-black uppercase tracking-wider" style={{ color: NUR.gold }}>{tt('Yeni Rozet')}</p>
+                <p className="text-sm font-black" style={{ color: NUR.text }}>{tt(badgeToast.name)}</p>
+                <p className="text-[9px]" style={{ color: NUR.dim }}>{tt(badgeToast.desc)}</p>
               </div>
             </div>
           </motion.div>
@@ -657,15 +659,15 @@ export default function PathPage() {
               <Stars n={14} />
               <motion.p className="text-6xl relative" animate={{ rotate: [0, -6, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 1 }}
                 style={{ filter: 'drop-shadow(0 0 20px rgba(232,197,108,0.8))' }}>{stagePop.emoji}</motion.p>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-4 relative" style={{ color: NUR.gold }}>Mertebe Atladın</p>
-              <p className="text-3xl font-black mt-1 relative" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{stagePop.name}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-4 relative" style={{ color: NUR.gold }}>{tt('Mertebe Atladın')}</p>
+              <p className="text-3xl font-black mt-1 relative" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt(stagePop.name)}</p>
               <p className="text-[11px] mt-3 leading-relaxed relative" style={{ color: NUR.dim }}>
-                Gayretin bereketlendi. "Az da olsa devamlı olan amel, Allah'a en sevimli olandır." (Buhârî, Rikāk 18)
+                {tt('Gayretin bereketlendi. "Az da olsa devamlı olan amel, Allah\'a en sevimli olandır." (Buhârî, Rikāk 18)')}
               </p>
               <button onClick={() => setStagePop(null)}
                 className="mt-5 w-full py-3 rounded-2xl text-sm font-black active:scale-97 relative"
                 style={{ background: NUR.gold, color: '#03130B' }}>
-                Yola Devam 🤲
+                {tt('Yola Devam 🤲')}
               </button>
             </motion.div>
           </motion.div>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronRight, ChevronDown, Copy, Check, RotateCcw, Sparkles, Share2, Search, Swords, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import { HIDAYET_DUALARI, TESBIHAT_SETS, TARIH_DONEMLERI, TARIH_TOPLAM, MUCIZELER, HAZINE_BOLUMLERI } from '../data/nurHazine';
@@ -262,6 +263,7 @@ function TarihArt({ type, color }) {
 // makeRounds() her oturumda farklı stil ve karışımda soru döndürür;
 // böylece içerik bitse bile sınav farklı mantıkla dönmeye devam eder.
 function MiniQuiz({ title, color, theme, user, makeRounds, xpKey, onExit }) {
+  const tt = useTx();
   const [rounds, setRounds] = useState(() => makeRounds());
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState(null);
@@ -295,15 +297,15 @@ function MiniQuiz({ title, color, theme, user, makeRounds, xpKey, onExit }) {
           <p className="text-5xl mb-2">{pct >= 90 ? '🏆' : pct >= 70 ? '🌟' : pct >= 40 ? '💪' : '🌱'}</p>
           <p className="text-2xl font-black" style={{ color: theme.textPrimary }}>{score}/{rounds.length}</p>
           <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>
-            {pct >= 90 ? 'Muhteşem! Bu bilgiler artık senin.' : pct >= 70 ? 'Çok iyi! Az kaldı, zirve yakın.' : pct >= 40 ? 'Güzel başlangıç — kartları okuyup tekrar dene.' : 'Önce kartları keşfet, sonra tekrar gel.'}
+            {pct >= 90 ? tt('Muhteşem! Bu bilgiler artık senin.') : pct >= 70 ? tt('Çok iyi! Az kaldı, zirve yakın.') : pct >= 40 ? tt('Güzel başlangıç — kartları okuyup tekrar dene.') : tt('Önce kartları keşfet, sonra tekrar gel.')}
           </p>
-          <p className="text-[10px] mt-2 font-bold" style={{ color }}>Her açılışta sorular ve tarz değişir — dilediğin kadar dön ✨</p>
+          <p className="text-[10px] mt-2 font-bold" style={{ color }}>{tt('Her açılışta sorular ve tarz değişir — dilediğin kadar dön ✨')}</p>
           <div className="flex gap-2 mt-5">
             <button onClick={restart} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: color, color: '#06231A' }}>
-              🔄 Yeni Karışım
+              {tt('🔄 Yeni Karışım')}
             </button>
             <button onClick={onExit} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: `${color}14`, border: `1px solid ${color}40`, color }}>
-              Bölüme Dön
+              {tt('Bölüme Dön')}
             </button>
           </div>
         </div>
@@ -355,7 +357,7 @@ function MiniQuiz({ title, color, theme, user, makeRounds, xpKey, onExit }) {
                 </p>
               )}
               <button onClick={next} className="w-full mt-3 py-3 rounded-2xl text-sm font-black active:scale-97" style={{ background: color, color: '#06231A' }}>
-                {idx + 1 >= rounds.length ? 'Sonucu Gör' : 'Sonraki Soru →'}
+                {idx + 1 >= rounds.length ? tt('Sonucu Gör') : tt('Sonraki Soru →')}
               </button>
             </motion.div>
           )}
@@ -382,6 +384,7 @@ function Head({ title, sub, onBack, theme }) {
 
 // ─── 🤲 DUALAR ───
 function DualarSection({ theme, onBack }) {
+  const tt = useTx();
   const [open, setOpen] = useState(null);
   const [copied, setCopied] = useState(null);
   const openDua = (id) => {
@@ -396,7 +399,7 @@ function DualarSection({ theme, onBack }) {
   };
   return (
     <div className="max-w-2xl mx-auto">
-      <Head title="🤲 Hidayet Duaları" sub="Doğru yolu istemenin ve yolda kalmanın duaları" onBack={onBack} theme={theme} />
+      <Head title={tt("🤲 Hidayet Duaları")} sub={tt("Doğru yolu istemenin ve yolda kalmanın duaları")} onBack={onBack} theme={theme} />
       <div className="px-5 space-y-2.5">
         {HIDAYET_DUALARI.map((d, i) => {
           const isOpen = open === d.id;
@@ -422,7 +425,7 @@ function DualarSection({ theme, onBack }) {
                     <span onClick={(e) => copy(d, e)} role="button"
                       className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl text-[10px] font-black active:scale-95"
                       style={{ background: `${theme.gold}12`, color: copied === d.id ? '#10B981' : theme.gold, border: `1px solid ${theme.gold}30` }}>
-                      {copied === d.id ? <Check size={11} /> : <Copy size={11} />} {copied === d.id ? 'Kopyalandı' : 'Kopyala'}
+                      {copied === d.id ? <Check size={11} /> : <Copy size={11} />} {copied === d.id ? tt('Kopyalandı') : tt('Kopyala')}
                     </span>
                   </motion.div>
                 )}
@@ -437,6 +440,7 @@ function DualarSection({ theme, onBack }) {
 
 // ─── 📿 TESBİHAT (sayaçlı) ───
 function TesbihatSection({ theme, user, onBack }) {
+  const tt = useTx();
   const [setId, setSetId] = useState(null);
   const [stepIdx, setStepIdx] = useState(0);
   const [count, setCount] = useState(0);
@@ -501,30 +505,30 @@ function TesbihatSection({ theme, user, onBack }) {
                 </div>
               </div>
             </button>
-            <p className="text-center text-[10px] mt-3" style={{ color: theme.textSecondary }}>Halkaya dokunarak say — her dokunuş hafif titreşir</p>
+            <p className="text-center text-[10px] mt-3" style={{ color: theme.textSecondary }}>{tt('Halkaya dokunarak say — her dokunuş hafif titreşir')}</p>
             <button onClick={() => { setStepIdx(0); setCount(0); }} className="mx-auto mt-4 flex items-center gap-1.5 text-[11px] font-bold" style={{ color: theme.textSecondary }}>
-              <RotateCcw size={12} /> Baştan başla
+              <RotateCcw size={12} /> {tt('Baştan başla')}
             </button>
           </div>
         ) : (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="px-5 text-center">
             <div className="rounded-3xl p-6" style={{ background: `linear-gradient(160deg, ${active.color}14, ${theme.surface})`, border: `1.5px solid ${active.color}50` }}>
               <p className="text-5xl mb-3">{active.emoji}</p>
-              <p className="text-lg font-black" style={{ color: theme.textPrimary }}>Tesbihat tamamlandı</p>
-              <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>+15 XP · Allah kabul etsin 🤲</p>
+              <p className="text-lg font-black" style={{ color: theme.textPrimary }}>{tt('Tesbihat tamamlandı')}</p>
+              <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>{tt('+15 XP · Allah kabul etsin 🤲')}</p>
               <div className="flex gap-2 mt-5">
                 <button onClick={() => start(active.id)} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: `${active.color}14`, border: `1px solid ${active.color}40`, color: active.color }}>
-                  Tekrar
+                  {tt('Tekrar')}
                 </button>
                 <button onClick={() => setSetId(null)} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: active.color, color: '#06231A' }}>
-                  Diğer Zikirler
+                  {tt('Diğer Zikirler')}
                 </button>
               </div>
             </div>
           </motion.div>
         )}
         <p className="px-5 mt-4 text-center text-[9px]" style={{ color: theme.textSecondary }}>
-          Bugün tamamlanan: {Object.keys(todayLog).length}/{TESBIHAT_SETS.length} set
+          {tt('Bugün tamamlanan:')} {Object.keys(todayLog).length}/{TESBIHAT_SETS.length}
         </p>
       </div>
     );
@@ -533,14 +537,14 @@ function TesbihatSection({ theme, user, onBack }) {
   const todayLog = load(`tesbihat_log_${todayKey()}`, {});
   return (
     <div className="max-w-2xl mx-auto">
-      <Head title="📿 Tesbihat" sub="Dokunmatik sayaç · titreşimli · kaynaklı" onBack={onBack} theme={theme} />
+      <Head title={tt("📿 Tesbihat")} sub={tt("Dokunmatik sayaç · titreşimli · kaynaklı")} onBack={onBack} theme={theme} />
       <div className="px-5 grid grid-cols-1 md:grid-cols-2 gap-3">
         {TESBIHAT_SETS.map((s, i) => (
           <motion.button key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
             onClick={() => start(s.id)}
             className="text-left rounded-2xl p-4 active:scale-98 transition-transform relative overflow-hidden"
             style={{ background: theme.surface, border: `1.5px solid ${todayLog[s.id] ? `${s.color}60` : theme.cardBorder}` }}>
-            {todayLog[s.id] && <span className="absolute top-2.5 right-2.5 text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${s.color}18`, color: s.color }}>Bugün ✓</span>}
+            {todayLog[s.id] && <span className="absolute top-2.5 right-2.5 text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${s.color}18`, color: s.color }}>{tt('Bugün ✓')}</span>}
             <span className="text-3xl">{s.emoji}</span>
             <p className="text-sm font-black mt-2" style={{ color: theme.textPrimary }}>{s.title}</p>
             <p className="text-[10.5px] mt-0.5" style={{ color: theme.textSecondary }}>{s.desc}</p>
@@ -583,6 +587,7 @@ function makeTarihRounds() {
 
 // ─── 🏛️ TARİH — katmanlı: madde → SVG çizim + derin anlatım ───
 function TarihSection({ theme, user, onBack }) {
+  const tt = useTx();
   const [open, setOpen] = useState(null);
   const [quiz, setQuiz] = useState(false);
   const [readIds, setReadIds] = useState(() => load('tarih_read', []));
@@ -624,7 +629,7 @@ function TarihSection({ theme, user, onBack }) {
                 {/* Ne ile uğraştı? — SVG sahnesi */}
                 <div className="rounded-xl mt-2.5 pt-2 px-2" style={{ background: `linear-gradient(160deg, ${color}10, transparent)`, border: `1px dashed ${color}35` }}>
                   <TarihArt type={it.art} color={color} />
-                  <p className="text-center text-[8px] font-black uppercase tracking-[0.2em] pb-2" style={{ color }}>Ne ile uğraştı?</p>
+                  <p className="text-center text-[8px] font-black uppercase tracking-[0.2em] pb-2" style={{ color }}>{tt('Ne ile uğraştı?')}</p>
                 </div>
                 <p className="text-[11px] mt-2.5 leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{it.detail}</p>
                 <span className="flex items-center gap-2 mt-2.5">
@@ -633,7 +638,7 @@ function TarihSection({ theme, user, onBack }) {
                     style={{ background: `${color}14`, color, border: `1px solid ${color}35` }}>
                     <Share2 size={10} /> Paylaş
                   </span>
-                  {isRead && <span className="text-[9px] font-black" style={{ color }}>✓ Okundu · +6 XP</span>}
+                  {isRead && <span className="text-[9px] font-black" style={{ color }}>{tt('✓ Okundu · +6 XP')}</span>}
                 </span>
               </motion.div>
             )}
@@ -646,7 +651,7 @@ function TarihSection({ theme, user, onBack }) {
   if (quiz) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Head title="🎯 Zaman Yolcusu" sub="Buluş bilgini sına — sorular her seferinde farklı tarzda gelir" onBack={() => setQuiz(false)} theme={theme} />
+        <Head title={tt("🎯 Zaman Yolcusu")} sub={tt("Buluş bilgini sına — sorular her seferinde farklı tarzda gelir")} onBack={() => setQuiz(false)} theme={theme} />
         <MiniQuiz title="Zaman Yolcusu" color="#A78BFA" theme={theme} user={user}
           makeRounds={makeTarihRounds} xpKey="tarihquiz" onExit={() => setQuiz(false)} />
       </div>
@@ -655,7 +660,7 @@ function TarihSection({ theme, user, onBack }) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Head title="🏛️ Dünya Tarihinde Müslümanlar" sub={`${readIds.length}/${TARIH_TOPLAM} buluş keşfedildi · maddeye dokun, çizimli katman açılsın`} onBack={onBack} theme={theme} />
+      <Head title={tt("🏛️ Dünya Tarihinde Müslümanlar")} sub={`${readIds.length}/${TARIH_TOPLAM} ${tt("buluş keşfedildi · maddeye dokun, çizimli katman açılsın")}`} onBack={onBack} theme={theme} />
 
       {/* 🎯 Zaman Yolcusu */}
       <div className="px-5 mb-3">
@@ -664,8 +669,8 @@ function TarihSection({ theme, user, onBack }) {
           style={{ background: 'linear-gradient(120deg, #2E1065, #5B21B6)', border: '1px solid #A78BFA50' }}>
           <Swords size={22} style={{ color: '#C4B5FD' }} />
           <div className="flex-1">
-            <p className="text-sm font-black" style={{ color: '#EDE9FE' }}>Zaman Yolcusu · Bilgi Sınavı</p>
-            <p className="text-[10px]" style={{ color: '#C4B5FD' }}>5 farklı soru tarzı, her açılışta yeni karışım — bitmek bilmez (+15 XP/gün)</p>
+            <p className="text-sm font-black" style={{ color: '#EDE9FE' }}>{tt('Zaman Yolcusu · Bilgi Sınavı')}</p>
+            <p className="text-[10px]" style={{ color: '#C4B5FD' }}>{tt('5 farklı soru tarzı, her açılışta yeni karışım — bitmek bilmez (+15 XP/gün)')}</p>
           </div>
           <ChevronRight size={16} style={{ color: '#C4B5FD' }} />
         </button>
@@ -678,10 +683,10 @@ function TarihSection({ theme, user, onBack }) {
           className="w-full text-left rounded-2xl p-4 relative overflow-hidden active:scale-[0.98] transition-transform"
           style={{ background: `linear-gradient(120deg, ${featured.color}18, ${theme.surface})`, border: `1.5px solid ${featured.color}45` }}>
           <span className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-25 pointer-events-none" style={{ background: `radial-gradient(circle, ${featured.color}, transparent 65%)` }} />
-          <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: featured.color }}>💡 Günün Buluşu</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: featured.color }}>{tt('💡 Günün Buluşu')}</p>
           <p className="text-sm font-black mt-1" style={{ color: theme.textPrimary }}>{featured.year} · {featured.title}</p>
           <p className="text-[10.5px] mt-1" style={{ color: theme.textSecondary }}>{featured.desc}</p>
-          <p className="text-[9px] mt-1.5 font-bold" style={{ color: featured.color }}>{featured.eraTitle} · aşağıda açıldı ↓</p>
+          <p className="text-[9px] mt-1.5 font-bold" style={{ color: featured.color }}>{featured.eraTitle} · {tt('aşağıda açıldı ↓')}</p>
         </motion.button>
       </div>
 
@@ -711,7 +716,7 @@ function TarihSection({ theme, user, onBack }) {
           );
         })}
         <p className="text-[9px] text-center pb-2" style={{ color: theme.textSecondary }}>
-          Tarihler yaygın kabul gören ansiklopedik kayıtlara göre yaklaşık verilmiştir.
+          {tt('Tarihler yaygın kabul gören ansiklopedik kayıtlara göre yaklaşık verilmiştir.')}
         </p>
       </div>
     </div>
@@ -720,6 +725,7 @@ function TarihSection({ theme, user, onBack }) {
 
 // ─── ✨ MUCİZELER ───
 function MucizelerSection({ theme, user, onBack }) {
+  const tt = useTx();
   const [open, setOpen] = useState(null);
   const [readIds, setReadIds] = useState(() => load('mucize_read', []));
   const markRead = (m) => {
@@ -730,12 +736,12 @@ function MucizelerSection({ theme, user, onBack }) {
   };
   return (
     <div className="max-w-2xl mx-auto">
-      <Head title="✨ Kur'an'daki Mucizeler" sub={`${readIds.length}/${MUCIZELER.length} işaret okundu`} onBack={onBack} theme={theme} />
+      <Head title={tt("✨ Kur'an'daki Mucizeler")} sub={`${readIds.length}/${MUCIZELER.length} ${tt("işaret okundu")}`} onBack={onBack} theme={theme} />
       {/* Sorumlu çerçeve */}
       <div className="px-5 mb-4">
         <div className="rounded-2xl p-3.5" style={{ background: `${theme.gold}0a`, border: `1px solid ${theme.gold}30` }}>
           <p className="text-[10.5px] leading-relaxed" style={{ color: theme.textSecondary }}>
-            <span className="font-black" style={{ color: theme.gold }}>Ölçümüz:</span> Kur'an bir fen kitabı değil, hidayet kitabıdır.
+            <span className="font-black" style={{ color: theme.gold }}>{tt('Ölçümüz:')}</span> Kur'an bir fen kitabı değil, hidayet kitabıdır.
             Ancak 14 asır önce inen ayetlerdeki işaretlerin bugünkü bilgiyle örtüşmesi, "Düşünmüyorlar mı?" çağrısının bir karşılığıdır.
             Her kartta ayet, meal ve modern bilgi birlikte sunulur.
           </p>
@@ -772,7 +778,7 @@ function MucizelerSection({ theme, user, onBack }) {
                         {m.verse}
                       </p>
                       <div className="rounded-xl p-3 mt-3" style={{ background: `${m.color}0c`, border: `1px solid ${m.color}25` }}>
-                        <p className="text-[9px] font-black uppercase tracking-wider mb-1" style={{ color: m.color }}>🔬 Modern bilgi</p>
+                        <p className="text-[9px] font-black uppercase tracking-wider mb-1" style={{ color: m.color }}>{tt('🔬 Modern bilgi')}</p>
                         <p className="text-[11.5px] leading-relaxed" style={{ color: theme.textPrimary }}>{m.fact}</p>
                       </div>
                       <p className="text-[10.5px] mt-2.5 leading-relaxed" style={{ color: theme.textSecondary }}>
@@ -815,6 +821,7 @@ function makeEsmaRounds() {
 
 // ─── 🌟 ESMAÜL HÜSNA — derin katman ───
 function EsmaSection({ theme, user, onBack }) {
+  const tt = useTx();
   const [openN, setOpenN] = useState(null);
   const [query, setQuery] = useState('');
   const [quiz, setQuiz] = useState(false);
@@ -844,7 +851,7 @@ function EsmaSection({ theme, user, onBack }) {
   if (quiz) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Head title="🎯 Esma Ezberi" sub="4 farklı soru tarzı — hat, anlam ve tefekkürden" onBack={() => setQuiz(false)} theme={theme} />
+        <Head title={tt("🎯 Esma Ezberi")} sub={tt("4 farklı soru tarzı — hat, anlam ve tefekkürden")} onBack={() => setQuiz(false)} theme={theme} />
         <MiniQuiz title="Esma Ezberi" color="#E8C56C" theme={theme} user={user}
           makeRounds={makeEsmaRounds} xpKey="esmaquiz" onExit={() => setQuiz(false)} />
       </div>
@@ -853,7 +860,7 @@ function EsmaSection({ theme, user, onBack }) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Head title="🌟 Esmaül Hüsna" sub={`${readNs.length}/99 isim keşfedildi · "En güzel isimler Allah'ındır" (A'râf 180)`} onBack={onBack} theme={theme} />
+      <Head title={tt("🌟 Esmaül Hüsna")} sub={`${readNs.length}/99 ${tt("isim keşfedildi")} · ${tt("En güzel isimler Allah'ındır (A'râf 180)")}`} onBack={onBack} theme={theme} />
 
       {/* Günün İsmi */}
       <div className="px-5 mb-3">
@@ -861,13 +868,13 @@ function EsmaSection({ theme, user, onBack }) {
           className="w-full text-left rounded-3xl p-5 relative overflow-hidden active:scale-[0.98] transition-transform"
           style={{ background: 'linear-gradient(135deg, #3B2A16, #8A5A12)', border: '1.5px solid #E8C56C50' }}>
           <span className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-25 pointer-events-none" style={{ background: 'radial-gradient(circle, #E8C56C, transparent 65%)' }} />
-          <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: '#E8C56C' }}>🌟 Günün İsmi · {featured.n}/99</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: '#E8C56C' }}>{tt('🌟 Günün İsmi')} · {featured.n}/99</p>
           <p dir="rtl" className="text-4xl mt-2 text-center" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: '#F5E3B0', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' }}>
             {featured.ar}
           </p>
           <p className="text-center text-base font-black mt-1.5" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{featured.name}</p>
           <p className="text-center text-[11px] mt-0.5" style={{ color: 'rgba(245,240,228,0.85)' }}>{featured.mean}</p>
-          <p className="text-center text-[9px] mt-2 font-bold" style={{ color: '#E8C56C' }}>dokun — tefekkürü açılsın</p>
+          <p className="text-center text-[9px] mt-2 font-bold" style={{ color: '#E8C56C' }}>{tt('dokun — tefekkürü açılsın')}</p>
         </motion.button>
       </div>
 
@@ -878,8 +885,8 @@ function EsmaSection({ theme, user, onBack }) {
           style={{ background: `${theme.gold}10`, border: `1.5px solid ${theme.gold}35` }}>
           <Swords size={20} style={{ color: theme.gold }} />
           <div className="flex-1">
-            <p className="text-xs font-black" style={{ color: theme.textPrimary }}>Esma Ezberi · Bilgi Sınavı</p>
-            <p className="text-[10px]" style={{ color: theme.textSecondary }}>Hat, anlam ve tefekkürden 4 tarz soru — her açılışta yeni karışım (+15 XP/gün)</p>
+            <p className="text-xs font-black" style={{ color: theme.textPrimary }}>{tt('Esma Ezberi · Bilgi Sınavı')}</p>
+            <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt('Hat, anlam ve tefekkürden 4 tarz soru — her açılışta yeni karışım (+15 XP/gün)')}</p>
           </div>
           <ChevronRight size={15} style={{ color: theme.gold }} />
         </button>
@@ -888,7 +895,7 @@ function EsmaSection({ theme, user, onBack }) {
       {/* Arama */}
       <div className="px-5 mb-3 relative">
         <Search size={14} className="absolute left-8 top-1/2 -translate-y-1/2" style={{ color: theme.textSecondary }} />
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="İsim veya anlam ara..."
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tt("İsim veya anlam ara...")}
           className="w-full rounded-2xl pl-9 pr-4 py-2.5 text-xs focus:outline-none"
           style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary }} />
       </div>
@@ -923,14 +930,14 @@ function EsmaSection({ theme, user, onBack }) {
               className="w-full max-w-sm rounded-3xl p-6 text-center relative overflow-hidden"
               style={{ background: theme.surface, border: `2px solid ${theme.gold}55` }}>
               <span className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full opacity-15 pointer-events-none" style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] relative" style={{ color: theme.gold }}>{active.n}. isim</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] relative" style={{ color: theme.gold }}>{active.n}{tt('. isim')}</p>
               <p dir="rtl" className="text-5xl mt-3 relative" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: theme.gold, filter: `drop-shadow(0 0 16px ${theme.gold}50)` }}>
                 {active.ar}
               </p>
               <p className="text-xl font-black mt-2 relative" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{active.name}</p>
               <p className="text-xs mt-1 relative" style={{ color: theme.textSecondary }}>{active.mean}</p>
               <div className="rounded-2xl p-3.5 mt-4 text-left relative" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}30` }}>
-                <p className="text-[9px] font-black uppercase tracking-wider mb-1.5" style={{ color: theme.gold }}>💭 Tefekkür</p>
+                <p className="text-[9px] font-black uppercase tracking-wider mb-1.5" style={{ color: theme.gold }}>{tt('💭 Tefekkür')}</p>
                 <p className="text-[12px] leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{active.tef}</p>
               </div>
               <div className="flex gap-2 mt-4 relative">
@@ -954,6 +961,7 @@ function EsmaSection({ theme, user, onBack }) {
 
 // ─── 🗂️ MERKEZ: büyük kartlar (canlı ilerleme rozetli) ───
 export function HazineCards({ theme, navigate, compact = false }) {
+  const tt = useTx();
   // Her bölümün gerçek ilerlemesi — kartın köşesinde canlı rozet
   const progress = {
     dualar: `${load('dua_read', []).length}/${HIDAYET_DUALARI.length} dua`,
@@ -995,6 +1003,7 @@ export function HazineCards({ theme, navigate, compact = false }) {
 }
 
 export default function HazinePage() {
+  const tt = useTx();
   const { theme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -1012,8 +1021,8 @@ export default function HazinePage() {
                 <ArrowLeft size={17} style={{ color: theme.gold }} />
               </button>
               <div>
-                <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>💛 Nur Hazinesi</h1>
-                <p className="text-xs" style={{ color: theme.textSecondary }}>Dualar, tesbihat, kıssalar, tarih ve mucizeler — hepsi yolun azığı</p>
+                <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt('💛 Nur Hazinesi')}</h1>
+                <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Dualar, tesbihat, kıssalar, tarih ve mucizeler — hepsi yolun azığı')}</p>
               </div>
             </div>
           </div>

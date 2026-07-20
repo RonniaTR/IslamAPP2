@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, BookOpen, MessageCircle, Compass, Settings, Heart, Gamepad2, Route } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
 
 const NavTab = memo(function NavTab({ icon: Icon, label, active, theme, onClick }) {
   return (
@@ -28,6 +29,7 @@ export default memo(function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { t, lang } = useLang();
+  const tt = useTx();
   const { theme } = useTheme();
   const hideNav = pathname.match(/\/quran\/\d+/);
   const isRtl = lang === 'ar';
@@ -41,15 +43,16 @@ export default memo(function Layout() {
 
   const safeT = t || {};
   const tabs = useMemo(() => [
-    { path: '/', icon: Home, label: safeT.home || 'Ana Sayfa' },
-    { path: '/yol', icon: Route, label: 'Yol' },
-    { path: '/quran', icon: BookOpen, label: safeT.quran || "Kur'an" },
-    { path: '/games', icon: Gamepad2, label: safeT.games || 'Oyun' },
-    { path: '/fiqh', icon: Heart, label: 'İbadet' },
-    { path: '/discover', icon: Compass, label: safeT.explore || 'Keşfet' },
-    { path: '/chat', icon: MessageCircle, label: safeT.chat || 'Sohbet' },
-    { path: '/settings', icon: Settings, label: safeT.settings || 'Ayarlar' },
-  ], [safeT]);
+    { path: '/', icon: Home, label: tt('Ana Sayfa') },
+    { path: '/yol', icon: Route, label: tt('Yol') },
+    { path: '/quran', icon: BookOpen, label: tt("Kur'an") },
+    { path: '/games', icon: Gamepad2, label: tt('Oyun') },
+    { path: '/fiqh', icon: Heart, label: tt('İbadet') },
+    { path: '/discover', icon: Compass, label: tt('Keşfet') },
+    { path: '/chat', icon: MessageCircle, label: tt('Sohbet') },
+    { path: '/settings', icon: Settings, label: tt('Ayarlar') },
+    // tt, lang'a bağlıdır; dil değişince yeniden kurulur
+  ], [lang, tt]);
 
   return (
     <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[880px] lg:max-w-[1060px] xl:max-w-[1200px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}

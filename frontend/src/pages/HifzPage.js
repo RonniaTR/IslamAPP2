@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Eye, EyeOff, Repeat, ChevronRight, Award, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import { HIFZ_TRACKS, gradeCard, cardStatus, surahProgress, dueList, totals, logSession } from '../services/hifzEngine';
@@ -22,6 +23,7 @@ export default function HifzPage() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const tt = useTx();
   const [trackNo, setTrackNo] = useState(null);          // açık sure
   const [verses, setVerses] = useState({});              // sure -> ayetler
   const [loading, setLoading] = useState(false);
@@ -116,7 +118,7 @@ export default function HifzPage() {
           </button>
           <div className="flex-1">
             <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{track?.name} · {cur.ayah}. ayet</p>
-            <p className="text-[10px]" style={{ color: theme.textSecondary }}>{session.idx + 1}/{session.queue.length} kart</p>
+            <p className="text-[10px]" style={{ color: theme.textSecondary }}>{session.idx + 1}/{session.queue.length} {tt('kart')}</p>
           </div>
           <div className="w-24 h-1.5 rounded-full overflow-hidden" style={{ background: `${theme.gold}15` }}>
             <div className="h-full rounded-full" style={{ width: `${(session.idx / session.queue.length) * 100}%`, background: theme.gold }} />
@@ -130,7 +132,7 @@ export default function HifzPage() {
             style={{ background: theme.surface, border: `1.5px solid ${theme.gold}30` }}>
             {!v ? (
               <div className="py-10 flex items-center justify-center gap-2" style={{ color: theme.textSecondary }}>
-                <Loader2 size={16} className="animate-spin" /> <span className="text-xs">Ayet yükleniyor...</span>
+                <Loader2 size={16} className="animate-spin" /> <span className="text-xs">{tt('Ayet yükleniyor...')}</span>
               </div>
             ) : (
               <>
@@ -161,34 +163,34 @@ export default function HifzPage() {
             <button onClick={() => (playing ? stopAudio() : playAyah(cur.surah, cur.ayah, false))}
               className="flex-1 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 active:scale-95"
               style={{ background: `${theme.gold}14`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
-              {playing && !looping ? <Pause size={14} /> : <Play size={14} />} Dinle
+              {playing && !looping ? <Pause size={14} /> : <Play size={14} />} {tt('Dinle')}
             </button>
             <button onClick={() => (looping ? stopAudio() : playAyah(cur.surah, cur.ayah, true))}
               className="flex-1 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 active:scale-95"
               style={looping
                 ? { background: theme.gold, color: '#0A1F14' }
                 : { background: `${theme.gold}14`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
-              <Repeat size={14} /> {looping ? 'Döngü açık' : 'Döngüde dinle'}
+              <Repeat size={14} /> {looping ? tt('Döngü açık') : tt('Döngüde dinle')}
             </button>
             <button onClick={() => setHidden(h => !h)}
               className="flex-1 py-3 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 active:scale-95"
               style={hidden
                 ? { background: '#6366F1', color: '#fff' }
                 : { background: '#6366F114', border: '1px solid #6366F135', color: '#818CF8' }}>
-              {hidden ? <Eye size={14} /> : <EyeOff size={14} />} {hidden ? 'Göster' : 'Gizle'}
+              {hidden ? <Eye size={14} /> : <EyeOff size={14} />} {hidden ? tt('Göster') : tt('Gizle')}
             </button>
           </div>
           <p className="text-[10px] text-center mt-2" style={{ color: theme.textSecondary }}>
-            Önce dinle → gizle → içinden/yüksek sesle oku → göster ve kendini notla
+            {tt('Önce dinle → gizle → içinden/yüksek sesle oku → göster ve kendini notla')}
           </p>
 
           {/* Notlama */}
           <div className="grid grid-cols-4 gap-2 mt-4">
             {[
-              { g: 'again', label: 'Tekrar', sub: 'bugün', color: '#EF4444' },
-              { g: 'hard', label: 'Zor', sub: 'yarın', color: '#F59E0B' },
-              { g: 'good', label: 'İyi', sub: 'aralık ↑', color: '#3B82F6' },
-              { g: 'easy', label: 'Kolay', sub: 'aralık ↑↑', color: '#10B981' },
+              { g: 'again', label: tt('Tekrar'), sub: tt('bugün'), color: '#EF4444' },
+              { g: 'hard', label: tt('Zor'), sub: tt('yarın'), color: '#F59E0B' },
+              { g: 'good', label: tt('İyi'), sub: tt('aralık ↑'), color: '#3B82F6' },
+              { g: 'easy', label: tt('Kolay'), sub: tt('aralık ↑↑'), color: '#10B981' },
             ].map(b => (
               <button key={b.g} onClick={() => grade(b.g)}
                 className="py-3 rounded-2xl text-xs font-black active:scale-95 transition-transform"
@@ -226,14 +228,14 @@ export default function HifzPage() {
           <button onClick={() => startSession(Array.from({ length: track.verses }, (_, i) => ({ surah: track.no, ayah: i + 1, track })))}
             className="w-full py-3.5 rounded-2xl text-sm font-black flex items-center justify-center gap-2 active:scale-97"
             style={{ background: 'linear-gradient(135deg, #059669, #10B981)', color: '#fff' }}>
-            <Play size={15} /> Baştan sona çalış ({track.verses} ayet)
+            <Play size={15} /> {tt('Baştan sona çalış')} ({track.verses} {tt('ayet')})
           </button>
         </div>
 
         <div className="px-5 mt-4 space-y-2">
           {loading && !list.length ? (
             <div className="py-8 text-center" style={{ color: theme.textSecondary }}>
-              <Loader2 size={18} className="animate-spin mx-auto mb-2" /> <span className="text-xs">Ayetler yükleniyor...</span>
+              <Loader2 size={18} className="animate-spin mx-auto mb-2" /> <span className="text-xs">{tt('Ayetler yükleniyor...')}</span>
             </div>
           ) : (
             Array.from({ length: track.verses }, (_, i) => i + 1).map(a => {
@@ -249,7 +251,7 @@ export default function HifzPage() {
                     {v?.arabic || '...'}
                   </p>
                   <span className="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0" style={{ background: `${STATUS_COLOR[stt]}14`, color: STATUS_COLOR[stt] }}>
-                    {STATUS_LABEL[stt]}
+                    {tt(STATUS_LABEL[stt])}
                   </span>
                 </button>
               );
@@ -270,18 +272,18 @@ export default function HifzPage() {
         </button>
         <div>
           <h1 className="text-2xl font-black flex items-center gap-2" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
-            📿 Ezber Asistanı
+            {tt('📿 Ezber Asistanı')}
           </h1>
-          <p className="text-xs" style={{ color: theme.textSecondary }}>Aralıklı tekrarla kalıcı sure ezberi</p>
+          <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Aralıklı tekrarla kalıcı sure ezberi')}</p>
         </div>
       </div>
 
       {/* Özet */}
       <div className="px-5 grid grid-cols-3 gap-2 mb-4">
         {[
-          { label: 'Sağlam ayet', value: stats.solid, color: '#10B981' },
-          { label: 'Öğreniliyor', value: stats.learning, color: '#3B82F6' },
-          { label: 'Bugün tekrar', value: stats.due, color: '#F59E0B' },
+          { label: tt('Sağlam ayet'), value: stats.solid, color: '#10B981' },
+          { label: tt('Öğreniliyor'), value: stats.learning, color: '#3B82F6' },
+          { label: tt('Bugün tekrar'), value: stats.due, color: '#F59E0B' },
         ].map(s => (
           <div key={s.label} className="rounded-2xl p-3 text-center" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
             <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
@@ -298,8 +300,8 @@ export default function HifzPage() {
             style={{ background: 'linear-gradient(135deg, #B45309, #F59E0B)', color: '#fff' }}>
             <Award size={22} />
             <div className="flex-1">
-              <p className="text-sm font-black">Bugünün Tekrarı · {due.length} ayet</p>
-              <p className="text-[10px] opacity-90">Vadesi gelen kartları bitir, ezber kalıcılaşsın (+20 XP)</p>
+              <p className="text-sm font-black">{tt('Bugünün Tekrarı')} · {due.length} {tt('ayet')}</p>
+              <p className="text-[10px] opacity-90">{tt('Vadesi gelen kartları bitir, ezber kalıcılaşsın (+20 XP)')}</p>
             </div>
             <ChevronRight size={16} />
           </button>
@@ -310,7 +312,7 @@ export default function HifzPage() {
       {['Başlangıç', 'Orta', 'İleri'].map(tier => (
         <div key={tier} className="mb-5">
           <p className="px-5 text-sm font-black mb-2" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
-            {tier === 'Başlangıç' ? '🌱' : tier === 'Orta' ? '🪴' : '🌳'} {tier} Rotası
+            {tier === 'Başlangıç' ? '🌱' : tier === 'Orta' ? '🪴' : '🌳'} {tt(tier)}
           </p>
           <div className="px-5 grid grid-cols-2 md:grid-cols-3 gap-2">
             {HIFZ_TRACKS.filter(t => t.tier === tier).map(t => {
@@ -324,7 +326,7 @@ export default function HifzPage() {
                     <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{t.name}</p>
                     <p dir="rtl" className="text-base" style={{ fontFamily: "'Amiri', serif", color: theme.gold }}>{t.ar}</p>
                   </div>
-                  <p className="text-[9px] mb-2" style={{ color: theme.textSecondary }}>{t.verses} ayet · {p.solid} sağlam</p>
+                  <p className="text-[9px] mb-2" style={{ color: theme.textSecondary }}>{t.verses} {tt('ayet')} · {p.solid} {tt('sağlam')}</p>
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}15` }}>
                     <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: pct === 100 ? '#10B981' : theme.gold }} />
                   </div>
@@ -336,7 +338,7 @@ export default function HifzPage() {
       ))}
 
       <p className="px-5 text-[10px] text-center" style={{ color: theme.textSecondary }}>
-        Yöntem: dinle → gizle → oku → notla. "İyi/Kolay" dedikçe tekrar aralığı açılır; 7+ güne ulaşan ayet sağlamdır.
+        {tt('Yöntem: dinle → gizle → oku → notla. "İyi/Kolay" dedikçe tekrar aralığı açılır; 7+ güne ulaşan ayet sağlamdır.')}
       </p>
     </div>
   );

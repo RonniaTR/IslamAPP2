@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import PreReadingDua from '../components/PreReadingDua';
 import MushafReader from '../components/MushafReader';
+import { useTx } from '../i18n';
 import { getWordMeal, hasWordMeal } from '../data/kelimeMeal';
 import api from '../api';
 
@@ -52,6 +53,7 @@ export default function SurahDetail() {
   const { t, lang } = useLang();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const tt = useTx();
   const txt = surahI18n[lang] || surahI18n.tr;
   const isRTL = lang === 'ar';
   const [surah, setSurah] = useState(null);
@@ -409,17 +411,17 @@ export default function SurahDetail() {
           <motion.div className="flex gap-2 mb-3" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
             <div className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl text-xs font-black"
               style={{ background: `${theme.gold}18`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
-              <BookOpen size={14} /> Meal Görünümü
+              <BookOpen size={14} /> {tt('Meal Görünümü')}
             </div>
             <button onClick={() => setShowMushaf(true)} data-testid="open-mushaf"
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl text-xs font-black active:scale-97 transition-transform"
               style={{ background: `${theme.surface}90`, border: `1px solid ${theme.cardBorder}`, color: theme.textSecondary }}>
-              🕌 Mushaf Görünümü
+              🕌 {tt('Mushaf Görünümü')}
             </button>
           </motion.div>
           {hasWordMeal(surahNumber) && (
             <p className="text-[10px] text-center mb-3 -mt-1" style={{ color: '#ec4899' }}>
-              🔤 Bu surede ayetlerin altında "Kelime Meal" sekmesi var — ibare ibare açıklamalı meal
+              {tt('🔤 Bu surede Kelime Meal sekmesi var')}
             </p>
           )}
 

@@ -5,6 +5,7 @@ import {
   READING_THEMES, FONT_MIN, FONT_MAX, AR_MIN, AR_MAX,
   useReadingSettings,
 } from '../services/readingSettings';
+import { useTx } from '../i18n';
 
 // 📖 OKUMA AYARLARI SAYFASI (alt sayfa/bottom-sheet)
 // Yapı: [Önizleme] → [Tema listesi: her satır kendi paletiyle boyanır ve
@@ -16,6 +17,7 @@ import {
 
 export default function ReadingSettingsSheet({ open, onClose }) {
   const { settings, theme: rt, arabicSize, set } = useReadingSettings();
+  const tt = useTx();
 
   return (
     <AnimatePresence>
@@ -34,7 +36,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
             <div className="w-10 h-1 rounded-full mx-auto mb-4" style={{ background: `${rt.secondary}50` }} />
             <div className="flex items-center justify-between mb-4">
               <p className="text-base font-black flex items-center gap-2" style={{ color: rt.text }}>
-                <Palette size={16} style={{ color: rt.accent }} /> Okuma Ayarları
+                <Palette size={16} style={{ color: rt.accent }} /> {tt('Okuma Ayarları')}
               </p>
               <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center active:scale-90"
                 style={{ background: `${rt.secondary}18`, color: rt.secondary }} aria-label="Kapat">
@@ -44,9 +46,9 @@ export default function ReadingSettingsSheet({ open, onClose }) {
 
             {/* Önizleme */}
             <div className="rounded-2xl p-4 mb-5 text-center" style={{ background: rt.bg, border: `1px solid ${rt.border}` }}>
-              <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: rt.secondary }}>Önizleme</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: rt.secondary }}>{tt('Önizleme')}</p>
               <p style={{ fontSize: settings.fontSize, fontFamily: 'Georgia, serif', color: rt.text, lineHeight: 1.7 }}>
-                Rahmân ve Rahîm olan Allah'ın adıyla
+                {tt("Rahmân ve Rahîm olan Allah'ın adıyla")}
               </p>
               <p dir="rtl" className="mt-1" style={{ fontSize: arabicSize, fontFamily: "'Amiri', 'Scheherazade New', serif", color: rt.accent, lineHeight: 1.9 }}>
                 بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -54,7 +56,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
             </div>
 
             {/* Tema listesi */}
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: rt.secondary }}>Okuma Teması</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: rt.secondary }}>{tt('Okuma Teması')}</p>
             <div className="rounded-2xl overflow-hidden mb-5" style={{ border: `1px solid ${rt.border}` }}>
               {READING_THEMES.map(t => {
                 const selected = settings.themeId === t.id;
@@ -66,9 +68,9 @@ export default function ReadingSettingsSheet({ open, onClose }) {
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
                         style={{ background: t.accent, color: t.dark ? '#111' : '#fff' }}>✓</span>
                     )}
-                    <p className="text-[15px] font-bold" style={{ fontFamily: 'Georgia, serif', color: t.text }}>{t.name}</p>
+                    <p className="text-[15px] font-bold" style={{ fontFamily: 'Georgia, serif', color: t.text }}>{tt(t.name)}</p>
                     <p className="text-[11.5px] italic" style={{ fontFamily: 'Georgia, serif', color: t.secondary }}>
-                      Bu <span style={{ color: t.accent }}>örnek</span> bir <span style={{ color: t.accent }}>metindir</span>.
+                      {tt('Bu')} <span style={{ color: t.accent }}>{tt('örnek')}</span> {tt('bir')} <span style={{ color: t.accent }}>{tt('metindir')}</span>.
                     </p>
                   </button>
                 );
@@ -79,7 +81,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
             <div className="rounded-2xl p-4 mb-4" style={{ background: rt.bg, border: `1px solid ${rt.border}` }}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-black flex items-center gap-1.5" style={{ color: rt.text }}>
-                  <Type size={13} style={{ color: rt.accent }} /> Metin boyutu
+                  <Type size={13} style={{ color: rt.accent }} /> {tt('Metin boyutu')}
                 </p>
                 <span className="text-[11px] font-black px-2 py-0.5 rounded-lg" style={{ background: `${rt.accent}20`, color: rt.accent }}>
                   {settings.fontSize}
@@ -89,7 +91,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
                 onChange={e => set({ fontSize: parseInt(e.target.value, 10) })}
                 className="w-full" style={{ accentColor: rt.accent }} aria-label="Metin boyutu" />
               <div className="flex justify-between text-[9px] font-bold" style={{ color: rt.secondary }}>
-                <span>Daha küçük</span><span>Varsayılan</span><span>Daha büyük</span>
+                <span>{tt('Daha küçük')}</span><span>{tt('Varsayılan')}</span><span>{tt('Daha büyük')}</span>
               </div>
             </div>
 
@@ -98,9 +100,9 @@ export default function ReadingSettingsSheet({ open, onClose }) {
               <button onClick={() => set({ arabicSeparate: !settings.arabicSeparate })}
                 className="w-full flex items-center justify-between gap-3 text-left">
                 <div>
-                  <p className="text-xs font-black" style={{ color: rt.text }}>Arapça için ayrı boyut</p>
+                  <p className="text-xs font-black" style={{ color: rt.text }}>{tt('Arapça için ayrı boyut')}</p>
                   <p className="text-[10px] mt-0.5" style={{ color: rt.secondary }}>
-                    {settings.arabicSeparate ? 'Arapça satır kendi boyutunu kullanır' : 'Arapça satır ana metin boyutuna uyar'}
+                    {settings.arabicSeparate ? tt('Arapça satır kendi boyutunu kullanır') : tt('Arapça satır ana metin boyutuna uyar')}
                   </p>
                 </div>
                 <span className="shrink-0 w-11 h-6 rounded-full relative transition-all"
@@ -112,7 +114,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
               {settings.arabicSeparate && (
                 <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${rt.border}` }}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold" style={{ color: rt.secondary }}>Arapça boyutu</span>
+                    <span className="text-[10px] font-bold" style={{ color: rt.secondary }}>{tt('Arapça boyutu')}</span>
                     <span className="text-[11px] font-black px-2 py-0.5 rounded-lg" style={{ background: `${rt.accent}20`, color: rt.accent }}>
                       {settings.arabicSize}
                     </span>
@@ -125,7 +127,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
             </div>
 
             <p className="text-[9px] text-center mt-4" style={{ color: rt.secondary }}>
-              Ayarlar anında uygulanır ve Mushaf, Makale ve Kıssa okumalarında geçerlidir.
+              {tt('Ayarlar anında uygulanır ve Mushaf, Makale ve Kıssa okumalarında geçerlidir.')}
             </p>
           </motion.div>
         </motion.div>

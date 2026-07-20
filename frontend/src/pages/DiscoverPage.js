@@ -4,6 +4,7 @@ import { Compass, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
 
 const SECTIONS = [
   {
@@ -66,6 +67,7 @@ const SECTIONS = [
 export default function DiscoverPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const tt = useTx();
   const navigate = useNavigate();
 
   return (
@@ -74,16 +76,16 @@ export default function DiscoverPage() {
       <div className="px-5 pt-6 pb-3">
         <div className="flex items-center gap-2 mb-1">
           <Compass size={22} style={{ color: theme.gold }} />
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Keşfet</h1>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt('Keşfet')}</h1>
         </div>
-        <p className="text-xs" style={{ color: theme.textSecondary }}>Tüm özellikler ve İslami ilim yolculuğun</p>
+        <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Tüm özellikler ve İslami ilim yolculuğun')}</p>
       </div>
 
       {/* Feature Sections */}
       <div className="px-5 space-y-5">
         {SECTIONS.map((section, si) => (
           <div key={si}>
-            <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: theme.textSecondary }}>{section.title}</p>
+            <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: theme.textSecondary }}>{tt(section.title)}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {section.items.map((item, i) => (
                 <motion.button key={item.path}
@@ -95,8 +97,8 @@ export default function DiscoverPage() {
                     {item.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{item.title}</p>
-                    <p className="text-xs" style={{ color: theme.textSecondary }}>{item.desc}</p>
+                    <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{tt(item.title)}</p>
+                    <p className="text-xs" style={{ color: theme.textSecondary }}>{tt(item.desc)}</p>
                   </div>
                   <ChevronRight size={16} style={{ color: theme.textSecondary }} />
                 </motion.button>
