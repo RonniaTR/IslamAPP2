@@ -122,6 +122,11 @@ const TASKS = {
     desc: 'Hidayet Duaları rafından bir duayı aç, oku, ezberlemeye niyet et',
     detect: (snap) => load('dua_read', []).length > (snap.dua ?? 0),
   },
+  esma: {
+    id: 'esma', icon: '🌟', title: 'Bir güzel isim keşfet', minutes: 3, xp: 10, route: '/hazine/esma',
+    desc: 'Esmaül Hüsna rafından bir ismi aç; hattını, anlamını ve tefekkürünü oku',
+    detect: (snap) => load('esma_read', []).length > (snap.esma ?? 0),
+  },
   cuma: {
     id: 'cuma', icon: '🕌', title: 'Cuma Bereketi', minutes: 8, xp: 20, route: '/quran/18',
     desc: "Kehf Sûresi'nden bir bölüm oku, Efendimize (s.a.v.) çokça salavat getir",
@@ -317,8 +322,8 @@ export function generatePlan(profile) {
   // 4-5) Kalan yuvalar: hedefe ve güne göre
   const extras = [];
   if (profile.namaz !== 'duzenli' || profile.hedef === 'namaz') extras.push('niyet');
-  // Hazine görevleri günlere dağılır: tesbihat / dua / mucize dönüşümlü
-  extras.push(['tesbihat', 'dua', 'mucize'][day % 3], 'oyun', 'zikir');
+  // Hazine görevleri günlere dağılır: tesbihat / dua / mucize / esma dönüşümlü
+  extras.push(['tesbihat', 'dua', 'mucize', 'esma'][day % 4], 'oyun', 'zikir');
   if (profile.hedef === 'ezber' && !ids.includes('hifz')) extras.unshift('hifz');
   for (const e of extras) { if (ids.length >= count) break; if (!ids.includes(e)) ids.push(e); }
   // Haftanın yıldız görevi plana öncelikli girer (seviyeye uygunsa)
@@ -352,6 +357,7 @@ export function getTodayPlan() {
         gameXp: load(`gc_daily_${todayKey()}`, {}).xp || 0,
         mucize: load('mucize_read', []).length,
         dua: load('dua_read', []).length,
+        esma: load('esma_read', []).length,
         planTime: Date.now(),
       },
     };

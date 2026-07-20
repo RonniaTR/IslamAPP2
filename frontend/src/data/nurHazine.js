@@ -353,6 +353,12 @@ export const HAZINE_BOLUMLERI = [
     grad: ['#2E1065', '#5B21B6'], accent: '#A78BFA',
   },
   {
+    id: 'esma', route: '/hazine/esma', emoji: '🌟',
+    title: 'Esmaül Hüsna', meta: '99 isim · hat + tefekkür + ezber sınavı',
+    desc: 'En güzel 99 ismi hattıyla, anlamıyla ve hayata dokunan tefekkür cümleleriyle keşfet; Günün İsmi ve ezber sınavıyla derinleş.',
+    grad: ['#3B2A16', '#8A5A12'], accent: '#E8C56C',
+  },
+  {
     id: 'mucizeler', route: '/hazine/mucizeler', emoji: '✨',
     title: "Kur'an'daki Mucizeler", meta: `${MUCIZELER.length} işaret · SVG infografikli`,
     desc: '14 asır önce inen ayetlerdeki işaretlerin modern bilgiyle örtüşmesi — ayet, meal ve infografikle.',

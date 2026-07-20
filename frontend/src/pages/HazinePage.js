@@ -1,12 +1,19 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronRight, ChevronDown, Copy, Check, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronRight, ChevronDown, Copy, Check, RotateCcw, Sparkles, Share2, Search, Swords, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import { HIDAYET_DUALARI, TESBIHAT_SETS, TARIH_DONEMLERI, TARIH_TOPLAM, MUCIZELER, HAZINE_BOLUMLERI } from '../data/nurHazine';
+import { ESMA } from '../data/esmaData';
 import Confetti from './games/Confetti';
+
+const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
+const shareText = (text) => {
+  if (navigator.share) navigator.share({ text }).catch(() => {});
+  else navigator.clipboard?.writeText(text).catch(() => {});
+};
 
 // 💛 NUR HAZİNESİ — Nur Yolu'nun içerik hazinesi (/hazine/:section?).
 // Büyük tanıtım kartlarından bölümlere girilir: Hidayet Duaları,
@@ -251,6 +258,113 @@ function TarihArt({ type, color }) {
   );
 }
 
+// ─── 🎯 MİNİ SINAV MOTORU — her açılışta YENİDEN üretilen sorular ───
+// makeRounds() her oturumda farklı stil ve karışımda soru döndürür;
+// böylece içerik bitse bile sınav farklı mantıkla dönmeye devam eder.
+function MiniQuiz({ title, color, theme, user, makeRounds, xpKey, onExit }) {
+  const [rounds, setRounds] = useState(() => makeRounds());
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const r = rounds[idx];
+
+  const pick = (opt) => {
+    if (picked !== null) return;
+    setPicked(opt);
+    if (opt === r.correct) { setScore(s => s + 1); try { navigator.vibrate?.(15); } catch { /* yok */ } }
+    else { try { navigator.vibrate?.([40, 40, 40]); } catch { /* yok */ } }
+  };
+  const next = () => {
+    if (idx + 1 >= rounds.length) {
+      setFinished(true);
+      const dk = new Date().toISOString().slice(0, 10);
+      awardXPOnce(user, `${xpKey}_${dk}`, 'game_quiz', { points: 15, details: `${title}: ${score}/${rounds.length}` });
+      return;
+    }
+    setIdx(i => i + 1); setPicked(null);
+  };
+  const restart = () => { setRounds(makeRounds()); setIdx(0); setPicked(null); setScore(0); setFinished(false); };
+
+  if (finished) {
+    const pct = Math.round((score / rounds.length) * 100);
+    return (
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="px-5">
+        {pct >= 70 && <Confetti count={24} />}
+        <div className="rounded-3xl p-6 text-center" style={{ background: `linear-gradient(160deg, ${color}14, ${theme.surface})`, border: `1.5px solid ${color}50` }}>
+          <p className="text-5xl mb-2">{pct >= 90 ? '🏆' : pct >= 70 ? '🌟' : pct >= 40 ? '💪' : '🌱'}</p>
+          <p className="text-2xl font-black" style={{ color: theme.textPrimary }}>{score}/{rounds.length}</p>
+          <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>
+            {pct >= 90 ? 'Muhteşem! Bu bilgiler artık senin.' : pct >= 70 ? 'Çok iyi! Az kaldı, zirve yakın.' : pct >= 40 ? 'Güzel başlangıç — kartları okuyup tekrar dene.' : 'Önce kartları keşfet, sonra tekrar gel.'}
+          </p>
+          <p className="text-[10px] mt-2 font-bold" style={{ color }}>Her açılışta sorular ve tarz değişir — dilediğin kadar dön ✨</p>
+          <div className="flex gap-2 mt-5">
+            <button onClick={restart} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: color, color: '#06231A' }}>
+              🔄 Yeni Karışım
+            </button>
+            <button onClick={onExit} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: `${color}14`, border: `1px solid ${color}40`, color }}>
+              Bölüme Dön
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <div className="px-5">
+      <div className="flex items-center gap-3 mb-3">
+        <button onClick={onExit} className="w-8 h-8 rounded-xl flex items-center justify-center active:scale-90" style={{ background: `${color}12` }} aria-label="Çık">
+          <X size={14} style={{ color }} />
+        </button>
+        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: `${color}18` }}>
+          <div className="h-full rounded-full transition-all" style={{ width: `${(idx / rounds.length) * 100}%`, background: color }} />
+        </div>
+        <span className="text-[10px] font-black shrink-0" style={{ color: theme.textSecondary }}>{idx + 1}/{rounds.length} · ⭐{score}</span>
+      </div>
+      <motion.div key={idx} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}
+        className="rounded-3xl p-5" style={{ background: theme.surface, border: `1.5px solid ${color}35` }}>
+        <span className="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full" style={{ background: `${color}14`, color }}>{r.tag}</span>
+        {r.qAr && <p dir="rtl" className="text-3xl mt-3 text-center" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color }}>{r.qAr}</p>}
+        <p className="text-[15px] font-bold mt-2.5 leading-relaxed" style={{ color: theme.textPrimary }}>{r.q}</p>
+        <div className="space-y-2 mt-4">
+          {r.opts.map((opt, i) => {
+            const isCorrect = picked !== null && opt === r.correct;
+            const isWrongPick = picked === opt && opt !== r.correct;
+            return (
+              <button key={i} onClick={() => pick(opt)} disabled={picked !== null}
+                className="w-full text-left p-3 rounded-xl text-[12.5px] font-semibold transition-all active:scale-98 flex items-center justify-between gap-2"
+                style={{
+                  background: isCorrect ? '#10B98118' : isWrongPick ? '#EF444418' : `${theme.textSecondary}0a`,
+                  border: `1.5px solid ${isCorrect ? '#10B981' : isWrongPick ? '#EF4444' : theme.cardBorder}`,
+                  color: theme.textPrimary, opacity: picked !== null && !isCorrect && !isWrongPick ? 0.55 : 1,
+                }}>
+                <span className="flex-1">{opt}</span>
+                {isCorrect && <Check size={14} style={{ color: '#10B981' }} className="shrink-0" />}
+                {isWrongPick && <X size={14} style={{ color: '#EF4444' }} className="shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+        <AnimatePresence>
+          {picked !== null && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              {r.info && (
+                <p className="text-[10.5px] mt-3 leading-relaxed p-2.5 rounded-xl" style={{ background: `${color}0c`, color: theme.textSecondary }}>
+                  💡 {r.info}
+                </p>
+              )}
+              <button onClick={next} className="w-full mt-3 py-3 rounded-2xl text-sm font-black active:scale-97" style={{ background: color, color: '#06231A' }}>
+                {idx + 1 >= rounds.length ? 'Sonucu Gör' : 'Sonraki Soru →'}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+}
+
 // ─── Ortak başlık ───
 function Head({ title, sub, onBack, theme }) {
   return (
@@ -438,9 +552,39 @@ function TesbihatSection({ theme, user, onBack }) {
   );
 }
 
+// ─── 🎯 Zaman Yolcusu soru üretici — 5 farklı soru tarzı, her seferinde taze ───
+function makeTarihRounds() {
+  const flat = TARIH_DONEMLERI.flatMap(era => era.items.map(it => ({ ...it, eraTitle: era.title })));
+  const pool = shuffle(flat);
+  const offset = Math.floor(Math.random() * 5);
+  const rounds = [];
+  for (let i = 0; i < 10; i++) {
+    const it = pool[i % pool.length];
+    const others = shuffle(flat.filter(x => x.id !== it.id)).slice(0, 3);
+    const info = it.detail.length > 150 ? `${it.detail.slice(0, 150)}...` : it.detail;
+    const style = (i + offset) % 5;
+    if (style === 0) {
+      rounds.push({ tag: '🕵️ Kim / Ne?', q: `"${it.desc}" — Bu katkı hangisine aittir?`, opts: shuffle([it, ...others]).map(x => x.title), correct: it.title, info });
+    } else if (style === 1) {
+      rounds.push({ tag: '🔍 Ne yaptı?', q: `${it.title} — bu maddenin katkısı hangisidir?`, opts: shuffle([it, ...others]).map(x => x.desc), correct: it.desc, info });
+    } else if (style === 2) {
+      const years = [...new Set(flat.map(x => x.year))].filter(y => y !== it.year);
+      rounds.push({ tag: '📅 Hangi tarih?', q: `${it.title} hangi tarihe kaydedilir?`, opts: shuffle([it.year, ...shuffle(years).slice(0, 3)]), correct: it.year, info });
+    } else if (style === 3) {
+      rounds.push({ tag: '🗺️ Hangi dönem?', q: `"${it.title}" hangi dönemin parçasıdır?`, opts: shuffle(TARIH_DONEMLERI.map(e => e.title)), correct: it.eraTitle, info });
+    } else {
+      const truth = Math.random() < 0.5;
+      const desc = truth ? it.desc : others[0].desc;
+      rounds.push({ tag: '⚖️ Doğru mu, yanlış mı?', q: `${it.title}: "${desc}"`, opts: ['Doğru', 'Yanlış'], correct: truth ? 'Doğru' : 'Yanlış', info });
+    }
+  }
+  return shuffle(rounds);
+}
+
 // ─── 🏛️ TARİH — katmanlı: madde → SVG çizim + derin anlatım ───
 function TarihSection({ theme, user, onBack }) {
   const [open, setOpen] = useState(null);
+  const [quiz, setQuiz] = useState(false);
   const [readIds, setReadIds] = useState(() => load('tarih_read', []));
 
   const flat = useMemo(() => TARIH_DONEMLERI.flatMap(era => era.items.map(it => ({ ...it, color: era.color, eraTitle: era.title }))), []);
@@ -483,7 +627,14 @@ function TarihSection({ theme, user, onBack }) {
                   <p className="text-center text-[8px] font-black uppercase tracking-[0.2em] pb-2" style={{ color }}>Ne ile uğraştı?</p>
                 </div>
                 <p className="text-[11px] mt-2.5 leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{it.detail}</p>
-                {!isRead ? null : <p className="text-[9px] mt-2 font-black" style={{ color }}>✓ Okundu · +6 XP</p>}
+                <span className="flex items-center gap-2 mt-2.5">
+                  <span role="button" onClick={(e) => { e.stopPropagation(); shareText(`💡 Biliyor muydun?\n${it.year} — ${it.title}\n\n${it.desc}\n\n${it.detail}\n\n🏛️ Dünya Tarihinde Müslümanlar · İslami Yaşam Asistanı`); }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black active:scale-95"
+                    style={{ background: `${color}14`, color, border: `1px solid ${color}35` }}>
+                    <Share2 size={10} /> Paylaş
+                  </span>
+                  {isRead && <span className="text-[9px] font-black" style={{ color }}>✓ Okundu · +6 XP</span>}
+                </span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -492,9 +643,33 @@ function TarihSection({ theme, user, onBack }) {
     );
   };
 
+  if (quiz) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Head title="🎯 Zaman Yolcusu" sub="Buluş bilgini sına — sorular her seferinde farklı tarzda gelir" onBack={() => setQuiz(false)} theme={theme} />
+        <MiniQuiz title="Zaman Yolcusu" color="#A78BFA" theme={theme} user={user}
+          makeRounds={makeTarihRounds} xpKey="tarihquiz" onExit={() => setQuiz(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <Head title="🏛️ Dünya Tarihinde Müslümanlar" sub={`${readIds.length}/${TARIH_TOPLAM} buluş keşfedildi · maddeye dokun, çizimli katman açılsın`} onBack={onBack} theme={theme} />
+
+      {/* 🎯 Zaman Yolcusu */}
+      <div className="px-5 mb-3">
+        <button onClick={() => setQuiz(true)}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl text-left active:scale-98 transition-transform"
+          style={{ background: 'linear-gradient(120deg, #2E1065, #5B21B6)', border: '1px solid #A78BFA50' }}>
+          <Swords size={22} style={{ color: '#C4B5FD' }} />
+          <div className="flex-1">
+            <p className="text-sm font-black" style={{ color: '#EDE9FE' }}>Zaman Yolcusu · Bilgi Sınavı</p>
+            <p className="text-[10px]" style={{ color: '#C4B5FD' }}>5 farklı soru tarzı, her açılışta yeni karışım — bitmek bilmez (+15 XP/gün)</p>
+          </div>
+          <ChevronRight size={16} style={{ color: '#C4B5FD' }} />
+        </button>
+      </div>
 
       {/* Günün Buluşu */}
       <div className="px-5 mb-4">
@@ -615,6 +790,168 @@ function MucizelerSection({ theme, user, onBack }) {
   );
 }
 
+// ─── 🌟 Esma sınavı — 4 farklı soru tarzı, her seferinde taze ───
+function makeEsmaRounds() {
+  const pool = shuffle(ESMA);
+  const offset = Math.floor(Math.random() * 4);
+  const rounds = [];
+  for (let i = 0; i < 10; i++) {
+    const e = pool[i % pool.length];
+    const others = shuffle(ESMA.filter(x => x.n !== e.n)).slice(0, 3);
+    const info = `${e.name}: ${e.mean}`;
+    const style = (i + offset) % 4;
+    if (style === 0) {
+      rounds.push({ tag: '📖 Anlamı ne?', q: `"${e.name}" ne demektir?`, opts: shuffle([e, ...others]).map(x => x.mean), correct: e.mean, info });
+    } else if (style === 1) {
+      rounds.push({ tag: '🔎 Hangi isim?', q: `"${e.mean}" — bu hangi ismin anlamıdır?`, opts: shuffle([e, ...others]).map(x => x.name), correct: e.name, info });
+    } else if (style === 2) {
+      rounds.push({ tag: '✒️ Hattı tanı', qAr: e.ar, q: 'Bu hat hangi ismi yazıyor?', opts: shuffle([e, ...others]).map(x => x.name), correct: e.name, info });
+    } else {
+      rounds.push({ tag: '💭 Tefekkürden bul', q: `"${e.tef}" — bu tefekkür hangi ismi anlatıyor?`, opts: shuffle([e, ...others]).map(x => x.name), correct: e.name, info: e.mean });
+    }
+  }
+  return shuffle(rounds);
+}
+
+// ─── 🌟 ESMAÜL HÜSNA — derin katman ───
+function EsmaSection({ theme, user, onBack }) {
+  const [openN, setOpenN] = useState(null);
+  const [query, setQuery] = useState('');
+  const [quiz, setQuiz] = useState(false);
+  const [readNs, setReadNs] = useState(() => load('esma_read', []));
+
+  const featured = useMemo(() => {
+    const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    return ESMA[doy % ESMA.length];
+  }, []);
+
+  const openEsma = useCallback((e) => {
+    setOpenN(e.n);
+    setReadNs(prev => {
+      if (prev.includes(e.n)) return prev;
+      const next = [...prev, e.n];
+      save('esma_read', next);
+      awardXPOnce(user, `esma_${e.n}`, 'hadith_read', { points: 2, details: `Esma: ${e.name}` });
+      return next;
+    });
+  }, [user]);
+
+  const active = ESMA.find(e => e.n === openN);
+  const filtered = query.trim()
+    ? ESMA.filter(e => e.name.toLowerCase().includes(query.toLowerCase()) || e.mean.toLowerCase().includes(query.toLowerCase()))
+    : ESMA;
+
+  if (quiz) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Head title="🎯 Esma Ezberi" sub="4 farklı soru tarzı — hat, anlam ve tefekkürden" onBack={() => setQuiz(false)} theme={theme} />
+        <MiniQuiz title="Esma Ezberi" color="#E8C56C" theme={theme} user={user}
+          makeRounds={makeEsmaRounds} xpKey="esmaquiz" onExit={() => setQuiz(false)} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Head title="🌟 Esmaül Hüsna" sub={`${readNs.length}/99 isim keşfedildi · "En güzel isimler Allah'ındır" (A'râf 180)`} onBack={onBack} theme={theme} />
+
+      {/* Günün İsmi */}
+      <div className="px-5 mb-3">
+        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => openEsma(featured)}
+          className="w-full text-left rounded-3xl p-5 relative overflow-hidden active:scale-[0.98] transition-transform"
+          style={{ background: 'linear-gradient(135deg, #3B2A16, #8A5A12)', border: '1.5px solid #E8C56C50' }}>
+          <span className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-25 pointer-events-none" style={{ background: 'radial-gradient(circle, #E8C56C, transparent 65%)' }} />
+          <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: '#E8C56C' }}>🌟 Günün İsmi · {featured.n}/99</p>
+          <p dir="rtl" className="text-4xl mt-2 text-center" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: '#F5E3B0', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' }}>
+            {featured.ar}
+          </p>
+          <p className="text-center text-base font-black mt-1.5" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{featured.name}</p>
+          <p className="text-center text-[11px] mt-0.5" style={{ color: 'rgba(245,240,228,0.85)' }}>{featured.mean}</p>
+          <p className="text-center text-[9px] mt-2 font-bold" style={{ color: '#E8C56C' }}>dokun — tefekkürü açılsın</p>
+        </motion.button>
+      </div>
+
+      {/* Esma Ezberi */}
+      <div className="px-5 mb-3">
+        <button onClick={() => setQuiz(true)}
+          className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left active:scale-98 transition-transform"
+          style={{ background: `${theme.gold}10`, border: `1.5px solid ${theme.gold}35` }}>
+          <Swords size={20} style={{ color: theme.gold }} />
+          <div className="flex-1">
+            <p className="text-xs font-black" style={{ color: theme.textPrimary }}>Esma Ezberi · Bilgi Sınavı</p>
+            <p className="text-[10px]" style={{ color: theme.textSecondary }}>Hat, anlam ve tefekkürden 4 tarz soru — her açılışta yeni karışım (+15 XP/gün)</p>
+          </div>
+          <ChevronRight size={15} style={{ color: theme.gold }} />
+        </button>
+      </div>
+
+      {/* Arama */}
+      <div className="px-5 mb-3 relative">
+        <Search size={14} className="absolute left-8 top-1/2 -translate-y-1/2" style={{ color: theme.textSecondary }} />
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="İsim veya anlam ara..."
+          className="w-full rounded-2xl pl-9 pr-4 py-2.5 text-xs focus:outline-none"
+          style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary }} />
+      </div>
+
+      {/* 99 raf */}
+      <div className="px-5 grid grid-cols-2 md:grid-cols-3 gap-2 pb-4">
+        {filtered.map(e => {
+          const isRead = readNs.includes(e.n);
+          return (
+            <button key={e.n} onClick={() => openEsma(e)}
+              className="rounded-2xl p-3 text-center active:scale-95 transition-transform relative"
+              style={{ background: theme.surface, border: `1.5px solid ${isRead ? `${theme.gold}45` : theme.cardBorder}` }}>
+              <span className="absolute top-1.5 left-2 text-[8px] font-black" style={{ color: theme.textSecondary }}>{e.n}</span>
+              {isRead && <span className="absolute top-1.5 right-2 text-[9px]" style={{ color: theme.gold }}>✦</span>}
+              <p dir="rtl" className="text-xl leading-snug" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: theme.gold }}>{e.ar}</p>
+              <p className="text-[10.5px] font-black mt-1" style={{ color: theme.textPrimary }}>{e.name}</p>
+              <p className="text-[8.5px] mt-0.5 leading-tight line-clamp-2" style={{ color: theme.textSecondary }}>{e.mean}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Detay modalı */}
+      <AnimatePresence>
+        {active && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[85] flex items-center justify-center px-6"
+            style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)' }} onClick={() => setOpenN(null)}>
+            <motion.div initial={{ scale: 0.85, y: 24 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', bounce: 0.3 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl p-6 text-center relative overflow-hidden"
+              style={{ background: theme.surface, border: `2px solid ${theme.gold}55` }}>
+              <span className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full opacity-15 pointer-events-none" style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] relative" style={{ color: theme.gold }}>{active.n}. isim</p>
+              <p dir="rtl" className="text-5xl mt-3 relative" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: theme.gold, filter: `drop-shadow(0 0 16px ${theme.gold}50)` }}>
+                {active.ar}
+              </p>
+              <p className="text-xl font-black mt-2 relative" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{active.name}</p>
+              <p className="text-xs mt-1 relative" style={{ color: theme.textSecondary }}>{active.mean}</p>
+              <div className="rounded-2xl p-3.5 mt-4 text-left relative" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}30` }}>
+                <p className="text-[9px] font-black uppercase tracking-wider mb-1.5" style={{ color: theme.gold }}>💭 Tefekkür</p>
+                <p className="text-[12px] leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{active.tef}</p>
+              </div>
+              <div className="flex gap-2 mt-4 relative">
+                <button onClick={() => { const i = ESMA.findIndex(x => x.n === active.n); openEsma(ESMA[(i - 1 + ESMA.length) % ESMA.length]); }}
+                  className="w-10 py-2.5 rounded-xl text-xs font-black active:scale-95" style={{ background: `${theme.textSecondary}12`, color: theme.textSecondary }}>←</button>
+                <button onClick={() => shareText(`🌟 Esmaül Hüsna · ${active.n}/99\n\n${active.ar}\n${active.name} — ${active.mean}\n\n💭 ${active.tef}\n\nİslami Yaşam Asistanı`)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 active:scale-95"
+                  style={{ background: `${theme.gold}14`, border: `1px solid ${theme.gold}40`, color: theme.gold }}>
+                  <Share2 size={12} /> Paylaş
+                </button>
+                <button onClick={() => { const i = ESMA.findIndex(x => x.n === active.n); openEsma(ESMA[(i + 1) % ESMA.length]); }}
+                  className="w-10 py-2.5 rounded-xl text-xs font-black active:scale-95" style={{ background: theme.gold, color: '#06231A' }}>→</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── 🗂️ MERKEZ: büyük kartlar (canlı ilerleme rozetli) ───
 export function HazineCards({ theme, navigate, compact = false }) {
   // Her bölümün gerçek ilerlemesi — kartın köşesinde canlı rozet
@@ -624,6 +961,7 @@ export function HazineCards({ theme, navigate, compact = false }) {
     kissalar: `${load('story_read', []).length} kıssa okundu`,
     tarih: `${load('tarih_read', []).length}/${TARIH_TOPLAM} buluş`,
     mucizeler: `${load('mucize_read', []).length}/${MUCIZELER.length} işaret`,
+    esma: `${load('esma_read', []).length}/99 isim`,
   };
   return (
     <div className={compact ? 'space-y-3' : 'grid grid-cols-1 md:grid-cols-2 gap-3'}>
@@ -662,7 +1000,7 @@ export default function HazinePage() {
   const navigate = useNavigate();
   const { section } = useParams();
   const back = useCallback(() => navigate('/hazine'), [navigate]);
-  const valid = useMemo(() => ['dualar', 'tesbihat', 'tarih', 'mucizeler'].includes(section), [section]);
+  const valid = useMemo(() => ['dualar', 'tesbihat', 'tarih', 'mucizeler', 'esma'].includes(section), [section]);
 
   return (
     <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
@@ -689,6 +1027,8 @@ export default function HazinePage() {
         <TesbihatSection theme={theme} user={user} onBack={back} />
       ) : section === 'tarih' ? (
         <TarihSection theme={theme} user={user} onBack={back} />
+      ) : section === 'esma' ? (
+        <EsmaSection theme={theme} user={user} onBack={back} />
       ) : (
         <MucizelerSection theme={theme} user={user} onBack={back} />
       )}
