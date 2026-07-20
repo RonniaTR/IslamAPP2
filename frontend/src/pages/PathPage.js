@@ -94,6 +94,13 @@ export default function PathPage() {
     return () => { document.body.style.background = prev; };
   }, []);
 
+  // Sekme değişince en üstten başla
+  useEffect(() => {
+    const main = document.querySelector('main');
+    if (main) main.scrollTo(0, 0);
+    window.scrollTo(0, 0);
+  }, [tab]);
+
   // Gün XP'si + mertebe kutlaması + yeni rozet bildirimi + günlük kaydı
   useEffect(() => {
     if (plan) syncHistory(plan);

@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronRight, ChevronDown, Copy, Check, RotateCcw, Sparkles 
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
-import { HIDAYET_DUALARI, TESBIHAT_SETS, TARIH_DONEMLERI, MUCIZELER, HAZINE_BOLUMLERI } from '../data/nurHazine';
+import { HIDAYET_DUALARI, TESBIHAT_SETS, TARIH_DONEMLERI, TARIH_TOPLAM, MUCIZELER, HAZINE_BOLUMLERI } from '../data/nurHazine';
 import Confetti from './games/Confetti';
 
 // 💛 NUR HAZİNESİ — Nur Yolu'nun içerik hazinesi (/hazine/:section?).
@@ -96,6 +96,156 @@ function MiracleArt({ type, color }) {
           <path key={i} {...common} stroke={i % 2 ? dim : c} d={`M${x} ${y - 12} l10 6 v12 l-10 6 l-10 -6 v-12 Z`} />
         ))}
         <path {...common} d="M60 42 c-3 5 -3 8 0 10 c3 -2 3 -5 0 -10 Z" fill={c} stroke="none" />
+      </g>)}
+    </svg>
+  );
+}
+
+// ─── 🏛️ Buluş çizimleri — her tarih maddesi için "ne ile uğraştı?" sahnesi ───
+function TarihArt({ type, color }) {
+  const c = color; const dim = `${color}55`;
+  const S = { fill: 'none', stroke: c, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const D = { ...S, stroke: dim };
+  return (
+    <svg viewBox="0 0 120 70" className="w-full" style={{ height: 84 }} aria-hidden>
+      {type === 'quran' && (<g>
+        <path {...S} d="M60 20 C50 14 38 14 30 18 v32 c8 -4 20 -4 30 2 c10 -6 22 -6 30 -2 V18 c-8 -4 -20 -4 -30 2 Z" />
+        <line {...S} x1="60" y1="20" x2="60" y2="52" />
+        <path {...D} d="M36 26 h16 M36 32 h16 M68 26 h16 M68 32 h16" />
+        <path {...D} d="M60 8 l0 -4 M48 10 l-2 -4 M72 10 l2 -4" />
+      </g>)}
+      {type === 'mosque' && (<g>
+        <path {...S} d="M40 50 v-14 a20 20 0 0 1 40 0 v14 Z" />
+        <path {...S} d="M60 14 q-2 4 0 6 q2 -2 0 -6 Z M60 12 v-4" />
+        <path {...D} d="M28 50 v-22 l3 -5 3 5 v22 M86 50 v-22 l3 -5 3 5 v22" />
+        <line {...S} x1="20" y1="50" x2="100" y2="50" />
+        <path {...S} d="M54 50 v-8 a6 6 0 0 1 12 0 v8" />
+      </g>)}
+      {type === 'chemistry' && (<g>
+        <path {...S} d="M52 14 h16 M56 14 v14 L44 52 a4 4 0 0 0 4 6 h24 a4 4 0 0 0 4 -6 L64 28 V14" />
+        <path {...D} d="M50 44 h20" />
+        <circle cx="56" cy="50" r="2" fill={dim} stroke="none" /><circle cx="64" cy="47" r="1.6" fill={dim} stroke="none" />
+        <path {...D} d="M84 22 a10 10 0 0 1 10 10 M90 14 a18 18 0 0 1 14 16" opacity="0.7" />
+      </g>)}
+      {type === 'algebra' && (<g>
+        <text x="34" y="42" fontSize="26" fontWeight="800" fill={c} stroke="none" fontFamily="Georgia, serif" fontStyle="italic">x</text>
+        <text x="50" y="30" fontSize="12" fontWeight="800" fill={dim} stroke="none" fontFamily="Georgia, serif">2</text>
+        <path {...S} d="M62 34 h10 M62 40 h10" />
+        <text x="78" y="44" fontSize="20" fontWeight="800" fill={dim} stroke="none" fontFamily="Georgia, serif">١٢</text>
+        <path {...D} d="M24 54 h72" />
+        <path {...D} d="M24 16 q4 6 0 12 M96 16 q-4 6 0 12" />
+      </g>)}
+      {type === 'university' && (<g>
+        <path {...S} d="M24 52 v-22 h72 v22 M20 52 h80" />
+        <path {...S} d="M24 30 L60 12 L96 30" />
+        <path {...D} d="M36 52 v-14 M52 52 v-14 M68 52 v-14 M84 52 v-14" />
+        <path {...S} d="M54 52 v-10 a6 6 0 0 1 12 0 v10" />
+      </g>)}
+      {type === 'flight' && (<g>
+        <path {...S} d="M60 34 L28 22 q-6 -2 -2 4 l22 16 M60 34 L92 22 q6 -2 2 4 L72 42" />
+        <circle cx="60" cy="34" r="4" {...S} />
+        <path {...S} d="M60 38 v10 M60 42 l-6 8 M60 42 l6 8" />
+        <path {...D} d="M16 60 q22 -8 44 0 q22 8 44 0" opacity="0.6" />
+      </g>)}
+      {type === 'triangle' && (<g>
+        <path {...S} d="M30 52 L30 20 L90 52 Z" />
+        <path {...D} d="M30 44 a8 8 0 0 0 8 8" />
+        <path {...D} d="M38 52 v-6 h-8" opacity="0.8" />
+        <circle cx="98" cy="18" r="5" {...D} /><path {...D} d="M94 14 l8 8 M102 14 l-8 8" opacity="0.5" />
+        <circle cx="20" cy="12" r="1.6" fill={dim} stroke="none" /><circle cx="104" cy="40" r="1.6" fill={dim} stroke="none" />
+      </g>)}
+      {type === 'surgery' && (<g>
+        <path {...S} d="M30 46 L62 18 q6 -4 8 0 q2 4 -4 8 L38 52 q-6 2 -8 -6 Z" />
+        <path {...D} d="M70 46 q10 -10 20 -18 M78 52 q8 -10 18 -20" />
+        <path {...D} d="M70 46 l-4 8 M96 28 l6 -8" />
+        <circle cx="86" cy="40" r="2.4" {...D} />
+      </g>)}
+      {type === 'optics' && (<g>
+        <path {...S} d="M40 36 q20 -16 40 0 q-20 16 -40 0 Z" />
+        <circle cx="60" cy="36" r="5" {...S} /><circle cx="60" cy="36" r="1.8" fill={c} stroke="none" />
+        <path {...D} d="M18 22 L38 32 M18 36 L36 36 M18 50 L38 40" />
+        <path {...S} d="M14 18 q2 -6 4 0 q-2 3 -4 0 Z M16 14 v-2" />
+      </g>)}
+      {type === 'medicine' && (<g>
+        <path {...S} d="M28 20 h48 a6 6 0 0 1 6 6 v24 a6 6 0 0 1 -6 6 h-48 Z M28 20 v36" />
+        <path {...D} d="M34 26 v24" />
+        <path {...S} d="M44 40 h8 l4 -10 6 16 4 -6 h14" />
+      </g>)}
+      {type === 'globe' && (<g>
+        <circle cx="52" cy="36" r="22" {...S} />
+        <path {...D} d="M30 36 h44 M52 14 v44 M38 20 q14 8 28 0 M38 52 q14 -8 28 0" />
+        <path {...S} d="M86 18 L104 54" strokeDasharray="4 4" />
+        <path {...S} d="M92 12 l4 8 8 2 -6 5" opacity="0.9" />
+      </g>)}
+      {type === 'gears' && (<g>
+        <circle cx="46" cy="34" r="12" {...S} />
+        <circle cx="46" cy="34" r="4" {...D} />
+        {[0, 60, 120, 180, 240, 300].map(a => (
+          <line key={a} {...S} x1={46 + 12 * Math.cos(a * Math.PI / 180)} y1={34 + 12 * Math.sin(a * Math.PI / 180)}
+            x2={46 + 17 * Math.cos(a * Math.PI / 180)} y2={34 + 17 * Math.sin(a * Math.PI / 180)} />
+        ))}
+        <circle cx="78" cy="46" r="9" {...D} />
+        {[30, 90, 150, 210, 270, 330].map(a => (
+          <line key={a} {...D} x1={78 + 9 * Math.cos(a * Math.PI / 180)} y1={46 + 9 * Math.sin(a * Math.PI / 180)}
+            x2={78 + 13 * Math.cos(a * Math.PI / 180)} y2={46 + 13 * Math.sin(a * Math.PI / 180)} />
+        ))}
+        <path {...D} d="M98 18 c-2 4 -2 6 0 8 c2 -2 2 -4 0 -8 Z" fill={dim} stroke="none" />
+      </g>)}
+      {type === 'heart' && (<g>
+        <path {...S} d="M60 52 C40 38 36 26 46 20 c6 -4 12 0 14 4 c2 -4 8 -8 14 -4 c10 6 6 18 -14 32 Z" />
+        <path {...D} d="M34 22 a14 14 0 0 0 -8 12 a14 14 0 0 0 10 13" />
+        <path {...D} d="M86 22 a14 14 0 0 1 8 12 a14 14 0 0 1 -10 13" />
+        <path {...D} d="M30 34 l4 -3 M30 34 l4 3 M90 34 l-4 -3 M90 34 l-4 3" />
+      </g>)}
+      {type === 'network' && (<g>
+        {[[60, 16], [30, 34], [90, 34], [44, 54], [76, 54]].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={i === 0 ? 6 : 4.5} {...(i === 0 ? S : D)} />
+        ))}
+        <path {...D} d="M56 20 L34 31 M64 20 L86 31 M33 38 L42 50 M87 38 L78 50 M48 53 L72 53 M36 32 L72 52 M84 32 L48 52" opacity="0.7" />
+      </g>)}
+      {type === 'observatory' && (<g>
+        <path {...S} d="M36 52 a24 24 0 0 1 48 0 Z" />
+        <path {...S} d="M56 30 L72 14" strokeWidth="3" />
+        <path {...D} d="M30 52 h60" />
+        <path {...D} d="M88 20 a30 30 0 0 1 6 18" strokeDasharray="3 3" />
+        <circle cx="94" cy="12" r="1.8" fill={c} stroke="none" /><circle cx="24" cy="16" r="1.5" fill={dim} stroke="none" /><circle cx="104" cy="30" r="1.5" fill={dim} stroke="none" />
+      </g>)}
+      {type === 'map' && (<g>
+        <path {...S} d="M22 18 q20 -8 34 2 q16 10 42 -2 M22 52 q20 8 34 -2 q16 -10 42 2 M22 18 v34 M98 18 v34" opacity="0.9" />
+        <circle cx="60" cy="35" r="11" {...D} />
+        <path {...S} d="M60 24 l3 8 -3 -2 -3 2 Z M60 46 l-3 -8 3 2 3 -2 Z" fill={c} stroke="none" />
+        <path {...D} d="M49 35 h6 M65 35 h6" />
+      </g>)}
+      {type === 'dome' && (<g>
+        <path {...S} d="M34 52 v-10 a26 22 0 0 1 52 0 v10 Z" />
+        <path {...S} d="M60 18 v-6 M57 10 q3 -3 6 0" />
+        <path {...D} d="M22 52 v-20 l3 -6 3 6 v20 M92 52 v-20 l3 -6 3 6 v20" />
+        <line {...S} x1="16" y1="52" x2="104" y2="52" />
+        <path {...D} d="M46 52 v-6 a5 5 0 0 1 10 0 v6 M64 52 v-6 a5 5 0 0 1 10 0 v6" />
+      </g>)}
+      {type === 'atom' && (<g>
+        <circle cx="60" cy="35" r="4" fill={c} stroke="none" />
+        <ellipse cx="60" cy="35" rx="30" ry="11" {...S} />
+        <ellipse cx="60" cy="35" rx="30" ry="11" {...D} transform="rotate(60 60 35)" />
+        <ellipse cx="60" cy="35" rx="30" ry="11" {...D} transform="rotate(-60 60 35)" />
+        <circle cx="88" cy="28" r="2.2" fill={dim} stroke="none" /><circle cx="38" cy="50" r="2.2" fill={dim} stroke="none" />
+      </g>)}
+      {type === 'femto' && (<g>
+        <circle cx="42" cy="36" r="16" {...S} />
+        <path {...S} d="M42 26 v10 l7 5" />
+        <circle cx="84" cy="28" r="6" {...D} /><circle cx="98" cy="40" r="5" {...D} />
+        <line {...D} x1="88" y1="32" x2="94" y2="37" />
+        <path {...S} d="M70 14 l-5 9 h7 l-5 9" opacity="0.9" />
+      </g>)}
+      {type === 'dna' && (<g>
+        <path {...S} d="M44 12 q32 12 0 24 q-32 12 0 24" />
+        <path {...D} d="M76 12 q-32 12 0 24 q32 12 0 24" />
+        <path {...D} d="M48 18 h24 M44 26 h32 M48 34 h24 M44 44 h32 M48 52 h24" opacity="0.7" />
+      </g>)}
+      {type === 'hands' && (<g>
+        <path {...S} d="M22 46 q10 -8 20 -2 l14 8 q4 3 0 5 l-16 -4" />
+        <path {...D} d="M98 46 q-10 -8 -20 -2 l-14 8 q-4 3 0 5 l16 -4" />
+        <path {...S} d="M60 14 c-6 -6 -16 0 -10 8 l10 8 l10 -8 c6 -8 -4 -14 -10 -8 Z" />
       </g>)}
     </svg>
   );
@@ -288,39 +438,103 @@ function TesbihatSection({ theme, user, onBack }) {
   );
 }
 
-// ─── 🏛️ TARİH ───
-function TarihSection({ theme, onBack }) {
+// ─── 🏛️ TARİH — katmanlı: madde → SVG çizim + derin anlatım ───
+function TarihSection({ theme, user, onBack }) {
+  const [open, setOpen] = useState(null);
+  const [readIds, setReadIds] = useState(() => load('tarih_read', []));
+
+  const flat = useMemo(() => TARIH_DONEMLERI.flatMap(era => era.items.map(it => ({ ...it, color: era.color, eraTitle: era.title }))), []);
+  const featured = useMemo(() => {
+    const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    return flat[doy % flat.length];
+  }, [flat]);
+
+  const openItem = (it) => {
+    setOpen(o => (o === it.id ? null : it.id));
+    if (!readIds.includes(it.id)) {
+      const next = [...readIds, it.id];
+      setReadIds(next); save('tarih_read', next);
+      awardXPOnce(user, `tarih_${it.id}`, 'hadith_read', { points: 6, details: `Tarih: ${it.title}` });
+    }
+  };
+
+  const ItemCard = ({ it, color }) => {
+    const isOpen = open === it.id;
+    const isRead = readIds.includes(it.id);
+    return (
+      <div className="relative">
+        <span className="absolute -left-[15px] top-3 w-2.5 h-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}80` }} />
+        <button onClick={() => openItem(it)}
+          className="w-full text-left rounded-xl p-2.5 -m-0.5 transition-all"
+          style={{ background: isOpen ? `${color}0c` : 'transparent', border: `1px solid ${isOpen ? `${color}40` : 'transparent'}` }}>
+          <p className="text-xs font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}>
+            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0" style={{ background: `${color}16`, color }}>{it.year}</span>
+            <span className="flex-1">{it.title}</span>
+            {isRead && <Check size={11} style={{ color }} className="shrink-0" />}
+            <ChevronDown size={12} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
+          </p>
+          <p className="text-[10.5px] mt-1 leading-relaxed" style={{ color: theme.textSecondary }}>{it.desc}</p>
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                {/* Ne ile uğraştı? — SVG sahnesi */}
+                <div className="rounded-xl mt-2.5 pt-2 px-2" style={{ background: `linear-gradient(160deg, ${color}10, transparent)`, border: `1px dashed ${color}35` }}>
+                  <TarihArt type={it.art} color={color} />
+                  <p className="text-center text-[8px] font-black uppercase tracking-[0.2em] pb-2" style={{ color }}>Ne ile uğraştı?</p>
+                </div>
+                <p className="text-[11px] mt-2.5 leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{it.detail}</p>
+                {!isRead ? null : <p className="text-[9px] mt-2 font-black" style={{ color }}>✓ Okundu · +6 XP</p>}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
-      <Head title="🏛️ Dünya Tarihinde Müslümanlar" sub="Vahiyden bugüne, medeniyete katkıların zaman tüneli" onBack={onBack} theme={theme} />
+      <Head title="🏛️ Dünya Tarihinde Müslümanlar" sub={`${readIds.length}/${TARIH_TOPLAM} buluş keşfedildi · maddeye dokun, çizimli katman açılsın`} onBack={onBack} theme={theme} />
+
+      {/* Günün Buluşu */}
+      <div className="px-5 mb-4">
+        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          onClick={() => openItem(featured)}
+          className="w-full text-left rounded-2xl p-4 relative overflow-hidden active:scale-[0.98] transition-transform"
+          style={{ background: `linear-gradient(120deg, ${featured.color}18, ${theme.surface})`, border: `1.5px solid ${featured.color}45` }}>
+          <span className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-25 pointer-events-none" style={{ background: `radial-gradient(circle, ${featured.color}, transparent 65%)` }} />
+          <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: featured.color }}>💡 Günün Buluşu</p>
+          <p className="text-sm font-black mt-1" style={{ color: theme.textPrimary }}>{featured.year} · {featured.title}</p>
+          <p className="text-[10.5px] mt-1" style={{ color: theme.textSecondary }}>{featured.desc}</p>
+          <p className="text-[9px] mt-1.5 font-bold" style={{ color: featured.color }}>{featured.eraTitle} · aşağıda açıldı ↓</p>
+        </motion.button>
+      </div>
+
       <div className="px-5 space-y-4">
-        {TARIH_DONEMLERI.map((era, ei) => (
-          <motion.div key={era.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: ei * 0.07 }}
-            className="rounded-3xl p-4 relative overflow-hidden"
-            style={{ background: theme.surface, border: `1.5px solid ${era.color}30` }}>
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-3xl">{era.emoji}</span>
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: era.color }}>{era.era}</p>
-                <p className="text-base font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{era.title}</p>
-              </div>
-            </div>
-            <p className="text-[11px] leading-relaxed mb-3" style={{ color: theme.textSecondary }}>{era.intro}</p>
-            <div className="relative pl-4 space-y-3">
-              <span className="absolute left-[5px] top-1 bottom-1 w-0.5 rounded-full" style={{ background: `linear-gradient(180deg, ${era.color}, ${era.color}15)` }} />
-              {era.items.map((it, i) => (
-                <div key={i} className="relative">
-                  <span className="absolute -left-[15px] top-1.5 w-2.5 h-2.5 rounded-full" style={{ background: era.color, boxShadow: `0 0 8px ${era.color}80` }} />
-                  <p className="text-xs font-black" style={{ color: theme.textPrimary }}>
-                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md mr-1.5" style={{ background: `${era.color}16`, color: era.color }}>{it.year}</span>
-                    {it.title}
-                  </p>
-                  <p className="text-[10.5px] mt-1 leading-relaxed" style={{ color: theme.textSecondary }}>{it.desc}</p>
+        {TARIH_DONEMLERI.map((era, ei) => {
+          const eraRead = era.items.filter(it => readIds.includes(it.id)).length;
+          return (
+            <motion.div key={era.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: ei * 0.07 }}
+              className="rounded-3xl p-4 relative overflow-hidden"
+              style={{ background: theme.surface, border: `1.5px solid ${era.color}30` }}>
+              <div className="flex items-center gap-3 mb-1">
+                <span className="text-3xl">{era.emoji}</span>
+                <div className="flex-1">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: era.color }}>{era.era}</p>
+                  <p className="text-base font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{era.title}</p>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        ))}
+                <span className="text-[9px] font-black px-2 py-1 rounded-full shrink-0" style={{ background: `${era.color}14`, color: era.color }}>
+                  {eraRead}/{era.items.length}
+                </span>
+              </div>
+              <p className="text-[11px] leading-relaxed mb-3" style={{ color: theme.textSecondary }}>{era.intro}</p>
+              <div className="relative pl-4 space-y-2">
+                <span className="absolute left-[5px] top-1 bottom-1 w-0.5 rounded-full" style={{ background: `linear-gradient(180deg, ${era.color}, ${era.color}15)` }} />
+                {era.items.map(it => <ItemCard key={it.id} it={it} color={era.color} />)}
+              </div>
+            </motion.div>
+          );
+        })}
         <p className="text-[9px] text-center pb-2" style={{ color: theme.textSecondary }}>
           Tarihler yaygın kabul gören ansiklopedik kayıtlara göre yaklaşık verilmiştir.
         </p>
@@ -401,8 +615,16 @@ function MucizelerSection({ theme, user, onBack }) {
   );
 }
 
-// ─── 🗂️ MERKEZ: büyük kartlar ───
+// ─── 🗂️ MERKEZ: büyük kartlar (canlı ilerleme rozetli) ───
 export function HazineCards({ theme, navigate, compact = false }) {
+  // Her bölümün gerçek ilerlemesi — kartın köşesinde canlı rozet
+  const progress = {
+    dualar: `${load('dua_read', []).length}/${HIDAYET_DUALARI.length} dua`,
+    tesbihat: `bugün ${Object.keys(load(`tesbihat_log_${todayKey()}`, {})).length}/${TESBIHAT_SETS.length} set`,
+    kissalar: `${load('story_read', []).length} kıssa okundu`,
+    tarih: `${load('tarih_read', []).length}/${TARIH_TOPLAM} buluş`,
+    mucizeler: `${load('mucize_read', []).length}/${MUCIZELER.length} işaret`,
+  };
   return (
     <div className={compact ? 'space-y-3' : 'grid grid-cols-1 md:grid-cols-2 gap-3'}>
       {HAZINE_BOLUMLERI.map((b, i) => (
@@ -420,6 +642,11 @@ export function HazineCards({ theme, navigate, compact = false }) {
               <p className="text-base font-black leading-tight" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{b.title}</p>
               <p className="text-[9px] font-black uppercase tracking-wider mt-1" style={{ color: b.accent }}>{b.meta}</p>
               <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'rgba(245,240,228,0.82)' }}>{b.desc}</p>
+              {progress[b.id] && (
+                <span className="inline-block mt-2.5 text-[9px] font-black px-2.5 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.3)', color: b.accent, border: `1px solid ${b.accent}40` }}>
+                  📊 {progress[b.id]}
+                </span>
+              )}
             </div>
             <ChevronRight size={16} className="shrink-0 mt-1" style={{ color: b.accent }} />
           </div>
@@ -461,7 +688,7 @@ export default function HazinePage() {
       ) : section === 'tesbihat' ? (
         <TesbihatSection theme={theme} user={user} onBack={back} />
       ) : section === 'tarih' ? (
-        <TarihSection theme={theme} onBack={back} />
+        <TarihSection theme={theme} user={user} onBack={back} />
       ) : (
         <MucizelerSection theme={theme} user={user} onBack={back} />
       )}

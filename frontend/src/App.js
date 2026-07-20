@@ -72,6 +72,14 @@ function PageLoader() {
 
 function AppRouter() {
   const location = useLocation();
+  // Her rota değişiminde sayfa EN ÜSTTEN başlar (main + window + html/body)
+  useEffect(() => {
+    const main = document.querySelector('main');
+    if (main) main.scrollTo(0, 0);
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname]);
   return (
     <Suspense fallback={<PageLoader />}>
       <AnimatePresence mode="wait">
