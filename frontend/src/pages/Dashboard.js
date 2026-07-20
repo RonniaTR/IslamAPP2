@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Play, Bookmark, Share2, MapPin, ChevronRight, BookOpen, Heart, ScrollText, Gamepad2, CheckCircle2, Circle, Users } from 'lucide-react';
+import { Bell, Play, Bookmark, Share2, MapPin, ChevronRight, BookOpen, Heart, ScrollText, Gamepad2, CheckCircle2, Circle, Users, Route, Moon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Card } from '../components/ui/Card';
@@ -114,11 +114,12 @@ export default function Dashboard() {
         </Card>
 
         {/* QUICK LINKS */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', overflowX: 'auto', gap: '8px', WebkitOverflowScrolling: 'touch' }}>
+          <QuickLink icon={Route} label="Yol" color="#10B981" onClick={() => navigate('/yol')} />
           <QuickLink icon={BookOpen} label="Kur'an" color="#4A90D9" onClick={() => navigate('/quran')} />
           <QuickLink icon={Users} label="Ortak Hatim" color="#10B981" onClick={() => navigate('/hatim')} />
           <QuickLink icon={ScrollText} label="İlim" color="#F59E0B" onClick={() => navigate('/knowledge')} />
-          <QuickLink icon={BookOpen} label="Hikayeler" color="#8B5CF6" onClick={() => navigate('/knowledge')} />
+          <QuickLink icon={Moon} label="Gece" color="#6366F1" onClick={() => navigate('/night')} />
           <QuickLink icon={Gamepad2} label="Oyna" color="#EC4899" onClick={() => navigate('/quiz')} />
         </div>
 

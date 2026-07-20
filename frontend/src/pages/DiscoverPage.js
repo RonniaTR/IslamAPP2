@@ -8,6 +8,7 @@ import { QuickCategories } from '../components/discover/QuickCategories';
 import { OngoingSeriesRow } from '../components/discover/OngoingSeriesRow';
 import { AudioContentsRow } from '../components/discover/AudioContentsRow';
 import { ChallengeAndBadgeSection } from '../components/discover/ChallengeAndBadgeSection';
+import { NewModulesRow } from '../components/discover/NewModulesRow';
 import { Loader2 } from 'lucide-react';
 
 export default function DiscoverPage() {
@@ -43,6 +44,8 @@ export default function DiscoverPage() {
         <ForYouRow items={data.forYou} title="Sana Özel" />
 
         <QuickCategories items={data.categories} />
+        
+        <NewModulesRow />
 
         <OngoingSeriesRow items={data.ongoingSeries} title="Devam Eden Seriler" />
 
