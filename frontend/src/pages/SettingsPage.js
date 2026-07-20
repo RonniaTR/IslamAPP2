@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, User, Bell, Palette, Globe, Type, Volume2, Shield, Database, Info, ChevronRight, Baby } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAppMode } from '../contexts/AppModeContext';
 import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
+import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
 
 export default function SettingsPage() {
   const { theme, themeId, toggleTheme } = useTheme();
   const { appMode, setAppMode, isChild } = useAppMode();
   const navigate = useNavigate();
+  const [showReadingSettings, setShowReadingSettings] = useState(false);
 
   const settingsGroups = [
     {
@@ -22,9 +24,9 @@ export default function SettingsPage() {
     {
       items: [
         { id: 'appearance', label: 'Görünüm', icon: Palette, value: themeId === 'dark' ? 'Koyu Tema' : 'Açık Tema', action: 'toggleTheme' },
+        { id: 'reading', label: 'Okuma Ayarları', icon: Type, value: 'Metin, Tema', action: 'openReadingSettings' },
         { id: 'language', label: 'Dil', icon: Globe, value: 'Türkçe', action: 'noop' },
-        { id: 'fontsize', label: 'Yazı Boyutu', icon: Type, value: 'Orta', action: 'noop' },
-        { id: 'audio', label: 'Ses ve Okuyucu', icon: Volume2, value: 'Kabe İmamı', action: 'noop' },
+        { id: 'audio', label: 'Ses', icon: Volume2, value: 'Açık', action: 'noop' },
       ]
     },
     {
@@ -67,8 +69,10 @@ export default function SettingsPage() {
                     const newMode = isChild ? 'adult' : 'child';
                     setAppMode(newMode);
                     navigate(newMode === 'child' ? '/kids' : '/');
-                    // Force refresh to reload layouts cleanly if needed, though react should handle it
                     setTimeout(() => window.location.reload(), 100);
+                  }
+                  else if (item.action === 'openReadingSettings') {
+                    setShowReadingSettings(true);
                   }
                   else if (item.path) navigate(item.path);
                   else alert('Bu özellik yakında eklenecek!');
@@ -91,6 +95,11 @@ export default function SettingsPage() {
           </motion.div>
         ))}
       </div>
+
+      <ReadingSettingsSheet 
+        open={showReadingSettings} 
+        onClose={() => setShowReadingSettings(false)} 
+      />
     </div>
   );
 }

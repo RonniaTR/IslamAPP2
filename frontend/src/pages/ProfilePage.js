@@ -8,11 +8,15 @@ import { HistoryService } from '../services/HistoryService';
 import { BookmarkService } from '../services/BookmarkService';
 import { DiscoverService } from '../services/DiscoverService';
 import { useAuth } from '../contexts/AuthContext';
+import { useAppMode } from '../contexts/AppModeContext';
+import { LogOut } from 'lucide-react';
 
 export default function ProfilePage() {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const { clearMode } = useAppMode();
+  
   
   // Eğer giriş yapmamışsa misafir ID'sini kullan
   const currentUid = user?.uid || user?.id || 'anonymous';
@@ -40,20 +44,33 @@ export default function ProfilePage() {
 
   if (loading || !profile) {
     return (
-      <div className="min-h-screen bg-[#0A1A12] flex items-center justify-center text-[#10b981]">
+      <div className="min-h-screen bg-transparent flex items-center justify-center text-emerald-500">
         <Loader2 className="animate-spin w-10 h-10" />
       </div>
     );
   }
 
+  const handleLogout = async () => {
+    clearMode(); // Yetişkin/Çocuk modunu siler
+    await logout(); // Firebase çıkış
+    navigate('/login', { replace: true });
+  };
+
   return (
-    <div className="min-h-screen pb-24 bg-[#0A1A12] text-white overflow-y-auto">
+    <div className="min-h-screen pb-24  overflow-y-auto" style={{ background: theme.bg }}>
       {/* Header */}
-      <header className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center bg-[#0A1A12]/90 backdrop-blur-md border-b border-[#1A3826]">
-        <h1 className="text-2xl font-bold font-serif text-white">Profil</h1>
-        <button className="p-2 rounded-full hover:bg-[#1A3826] transition-colors">
-          <Settings size={24} className="text-gray-400 hover:text-white" />
-        </button>
+      <header className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center backdrop-blur-md border-b"
+        style={{ background: `${theme.navBg}E6`, borderBottomColor: theme.cardBorder }}>
+        <h1 className="text-2xl font-bold font-serif" style={{ color: theme.textPrimary }}>Profil</h1>
+        <div className="flex gap-3">
+          <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors" title="Çıkış Yap">
+            <LogOut size={20} />
+            <span className="text-sm font-semibold hidden md:inline">Çıkış Yap</span>
+          </button>
+          <button onClick={() => navigate('/settings')} className="p-2 rounded-full transition-colors" style={{ hover: { background: theme.surfaceLight }}}>
+            <Settings size={24} style={{ color: theme.textSecondary }} />
+          </button>
+        </div>
       </header>
 
       <main className="px-4 py-6 space-y-8 max-w-4xl mx-auto">
@@ -102,13 +119,13 @@ function ProfileHero({ profile }) {
       <div className="flex-1 text-center md:text-left mt-2 md:mt-0">
         <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
           <h2 className="text-3xl font-bold">{profile.name}</h2>
-          <CheckCircle2 size={24} className="text-[#10b981]" />
+          <CheckCircle2 size={24} className="text-emerald-500" />
         </div>
-        <p className="text-[#10b981] font-medium mb-4 flex items-center justify-center md:justify-start gap-1">
+        <p className="text-emerald-500 font-medium mb-4 flex items-center justify-center md:justify-start gap-1">
           <Sparkles size={16} /> {profile.title}
         </p>
 
-        <div className="w-full max-w-md bg-[#132A1D] rounded-full h-3 mb-2 overflow-hidden border border-[#1A3826]">
+        <div className="w-full max-w-md bg-black/5 dark:bg-white/5 rounded-full h-3 mb-2 overflow-hidden border border-black/5 dark:border-white/10">
           <div className="bg-gradient-to-r from-[#f59e0b] to-[#fbbf24] h-full rounded-full" style={{ width: `${progressPercent}%` }}></div>
         </div>
         <div className="flex justify-between text-sm text-gray-400 max-w-md font-medium">
@@ -128,8 +145,8 @@ function ProfileHero({ profile }) {
 
 function StatBadge({ icon, value, label }) {
   return (
-    <div className="flex items-center gap-3 bg-[#132A1D] px-4 py-3 rounded-2xl border border-[#1A3826] min-w-[140px]">
-      <div className="p-2 bg-[#0A1A12] rounded-full">
+    <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 px-4 py-3 rounded-2xl border border-black/5 dark:border-white/10 min-w-[140px]">
+      <div className="p-2 bg-transparent rounded-full">
         {icon}
       </div>
       <div>
@@ -147,13 +164,13 @@ function DailyStatus() {
   const dateString = today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
       {/* Decorative BG element */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-[#10b981] opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500 opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
       
       <div className="flex-1 w-full">
         <div className="flex items-center gap-2 mb-2">
-          <Calendar size={20} className="text-[#10b981]" />
+          <Calendar size={20} className="text-emerald-500" />
           <h3 className="text-lg font-bold">Bugünkü Durum</h3>
         </div>
         <div className="text-sm text-gray-400 mb-6 font-medium">{dateString}</div>
@@ -164,11 +181,11 @@ function DailyStatus() {
         </div>
       </div>
 
-      <div className="flex items-center gap-6 bg-[#0A1A12] p-5 rounded-2xl border border-[#1A3826] z-10 w-full md:w-auto">
+      <div className="flex items-center gap-6 bg-transparent p-5 rounded-2xl border border-black/5 dark:border-white/10 z-10 w-full md:w-auto">
         <div>
           <div className="text-sm text-gray-400 mb-1">Günlük Hedef</div>
           <div className="text-3xl font-bold">%70</div>
-          <button className="mt-4 w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold py-2 px-6 rounded-xl transition-colors">
+          <button className="mt-4 w-full bg-emerald-500 hover:bg-[#059669]  font-bold py-2 px-6 rounded-xl transition-colors">
             Devam Et
           </button>
         </div>
@@ -187,12 +204,12 @@ function DailyStatus() {
 function DailyTaskItem({ title, status, completed }) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`p-1.5 rounded-full ${completed ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-[#1A3826] text-gray-500'}`}>
+      <div className={`p-1.5 rounded-full ${completed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-[#1A3826] text-gray-500'}`}>
         <CheckCircle2 size={18} />
       </div>
       <div>
-        <div className="font-bold text-sm text-white">{title}</div>
-        <div className="text-xs text-[#10b981]">{status}</div>
+        <div className="font-bold text-sm ">{title}</div>
+        <div className="text-xs text-emerald-500">{status}</div>
       </div>
     </div>
   );
@@ -218,10 +235,10 @@ function UpcomingSpecialDays() {
   if (nextDays.length === 0) return null;
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <Calendar size={20} className="text-[#10b981]" /> Yaklaşan Özel Günler
+          <Calendar size={20} className="text-emerald-500" /> Yaklaşan Özel Günler
         </h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -230,11 +247,11 @@ function UpcomingSpecialDays() {
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           const dateStr = new Date(day.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
           return (
-            <div key={idx} className="flex items-center justify-between bg-[#0A1A12] p-4 rounded-2xl border border-[#1A3826]">
+            <div key={idx} className="flex items-center justify-between bg-transparent p-4 rounded-2xl border border-black/5 dark:border-white/10">
               <div className="flex items-center gap-3">
                 <div className="text-3xl">{day.icon}</div>
                 <div>
-                  <div className="font-bold text-white">{day.name}</div>
+                  <div className="font-bold ">{day.name}</div>
                   <div className="text-xs text-gray-400">{dateStr}</div>
                 </div>
               </div>
@@ -254,7 +271,7 @@ function UpcomingSpecialDays() {
 function LearningJourney({ journey = [], navigate }) {
   // If no journey data, show default
   const defaultJourney = [
-    { title: "İlmihal", percent: 100, color: "bg-[#10b981]" },
+    { title: "İlmihal", percent: 100, color: "bg-emerald-500" },
     { title: "Namaz Rehberi", percent: 80, color: "bg-[#f59e0b]" },
     { title: "40 Hadis", percent: 35, color: "bg-purple-500" },
     { title: "Siyer", percent: 12, color: "bg-orange-500" },
@@ -263,12 +280,12 @@ function LearningJourney({ journey = [], navigate }) {
   const data = journey.length > 0 ? journey : defaultJourney;
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <Target size={20} className="text-[#10b981]" /> Öğrenme Yolculuğum
+          <Target size={20} className="text-emerald-500" /> Öğrenme Yolculuğum
         </h3>
-        <button onClick={() => navigate('/discover')} className="text-sm text-gray-400 hover:text-white flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
+        <button onClick={() => navigate('/discover')} className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
       </div>
 
       <div className="relative pt-8 pb-4 overflow-x-auto no-scrollbar">
@@ -279,11 +296,11 @@ function LearningJourney({ journey = [], navigate }) {
           {data.map((item, i) => (
             <div key={i} className="flex flex-col items-center gap-3 w-24">
               <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 border-[#132A1D] shadow-lg shadow-black/50 ${item.percent === 100 ? item.color : 'bg-[#1A3826]'}`}>
-                {item.percent === 100 ? <CheckCircle2 size={24} className="text-[#0A1A12]" /> : <BookOpen size={24} className={item.percent > 0 ? "text-white" : "text-gray-500"} />}
+                {item.percent === 100 ? <CheckCircle2 size={24} className="text-[#0A1A12]" /> : <BookOpen size={24} className={item.percent > 0 ? "" : "text-gray-500"} />}
               </div>
               <div className="text-center">
                 <div className="text-xs font-bold whitespace-nowrap">{item.title}</div>
-                <div className={`text-xs ${item.percent === 100 ? 'text-[#10b981]' : 'text-gray-400'}`}>%{item.percent}</div>
+                <div className={`text-xs ${item.percent === 100 ? 'text-emerald-500' : 'text-gray-400'}`}>%{item.percent}</div>
               </div>
             </div>
           ))}
@@ -304,7 +321,7 @@ function LearningJourney({ journey = [], navigate }) {
 function WorshipStats({ stats = [] }) {
   // If no stats, show default
   const defaultStats = [
-    { label: "Kur'an", percent: 62, color: "bg-[#10b981]" },
+    { label: "Kur'an", percent: 62, color: "bg-emerald-500" },
     { label: "Hadis", percent: 81, color: "bg-[#f59e0b]" },
     { label: "Dua", percent: 75, color: "bg-purple-500" },
     { label: "Namaz", percent: 54, color: "bg-orange-500" },
@@ -313,10 +330,10 @@ function WorshipStats({ stats = [] }) {
   const data = stats.length > 0 ? stats : defaultStats;
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold">İbadet İstatistikleri</h3>
-        <select className="bg-[#0A1A12] border border-[#1A3826] text-sm rounded-lg px-2 py-1 text-gray-300 outline-none">
+        <select className="bg-transparent border border-black/5 dark:border-white/10 text-sm rounded-lg px-2 py-1 text-gray-300 outline-none">
           <option>Bu Hafta</option>
           <option>Bu Ay</option>
         </select>
@@ -329,7 +346,7 @@ function WorshipStats({ stats = [] }) {
               <BookOpen size={16} className={`text-[${stat.color.replace('bg-', '')}]`} />
             </div>
             <div className="w-20 text-sm font-medium">{stat.label}</div>
-            <div className="flex-1 bg-[#0A1A12] h-2 rounded-full overflow-hidden">
+            <div className="flex-1 bg-transparent h-2 rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
                 whileInView={{ width: `${stat.percent}%` }}
@@ -374,7 +391,7 @@ function StreakCalendar({ streak = 0 }) {
   };
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-bold flex items-center gap-2">
           <Flame size={20} className="text-orange-500" /> Günlük Seri
@@ -402,9 +419,9 @@ function StreakCalendar({ streak = 0 }) {
 
                 // Stil belirleme
                 let bgClass = "bg-[#1A3826]"; // pasif gün
-                if (isActive) bgClass = "bg-[#10b981] shadow-sm shadow-[#10b981]/40";
+                if (isActive) bgClass = "bg-emerald-500 shadow-sm shadow-[#10b981]/40";
                 if (isToday && !isActive) bgClass = "bg-[#f59e0b]"; // Bugün sisteme girmemişse turuncu
-                if (isToday && isActive) bgClass = "bg-[#10b981] ring-2 ring-white ring-offset-1 ring-offset-[#132A1D]"; // Bugün sisteme girdiyse beyaz çerçeve
+                if (isToday && isActive) bgClass = "bg-emerald-500 ring-2 ring-white ring-offset-1 ring-offset-[#132A1D]"; // Bugün sisteme girdiyse beyaz çerçeve
                 
                 return (
                   <div 
@@ -427,22 +444,22 @@ function RecentAudio({ audios = [], navigate }) {
   if (audios.length === 0) return null; // Hide if none
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold">Son Dinlediklerim</h3>
       </div>
       <div className="space-y-4">
         {audios.map((a, i) => (
-          <div key={i} className="flex items-center gap-4 bg-[#0A1A12] p-3 rounded-2xl border border-[#1A3826] cursor-pointer hover:border-[#10b981] transition-colors"
+          <div key={i} className="flex items-center gap-4 bg-transparent p-3 rounded-2xl border border-black/5 dark:border-white/10 cursor-pointer hover:border-[#10b981] transition-colors"
                onClick={() => navigate(`/content/${a.type}/${a.slug}`)}>
-            <button className="w-12 h-12 bg-gradient-to-br from-[#10b981] to-[#059669] rounded-xl flex items-center justify-center text-white shadow-lg shadow-[#10b981]/20">
+            <button className="w-12 h-12 bg-gradient-to-br from-[#10b981] to-[#059669] rounded-xl flex items-center justify-center  shadow-lg shadow-[#10b981]/20">
               <Play size={20} className="ml-1" />
             </button>
             <div className="flex-1">
               <div className="font-bold">{a.title}</div>
               <div className="text-xs text-gray-400 capitalize">{a.type}</div>
               <div className="mt-2 bg-[#1A3826] h-1.5 rounded-full overflow-hidden">
-                <div className="bg-[#10b981] h-full rounded-full" style={{ width: `${a.progress}%` }}></div>
+                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${a.progress}%` }}></div>
               </div>
             </div>
             <div className="text-xs text-gray-400 font-mono">%{(a.progress || 0).toFixed(0)}</div>
@@ -458,17 +475,17 @@ function SavedItems({ saved = [], navigate }) {
   if (saved.length === 0) return null;
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <Bookmark size={20} className="text-[#10b981]" /> Kaydedilenler
+          <Bookmark size={20} className="text-emerald-500" /> Kaydedilenler
         </h3>
       </div>
       <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
         {saved.map((s, i) => (
-          <div key={i} onClick={() => navigate(`/content/${s.type}/${s.slug}`)} className="min-w-[160px] h-32 relative rounded-2xl overflow-hidden border border-[#1A3826] group cursor-pointer hover:border-[#f59e0b] transition-colors">
+          <div key={i} onClick={() => navigate(`/content/${s.type}/${s.slug}`)} className="min-w-[160px] h-32 relative rounded-2xl overflow-hidden border border-black/5 dark:border-white/10 group cursor-pointer hover:border-[#f59e0b] transition-colors">
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-black/20 z-10"></div>
-            <div className="absolute inset-0 bg-[#0A1A12]">
+            <div className="absolute inset-0 bg-transparent">
               <div className="w-full h-full opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#10b981] to-transparent"></div>
             </div>
             <div className="absolute top-2 right-2 z-20 text-[#f59e0b]">
@@ -495,21 +512,21 @@ function BadgeGallery() {
   ];
 
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6 overflow-hidden relative">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6 overflow-hidden relative">
       <div className="absolute top-0 right-0 w-40 h-40 bg-[#f59e0b] opacity-5 rounded-full blur-3xl"></div>
       
       <div className="flex justify-between items-center mb-6 relative z-10">
         <h3 className="text-lg font-bold flex items-center gap-2">
           <Award size={20} className="text-[#f59e0b]" /> Rozet Galerisi
         </h3>
-        <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
+        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
       </div>
 
       <div className="flex justify-between relative z-10 px-2">
         {badges.map((b, i) => (
           <div key={i} className="flex flex-col items-center gap-2">
             <div className={`w-16 h-16 rounded-2xl rotate-45 flex items-center justify-center bg-gradient-to-br ${b.color} p-[2px] shadow-lg shadow-amber-500/10`}>
-              <div className="w-full h-full bg-[#0A1A12] rounded-2xl flex items-center justify-center">
+              <div className="w-full h-full bg-transparent rounded-2xl flex items-center justify-center">
                 <div className="-rotate-45 text-2xl">{b.icon}</div>
               </div>
             </div>
@@ -524,12 +541,12 @@ function BadgeGallery() {
 // 9. Kişisel Hedefler
 function PersonalGoals() {
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <Target size={20} className="text-[#10b981]" /> Kişisel Hedeflerim
+          <Target size={20} className="text-emerald-500" /> Kişisel Hedeflerim
         </h3>
-        <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
+        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
       </div>
       <div className="space-y-3">
         <GoalItem text="5 Hadis ezberle" progress="3/5" done={false} />
@@ -543,11 +560,11 @@ function PersonalGoals() {
 
 function GoalItem({ text, progress, done }) {
   return (
-    <div className="flex items-center gap-3 bg-[#0A1A12] p-3 rounded-xl border border-[#1A3826]">
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${done ? 'bg-[#10b981]' : 'border-2 border-[#1A3826]'}`}>
-        {done && <CheckCircle2 size={16} className="text-white" />}
+    <div className="flex items-center gap-3 bg-transparent p-3 rounded-xl border border-black/5 dark:border-white/10">
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500' : 'border-2 border-black/5 dark:border-white/10'}`}>
+        {done && <CheckCircle2 size={16} className="" />}
       </div>
-      <div className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : 'text-white font-medium'}`}>{text}</div>
+      <div className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : ' font-medium'}`}>{text}</div>
       <div className="text-xs text-gray-500 font-mono">{progress}</div>
     </div>
   );
@@ -561,14 +578,14 @@ function AIAssistantCard() {
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#10b981]/20 via-transparent to-transparent"></div>
       
       <div className="relative z-10">
-        <div className="inline-flex items-center gap-2 bg-[#10b981]/20 text-[#10b981] px-3 py-1 rounded-full text-xs font-bold mb-4">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-500 px-3 py-1 rounded-full text-xs font-bold mb-4">
           <Sparkles size={14} /> AI Asistan Analizi
         </div>
         <p className="text-gray-300 text-sm leading-relaxed mb-4">
-          "Son 15 gündür <span className="text-white font-bold">dua</span> içeriklerine ilgi gösteriyorsun. 
+          "Son 15 gündür <span className=" font-bold">dua</span> içeriklerine ilgi gösteriyorsun. 
           Sana <span className="text-[#f59e0b] font-bold">Esmâü'l Hüsna</span> serisini öneriyorum."
         </p>
-        <button className="bg-[#10b981] hover:bg-[#059669] text-white text-sm font-bold py-2 px-5 rounded-xl transition-colors">
+        <button className="bg-emerald-500 hover:bg-[#059669]  text-sm font-bold py-2 px-5 rounded-xl transition-colors">
           Seriyi Keşfet
         </button>
       </div>
@@ -584,18 +601,18 @@ function AIAssistantCard() {
 // 11. İlim Haritası
 function KnowledgeMap() {
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <BookOpen size={20} className="text-[#10b981]" /> İlim Haritası
+          <BookOpen size={20} className="text-emerald-500" /> İlim Haritası
         </h3>
-        <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
+        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
       </div>
       
       <div className="relative h-64 flex items-center justify-center">
         {/* Central Node */}
-        <div className="w-16 h-16 bg-[#10b981] rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.4)] z-20 relative">
-          <BookOpen size={30} className="text-white" />
+        <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.4)] z-20 relative">
+          <BookOpen size={30} className="" />
         </div>
 
         {/* Connecting Lines (Simulated with absolute positioning) */}
@@ -623,10 +640,10 @@ function KnowledgeMap() {
 function MapNode({ top, left, label, icon, completed }) {
   return (
     <div className="absolute flex flex-col items-center gap-2 transform -translate-x-1/2 -translate-y-1/2 z-10" style={{ top, left }}>
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${completed ? 'bg-[#10b981] shadow-[0_0_15px_rgba(16,185,129,0.3)] text-white' : 'bg-[#1A3826] border border-gray-600 text-gray-500'}`}>
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${completed ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] ' : 'bg-[#1A3826] border border-gray-600 text-gray-500'}`}>
         {completed ? icon : <div className="w-2 h-2 rounded-full bg-gray-500"></div>}
       </div>
-      <div className="text-[10px] font-bold bg-[#0A1A12]/80 px-2 py-0.5 rounded backdrop-blur-sm whitespace-nowrap">{label}</div>
+      <div className="text-[10px] font-bold bg-transparent/80 px-2 py-0.5 rounded backdrop-blur-sm whitespace-nowrap">{label}</div>
     </div>
   );
 }
@@ -634,12 +651,12 @@ function MapNode({ top, left, label, icon, completed }) {
 // 12. Yaklaşan Günler
 function UpcomingEvents() {
   return (
-    <div className="bg-[#132A1D] border border-[#1A3826] rounded-3xl p-6 mb-8">
+    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <Calendar size={20} className="text-[#10b981]" /> Yaklaşan Günler
+          <Calendar size={20} className="text-emerald-500" /> Yaklaşan Günler
         </h3>
-        <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
+        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
       </div>
       <div className="space-y-3">
         <EventItem name="Kadir Gecesi" days="12 gün kaldı" date="27 Mar 2025" />
@@ -652,14 +669,14 @@ function UpcomingEvents() {
 
 function EventItem({ name, days, date }) {
   return (
-    <div className="flex justify-between items-center bg-[#0A1A12] p-4 rounded-xl border border-[#1A3826]">
+    <div className="flex justify-between items-center bg-transparent p-4 rounded-xl border border-black/5 dark:border-white/10">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-[#1A3826] rounded-lg text-[#10b981]">
+        <div className="p-2 bg-[#1A3826] rounded-lg text-emerald-500">
           <Calendar size={18} />
         </div>
         <div>
           <div className="font-bold text-sm">{name}</div>
-          <div className="text-xs text-[#10b981] mt-0.5">{days}</div>
+          <div className="text-xs text-emerald-500 mt-0.5">{days}</div>
         </div>
       </div>
       <div className="text-xs text-gray-500">{date}</div>

@@ -51,6 +51,11 @@ export function AppModeProvider({ children }) {
     localStorage.removeItem(STORAGE_KEYS.mode);
   }, []);
 
+  const clearMode = useCallback(() => {
+    setAppModeState(null);
+    localStorage.removeItem(STORAGE_KEYS.mode);
+  }, []);
+
   const setActiveChildProfile = useCallback((profile) => {
     setActiveChildProfileState(profile);
     if (profile) {
@@ -82,6 +87,7 @@ export function AppModeProvider({ children }) {
       hasCompletedOnboarding,
       completeOnboarding,
       resetOnboarding,
+      clearMode,
       needsOnboarding,
       needsModeSelection,
       activeChildProfile,
