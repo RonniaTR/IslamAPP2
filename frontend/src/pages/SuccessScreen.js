@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Loader2, Target, Flame, Zap, Star, ChevronRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import api from '../api';
+import { UserService } from '../services/UserService';
 
 export default function SuccessScreen() {
   const navigate = useNavigate();
@@ -41,17 +41,15 @@ export default function SuccessScreen() {
   const handleSubmitScore = async () => {
     setErrorMsg(null);
     setIsSubmitting(true);
-    const verifiedName = getFinalName();
     const verifiedUid = getFinalUserId();
-    const scoreData = { user_id: verifiedUid, username: verifiedName, score: Math.round(stats.totalScore) || 0, correct: stats.correctCount || 0, total: 10 };
 
     try {
-      try { await api.post('/quiz/submit', scoreData); }
-      catch { await api.post('/gamification/leaderboard/submit', { user_id: verifiedUid, username: verifiedName, score: Math.round(stats.totalScore) || 0 }); }
+      // Connect to the Game Mode Structure -> Save XP to user profile
+      await UserService.addXPToUser(verifiedUid, Math.round(stats.totalScore));
       navigate('/profile'); 
     } catch (error) {
       console.error("Skor mühürleme hatası:", error);
-      setErrorMsg("Sunucu bağlantısı sağlanamadı. Lütfen tekrar deneyin.");
+      setErrorMsg("Veritabanı bağlantısı sağlanamadı. Lütfen tekrar deneyin.");
       setIsSubmitting(false);
     }
   };

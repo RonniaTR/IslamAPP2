@@ -72,15 +72,34 @@ export default function PomodoroPage() {
     api.post('/pomodoro', { user_id: uid, topic: selectedTopic, duration_minutes: preset.minutes }).catch(() => {});
   }, [selectedPreset, selectedTopic, uid]);
 
+  // Request Notification Permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       timerRef.current = setInterval(() => { setTimeLeft(prev => prev - 1); }, 1000);
     } else if (timeLeft === 0 && isRunning) {
       clearInterval(timerRef.current);
       setIsRunning(false);
+      
+      // Play Sound
       if (soundEnabled) {
         try { audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ=='); audioRef.current.play().catch(() => {}); } catch {}
       }
+      
+      // Show Notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const title = phase === 'focus' ? 'İlim Saati Tamamlandı!' : 'Mola Bitti!';
+        const body = phase === 'focus' 
+          ? `Tebrikler! ${PRESETS[selectedPreset].minutes} dakikalık ${selectedTopic} çalışmasını tamamladınız. Kazanılan XP profilinize eklendi.` 
+          : 'Zihniniz dinlendi. Yeni bir ilim seansına başlamak için hazır mısınız?';
+        new Notification(title, { body, icon: '/logo192.png' });
+      }
+
       if (phase === 'focus') {
         setCompletedToday(prev => prev + 1);
         setTotalMinutes(prev => prev + PRESETS[selectedPreset].minutes);

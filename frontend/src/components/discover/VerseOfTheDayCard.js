@@ -1,99 +1,50 @@
 import React from 'react';
-import { BookOpen, Play, Share2 } from 'lucide-react';
-import { Typography } from '../ui/Typography';
+import { BookOpen, Play, Share2, Quote } from 'lucide-react';
 
-export function VerseOfTheDayCard() {
+export function VerseOfTheDayCard({ verse }) {
   return (
-    <div style={{ padding: '0 24px 24px' }}>
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        borderRadius: '24px',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, #0A3A22 0%, #052212 100%)',
-        boxShadow: '0 16px 32px rgba(0,0,0,0.3)',
-        border: '1px solid rgba(205, 164, 52, 0.2)'
-      }}>
-        {/* Background Image with Gradient Overlay */}
-        <div style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundImage: 'url("https://images.unsplash.com/photo-1609599006353-e629aaab31f7?auto=format&fit=crop&q=80&w=800")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.15
-        }} />
-        
-        <div style={{ position: 'relative', zIndex: 2, padding: '24px' }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(205, 164, 52, 0.15)', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(205, 164, 52, 0.3)' }}>
-              <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 800, fontSize: '11px', textTransform: 'uppercase' }}>
-                <span style={{ fontSize: '14px', marginRight: '4px' }}>🕌</span> Günün Ayeti
-              </Typography>
-            </div>
-            <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Bakara Suresi - 286</Typography>
-          </div>
+    <div className="relative bg-gradient-to-br from-[#0F3523] to-[#0A1A12] rounded-[32px] p-6 overflow-hidden shadow-2xl border border-[#1A3826] font-sans">
+      
+      {/* Background Graphic (Mocking the Quran image) */}
+      <div className="absolute top-0 right-0 bottom-0 w-1/2 opacity-30 mix-blend-luminosity pointer-events-none">
+        <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1609599006353-e629aaab31f5?q=80&w=600&auto=format&fit=crop')] bg-cover bg-right" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0F3523] to-transparent" />
+      </div>
 
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <Typography variant="h2" style={{ color: '#FFF', fontFamily: "'Amiri', serif", fontSize: '32px', lineHeight: 1.6, marginBottom: '16px', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-              لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا
-            </Typography>
-            <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, maxWidth: '90%', margin: '0 auto' }}>
-              Allah, hiç kimseye gücünün yettiğinden fazlasını yüklemez.
-            </Typography>
+      <div className="relative z-10 flex flex-col h-full">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2 bg-[#f59e0b]/10 text-[#f59e0b] px-3 py-1.5 rounded-full border border-[#f59e0b]/20">
+            <Quote size={14} fill="currentColor" />
+            <span className="text-xs font-bold">Günün Ayeti</span>
           </div>
+          <span className="text-gray-400 text-xs font-medium tracking-wider">Bakara Suresi - 286</span>
+        </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: '12px',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: '#FFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}>
-              <BookOpen size={16} /> Ayetin Meali
-            </button>
-            <button style={{
-              flex: 1,
-              padding: '12px',
-              borderRadius: '12px',
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: '#FFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}>
-              <Play size={16} /> Dinle
-            </button>
-            <button style={{
-              width: '44px',
-              borderRadius: '12px',
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: '#FFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}>
-              <Share2 size={16} />
-            </button>
+        {/* Content */}
+        <div className="text-center py-4 mb-6">
+          <div className="text-4xl md:text-5xl text-[#CDA434] font-arabic leading-relaxed mb-4" dir="rtl" style={{ textShadow: '0 4px 12px rgba(205,164,52,0.2)' }}>
+            لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ
           </div>
+          <p className="text-gray-300 text-sm md:text-base leading-relaxed px-4">
+            "Allah, hiç kimseye gücünün yettiğinden fazlasını yüklemez."
+          </p>
+        </div>
 
+        {/* Action Buttons */}
+        <div className="flex justify-between md:justify-center md:gap-4 items-center pt-2">
+          <button className="flex-1 max-w-[140px] bg-transparent border border-[#10b981]/40 hover:bg-[#10b981]/10 transition-colors rounded-full py-2.5 px-2 flex items-center justify-center gap-2">
+            <BookOpen size={16} className="text-[#10b981]" />
+            <span className="text-white text-xs font-medium">Ayetin Meali</span>
+          </button>
+          <button className="flex-1 max-w-[140px] bg-transparent border border-[#10b981]/40 hover:bg-[#10b981]/10 transition-colors rounded-full py-2.5 px-2 flex items-center justify-center gap-2">
+            <Play size={16} className="text-[#10b981]" />
+            <span className="text-white text-xs font-medium">Dinle</span>
+          </button>
+          <button className="flex-1 max-w-[140px] bg-transparent border border-[#10b981]/40 hover:bg-[#10b981]/10 transition-colors rounded-full py-2.5 px-2 flex items-center justify-center gap-2">
+            <Share2 size={16} className="text-[#10b981]" />
+            <span className="text-white text-xs font-medium">Paylaş</span>
+          </button>
         </div>
       </div>
     </div>

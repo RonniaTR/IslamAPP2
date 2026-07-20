@@ -1,12 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, User, Bell, Palette, Globe, Type, Volume2, Shield, Database, Info, ChevronRight } from 'lucide-react';
+import { ChevronLeft, User, Bell, Palette, Globe, Type, Volume2, Shield, Database, Info, ChevronRight, Baby } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAppMode } from '../contexts/AppModeContext';
 import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
 
 export default function SettingsPage() {
   const { theme, themeId, toggleTheme } = useTheme();
+  const { appMode, setAppMode, isChild } = useAppMode();
   const navigate = useNavigate();
 
   const settingsGroups = [
@@ -14,6 +16,7 @@ export default function SettingsPage() {
       items: [
         { id: 'account', label: 'Hesap', icon: User, value: '', path: '/profile' },
         { id: 'notifications', label: 'Bildirimler', icon: Bell, value: '', path: '/settings/notifications' },
+        { id: 'mode', label: isChild ? 'Yetişkin Moduna Geç' : 'Çocuk Moduna Geç', icon: Baby, value: isChild ? 'Çocuk' : 'Yetişkin', action: 'toggleMode' }
       ]
     },
     {
@@ -60,6 +63,13 @@ export default function SettingsPage() {
                 key={item.id}
                 onClick={() => {
                   if (item.action === 'toggleTheme') toggleTheme();
+                  else if (item.action === 'toggleMode') {
+                    const newMode = isChild ? 'adult' : 'child';
+                    setAppMode(newMode);
+                    navigate(newMode === 'child' ? '/kids' : '/');
+                    // Force refresh to reload layouts cleanly if needed, though react should handle it
+                    setTimeout(() => window.location.reload(), 100);
+                  }
                   else if (item.path) navigate(item.path);
                   else alert('Bu özellik yakında eklenecek!');
                 }}
@@ -67,7 +77,7 @@ export default function SettingsPage() {
                 style={{ borderBottom: idx !== group.items.length - 1 ? `1px solid ${theme.cardBorder}` : 'none' }}
               >
                 <div className="flex items-center gap-4">
-                  <item.icon size={20} style={{ color: theme.textSecondary }} strokeWidth={2} />
+                  <item.icon size={20} style={{ color: item.id === 'mode' ? '#2ECC71' : theme.textSecondary }} strokeWidth={2} />
                   <span className="text-[14px] font-semibold" style={{ color: theme.textPrimary }}>{item.label}</span>
                 </div>
                 <div className="flex items-center gap-2">

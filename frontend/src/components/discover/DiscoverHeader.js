@@ -1,124 +1,74 @@
 import React from 'react';
 import { Search, Mic, Sparkles } from 'lucide-react';
-import { Typography } from '../ui/Typography';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export function DiscoverHeader({ streak = 12, level = 12 }) {
-  const { theme } = useTheme();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   return (
-    <div style={{ position: 'relative', padding: '32px 24px 24px', zIndex: 10 }}>
-      {/* Background Gradient & Glows are handled in parent page */}
+    <div className="px-4 pt-6 pb-2 relative z-10 font-sans">
       
       {/* Top Row: Welcome + Stats */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div className="flex justify-between items-start mb-6">
         <div>
-          <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '4px' }}>
-            Esselamu Aleyküm
-          </Typography>
-          <Typography variant="h1" style={{ color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {user?.name || 'Samet'} <span role="img" aria-label="wave">👋</span>
-          </Typography>
-          <Typography variant="bodySmall" style={{ color: theme.gold, marginTop: '4px' }}>
-            Bugün ne <span style={{ fontWeight: 800 }}>öğrenmek</span> istersin?
-          </Typography>
+          <div className="text-gray-300 text-sm mb-1">Esselamu Aleyküm</div>
+          <div className="text-white text-3xl font-bold flex items-center gap-2 mb-1">
+            {user?.name?.split(' ')[0] || 'Samet'} <span>👋</span>
+          </div>
+          <div className="text-[#f59e0b] text-sm">
+            Bugün ne <span className="font-bold">öğrenmek</span> istersin?
+          </div>
         </div>
         
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <div style={{ 
-            background: 'rgba(0,0,0,0.3)', 
-            backdropFilter: 'blur(10px)', 
-            borderRadius: '16px', 
-            padding: '8px 12px',
-            border: `1px solid rgba(255,255,255,0.1)`,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{ fontSize: '16px' }}>🔥</span>
-            <div>
-              <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 800, lineHeight: 1 }}>{streak}</Typography>
-              <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '9px' }}>Günlük Seri</Typography>
+        <div className="flex items-center gap-3">
+          {/* Streak Badge */}
+          <div className="bg-[#132A1D]/80 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-[#1A3826] flex items-center gap-2 shadow-lg shadow-black/20">
+            <span className="text-orange-500 text-xl">🔥</span>
+            <div className="flex flex-col">
+              <span className="text-white font-bold text-sm leading-none">{streak}</span>
+              <span className="text-gray-400 text-[10px]">Günlük Seri</span>
             </div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-            <div style={{ 
-              width: '48px', height: '48px', 
-              borderRadius: '50%', 
-              background: '#2D8A4E', 
-              border: `2px solid ${theme.success}`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              overflow: 'hidden'
-            }}>
-              <span style={{ fontSize: '24px' }}>👨🏻</span>
+          {/* Avatar & Level Badge */}
+          <div className="relative flex flex-col items-center cursor-pointer" onClick={() => navigate('/profile')}>
+            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#10b981] to-[#f59e0b] p-0.5">
+              <img 
+                src={user?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=Samet&backgroundColor=2D8A4E"} 
+                alt="Profile" 
+                className="w-full h-full rounded-full border-2 border-[#052A1E] object-cover bg-[#2D8A4E]"
+              />
             </div>
-            <div style={{ 
-              background: theme.success, 
-              color: '#FFF', 
-              fontSize: '10px', 
-              fontWeight: 800, 
-              padding: '2px 8px', 
-              borderRadius: '10px',
-              marginTop: '-12px',
-              zIndex: 2,
-              border: '2px solid #052A1E'
-            }}>
+            <div className="absolute -bottom-2 bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-[#052A1E] whitespace-nowrap shadow-md">
               Seviye {level}
             </div>
           </div>
         </div>
       </div>
       
-      {/* Search Bar Row */}
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <div style={{ 
-          flex: 1, 
-          background: 'rgba(255,255,255,0.05)', 
-          backdropFilter: 'blur(16px)', 
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 16px',
-          height: '56px'
-        }}>
-          <Search size={20} color="rgba(255,255,255,0.5)" />
+      {/* Search Bar & AI Button Row */}
+      <div className="flex gap-3">
+        <div className="flex-1 bg-[#132A1D]/80 backdrop-blur-md border border-[#1A3826] rounded-full flex items-center px-4 h-12 shadow-lg shadow-black/20">
+          <Search size={18} className="text-gray-400 mr-2" />
           <input 
             type="text" 
             placeholder="Sure, dua, hadis veya makale ara..." 
-            style={{ 
-              flex: 1, 
-              background: 'transparent', 
-              border: 'none', 
-              color: '#FFF', 
-              padding: '0 12px',
-              outline: 'none',
-              fontSize: '14px'
-            }} 
+            className="flex-1 bg-transparent border-none text-white outline-none text-sm placeholder-gray-500"
           />
-          <Mic size={20} color="rgba(255,255,255,0.5)" style={{ cursor: 'pointer' }} />
+          <Mic size={18} className="text-gray-400 ml-2 cursor-pointer hover:text-white transition-colors" />
         </div>
         
-        <button style={{
-          height: '56px',
-          padding: '0 20px',
-          borderRadius: '24px',
-          background: 'rgba(15, 143, 87, 0.2)',
-          border: '1px solid rgba(15, 143, 87, 0.5)',
-          color: theme.success,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontWeight: 700,
-          cursor: 'pointer'
-        }}>
-          <Sparkles size={18} />
-          AI Asistan
+        <button 
+          onClick={() => navigate('/chat')}
+          className="bg-[#10b981]/10 hover:bg-[#10b981]/20 border border-[#10b981]/30 rounded-full flex items-center justify-center px-4 h-12 transition-all duration-300 gap-2 shadow-lg shadow-[#10b981]/5 text-[#10b981]"
+        >
+          <Sparkles size={18} className="text-[#10b981]" />
+          <span className="font-bold text-sm whitespace-nowrap">AI Asistan</span>
         </button>
       </div>
+      
     </div>
   );
 }

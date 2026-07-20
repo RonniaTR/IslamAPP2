@@ -67,7 +67,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(APP_SHELL, copy));
           return response;
         })
-        .catch(() => caches.match(APP_SHELL))
+        .catch(() => caches.match(APP_SHELL).then(cached => cached || new Response('Offline', { status: 503 })))
     );
     return;
   }
@@ -81,7 +81,7 @@ self.addEventListener('fetch', (event) => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
-        });
+        }).catch(() => new Response('Offline', { status: 503 }));
       })
     );
     return;
@@ -102,7 +102,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request).then(cached => cached || new Response('Offline', { status: 503 })))
     );
   }
 });

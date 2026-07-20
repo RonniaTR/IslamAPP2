@@ -1,0 +1,30 @@
+/* Basic quiz styles */
+.card { background: linear-gradient(180deg,#0b2b1f, #05261a); color: #f7f3e8; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+.p-6 { padding: 1.5rem; }
+.p-5 { padding: 1.25rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.btn-primary { background:#ffd369; color:#081411; border:0; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer; }
+.btn-secondary { background: rgba(255,255,255,0.06); color:#f7f3e8; border:1px solid rgba(255,255,255,0.04); padding:10px 12px; border-radius:8px; cursor:pointer; }
+.btn-secondary.selected { outline: 2px solid #ffd369; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.btn-secondary:hover { transform: translateY(-2px); transition: transform 120ms ease; }
+.btn-primary:hover { transform: translateY(-2px); transition: transform 120ms ease; }
+.min-h-screen { min-height: 100vh; }
+.flex { display:flex; }
+.items-center { align-items:center; }
+.justify-center { justify-content:center; }
+
+/* small timer badge */
+.timer-badge { background: rgba(255,255,255,0.06); padding:6px 10px; border-radius:999px; font-weight:700; }
+
+/* Result feedback */
+.result-correct { box-shadow: 0 8px 30px rgba(45, 255, 145, 0.08); border: 1px solid rgba(45, 255, 145, 0.16); }
+.result-wrong { box-shadow: 0 8px 30px rgba(255, 80, 80, 0.06); border: 1px solid rgba(255, 80, 80, 0.12); }
+
+/* Responsive */
+@media (max-width: 640px) {
+	.p-6 { padding: 1rem; }
+	.card { border-radius: 10px; padding: 1rem; }
+	.btn-primary, .btn-secondary { padding: 12px 10px; font-size: 15px; }
+}
+

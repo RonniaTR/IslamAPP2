@@ -1,72 +1,81 @@
 import React from 'react';
-import { Play, ArrowRight } from 'lucide-react';
-import { Typography } from '../ui/Typography';
+import { ChevronRight, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export function AudioContentsRow({ items = [], title = "Sesli İçerikler" }) {
-  if (!items || items.length === 0) return null;
+export function AudioContentsRow({ items = [], title = "Sesli İçerikler", viewAll = true }) {
+  const navigate = useNavigate();
+
+  // Mock items exactly matching the UI if no items are passed
+  const displayItems = items.length > 0 ? items : [
+    { id: 1, title: 'Sabah Duaları', duration: '12:45', color: 'bg-[#153B2D]' },
+    { id: 2, title: 'Yasin Suresi', duration: '22:18', color: 'bg-[#31224A]' },
+    { id: 3, title: 'Mülk Suresi', duration: '10:32', color: 'bg-[#564219]' },
+    { id: 4, title: 'Rahman Suresi', duration: '12:10', color: 'bg-[#1B3A42]' },
+    { id: 5, title: 'Kehf Suresi', duration: '45:30', color: 'bg-[#1A4526]' },
+  ];
+
+  // Dummy waveform lines generator
+  const renderWaveform = () => {
+    const bars = [];
+    for (let i = 0; i < 15; i++) {
+      const height = Math.random() * 20 + 8; // Random height between 8px and 28px
+      bars.push(
+        <div 
+          key={i} 
+          className="w-1 bg-white/20 rounded-full" 
+          style={{ height: `${height}px` }}
+        />
+      );
+    }
+    return <div className="flex items-center gap-[2px]">{bars}</div>;
+  };
 
   return (
-    <div style={{ padding: '0 0 24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px', marginBottom: '16px' }}>
-        <Typography variant="h3" style={{ color: '#FFF', fontSize: '18px' }}>{title}</Typography>
-        <button style={{ background: 'none', border: 'none', color: '#0F8F57', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-          Tümünü Dinle <ArrowRight size={12} />
-        </button>
+    <div className="flex flex-col font-sans">
+      {/* Header */}
+      <div className="flex justify-between items-center px-4 mb-4">
+        <h2 className="text-xl font-bold text-white tracking-wide">{title}</h2>
+        {viewAll && (
+          <button className="text-xs text-[#10b981] font-medium flex items-center gap-1 hover:text-[#059669] transition-colors">
+            Tümünü Dinle <ChevronRight size={14} />
+          </button>
+        )}
       </div>
 
-      <div style={{ overflowX: 'auto', display: 'flex', gap: '16px', padding: '0 24px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {items.map(item => (
-          <div key={item.id} style={{
-            minWidth: '160px',
-            width: '160px',
-            height: '140px',
-            borderRadius: '20px',
-            background: `linear-gradient(135deg, ${item.color || '#0F8F57'} 0%, ${item.color || '#0F8F57'}80 100%)`,
-            padding: '16px',
-            position: 'relative',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            cursor: 'pointer',
-            border: '1px solid rgba(255,255,255,0.1)'
-          }}>
-            {/* Fake Soundwave */}
-            <div style={{ position: 'absolute', bottom: '20px', right: '-10px', display: 'flex', gap: '4px', opacity: 0.3 }}>
-              {[...Array(12)].map((_, i) => (
-                <div key={i} style={{
-                  width: '4px',
-                  height: `${Math.random() * 40 + 10}px`,
-                  background: '#FFF',
-                  borderRadius: '2px'
-                }} />
-              ))}
-            </div>
+      {/* Cards Scroll */}
+      <div className="pl-4 pb-4 flex gap-3 overflow-x-auto no-scrollbar snap-x">
+        {displayItems.map((item, idx) => (
+          <div 
+            key={item.id || idx}
+            onClick={() => navigate(`/content/audio/${item.id}`)}
+            className={`relative min-w-[140px] w-[140px] h-[140px] rounded-[24px] overflow-hidden snap-start shrink-0 cursor-pointer group shadow-lg ${item.color || 'bg-[#153B2D]'}`}
+          >
+            {/* Background Texture/Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
 
-            <div>
-              <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>
-                {item.title}
-              </Typography>
-              <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                {item.durationStr || `${item.duration} dk`}
-              </Typography>
-            </div>
+            {/* Content Container */}
+            <div className="p-4 flex flex-col h-full justify-between">
+              {/* Top Text */}
+              <div>
+                <h3 className="text-white text-[13px] font-bold leading-tight">{item.title}</h3>
+                <p className="text-white/60 text-[11px] mt-1 font-mono">{item.duration}</p>
+              </div>
 
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: '#FFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-            }}>
-              <Play size={16} color={item.color || '#0F8F57'} style={{ marginLeft: '2px' }} />
+              {/* Bottom Row: Play Button & Waveform */}
+              <div className="flex items-end justify-between w-full">
+                <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-[#10b981] transition-colors shadow-sm">
+                  <Play size={14} className="text-white ml-0.5" />
+                </div>
+                {/* Waveform */}
+                <div className="mb-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                  {renderWaveform()}
+                </div>
+              </div>
             </div>
           </div>
         ))}
-        <div style={{ minWidth: '8px' }} />
+        {/* Spacer */}
+        <div className="min-w-[1px] shrink-0" />
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Play, Bookmark, Share2, MapPin, ChevronRight, BookOpen, Heart, ScrollText, Gamepad2, CheckCircle2, Circle } from 'lucide-react';
+import { Bell, Play, Bookmark, Share2, MapPin, ChevronRight, BookOpen, Heart, ScrollText, Gamepad2, CheckCircle2, Circle, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { Card } from '../components/ui/Card';
 import { Typography } from '../components/ui/Typography';
 import { ProgressBar } from '../components/ui/ProgressBar';
+import { usePrayerTimes } from '../hooks/usePrayerTimes';
 
 // Mini Quick Link
 function QuickLink({ icon: Icon, label, color, onClick }) {
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { city, nextPrayer, countdown } = usePrayerTimes();
 
   return (
     <div style={{ minHeight: '100vh', background: theme.bg, paddingBottom: '100px' }} data-testid="dashboard">
@@ -98,23 +100,23 @@ export default function Dashboard() {
                 <span style={{ fontSize: '18px' }}>🕋</span>
               </div>
               <div>
-                <Typography variant="h3" color="primary">Öğle</Typography>
+                <Typography variant="h3" color="primary">{nextPrayer ? nextPrayer.name : 'Hesaplanıyor'}</Typography>
                 <Typography variant="caption" color="secondary" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <MapPin size={10} /> İstanbul
+                  <MapPin size={10} /> {city}
                 </Typography>
               </div>
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <Typography variant="h1" color="gold" style={{ fontFamily: 'monospace', letterSpacing: '-1px' }}>02:45:58</Typography>
-            <Typography variant="caption" color="secondary">Sonraki: İkindi</Typography>
+            <Typography variant="h1" color="gold" style={{ fontFamily: 'monospace', letterSpacing: '-1px' }}>{countdown}</Typography>
+            <Typography variant="caption" color="secondary">Vakit: {nextPrayer ? nextPrayer.time : '--:--'}</Typography>
           </div>
         </Card>
 
         {/* QUICK LINKS */}
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
           <QuickLink icon={BookOpen} label="Kur'an" color="#4A90D9" onClick={() => navigate('/quran')} />
-          <QuickLink icon={Heart} label="Dua & Zikir" color="#10B981" onClick={() => navigate('/dhikr')} />
+          <QuickLink icon={Users} label="Ortak Hatim" color="#10B981" onClick={() => navigate('/hatim')} />
           <QuickLink icon={ScrollText} label="İlim" color="#F59E0B" onClick={() => navigate('/knowledge')} />
           <QuickLink icon={BookOpen} label="Hikayeler" color="#8B5CF6" onClick={() => navigate('/knowledge')} />
           <QuickLink icon={Gamepad2} label="Oyna" color="#EC4899" onClick={() => navigate('/quiz')} />

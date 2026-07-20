@@ -212,8 +212,8 @@ export const BREAKPOINTS = {
 export const ADULT_NAV_TABS = [
   { id: 'home', path: '/', icon: 'Home', label: 'Ana Sayfa' },
   { id: 'discover', path: '/discover', icon: 'Compass', label: 'Keşfet' },
-  { id: 'reading', path: '/quran', icon: 'BookOpen', label: 'Okuma', isCenter: true },
-  { id: 'events', path: '/journey', icon: 'Calendar', label: 'Etkinlikler' },
+  { id: 'yol', path: '/yol', icon: 'Route', label: 'Yol', isCenter: true },
+  { id: 'games', path: '/games', icon: 'Gamepad2', label: 'Oyun' },
   { id: 'profile', path: '/profile', icon: 'User', label: 'Profil' },
 ];
 

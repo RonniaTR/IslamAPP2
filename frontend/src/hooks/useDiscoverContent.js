@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { cmsContent, userStats } from '../data/cmsContent';
+import { userStats } from '../data/cmsContent';
+import { DiscoverService } from '../services/DiscoverService';
+import { useAuth } from '../contexts/AuthContext';
 
 export function useDiscoverContent() {
+  const { user } = useAuth();
   const [data, setData] = useState({
     continueLearning: [],
     forYou: [],
@@ -11,59 +14,37 @@ export function useDiscoverContent() {
     audioContents: [],
     stories: [],
     premium: [],
+    categories: [],
     loading: true
   });
 
   const [stats, setStats] = useState(userStats);
 
   useEffect(() => {
-    // Simulating API call latency
-    const timer = setTimeout(() => {
-      
-      // 1. Continue Learning
-      const continueLearning = cmsContent.filter(item => item.isContinue);
-      
-      // 2. For You (Recommendation Algorithm)
-      // Filter items matching user's favorite tags, not marked as 'continue', and limit to top 5
-      const forYou = cmsContent.filter(item => 
-        !item.isContinue && 
-        (item.type === 'article' || item.type === 'quiz') &&
-        item.tags.some(tag => userStats.favoriteTags.includes(tag)) || item.badge === 'SANA ÖZEL'
-      ).slice(0, 5);
+    const fetchDynamicContent = async () => {
+      try {
+        const userId = user?.uid || 'anonymous';
+        const feedData = await DiscoverService.getDiscoverFeed(userId);
+        
+        setData({
+          continueLearning: feedData.continueLearning || [],
+          forYou: feedData.forYou || [],
+          popular: feedData.popular || [],
+          dailyFacts: feedData.dailyFacts || [],
+          ongoingSeries: feedData.ongoingSeries || [],
+          audioContents: feedData.audioContents || [],
+          stories: feedData.stories || [],
+          premium: feedData.premium || [],
+          categories: feedData.categories || [],
+          loading: false
+        });
+      } catch (err) {
+        console.error('Error fetching discover feed from Firebase', err);
+        setData(prev => ({ ...prev, loading: false }));
+      }
+    };
 
-      // 3. Popular
-      const popular = cmsContent.filter(item => item.isPopular);
-
-      // 4. Daily Facts
-      const dailyFacts = cmsContent.filter(item => item.type === 'fact');
-
-      // 5. Ongoing Series
-      const ongoingSeries = cmsContent.filter(item => item.type === 'series');
-
-      // 6. Audio Contents
-      const audioContents = cmsContent.filter(item => item.type === 'audio' && !item.isContinue);
-
-      // 7. Stories
-      const stories = cmsContent.filter(item => item.type === 'story');
-
-      // 8. Premium
-      const premium = cmsContent.filter(item => item.type === 'premium');
-
-      setData({
-        continueLearning,
-        forYou,
-        popular,
-        dailyFacts,
-        ongoingSeries,
-        audioContents,
-        stories,
-        premium,
-        loading: false
-      });
-      
-    }, 500); // 500ms delay to simulate network
-
-    return () => clearTimeout(timer);
+    fetchDynamicContent();
   }, []);
 
   return { data, stats };

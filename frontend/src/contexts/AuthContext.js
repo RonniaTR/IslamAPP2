@@ -1,101 +1,64 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import api from '../api';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth, googleProvider } from '../services/firebase';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { UserService } from '../services/UserService';
 
 const AuthContext = createContext(null);
 
-const AUTH_CACHE_KEY = 'islamapp_user_cache';
-const AUTH_CACHE_TTL = 5 * 60 * 1000;
-const AUTH_TIMEOUT = 5000; // 5s max for auth check (was 8s)
-
-function getCachedUser() {
-  try {
-    const raw = localStorage.getItem(AUTH_CACHE_KEY);
-    if (!raw) return null;
-    const { user, ts } = JSON.parse(raw);
-    if (Date.now() - ts > AUTH_CACHE_TTL) return null;
-    return user;
-  } catch { return null; }
-}
-
-function setCachedUser(user) {
-  try {
-    if (user) localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ user, ts: Date.now() }));
-    else localStorage.removeItem(AUTH_CACHE_KEY);
-  } catch {}
-}
-
 export function AuthProvider({ children }) {
-  const cached = getCachedUser();
-  const [user, setUser] = useState(cached);
-  const [loading, setLoading] = useState(!cached);
-  const mounted = useRef(true);
-
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), AUTH_TIMEOUT);
-      const { data } = await api.get('/auth/me', { signal: controller.signal });
-      clearTimeout(timeout);
-      if (mounted.current) {
-        setUser(data);
-        setCachedUser(data);
-      }
-    } catch {
-      if (mounted.current) {
-        // Only clear user if we had no cache (don't log out cached users on network blip)
-        if (!getCachedUser()) {
-          setUser(null);
-          setCachedUser(null);
-        }
-      }
-    } finally {
-      if (mounted.current) setLoading(false);
-    }
-  }, []);
+  const [user, setUser] = useState(null); // Firestore'dan çekilen zenginletilmiş user
+  const [firebaseUser, setFirebaseUser] = useState(null); // Sadece auth user
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (window.location.hash?.includes('session_id=')) {
+    // Firebase Auth State Listener
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setFirebaseUser(currentUser);
+      
+      if (currentUser) {
+        // Kullanıcı giriş yaptıysa, Firestore'da users dokümanını yarat veya getir
+        const firestoreUser = await UserService.createOrUpdateUser(currentUser);
+        setUser(firestoreUser);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
-      return;
-    }
-    checkAuth();
-    // Safety: force loading=false after timeout even if checkAuth hangs
-    const safetyTimer = setTimeout(() => {
-      if (mounted.current) setLoading(false);
-    }, AUTH_TIMEOUT + 2000);
-    return () => clearTimeout(safetyTimer);
-  }, [checkAuth]);
+    });
 
-  const loginAsGuest = async () => {
+    return () => unsubscribe();
+  }, []);
+
+  const loginWithGoogle = async () => {
     try {
-      const { data } = await api.post('/auth/guest', {}, { timeout: 5000 });
-      setUser(data);
-      setCachedUser(data);
-      return data;
-    } catch {
-      const existingCache = getCachedUser();
-      const guest = existingCache?.isGuest ? existingCache : { id: 'guest_' + Date.now(), name: 'Misafir', isGuest: true };
-      setUser(guest);
-      setCachedUser(guest);
-      return guest;
+      setLoading(true);
+      const result = await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged tetiklenecek ve UserService.createOrUpdateUser çalışacak
+      return result.user;
+    } catch (error) {
+      console.error("Google login failed", error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
+  const loginAsGuest = async () => {
+    const guest = { id: 'anonymous', name: 'Misafir Kullanıcı', isGuest: true, xp: 0, level: 1 };
+    setUser(guest);
+    return guest;
+  };
+
   const logout = async () => {
-    try { await api.post('/auth/logout'); } finally {
+    try {
+      await signOut(auth);
       setUser(null);
-      setCachedUser(null);
-      localStorage.removeItem('islamapp_guest_id');
-      localStorage.removeItem('islamapp_user_cache');
-      localStorage.removeItem('onboarding_completed');
-      window.location.href = '/';
+    } catch (error) {
+      console.error("Logout failed", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser: (u) => { setUser(u); setCachedUser(u); }, loading, loginAsGuest, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, loginWithGoogle, loginAsGuest, logout }}>
       {children}
     </AuthContext.Provider>
   );

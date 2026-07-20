@@ -1,58 +1,60 @@
 import React from 'react';
 import { Play, Headphones, Video } from 'lucide-react';
-import { Typography } from '../ui/Typography';
+import { useNavigate } from 'react-router-dom';
 
 export function ContinueLearningRow({ items = [] }) {
+  const navigate = useNavigate();
+  
   if (!items || items.length === 0) return null;
 
   return (
-    <div style={{ padding: '0 0 24px 24px', overflowX: 'auto', display: 'flex', gap: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      {items.map(item => {
+    <div className="pl-4 pb-2 flex gap-3 overflow-x-auto no-scrollbar snap-x font-sans">
+      {items.map((item, idx) => {
         const Icon = item.type === 'audio' ? Headphones : (item.type === 'video' ? Video : Play);
+        
         return (
-          <div key={item.id} style={{
-            minWidth: '240px',
-            height: '80px',
-            background: 'rgba(255,255,255,0.05)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '20px',
-            padding: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            cursor: 'pointer'
-          }}>
-            <div style={{ flex: 1 }}>
-              <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 700, fontSize: '10px', textTransform: 'uppercase' }}>
+          <div 
+            key={item.id || idx} 
+            onClick={() => navigate(`/content/${item.type}/${item.slug || item.id}`)}
+            className="min-w-[260px] h-[88px] bg-gradient-to-r from-[#132A1D]/80 to-[#0A1A12]/80 backdrop-blur-md border border-[#1A3826] rounded-2xl p-3 flex items-center justify-between cursor-pointer snap-start shrink-0 shadow-lg"
+          >
+            {/* Text Content */}
+            <div className="flex flex-col justify-center max-w-[130px] z-10">
+              <span className="text-[11px] font-bold text-[#10b981] mb-1 tracking-wide uppercase">
                 {item.typeLabel || 'Devam Et'}
-              </Typography>
-              <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 600, marginTop: '2px' }}>
+              </span>
+              <span className="text-sm font-bold text-white truncate w-full">
                 {item.title}
-              </Typography>
-              <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
+              </span>
+              <span className="text-xs text-gray-400 truncate w-full mt-0.5">
                 {item.subtitle}
-              </Typography>
+              </span>
             </div>
             
-            {item.image ? (
-              <div style={{ position: 'relative', width: '64px', height: '56px', borderRadius: '12px', overflow: 'hidden' }}>
-                <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#CDA434', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={12} color="#FFF" style={{ marginLeft: item.type !== 'audio' ? '2px' : '0' }} />
+            {/* Media / Icon Side */}
+            <div className="relative flex items-center justify-end h-full">
+              {item.image ? (
+                <>
+                  <div className="w-16 h-16 rounded-xl overflow-hidden relative shadow-md">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/40"></div>
                   </div>
+                  {/* Floating Play Button */}
+                  <div className="absolute -left-3 w-8 h-8 rounded-full bg-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#f59e0b]/30 border-2 border-[#132A1D] z-20">
+                    <Icon size={14} className="text-[#052A1E] ml-0.5" />
+                  </div>
+                </>
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-[#1A3826] border border-[#2D8A4E] flex items-center justify-center shadow-inner">
+                  <Icon size={24} className="text-[#10b981]" />
                 </div>
-              </div>
-            ) : (
-              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: `${item.color || '#0F8F57'}20`, border: `1px solid ${item.color || '#0F8F57'}50`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon size={24} color={item.color || '#0F8F57'} />
-              </div>
-            )}
+              )}
+            </div>
           </div>
         );
       })}
-      <div style={{ minWidth: '8px' }} /> {/* Right Padding Spacer */}
+      {/* Spacer for right padding */}
+      <div className="min-w-[1px] shrink-0" />
     </div>
   );
 }

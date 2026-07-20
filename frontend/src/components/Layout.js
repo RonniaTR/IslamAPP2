@@ -1,11 +1,11 @@
 import React, { memo, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Compass, Gamepad2, Calendar, User, BookOpen } from 'lucide-react';
+import { Home, Compass, Gamepad2, Calendar, User, BookOpen, Route } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS, ADULT_NAV_TABS } from '../styles/designTokens';
 
-const iconMap = { Home, Compass, Gamepad2, Calendar, User, BookOpen };
+const iconMap = { Home, Compass, Gamepad2, Calendar, User, BookOpen, Route };
 
 const NavTab = memo(function NavTab({ icon: Icon, label, active, isCenter, theme, onClick, isDesktop }) {
   if (isDesktop) {

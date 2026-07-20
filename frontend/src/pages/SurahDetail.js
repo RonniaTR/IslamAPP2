@@ -3,10 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Play, Pause, MoreVertical, BookOpen, Share2, Info } from 'lucide-react';
 import { Typography } from '../components/ui/Typography';
 import { quranData } from '../data/quranContent';
+import { useAuth } from '../contexts/AuthContext';
+import { HistoryService } from '../services/HistoryService';
 
 export default function SurahDetail() {
   const { surahNumber } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [surah, setSurah] = useState(null);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
@@ -17,7 +20,6 @@ export default function SurahDetail() {
 
   useEffect(() => {
     const fetchSurahDetail = async () => {
-      // First check our premium local DB for Tafsir and rich text
       const localSurah = quranData.find(s => s.id === Number(surahNumber));
 
       try {
@@ -54,6 +56,20 @@ export default function SurahDetail() {
             reciter: 'Mishary Rashid Alafasy',
             full_audio_url: `https://server8.mp3quran.net/afs/${String(surahNumber).padStart(3, '0')}.mp3`
           });
+          
+          // Fetch History to restore position
+          const userId = user?.uid || 'anonymous';
+          const history = await HistoryService.getRecentHistory(userId, 50);
+          const surahHistory = history.find(h => h.contentId === Number(surahNumber) || h.contentId === String(surahNumber));
+          if (surahHistory && surahHistory.currentPosition) {
+            setActiveAyah(surahHistory.currentPosition);
+            // Wait for render then scroll
+            setTimeout(() => {
+              const el = document.getElementById(`ayah-${surahHistory.currentPosition}`);
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 500);
+          }
+
           setLoading(false);
         }
       } catch (err) {
@@ -63,7 +79,22 @@ export default function SurahDetail() {
     };
 
     fetchSurahDetail();
-  }, [surahNumber]);
+  }, [surahNumber, user]);
+
+  // Save progress whenever activeAyah changes
+  useEffect(() => {
+    if (surah && activeAyah) {
+      const userId = user?.uid || 'anonymous';
+      const progressPercent = Math.round((activeAyah / surah.totalVerses) * 100);
+      HistoryService.saveProgress(userId, {
+        id: surah.number,
+        type: 'quran',
+        title: surah.name,
+        slug: `quran/${surah.number}`,
+        image: 'https://images.unsplash.com/photo-1609599006353-e629aaab31f5'
+      }, progressPercent, activeAyah);
+    }
+  }, [activeAyah, surah, user]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -165,7 +196,7 @@ export default function SurahDetail() {
       {/* Verses List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '0 24px' }}>
         {surah.verses.map((ayah) => (
-          <div key={ayah.number} style={{
+          <div key={ayah.number} id={`ayah-${ayah.number}`} style={{
             background: activeAyah === ayah.number ? 'rgba(205, 164, 52, 0.05)' : 'transparent',
             border: activeAyah === ayah.number ? '1px solid rgba(205, 164, 52, 0.3)' : '1px solid transparent',
             borderRadius: '20px', padding: '20px', transition: 'all 0.3s'

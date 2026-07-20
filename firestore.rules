@@ -9,6 +9,69 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    // Public / Read-Only Collections for Content
+    match /categories/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /articles/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /series/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /audio/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /discover/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /hadiths/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /quiz_rooms/{document=**} {
+      allow read, write: if true;
+    }
+
+    // User-Specific Collections
+    match /users/{userId} {
+      allow read, create, update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    match /history/{docId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if signedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /bookmarks/{docId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if signedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /recommendations/{userId} {
+      allow read: if isOwner(userId) || userId == 'anonymous';
+      allow create, update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    match /goals/{docId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if signedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Legacy Collections
     match /Users/{userId} {
       allow read, create, update: if isOwner(userId);
       allow delete: if false;
@@ -17,44 +80,6 @@ service cloud.firestore {
     match /UserProgress/{userId} {
       allow read, create, update: if isOwner(userId);
       allow delete: if false;
-    }
-
-    match /UserNotes/{noteId} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if signedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    match /TafsirNotes/{noteId} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if signedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    match /DhikrLogs/{logId} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if signedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    match /PrayerTimes/{docId} {
-      allow read: if true;
-      allow write: if signedIn();
-    }
-
-    match /QuranVerses/{docId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    match /HadithCollection/{docId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    match /rateLimits/{userId} {
-      allow read, write: if false;
-    }
-
-    match /aiConversations/{docId} {
-      allow read, write: if false;
     }
 
     match /{document=**} {

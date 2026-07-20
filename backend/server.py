@@ -30,6 +30,7 @@ from phase3_hadith import setup_phase3_hadith_routes
 from phase3_comparative import setup_phase3_comparative_routes
 from phase3_i18n import setup_phase3_i18n_routes
 from phase4_core import setup_phase4_routes
+from dynamic_content import setup_dynamic_content_routes
 from league_system import build_league_overview, build_season_summary, build_weekly_standings
 
 ROOT_DIR = Path(__file__).parent
@@ -4108,6 +4109,9 @@ setup_phase3_i18n_routes(api_router, db, gemini_generate)
 
 # Register Phase 4 routes (Core Islamic: Fiqh, Tafsir Advanced, Hadith AI, Dhikr, Guide)
 setup_phase4_routes(api_router, db, gemini_generate)
+
+# Setup Dynamic Content Routes (CMS)
+setup_dynamic_content_routes(api_router, db)
 
 # Include router AFTER all routes are registered
 app.include_router(api_router)

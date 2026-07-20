@@ -36,31 +36,42 @@ export const aiResponses = {
   fallback: "Maalesef bu sorunun cevabını henüz öğrenmedim. Kur'an ayetleri, hadisler, günlük dualar, namaz ve peygamber hayatı hakkında sorular sorabilirsin."
 };
 
-// Basit bir kelime eşleştirme algoritması (Simülasyon için)
-export function getAiResponse(message) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const lowerMessage = message.toLowerCase();
-      let bestMatch = null;
-      let maxMatches = 0;
+import api from '../api';
 
-      aiResponses.database.forEach(entry => {
-        let matches = 0;
-        entry.keywords.forEach(kw => {
-          if (lowerMessage.includes(kw)) matches++;
-        });
+// Basit bir kelime eşleştirme algoritması (Yedek Simülasyon)
+function getMockResponse(message) {
+  const lowerMessage = message.toLowerCase();
+  let bestMatch = null;
+  let maxMatches = 0;
 
-        if (matches > maxMatches) {
-          maxMatches = matches;
-          bestMatch = entry;
-        }
-      });
+  aiResponses.database.forEach(entry => {
+    let matches = 0;
+    entry.keywords.forEach(kw => {
+      if (lowerMessage.includes(kw)) matches++;
+    });
 
-      if (bestMatch && maxMatches > 0) {
-        resolve(bestMatch.response);
-      } else {
-        resolve(aiResponses.fallback);
-      }
-    }, 1500); // 1.5 saniye düşünme efekti
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      bestMatch = entry;
+    }
   });
+
+  return bestMatch ? bestMatch.response : aiResponses.fallback;
+}
+
+export async function getAiResponse(message, userId = 'anonymous') {
+  try {
+    const response = await api.post('/ai/ask', {
+      session_id: 'chat_' + userId,
+      message: message,
+      user_id: userId,
+      language: 'tr'
+    });
+    return response.data.response || response.data.answer || getMockResponse(message);
+  } catch (err) {
+    console.warn("Backend AI API failed, falling back to mock logic.", err);
+    // Simulate delay for fallback
+    await new Promise(r => setTimeout(r, 1000));
+    return getMockResponse(message);
+  }
 }

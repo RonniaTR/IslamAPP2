@@ -46,7 +46,22 @@ const JourneyTracker = lazy(() => import('./pages/JourneyTracker'));
 const QuizEngine = lazy(() => import('./pages/QuizEngine'));
 const SuccessScreen = lazy(() => import('./pages/SuccessScreen'));
 const KnowledgeProfile = lazy(() => import('./pages/KnowledgeProfile'));
+const ContentDetail = lazy(() => import('./pages/ContentDetail'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const SeedData = lazy(() => import('./pages/SeedData'));
+const HatimPage = lazy(() => import('./pages/HatimPage'));
+
+// --- YENİ ENTEGRE MODÜLLER ---
+const PathPage = lazy(() => import('./pages/PathPage'));
+const HifzPage = lazy(() => import('./pages/HifzPage'));
+const HazinePage = lazy(() => import('./pages/HazinePage'));
+const StoriesPage = lazy(() => import('./pages/StoriesPage'));
+const NightPage = lazy(() => import('./pages/NightPage'));
+const LibraryPage = lazy(() => import('./pages/LibraryPage'));
+const ElifBaPage = lazy(() => import('./pages/ElifBaPage'));
+const JournalPage = lazy(() => import('./pages/JournalPage'));
+const GamesPage = lazy(() => import('./pages/GamesPage'));
 
 // --- ÇOCUK SAYFALARI ---
 const KidsDashboard = lazy(() => import('./pages/kids/KidsDashboard'));
@@ -95,9 +110,12 @@ function AdultRoutes() {
             <Route path="/qibla" element={<PageTransition><QiblaPage /></PageTransition>} />
             <Route path="/meal-audio" element={<PageTransition><MealAudioPage /></PageTransition>} />
             <Route path="/journey" element={<PageTransition><JourneyTracker /></PageTransition>} />
+            <Route path="/content/:type/:slug" element={<PageTransition><ContentDetail /></PageTransition>} />
+            <Route path="/seed" element={<PageTransition><SeedData /></PageTransition>} />
             <Route path="/quiz" element={<PageTransition><QuizEngine /></PageTransition>} />
             <Route path="/success" element={<PageTransition><SuccessScreen /></PageTransition>} />
             <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
+            <Route path="/admin" element={<PageTransition><AdminPage /></PageTransition>} />
             <Route path="/profile/knowledge" element={<PageTransition><KnowledgeProfile /></PageTransition>} />
             <Route path="/ramadan" element={<PageTransition><RamadanPage /></PageTransition>} />
             <Route path="/knowledge/:cardId" element={<PageTransition><KnowledgeDetail /></PageTransition>} />
@@ -114,6 +132,18 @@ function AdultRoutes() {
             <Route path="/premium" element={<PageTransition><PremiumPage /></PageTransition>} />
             <Route path="/achievements" element={<PageTransition><GamificationPage /></PageTransition>} />
             <Route path="/offline-packs" element={<PageTransition><OfflinePacksPage /></PageTransition>} />
+            <Route path="/hatim" element={<PageTransition><HatimPage /></PageTransition>} />
+            {/* YENİ ENTEGRE MODÜLLER */}
+            <Route path="/yol" element={<PageTransition><PathPage /></PageTransition>} />
+            <Route path="/hifz" element={<PageTransition><HifzPage /></PageTransition>} />
+            <Route path="/hazine" element={<PageTransition><HazinePage /></PageTransition>} />
+            <Route path="/hazine/:section" element={<PageTransition><HazinePage /></PageTransition>} />
+            <Route path="/stories" element={<PageTransition><StoriesPage /></PageTransition>} />
+            <Route path="/night" element={<PageTransition><NightPage /></PageTransition>} />
+            <Route path="/library" element={<PageTransition><LibraryPage /></PageTransition>} />
+            <Route path="/elifba" element={<PageTransition><ElifBaPage /></PageTransition>} />
+            <Route path="/journal" element={<PageTransition><JournalPage /></PageTransition>} />
+            <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

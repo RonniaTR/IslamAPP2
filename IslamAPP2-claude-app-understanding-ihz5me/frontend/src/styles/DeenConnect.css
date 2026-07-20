@@ -1,0 +1,265 @@
+/* ========================================
+   DEEN CONNECT - PREMIUM DESIGN SYSTEM
+   Emerald Green (#032212), Gold (#ffd369), Glassmorphism
+   ======================================== */
+
+:root {
+  --primary-emerald: #032212;
+  --primary-gold: #ffd369;
+  --accent-gold: #d4af37;
+  --accent-emerald: #10b981;
+  --text-light: #f7e6ae;
+  --text-secondary: #a8b5a0;
+  --glass-light: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-hover: rgba(255, 255, 255, 0.12);
+}
+
+/* ===========================================
+   SPRING ANIMATIONS
+   =========================================== */
+
+@keyframes springBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes springIn {
+  0% { 
+    opacity: 0;
+    transform: scale(0.85) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideUpSpring {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes goldGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), 0 0 40px rgba(212, 175, 55, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.4), 0 0 60px rgba(212, 175, 55, 0.15);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* ===========================================
+   GLASSMORPHISM CARDS
+   =========================================== */
+
+.card-deen-glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.card-deen-glass:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 211, 105, 0.2);
+  box-shadow: 0 8px 32px rgba(212, 175, 55, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.card-deen-gold {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(212, 175, 55, 0.06));
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+/* ===========================================
+   BUTTONS & INTERACTIVE
+   =========================================== */
+
+.btn-deen-primary {
+  background: linear-gradient(135deg, #ffd369, #d4af37);
+  border: none;
+  border-radius: 16px;
+  color: var(--primary-emerald);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 24px;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-deen-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(212, 175, 55, 0.35);
+}
+
+.btn-deen-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+}
+
+.btn-deen-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-light);
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+}
+
+.btn-deen-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* ===========================================
+   PROGRESS & STATS
+   =========================================== */
+
+.progress-deen {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-deen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.progress-deen-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd369, #d4af37);
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.23, 1, 0.320, 1);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 211, 105, 0.1);
+  border: 1px solid rgba(255, 211, 105, 0.2);
+  border-radius: 12px;
+  color: var(--primary-gold);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ===========================================
+   ANIMATIONS UTILITIES
+   =========================================== */
+
+.animate-spring-in {
+  animation: springIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-spring-bounce {
+  animation: springBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-slide-up-spring {
+  animation: slideUpSpring 0.5s cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.animate-gold-glow {
+  animation: goldGlow 2s ease-in-out infinite;
+}
+
+/* ===========================================
+   QUIZ SPECIFIC
+   =========================================== */
+
+.quiz-category-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.quiz-category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  opacity: 0.06;
+  transform: translate(20px, -20px);
+  transition: all 0.4s ease;
+}
+
+.quiz-category-card:hover::before {
+  transform: translate(10px, -10px);
+  opacity: 0.1;
+}
+
+.quiz-timer-critical {
+  animation: pulse 0.5s ease-in-out infinite;
+  color: #ef4444;
+}
+
+.quiz-answer-correct {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  animation: springBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.quiz-answer-wrong {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  animation: slideUpSpring 0.3s ease;
+}
+
+/* ===========================================
+   RESPONSIVE TWEAKS
+   =========================================== */
+
+@media (max-width: 640px) {
+  .card-deen-glass {
+    border-radius: 20px;
+  }
+  
+  .btn-deen-primary,
+  .btn-deen-secondary {
+    border-radius: 14px;
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+}
+
+/* ===========================================
+   ACCESSIBILITY
+   =========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

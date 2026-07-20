@@ -1,51 +1,50 @@
 import React from 'react';
-import { BookOpen, Heart, Star, CloudRain, Book, Scale, Sun, Users, ArrowRight } from 'lucide-react';
-import { Typography } from '../ui/Typography';
-
-const categories = [
-  { id: 'quran', name: "Kur'an", icon: BookOpen, color: '#CDA434' }, // Gold
-  { id: 'dhikr', name: 'Dua & Zikir', icon: Heart, color: '#2ECC71' }, // Emerald
-  { id: 'hadith', name: 'Hadisler', icon: Star, color: '#D4AF37' }, // Dark Gold
-  { id: 'siyer', name: 'Siyer', icon: CloudRain, color: '#F5A623' }, // Orange
-  { id: 'ilmihal', name: 'İlmihal', icon: Book, color: '#3498DB' }, // Blue
-  { id: 'fiqh', name: 'Fıkıh', icon: Scale, color: '#9B59B6' }, // Purple
-  { id: 'names', name: 'Esmaül Hüsna', icon: Sun, color: '#1ABC9C' }, // Teal
-  { id: 'prophets', name: 'Peygamberler', icon: Users, color: '#E74C3C' } // Red
-];
+import { ChevronRight, BookOpen, Heart, Star, Moon, Book, Scale, Sun, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function QuickCategories() {
+  const navigate = useNavigate();
+
+  const categories = [
+    { id: 'quran', title: "Kur'an", icon: BookOpen, color: 'bg-[#10b981]' },
+    { id: 'dua', title: "Dua & Zikir", icon: Heart, color: 'bg-[#0d9488]' },
+    { id: 'hadith', title: "Hadisler", icon: Star, color: 'bg-[#d97706]' },
+    { id: 'siyer', title: "Siyer", icon: Moon, color: 'bg-[#f59e0b]' },
+    { id: 'ilmihal', title: "İlmihal", icon: Book, color: 'bg-[#3b82f6]' },
+    { id: 'fikih', title: "Fıkıh", icon: Scale, color: 'bg-[#8b5cf6]' },
+    { id: 'esma', title: "Esmaül Hüsna", icon: Sun, color: 'bg-[#0f766e]' },
+    { id: 'prophets', title: "Peygamberler", icon: Users, color: 'bg-[#ea580c]' },
+  ];
+
   return (
-    <div style={{ padding: '0 0 24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px', marginBottom: '16px' }}>
-        <Typography variant="h3" style={{ color: '#FFF', fontSize: '18px' }}>Hızlı Kategoriler</Typography>
-        <button style={{ background: 'none', border: 'none', color: '#0F8F57', fontSize: '12px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-          Tümü <ArrowRight size={12} />
+    <div className="flex flex-col font-sans">
+      <div className="flex justify-between items-center px-4 mb-4">
+        <h2 className="text-xl font-bold text-white tracking-wide">Hızlı Kategoriler</h2>
+        <button className="text-xs text-[#10b981] font-medium flex items-center gap-1 hover:text-[#059669] transition-colors">
+          Tümü <ChevronRight size={14} />
         </button>
       </div>
 
-      <div style={{ overflowX: 'auto', padding: '0 24px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(64px, 1fr))', gap: '16px', minWidth: 'max-content' }}>
-          {categories.map(cat => (
-            <div key={cat.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <div style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '20px',
-                background: `linear-gradient(135deg, ${cat.color} 0%, ${cat.color}dd 100%)`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: `0 8px 16px ${cat.color}40`,
-                border: '1px solid rgba(255,255,255,0.2)'
-              }}>
-                <cat.icon size={28} color="#FFF" />
+      <div className="pl-4 pb-2 flex gap-4 overflow-x-auto no-scrollbar snap-x">
+        {categories.map((cat, idx) => {
+          const Icon = cat.icon;
+          return (
+            <div 
+              key={idx} 
+              onClick={() => navigate(`/category/${cat.id}`)}
+              className="flex flex-col items-center gap-2 cursor-pointer snap-start shrink-0 group"
+            >
+              <div className={`w-[72px] h-[72px] ${cat.color} rounded-[20px] flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 relative overflow-hidden`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+                <Icon size={32} className="text-white drop-shadow-md z-10" />
               </div>
-              <Typography variant="caption" style={{ color: '#FFF', fontSize: '11px', fontWeight: 600, textAlign: 'center' }}>
-                {cat.name}
-              </Typography>
+              <span className="text-[11px] font-bold text-gray-300 group-hover:text-white transition-colors text-center w-full truncate px-1">
+                {cat.title}
+              </span>
             </div>
-          ))}
-        </div>
+          );
+        })}
+        <div className="min-w-[1px] shrink-0" />
       </div>
     </div>
   );

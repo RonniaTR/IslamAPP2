@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, RefreshCw, ChevronLeft, Bot } from 'lucide-react';
+import { Send, Sparkles, User, RefreshCw, ChevronLeft, Bot, Mic, MicOff, Volume2, Square } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '../components/ui/Typography';
 import { aiResponses, getAiResponse } from '../data/aiResponses';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function AiChat() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const userId = user?.uid || 'anonymous';
+
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -15,7 +19,81 @@ export default function AiChat() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [playingMessageId, setPlayingMessageId] = useState(null);
+  
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  // Init Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'tr-TR';
+
+      recognitionRef.current.onresult = (event) => {
+        let currentTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript;
+        }
+        setInputValue(currentTranscript);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+    
+    return () => {
+      window.speechSynthesis.cancel();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const toggleListen = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      if (recognitionRef.current) {
+        setInputValue("");
+        recognitionRef.current.start();
+        setIsListening(true);
+      } else {
+        alert("Tarayıcınız sesli girişi desteklemiyor.");
+      }
+    }
+  };
+
+  const playTTS = (msgId, text) => {
+    if (playingMessageId === msgId) {
+      window.speechSynthesis.cancel();
+      setPlayingMessageId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text.replace(/\*/g, ''));
+    utterance.lang = 'tr-TR';
+    utterance.rate = 0.95;
+    
+    utterance.onend = () => {
+      setPlayingMessageId(null);
+    };
+    
+    setPlayingMessageId(msgId);
+    window.speechSynthesis.speak(utterance);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,16 +105,24 @@ export default function AiChat() {
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
 
     const userMsg = { id: Date.now(), sender: 'user', text: inputValue };
     setMessages(prev => [...prev, userMsg]);
     setInputValue("");
     setIsTyping(true);
 
-    const responseText = await getAiResponse(userMsg.text);
+    const responseText = await getAiResponse(userMsg.text, userId);
     
-    setMessages(prev => [...prev, { id: Date.now(), sender: 'ai', text: responseText }]);
+    const aiMsgId = Date.now();
+    setMessages(prev => [...prev, { id: aiMsgId, sender: 'ai', text: responseText }]);
     setIsTyping(false);
+
+    // Optional: auto-play the response
+    // playTTS(aiMsgId, responseText);
   };
 
   const handleKeyPress = (e) => {
@@ -68,7 +154,6 @@ export default function AiChat() {
       {/* Chat Area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* Prompts for empty state or first load */}
         {messages.length === 1 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
             {aiResponses.prompts.map((prompt, index) => (
@@ -76,15 +161,9 @@ export default function AiChat() {
                 key={index}
                 onClick={() => handlePromptClick(prompt)}
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '100px',
-                  padding: '8px 16px',
-                  color: '#FFF',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  textAlign: 'left'
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '100px', padding: '8px 16px', color: '#FFF', fontSize: '12px',
+                  cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left'
                 }}
               >
                 {prompt}
@@ -109,13 +188,24 @@ export default function AiChat() {
                 background: isAi ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, rgba(205, 164, 52, 0.2) 0%, rgba(140, 108, 46, 0.1) 100%)',
                 border: `1px solid ${isAi ? 'rgba(255,255,255,0.1)' : 'rgba(205, 164, 52, 0.3)'}`,
                 borderRadius: isAi ? '0 20px 20px 20px' : '20px 0 20px 20px',
-                padding: '16px',
-                maxWidth: '80%'
+                padding: '16px', maxWidth: '80%', position: 'relative'
               }}>
                 <Typography variant="bodySmall" style={{ color: '#FFF', fontSize: '14px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                  {/* Markdown bold formatting replacement strictly for demo */}
                   {msg.text.split('**').map((part, i) => i % 2 !== 0 ? <strong key={i} style={{ color: '#CDA434' }}>{part}</strong> : part)}
                 </Typography>
+                
+                {isAi && (
+                  <button 
+                    onClick={() => playTTS(msg.id, msg.text)}
+                    style={{
+                      background: 'none', border: 'none', color: playingMessageId === msg.id ? '#CDA434' : 'rgba(255,255,255,0.4)',
+                      cursor: 'pointer', marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 600
+                    }}
+                  >
+                    {playingMessageId === msg.id ? <Square size={14} /> : <Volume2 size={14} />}
+                    {playingMessageId === msg.id ? "Durdur" : "Sesli Dinle"}
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -147,12 +237,24 @@ export default function AiChat() {
       {/* Input Area */}
       <div style={{ padding: '24px', background: 'rgba(5, 42, 30, 0.95)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '8px' }}>
-            <RefreshCw size={20} />
+          
+          <button 
+            onClick={toggleListen}
+            style={{ 
+              background: isListening ? 'rgba(231, 76, 60, 0.2)' : 'none', 
+              border: isListening ? '1px solid #E74C3C' : 'none', 
+              color: isListening ? '#E74C3C' : 'rgba(255,255,255,0.5)', 
+              borderRadius: '50%', cursor: 'pointer', padding: '8px',
+              transition: 'all 0.2s',
+              animation: isListening ? 'pulse 1.5s infinite' : 'none'
+            }}
+          >
+            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
           </button>
+          
           <input 
             type="text" 
-            placeholder="İslami asistanına bir şey sor..."
+            placeholder={isListening ? "Sizi dinliyorum..." : "İslami asistanına bir şey sor..."}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}

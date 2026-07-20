@@ -12,23 +12,58 @@ export default function QiblaPage() {
   const { selectedCity } = useLang();
   
   const [heading, setHeading] = useState(0);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [needsPermission, setNeedsPermission] = useState(
+    typeof DeviceOrientationEvent !== 'undefined' && 
+    typeof DeviceOrientationEvent.requestPermission === 'function'
+  );
+  
   const qiblaAngle = 147; // Default for Istanbul roughly
   
-  useEffect(() => {
-    // Basic compass logic simulation
-    const handleOrientation = (e) => {
-      let alpha = e.alpha;
-      if (e.webkitCompassHeading) {
-        alpha = e.webkitCompassHeading;
-      }
-      if (alpha !== null) setHeading(alpha);
-    };
-
-    if (window.DeviceOrientationEvent) {
-      window.addEventListener('deviceorientation', handleOrientation, true);
+  const handleOrientation = (e) => {
+    let alpha = e.alpha;
+    if (e.webkitCompassHeading) {
+      alpha = e.webkitCompassHeading;
     }
-    return () => window.removeEventListener('deviceorientation', handleOrientation, true);
-  }, []);
+    if (alpha !== null) {
+      setHeading(alpha);
+      // Haptic feedback when aligned with Qibla (+- 5 degrees)
+      const diff = Math.abs(alpha - qiblaAngle);
+      const isAligned = diff < 5 || diff > 355;
+      if (isAligned && navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }
+  };
+
+  const requestAccess = () => {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(response => {
+          if (response === 'granted') {
+            setPermissionGranted(true);
+            setNeedsPermission(false);
+            window.addEventListener('deviceorientation', handleOrientation, true);
+          } else {
+            alert('Pusula için sensör izni gerekiyor.');
+          }
+        })
+        .catch(console.error);
+    }
+  };
+
+  useEffect(() => {
+    if (!needsPermission) {
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      }
+    }
+    return () => {
+      if (window.DeviceOrientationEvent) {
+        window.removeEventListener('deviceorientation', handleOrientation, true);
+      }
+    };
+  }, [needsPermission]);
 
   const compassRotation = -heading;
 
@@ -90,6 +125,16 @@ export default function QiblaPage() {
           <p className="text-xs font-semibold" style={{ color: theme.textSecondary }}>
             {selectedCity || 'İstanbul, Türkiye'}
           </p>
+          
+          {needsPermission && (
+            <button 
+              onClick={requestAccess}
+              className="mt-6 px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-transform active:scale-95"
+              style={{ background: theme.primary }}
+            >
+              Pusula Sensörünü Başlat
+            </button>
+          )}
         </div>
       </div>
 
