@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Check, RefreshCw, Sparkles, Star, Medal, Share2, Map, ScrollText, Sun } from 'lucide-react';
+import { ChevronRight, Check, RefreshCw, Sparkles, Star, Medal, Share2, Map, ScrollText, Sun, Gem } from 'lucide-react';
+import { HazineCards } from './HazinePage';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce, getCachedStats } from '../services/gamification';
 import {
@@ -243,6 +244,7 @@ export default function PathPage() {
           <div className="flex gap-1.5 mb-4 relative z-10">
             {[
               { id: 'bugun', label: 'Bugün', icon: Sun },
+              { id: 'hazine', label: 'Hazine', icon: Gem },
               { id: 'harita', label: 'Harita', icon: Map },
               { id: 'gunluk', label: 'Günlük', icon: ScrollText },
             ].map(t => (
@@ -433,6 +435,17 @@ export default function PathPage() {
               </button>
             </div>
           </>
+        )}
+
+        {/* ════════ SEKME: HAZİNE ════════ */}
+        {tab === 'hazine' && (
+          <div className="px-5 mt-4">
+            <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>💛 Nur Hazinesi</p>
+            <p className="text-[10px] mb-4" style={{ color: NUR.dim }}>
+              Yolun azığı: dualar, tesbihat, kıssalar, tarih ve mucizeler — kartı seç, hazine açılsın.
+            </p>
+            <HazineCards navigate={navigate} compact />
+          </div>
         )}
 
         {/* ════════ SEKME: HARİTA ════════ */}

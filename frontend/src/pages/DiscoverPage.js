@@ -11,6 +11,7 @@ const SECTIONS = [
     items: [
       { path: '/yol', icon: '🛤️', title: 'Nur Yolu', desc: 'Sana özel günlük plan, seri ve mertebeler', color: '#C8A55A' },
       { path: '/hifz', icon: '📿', title: 'Ezber Asistanı', desc: 'Aralıklı tekrarla kalıcı sure ezberi', color: '#10B981' },
+      { path: '/hazine', icon: '💛', title: 'Nur Hazinesi', desc: 'Dualar, tesbihat, tarih, Kur\'an mucizeleri', color: '#F59E0B' },
     ],
   },
   {

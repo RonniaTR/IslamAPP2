@@ -1,0 +1,470 @@
+import React, { useState, useCallback, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ChevronRight, ChevronDown, Copy, Check, RotateCcw, Sparkles } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { awardXPOnce } from '../services/gamification';
+import { HIDAYET_DUALARI, TESBIHAT_SETS, TARIH_DONEMLERI, MUCIZELER, HAZINE_BOLUMLERI } from '../data/nurHazine';
+import Confetti from './games/Confetti';
+
+// 💛 NUR HAZİNESİ — Nur Yolu'nun içerik hazinesi (/hazine/:section?).
+// Büyük tanıtım kartlarından bölümlere girilir: Hidayet Duaları,
+// sayaçlı Tesbihat, Dünya Tarihinde Müslümanlar (zaman tüneli) ve
+// Kur'an'daki Mucizeler (elle çizilmiş SVG infografiklerle).
+
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* quota */ } };
+const todayKey = () => new Date().toISOString().slice(0, 10);
+
+// ─── ✨ SVG infografikler — her mucize için elle çizilmiş minik sahne ───
+function MiracleArt({ type, color }) {
+  const c = color; const dim = `${color}55`;
+  const common = { fill: 'none', stroke: c, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  return (
+    <svg viewBox="0 0 120 80" className="w-full" style={{ height: 92 }} aria-hidden>
+      {type === 'water' && (<g>
+        <path {...common} d="M60 12 C48 30 42 38 42 48 a18 18 0 0 0 36 0 C78 38 72 30 60 12 Z" />
+        <path {...common} stroke={dim} d="M52 50 a8 8 0 0 0 6 8" />
+        <path {...common} d="M10 68 q10 -6 20 0 t20 0 t20 0 t20 0 t20 0" opacity="0.5" />
+        <circle cx="22" cy="26" r="7" {...common} stroke={dim} /><circle cx="22" cy="26" r="2.4" fill={dim} stroke="none" />
+        <circle cx="99" cy="22" r="9" {...common} stroke={dim} /><circle cx="99" cy="22" r="3" fill={dim} stroke="none" />
+      </g>)}
+      {type === 'expand' && (<g>
+        <circle cx="60" cy="42" r="9" {...common} />
+        <path {...common} stroke={dim} d="M60 42 m-20 0 a20 20 0 1 1 40 0 a20 20 0 1 1 -40 0" opacity="0.7" />
+        <path {...common} stroke={dim} d="M60 42 m-32 0 a32 32 0 1 1 64 0 a32 32 0 1 1 -64 0" opacity="0.4" />
+        <path {...common} d="M60 6 l0 -0.1 M60 8 l4 4 M60 8 l-4 4 M60 8 l0 6" />
+        <path {...common} d="M96 24 l5 -3 M101 21 l-1 5 M101 21 l-5 -1" />
+        <path {...common} d="M24 60 l-5 3 M19 63 l1 -5 M19 63 l5 1" />
+        <circle cx="88" cy="60" r="1.6" fill={c} stroke="none" /><circle cx="30" cy="20" r="1.6" fill={c} stroke="none" /><circle cx="102" cy="44" r="1.3" fill={dim} stroke="none" />
+      </g>)}
+      {type === 'iron' && (<g>
+        <path {...common} d="M84 14 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z" />
+        <path {...common} stroke={dim} strokeDasharray="4 4" d="M80 30 C68 42 56 50 44 58" />
+        <circle cx="34" cy="64" r="10" {...common} />
+        <path {...common} stroke={dim} d="M28 62 a10 10 0 0 1 6 -5" />
+        <text x="34" y="68" textAnchor="middle" fontSize="8.5" fontWeight="900" fill={c} stroke="none" fontFamily="sans-serif">Fe</text>
+      </g>)}
+      {type === 'embryo' && (<g>
+        <path {...common} d="M72 22 C50 18 36 32 38 48 c2 12 14 18 24 14 8 -3 12 -12 8 -19 -3 -6 -11 -7 -15 -2" />
+        <circle cx="66" cy="30" r="3" fill={c} stroke="none" />
+        <path {...common} stroke={dim} d="M46 36 q3 -3 6 0 M52 32 q3 -3 6 0 M58 29 q3 -3 6 0" />
+        <path {...common} stroke={dim} d="M62 62 q8 6 16 2" />
+        <circle cx="60" cy="42" r="26" {...common} stroke={dim} opacity="0.5" />
+      </g>)}
+      {type === 'seas' && (<g>
+        <path {...common} d="M8 34 q13 -8 26 0 t26 0" />
+        <path {...common} stroke={dim} d="M60 34 q13 -8 26 0 t26 0" />
+        <line x1="60" y1="22" x2="60" y2="66" stroke={c} strokeWidth="2" strokeDasharray="3 5" />
+        <path {...common} d="M22 52 q5 4 10 0 M30 60 q5 4 10 0" opacity="0.7" />
+        <path {...common} stroke={dim} d="M80 52 q5 4 10 0 M88 60 q5 4 10 0" opacity="0.7" />
+        <text x="30" y="20" textAnchor="middle" fontSize="7" fontWeight="800" fill={c} stroke="none" fontFamily="sans-serif">TUZLU</text>
+        <text x="92" y="20" textAnchor="middle" fontSize="7" fontWeight="800" fill={dim} stroke="none" fontFamily="sans-serif">TATLI</text>
+      </g>)}
+      {type === 'mountain' && (<g>
+        <line x1="8" y1="40" x2="112" y2="40" stroke={dim} strokeWidth="2" />
+        <path {...common} d="M36 40 L60 12 L84 40" />
+        <path {...common} strokeDasharray="4 4" d="M40 40 L60 68 L80 40" />
+        <path {...common} stroke={dim} d="M54 20 L60 26 L66 18" opacity="0.8" />
+        <text x="97" y="34" fontSize="7" fontWeight="800" fill={c} stroke="none" fontFamily="sans-serif">DAĞ</text>
+        <text x="94" y="56" fontSize="7" fontWeight="800" fill={dim} stroke="none" fontFamily="sans-serif">KÖK</text>
+      </g>)}
+      {type === 'shield' && (<g>
+        <path {...common} d="M14 70 a52 52 0 0 1 92 0" />
+        <path {...common} stroke={dim} d="M24 70 a40 40 0 0 1 72 0" opacity="0.7" />
+        <path {...common} stroke={dim} d="M34 70 a28 28 0 0 1 52 0" opacity="0.45" />
+        <path {...common} d="M86 10 L74 30" strokeDasharray="3 3" />
+        <path {...common} d="M70 34 l-2 5 M74 33 l1 5 M67 30 l-5 2" />
+        <circle cx="72" cy="31" r="3.4" fill={c} stroke="none" />
+      </g>)}
+      {type === 'finger' && (<g>
+        <path {...common} d="M60 66 a20 26 0 1 1 0.1 0" transform="translate(0,-6)" />
+        <path {...common} stroke={dim} d="M60 58 a13 18 0 1 1 0.1 0" transform="translate(0,-4)" />
+        <path {...common} d="M60 50 a7 10 0 1 1 0.1 0" transform="translate(0,-2)" />
+        <path {...common} stroke={dim} d="M52 70 q8 6 16 0" />
+      </g>)}
+      {type === 'deepsea' && (<g>
+        <path {...common} d="M8 18 q13 -7 26 0 t26 0 t26 0 t26 0" />
+        <path {...common} stroke={dim} d="M16 36 q12 -6 24 0 t24 0 t24 0" opacity="0.75" />
+        <path {...common} stroke={dim} d="M24 52 q11 -5 22 0 t22 0" opacity="0.5" />
+        <path {...common} stroke={dim} d="M34 66 q10 -4 20 0 t20 0" opacity="0.3" />
+        <circle cx="20" cy="62" r="1.6" fill={dim} stroke="none" /><circle cx="98" cy="58" r="1.6" fill={dim} stroke="none" />
+      </g>)}
+      {type === 'honey' && (<g>
+        {[[46, 22], [74, 22], [32, 42], [60, 42], [88, 42], [46, 62], [74, 62]].map(([x, y], i) => (
+          <path key={i} {...common} stroke={i % 2 ? dim : c} d={`M${x} ${y - 12} l10 6 v12 l-10 6 l-10 -6 v-12 Z`} />
+        ))}
+        <path {...common} d="M60 42 c-3 5 -3 8 0 10 c3 -2 3 -5 0 -10 Z" fill={c} stroke="none" />
+      </g>)}
+    </svg>
+  );
+}
+
+// ─── Ortak başlık ───
+function Head({ title, sub, onBack, theme }) {
+  return (
+    <div className="px-5 pt-6 pb-3 flex items-center gap-3">
+      <button onClick={onBack} className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 shrink-0" style={{ background: `${theme.gold}10` }} aria-label="Geri">
+        <ArrowLeft size={17} style={{ color: theme.gold }} />
+      </button>
+      <div className="min-w-0">
+        <h1 className="text-xl font-black truncate" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{title}</h1>
+        {sub && <p className="text-[10px]" style={{ color: theme.textSecondary }}>{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ─── 🤲 DUALAR ───
+function DualarSection({ theme, onBack }) {
+  const [open, setOpen] = useState(null);
+  const [copied, setCopied] = useState(null);
+  const openDua = (id) => {
+    setOpen(o => (o === id ? null : id));
+    const seen = load('dua_read', []);
+    if (!seen.includes(id)) save('dua_read', [...seen, id]);
+  };
+  const copy = (d, e) => {
+    e.stopPropagation();
+    navigator.clipboard?.writeText(`${d.ar}\n\n"${d.tr}"\n— ${d.source}`).catch(() => {});
+    setCopied(d.id); setTimeout(() => setCopied(null), 1500);
+  };
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Head title="🤲 Hidayet Duaları" sub="Doğru yolu istemenin ve yolda kalmanın duaları" onBack={onBack} theme={theme} />
+      <div className="px-5 space-y-2.5">
+        {HIDAYET_DUALARI.map((d, i) => {
+          const isOpen = open === d.id;
+          return (
+            <motion.button key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.04 }}
+              onClick={() => openDua(d.id)}
+              className="w-full text-left rounded-2xl p-4 transition-all"
+              style={{ background: theme.surface, border: `1.5px solid ${isOpen ? `${theme.gold}55` : theme.cardBorder}` }}>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0" style={{ background: `${theme.gold}14`, color: theme.gold }}>{d.when}</span>
+                <span className="text-[10px] font-bold ml-auto shrink-0" style={{ color: theme.textSecondary }}>{d.source}</span>
+                <ChevronDown size={13} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
+              </div>
+              <p dir="rtl" className="mt-3 leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", fontSize: isOpen ? 22 : 18, color: theme.gold }}>
+                {d.ar}
+              </p>
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                    <p className="text-[11px] mt-2 italic" style={{ color: theme.textSecondary }}>{d.read}</p>
+                    <p className="text-[13.5px] mt-2.5 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>"{d.tr}"</p>
+                    <p className="text-[11px] mt-2.5 leading-relaxed pl-2.5" style={{ borderLeft: `2px solid ${theme.gold}50`, color: theme.textSecondary }}>{d.note}</p>
+                    <span onClick={(e) => copy(d, e)} role="button"
+                      className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl text-[10px] font-black active:scale-95"
+                      style={{ background: `${theme.gold}12`, color: copied === d.id ? '#10B981' : theme.gold, border: `1px solid ${theme.gold}30` }}>
+                      {copied === d.id ? <Check size={11} /> : <Copy size={11} />} {copied === d.id ? 'Kopyalandı' : 'Kopyala'}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── 📿 TESBİHAT (sayaçlı) ───
+function TesbihatSection({ theme, user, onBack }) {
+  const [setId, setSetId] = useState(null);
+  const [stepIdx, setStepIdx] = useState(0);
+  const [count, setCount] = useState(0);
+  const [doneSet, setDoneSet] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const active = TESBIHAT_SETS.find(s => s.id === setId);
+  const step = active?.steps[stepIdx];
+
+  const start = (id) => { setSetId(id); setStepIdx(0); setCount(0); setDoneSet(false); };
+
+  const tap = useCallback(() => {
+    if (!active || doneSet) return;
+    try { navigator.vibrate?.(12); } catch { /* yok */ }
+    const next = count + 1;
+    if (next >= step.target) {
+      if (stepIdx + 1 < active.steps.length) { setStepIdx(stepIdx + 1); setCount(0); }
+      else {
+        setDoneSet(true); setCelebrate(true);
+        setTimeout(() => setCelebrate(false), 1800);
+        const log = load(`tesbihat_log_${todayKey()}`, {});
+        log[active.id] = Date.now();
+        save(`tesbihat_log_${todayKey()}`, log);
+        awardXPOnce(user, `tesbihat_${active.id}_${todayKey()}`, 'worship_task', { points: 15, details: `Tesbihat: ${active.title}` });
+      }
+    } else setCount(next);
+  }, [active, step, stepIdx, count, doneSet, user]);
+
+  if (active) {
+    const R = 74, CIRC = 2 * Math.PI * R;
+    const pct = doneSet ? 1 : count / step.target;
+    const todayLog = load(`tesbihat_log_${todayKey()}`, {});
+    return (
+      <div className="max-w-xl mx-auto">
+        {celebrate && <Confetti count={26} />}
+        <Head title={`${active.emoji} ${active.title}`} sub={active.source} onBack={() => setSetId(null)} theme={theme} />
+        {/* Adım göstergesi */}
+        {active.steps.length > 1 && (
+          <div className="px-5 flex gap-1.5 mb-3">
+            {active.steps.map((s, i) => (
+              <span key={i} className="flex-1 h-1.5 rounded-full" style={{ background: i < stepIdx || doneSet ? active.color : i === stepIdx ? `${active.color}70` : `${theme.textSecondary}20` }} />
+            ))}
+          </div>
+        )}
+        {!doneSet ? (
+          <div className="px-5">
+            <div className="rounded-3xl p-5 text-center" style={{ background: theme.surface, border: `1.5px solid ${active.color}35` }}>
+              <p dir="rtl" className="text-2xl leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: active.color }}>{step.ar}</p>
+              <p className="text-sm font-black mt-1" style={{ color: theme.textPrimary }}>{step.name}</p>
+              <p className="text-[10.5px] mt-1" style={{ color: theme.textSecondary }}>{step.mean}</p>
+            </div>
+            {/* Dev sayaç */}
+            <button onClick={tap} className="mx-auto mt-6 block active:scale-95 transition-transform" aria-label="Say">
+              <div className="relative" style={{ width: 180, height: 180 }}>
+                <svg width="180" height="180" viewBox="0 0 180 180" className="-rotate-90">
+                  <circle cx="90" cy="90" r={R} fill="none" stroke={`${active.color}20`} strokeWidth="10" />
+                  <circle cx="90" cy="90" r={R} fill="none" stroke={active.color} strokeWidth="10" strokeLinecap="round"
+                    strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - pct)} style={{ transition: 'stroke-dashoffset 0.2s ease' }} />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full" style={{ background: `${active.color}0a` }}>
+                  <span className="text-5xl font-black tabular-nums" style={{ color: theme.textPrimary }}>{count}</span>
+                  <span className="text-xs font-bold" style={{ color: theme.textSecondary }}>/ {step.target}</span>
+                </div>
+              </div>
+            </button>
+            <p className="text-center text-[10px] mt-3" style={{ color: theme.textSecondary }}>Halkaya dokunarak say — her dokunuş hafif titreşir</p>
+            <button onClick={() => { setStepIdx(0); setCount(0); }} className="mx-auto mt-4 flex items-center gap-1.5 text-[11px] font-bold" style={{ color: theme.textSecondary }}>
+              <RotateCcw size={12} /> Baştan başla
+            </button>
+          </div>
+        ) : (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="px-5 text-center">
+            <div className="rounded-3xl p-6" style={{ background: `linear-gradient(160deg, ${active.color}14, ${theme.surface})`, border: `1.5px solid ${active.color}50` }}>
+              <p className="text-5xl mb-3">{active.emoji}</p>
+              <p className="text-lg font-black" style={{ color: theme.textPrimary }}>Tesbihat tamamlandı</p>
+              <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>+15 XP · Allah kabul etsin 🤲</p>
+              <div className="flex gap-2 mt-5">
+                <button onClick={() => start(active.id)} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: `${active.color}14`, border: `1px solid ${active.color}40`, color: active.color }}>
+                  Tekrar
+                </button>
+                <button onClick={() => setSetId(null)} className="flex-1 py-3 rounded-2xl text-xs font-black active:scale-97" style={{ background: active.color, color: '#06231A' }}>
+                  Diğer Zikirler
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        <p className="px-5 mt-4 text-center text-[9px]" style={{ color: theme.textSecondary }}>
+          Bugün tamamlanan: {Object.keys(todayLog).length}/{TESBIHAT_SETS.length} set
+        </p>
+      </div>
+    );
+  }
+
+  const todayLog = load(`tesbihat_log_${todayKey()}`, {});
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Head title="📿 Tesbihat" sub="Dokunmatik sayaç · titreşimli · kaynaklı" onBack={onBack} theme={theme} />
+      <div className="px-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        {TESBIHAT_SETS.map((s, i) => (
+          <motion.button key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+            onClick={() => start(s.id)}
+            className="text-left rounded-2xl p-4 active:scale-98 transition-transform relative overflow-hidden"
+            style={{ background: theme.surface, border: `1.5px solid ${todayLog[s.id] ? `${s.color}60` : theme.cardBorder}` }}>
+            {todayLog[s.id] && <span className="absolute top-2.5 right-2.5 text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${s.color}18`, color: s.color }}>Bugün ✓</span>}
+            <span className="text-3xl">{s.emoji}</span>
+            <p className="text-sm font-black mt-2" style={{ color: theme.textPrimary }}>{s.title}</p>
+            <p className="text-[10.5px] mt-0.5" style={{ color: theme.textSecondary }}>{s.desc}</p>
+            <p className="text-[9px] mt-2 font-bold" style={{ color: s.color }}>{s.source}</p>
+          </motion.button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── 🏛️ TARİH ───
+function TarihSection({ theme, onBack }) {
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Head title="🏛️ Dünya Tarihinde Müslümanlar" sub="Vahiyden bugüne, medeniyete katkıların zaman tüneli" onBack={onBack} theme={theme} />
+      <div className="px-5 space-y-4">
+        {TARIH_DONEMLERI.map((era, ei) => (
+          <motion.div key={era.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: ei * 0.07 }}
+            className="rounded-3xl p-4 relative overflow-hidden"
+            style={{ background: theme.surface, border: `1.5px solid ${era.color}30` }}>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-3xl">{era.emoji}</span>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: era.color }}>{era.era}</p>
+                <p className="text-base font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{era.title}</p>
+              </div>
+            </div>
+            <p className="text-[11px] leading-relaxed mb-3" style={{ color: theme.textSecondary }}>{era.intro}</p>
+            <div className="relative pl-4 space-y-3">
+              <span className="absolute left-[5px] top-1 bottom-1 w-0.5 rounded-full" style={{ background: `linear-gradient(180deg, ${era.color}, ${era.color}15)` }} />
+              {era.items.map((it, i) => (
+                <div key={i} className="relative">
+                  <span className="absolute -left-[15px] top-1.5 w-2.5 h-2.5 rounded-full" style={{ background: era.color, boxShadow: `0 0 8px ${era.color}80` }} />
+                  <p className="text-xs font-black" style={{ color: theme.textPrimary }}>
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md mr-1.5" style={{ background: `${era.color}16`, color: era.color }}>{it.year}</span>
+                    {it.title}
+                  </p>
+                  <p className="text-[10.5px] mt-1 leading-relaxed" style={{ color: theme.textSecondary }}>{it.desc}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ))}
+        <p className="text-[9px] text-center pb-2" style={{ color: theme.textSecondary }}>
+          Tarihler yaygın kabul gören ansiklopedik kayıtlara göre yaklaşık verilmiştir.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── ✨ MUCİZELER ───
+function MucizelerSection({ theme, user, onBack }) {
+  const [open, setOpen] = useState(null);
+  const [readIds, setReadIds] = useState(() => load('mucize_read', []));
+  const markRead = (m) => {
+    if (readIds.includes(m.id)) return;
+    const next = [...readIds, m.id];
+    setReadIds(next); save('mucize_read', next);
+    awardXPOnce(user, `mucize_${m.id}`, 'hadith_read', { points: 8, details: `Mucize: ${m.title}` });
+  };
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Head title="✨ Kur'an'daki Mucizeler" sub={`${readIds.length}/${MUCIZELER.length} işaret okundu`} onBack={onBack} theme={theme} />
+      {/* Sorumlu çerçeve */}
+      <div className="px-5 mb-4">
+        <div className="rounded-2xl p-3.5" style={{ background: `${theme.gold}0a`, border: `1px solid ${theme.gold}30` }}>
+          <p className="text-[10.5px] leading-relaxed" style={{ color: theme.textSecondary }}>
+            <span className="font-black" style={{ color: theme.gold }}>Ölçümüz:</span> Kur'an bir fen kitabı değil, hidayet kitabıdır.
+            Ancak 14 asır önce inen ayetlerdeki işaretlerin bugünkü bilgiyle örtüşmesi, "Düşünmüyorlar mı?" çağrısının bir karşılığıdır.
+            Her kartta ayet, meal ve modern bilgi birlikte sunulur.
+          </p>
+        </div>
+      </div>
+      <div className="px-5 grid grid-cols-1 md:grid-cols-2 gap-3 pb-4">
+        {MUCIZELER.map((m, i) => {
+          const isOpen = open === m.id;
+          const isRead = readIds.includes(m.id);
+          return (
+            <motion.div key={m.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.05 }}
+              className="rounded-3xl overflow-hidden"
+              style={{ background: theme.surface, border: `1.5px solid ${isOpen ? `${m.color}60` : isRead ? `${m.color}35` : theme.cardBorder}` }}>
+              <button onClick={() => { setOpen(isOpen ? null : m.id); if (!isOpen) markRead(m); }} className="w-full text-left">
+                {/* İnfografik */}
+                <div className="pt-4 px-4" style={{ background: `linear-gradient(160deg, ${m.color}10, transparent)` }}>
+                  <MiracleArt type={m.art} color={m.color} />
+                </div>
+                <div className="px-4 pb-3 pt-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{m.emoji}</span>
+                    <p className="text-sm font-black flex-1" style={{ color: theme.textPrimary }}>{m.title}</p>
+                    {isRead && <Check size={13} style={{ color: m.color }} />}
+                    <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
+                  </div>
+                  <p className="text-[9.5px] font-black mt-1" style={{ color: m.color }}>{m.source}</p>
+                </div>
+              </button>
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                    <div className="px-4 pb-4">
+                      <p className="text-[12.5px] italic leading-relaxed pl-2.5" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary, borderLeft: `2px solid ${m.color}` }}>
+                        {m.verse}
+                      </p>
+                      <div className="rounded-xl p-3 mt-3" style={{ background: `${m.color}0c`, border: `1px solid ${m.color}25` }}>
+                        <p className="text-[9px] font-black uppercase tracking-wider mb-1" style={{ color: m.color }}>🔬 Modern bilgi</p>
+                        <p className="text-[11.5px] leading-relaxed" style={{ color: theme.textPrimary }}>{m.fact}</p>
+                      </div>
+                      <p className="text-[10.5px] mt-2.5 leading-relaxed" style={{ color: theme.textSecondary }}>
+                        <Sparkles size={10} className="inline mr-1" style={{ color: m.color }} />{m.detail}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── 🗂️ MERKEZ: büyük kartlar ───
+export function HazineCards({ theme, navigate, compact = false }) {
+  return (
+    <div className={compact ? 'space-y-3' : 'grid grid-cols-1 md:grid-cols-2 gap-3'}>
+      {HAZINE_BOLUMLERI.map((b, i) => (
+        <motion.button key={b.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+          onClick={() => navigate(b.route)}
+          className="w-full text-left rounded-3xl p-5 relative overflow-hidden active:scale-[0.98] transition-transform"
+          style={{ background: `linear-gradient(135deg, ${b.grad[0]}, ${b.grad[1]})`, border: `1.5px solid ${b.accent}40`, minHeight: 128 }}>
+          {/* Süsleme */}
+          <span className="absolute -top-6 -right-6 w-28 h-28 rounded-full opacity-25 pointer-events-none" style={{ background: `radial-gradient(circle, ${b.accent}, transparent 65%)` }} />
+          <span className="absolute top-3 right-5 text-[8px]" style={{ color: `${b.accent}90` }}>✦</span>
+          <span className="absolute top-7 right-10 text-[6px]" style={{ color: `${b.accent}60` }}>✦</span>
+          <div className="flex items-start gap-3.5 relative">
+            <span className="text-4xl shrink-0" style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))' }}>{b.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-black leading-tight" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{b.title}</p>
+              <p className="text-[9px] font-black uppercase tracking-wider mt-1" style={{ color: b.accent }}>{b.meta}</p>
+              <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'rgba(245,240,228,0.82)' }}>{b.desc}</p>
+            </div>
+            <ChevronRight size={16} className="shrink-0 mt-1" style={{ color: b.accent }} />
+          </div>
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
+export default function HazinePage() {
+  const { theme } = useTheme();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { section } = useParams();
+  const back = useCallback(() => navigate('/hazine'), [navigate]);
+  const valid = useMemo(() => ['dualar', 'tesbihat', 'tarih', 'mucizeler'].includes(section), [section]);
+
+  return (
+    <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
+      {!valid ? (
+        <div className="max-w-3xl mx-auto">
+          <div className="px-5 pt-6 pb-4">
+            <div className="flex items-center gap-3">
+              <button onClick={() => navigate('/yol')} className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90" style={{ background: `${theme.gold}10` }} aria-label="Nur Yolu">
+                <ArrowLeft size={17} style={{ color: theme.gold }} />
+              </button>
+              <div>
+                <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>💛 Nur Hazinesi</h1>
+                <p className="text-xs" style={{ color: theme.textSecondary }}>Dualar, tesbihat, kıssalar, tarih ve mucizeler — hepsi yolun azığı</p>
+              </div>
+            </div>
+          </div>
+          <div className="px-5">
+            <HazineCards theme={theme} navigate={navigate} />
+          </div>
+        </div>
+      ) : section === 'dualar' ? (
+        <DualarSection theme={theme} onBack={back} />
+      ) : section === 'tesbihat' ? (
+        <TesbihatSection theme={theme} user={user} onBack={back} />
+      ) : section === 'tarih' ? (
+        <TarihSection theme={theme} onBack={back} />
+      ) : (
+        <MucizelerSection theme={theme} user={user} onBack={back} />
+      )}
+    </div>
+  );
+}

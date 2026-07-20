@@ -107,6 +107,21 @@ const TASKS = {
     desc: 'Tesbihatını çek — kalbe cila',
     detect: null,
   },
+  tesbihat: {
+    id: 'tesbihat', icon: '📿', title: 'Tesbihat çek', minutes: 4, xp: 15, route: '/hazine/tesbihat',
+    desc: 'Sayaçlı tesbihattan bir seti tamamla (namaz tesbihatı, istiğfar, salavat...)',
+    detect: () => Object.keys(load(`tesbihat_log_${todayKey()}`, {})).length > 0,
+  },
+  mucize: {
+    id: 'mucize', icon: '✨', title: "Kur'an'dan bir işaret", minutes: 3, xp: 10, route: '/hazine/mucizeler',
+    desc: 'Mucizeler bölümünden bir infografik kartı oku',
+    detect: (snap) => load('mucize_read', []).length > (snap.mucize ?? 0),
+  },
+  dua: {
+    id: 'dua', icon: '🤲', title: 'Bir hidayet duası öğren', minutes: 3, xp: 10, route: '/hazine/dualar',
+    desc: 'Hidayet Duaları rafından bir duayı aç, oku, ezberlemeye niyet et',
+    detect: (snap) => load('dua_read', []).length > (snap.dua ?? 0),
+  },
   cuma: {
     id: 'cuma', icon: '🕌', title: 'Cuma Bereketi', minutes: 8, xp: 20, route: '/quran/18',
     desc: "Kehf Sûresi'nden bir bölüm oku, Efendimize (s.a.v.) çokça salavat getir",
@@ -302,7 +317,8 @@ export function generatePlan(profile) {
   // 4-5) Kalan yuvalar: hedefe ve güne göre
   const extras = [];
   if (profile.namaz !== 'duzenli' || profile.hedef === 'namaz') extras.push('niyet');
-  extras.push('oyun', 'zikir');
+  // Hazine görevleri günlere dağılır: tesbihat / dua / mucize dönüşümlü
+  extras.push(['tesbihat', 'dua', 'mucize'][day % 3], 'oyun', 'zikir');
   if (profile.hedef === 'ezber' && !ids.includes('hifz')) extras.unshift('hifz');
   for (const e of extras) { if (ids.length >= count) break; if (!ids.includes(e)) ids.push(e); }
   // Haftanın yıldız görevi plana öncelikli girer (seviyeye uygunsa)
@@ -334,6 +350,8 @@ export function getTodayPlan() {
         story: load('story_read', []).length,
         article: load('lib_read', []).length,
         gameXp: load(`gc_daily_${todayKey()}`, {}).xp || 0,
+        mucize: load('mucize_read', []).length,
+        dua: load('dua_read', []).length,
         planTime: Date.now(),
       },
     };
