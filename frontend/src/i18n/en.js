@@ -445,6 +445,26 @@ const EN = {
   'durak': 'stops',
   'düşündüren son': 'a thought-provoking ending',
   'Her tamamlanan kıssa bir cevher kazandırır. İlk cevherin seni bekliyor ✨': 'Each completed parable earns a gem. Your first gem awaits you ✨',
+
+  // ── Kütüphane / Library ──
+  'Kütüphane': 'Library',
+  'Makale ara...': 'Search articles...',
+  'Okudukça derinleşen makaleler': 'Articles that deepen as you read',
+  'okundu': 'read',
+  'Sonuç bulunamadı': 'No results found',
+  'dk': 'min',
+  'dakikalık okuma': 'min read',
+  'Kaynaklar': 'Sources',
+  'Sıradaki': 'Next',
+  'Kaydettiklerin': 'Your saved',
+  'Okudum (+10 XP)': 'Mark as read (+10 XP)',
+  'Okundu ✓': 'Read ✓',
+  'Geri': 'Back',
+  'Favorilere ekle': 'Add to favorites',
+  'Paylaş': 'Share',
+  'Okuma ayarları': 'Reading settings',
+  'Durdur': 'Stop',
+  '(İslami Yaşam Asistanı — Kütüphane)': '(Islamic Life Assistant — Library)',
 };
 
 export default EN;

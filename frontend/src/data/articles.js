@@ -320,6 +320,10 @@ export const ARTICLES = [
   },
 ];
 
+import ARTICLES_EN, { SHELVES_EN } from './articles.en';
+ARTICLES.forEach((a) => { if (ARTICLES_EN[a.id]) a.en = ARTICLES_EN[a.id]; });
+SHELVES.forEach((s) => { if (SHELVES_EN[s.id]) s.en = { title: SHELVES_EN[s.id] }; });
+
 export function readingTime(article) {
   const words = article.paragraphs.map(p => (typeof p === 'string' ? p : p.quote)).join(' ').split(/\s+/).length;
   return Math.max(2, Math.round(words / 170));
