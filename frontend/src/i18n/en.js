@@ -419,6 +419,32 @@ const EN = {
   'hangi dönemin parçasıdır?': 'which era does it belong to?',
   'Doğru': 'True',
   'Yanlış': 'False',
+
+  // ── Kıssalar (StoriesPage UI) ──
+  'İbretlik Hikayeler': 'Stories with Wisdom',
+  'Bir kıssa, bir soru, bir hikmet': 'A parable, a question, a wisdom',
+  'Hikmet Cevherlerin': 'Your Wisdom Gems',
+  'Duraklı okuma': 'Checkpoint reading',
+  'Durak': 'Stop',
+  'Birlikte düşünelim': "Let's reflect together",
+  'İç görü': 'Insight',
+  'Kıssanın Devamı': 'Continue the Parable',
+  'Sen ne düşünürsün?': 'What do you think?',
+  'Bir seçenek seç, hikmet açılsın': 'Pick an option to reveal the wisdom',
+  'Hikmet': 'Wisdom',
+  'Okundu': 'Read',
+  'Hikmet Cevheri kazandın': 'You earned a Wisdom Gem',
+  'Koleksiyon': 'Collection',
+  'Hayata Taşı · Bugünün küçük ameli': "Carry it into Life · today's small deed",
+  'Hayata taşındı': 'Carried into life',
+  'Uyguladım · +8 XP': 'I did it · +8 XP',
+  'Gece Modunda Dinle': 'Listen in Night Mode',
+  'Ney eşliğinde sesli okuma + uyku zamanlayıcısı': 'Narrated reading with ney + sleep timer',
+  'Ney sesi · sesli kıssa okuma · uyku zamanlayıcısı': 'Ney sound · narrated parables · sleep timer',
+  'Sıradaki kıssa': 'Next parable',
+  'durak': 'stops',
+  'düşündüren son': 'a thought-provoking ending',
+  'Her tamamlanan kıssa bir cevher kazandırır. İlk cevherin seni bekliyor ✨': 'Each completed parable earns a gem. Your first gem awaits you ✨',
 };
 
 export default EN;

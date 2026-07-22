@@ -8,7 +8,10 @@ import { useTTS } from '../hooks/useShared';
 import { awardXPOnce } from '../services/gamification';
 import { useReadingSettings } from '../services/readingSettings';
 import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
-import { STORIES, STORY_CATEGORIES, STORY_GEMS, STORY_APPLY } from '../data/stories';
+import { STORIES, STORY_CATEGORIES, STORY_GEMS, STORY_APPLY, STORY_GEMS_EN, STORY_APPLY_EN } from '../data/stories';
+import { useField } from '../services/contentI18n';
+import { useLang } from '../contexts/LangContext';
+import { useTx } from '../i18n';
 import Confetti from './games/Confetti';
 
 // 🕯️ İBRETLİK HİKAYELER — kıssa → düşündürücü soru → hikmet.
@@ -30,12 +33,13 @@ function Cover({ s, h = 120 }) {
 
 // ─── Checkpoint durağı: soru → iç görü → devam ───
 function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
+  const tt = useTx();
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl p-4 my-5 relative overflow-hidden"
       style={{ background: `linear-gradient(160deg, #312E8114, ${theme.surface})`, border: `1.5px solid #818CF845` }}>
       <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5" style={{ color: '#818CF8' }}>
-        <Sparkles size={12} /> Durak {idx + 1} · Birlikte düşünelim
+        <Sparkles size={12} /> {tt('Durak')} {idx + 1} · {tt('Birlikte düşünelim')}
       </p>
       <p className="text-[15px] font-bold mb-3" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{cp.q}</p>
       {!answered ? (
@@ -68,14 +72,14 @@ function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
           </div>
           <div className="rounded-xl p-3.5 mb-3" style={{ background: '#818CF810', border: '1px solid #818CF830' }}>
             <p className="text-[10px] font-black uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: '#818CF8' }}>
-              <Lightbulb size={11} /> İç görü
+              <Lightbulb size={11} /> {tt('İç görü')}
             </p>
             <p className="text-[13.5px] leading-[1.7]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{cp.insight}</p>
           </div>
           <button onClick={onContinue}
             className="w-full py-3 rounded-xl text-sm font-black flex items-center justify-center gap-1.5 active:scale-98"
             style={{ background: 'linear-gradient(135deg, #6366F1, #818CF8)', color: '#fff' }}>
-            Kıssanın Devamı <ChevronDown size={15} />
+            {tt('Kıssanın Devamı')} <ChevronDown size={15} />
           </button>
         </motion.div>
       )}
@@ -88,6 +92,9 @@ export default function StoriesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const tts = useTTS();
+  const f = useField();
+  const { lang } = useLang();
+  const tt = useTx();
   const [openId, setOpenId] = useState(null);
   const [readIds, setReadIds] = useState(() => load('story_read', []));
   const [gems, setGems] = useState(() => load('gc_gems', {}));
@@ -106,7 +113,11 @@ export default function StoriesPage() {
   const scrollRef = useRef(null);
 
   const story = STORIES.find(s => s.id === openId);
-  const checkpoints = useMemo(() => (story?.checkpoints || []), [story]);
+  const checkpoints = useMemo(() => {
+    const tr = story?.checkpoints || [];
+    const en = (story && lang !== 'tr' && story.en?.checkpoints) || null;
+    return en ? tr.map((c, i) => ({ ...c, ...(en[i] || {}) })) : tr;
+  }, [story, lang]);
   const allCpDone = cpOpen >= checkpoints.length;
   // Görünen paragraf sınırı: sıradaki durağın 'after' indexine kadar
   const revealLimit = allCpDone ? (story?.paragraphs.length ?? 0) - 1 : checkpoints[cpOpen].after;
@@ -162,7 +173,7 @@ export default function StoriesPage() {
 
   const speak = useCallback(() => {
     if (!story) return;
-    const text = [story.title, ...story.paragraphs.slice(0, revealLimit + 1)].join('. ');
+    const text = [f(story, 'title'), ...f(story, 'paragraphs').slice(0, revealLimit + 1)].join('. ');
     tts.speak(text);
   }, [story, tts, revealLimit]);
 
@@ -173,7 +184,7 @@ export default function StoriesPage() {
   // ═══ OKUMA GÖRÜNÜMÜ ═══
   if (story) {
     const gem = STORY_GEMS[story.id];
-    const applyText = STORY_APPLY[story.id];
+    const applyText = (lang !== 'tr' && STORY_APPLY_EN[story.id]) || STORY_APPLY[story.id];
     const applied = appliedIds.includes(story.id);
     const isDeep = !!story.deep;
     const activeCp = !allCpDone ? checkpoints[cpOpen] : null;
@@ -197,9 +208,9 @@ export default function StoriesPage() {
         {/* Başlık */}
         <div className="px-6 pt-6 pb-2 text-center max-w-[42rem] mx-auto">
           <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: isDeep ? '#818CF8' : theme.gold }}>
-            {STORY_CATEGORIES.find(c => c.id === story.cat)?.title}
+            {f(STORY_CATEGORIES.find(c => c.id === story.cat), 'title')}
           </p>
-          <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: rrt.text }}>{story.title}</h1>
+          <h1 className="text-[1.7rem] leading-tight font-black mt-2" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: rrt.text }}>{f(story, 'title')}</h1>
           <div className="flex items-center justify-center gap-3 mt-3">
             <span className="h-px w-10" style={{ background: `${rrt.accent}50` }} />
             <button onClick={() => (tts.playing ? tts.stop() : speak())}
@@ -224,7 +235,7 @@ export default function StoriesPage() {
 
         {/* Metin — katmanlı kıssalarda sınıra kadar */}
         <div className="px-6 pt-4 max-w-[42rem] mx-auto article-body" style={{ fontSize: rs.fontSize, color: `${rrt.text}f0`, '--gold': rrt.accent }}>
-          {story.paragraphs.slice(0, revealLimit + 1).map((p, i) => (
+          {f(story, 'paragraphs').slice(0, revealLimit + 1).map((p, i) => (
             <motion.p key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>{p}</motion.p>
           ))}
         </div>
@@ -248,11 +259,11 @@ export default function StoriesPage() {
               <motion.div key="q" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="rounded-2xl p-5 mt-2" style={{ background: `${theme.gold}0a`, border: `1.5px solid ${theme.gold}30` }}>
                 <p className="text-[10px] font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: theme.gold }}>
-                  <Sparkles size={12} /> Sen ne düşünürsün?
+                  <Sparkles size={12} /> {tt('Sen ne düşünürsün?')}
                 </p>
-                <p className="text-base font-bold mb-4" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{story.question}</p>
+                <p className="text-base font-bold mb-4" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{f(story, 'question')}</p>
                 <div className="space-y-2.5">
-                  {story.choices.map((c, i) => {
+                  {f(story, 'choices').map((c, i) => {
                     const chosen = picked === i;
                     const isCorrect = picked !== null && i === story.correct;
                     return (
@@ -269,7 +280,7 @@ export default function StoriesPage() {
                     );
                   })}
                 </div>
-                <p className="text-[10px] mt-3 text-center" style={{ color: theme.textSecondary }}>Bir seçenek seç, hikmet açılsın</p>
+                <p className="text-[10px] mt-3 text-center" style={{ color: theme.textSecondary }}>{tt('Bir seçenek seç, hikmet açılsın')}</p>
               </motion.div>
             ) : (
               <motion.div key="l" initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -278,18 +289,18 @@ export default function StoriesPage() {
                 style={{ background: `linear-gradient(160deg, ${theme.gold}14, ${theme.surface})`, border: `1.5px solid ${theme.gold}45` }}>
                 <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2.5 flex items-center gap-1.5 relative" style={{ color: theme.gold }}>
-                  <Lightbulb size={13} /> Hikmet
+                  <Lightbulb size={13} /> {tt('Hikmet')}
                 </p>
-                <p className="text-[15px] leading-[1.8] relative" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{story.lesson}</p>
+                <p className="text-[15px] leading-[1.8] relative" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{f(story, 'lesson')}</p>
                 {story.verse && (
                   <div className="mt-4 pt-3 relative" style={{ borderTop: `1px solid ${theme.gold}25` }}>
-                    <p className="text-sm italic leading-relaxed" style={{ color: `${theme.textPrimary}dd` }}>{story.verse.text}</p>
+                    <p className="text-sm italic leading-relaxed" style={{ color: `${theme.textPrimary}dd` }}>{(f(story, 'verse') || story.verse).text}</p>
                     <p className="text-[11px] mt-1.5 font-bold" style={{ color: theme.gold }}>— {story.verse.source}</p>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5 mt-4 relative">
                   <Check size={14} style={{ color: '#10B981' }} />
-                  <span className="text-xs font-bold" style={{ color: '#10B981' }}>Okundu · +{story.deep ? 20 : 12} XP</span>
+                  <span className="text-xs font-bold" style={{ color: '#10B981' }}>{tt('Okundu')} · +{story.deep ? 20 : 12} XP</span>
                 </div>
               </motion.div>
             )}
@@ -307,10 +318,10 @@ export default function StoriesPage() {
                     style={{ filter: `drop-shadow(0 0 14px ${gem.hue}80)` }}>{gem.emoji}</motion.span>
                   <div className="flex-1">
                     <p className="text-[10px] font-black uppercase tracking-wider flex items-center gap-1" style={{ color: gem.hue }}>
-                      <Gem size={11} /> Hikmet Cevheri kazandın
+                      <Gem size={11} /> {tt('Hikmet Cevheri kazandın')}
                     </p>
-                    <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{gem.name}</p>
-                    <p className="text-[10px]" style={{ color: theme.textSecondary }}>Koleksiyon: {gemCount}/{Object.keys(STORY_GEMS).length} cevher</p>
+                    <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{(lang !== 'tr' && STORY_GEMS_EN[story.id]) || gem.name}</p>
+                    <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt('Koleksiyon')}: {gemCount}/{Object.keys(STORY_GEMS).length}</p>
                   </div>
                 </motion.div>
               )}
@@ -322,7 +333,7 @@ export default function StoriesPage() {
             <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
               className="rounded-2xl p-4 mt-4" style={{ background: '#10B9810c', border: '1.5px solid #10B98135' }}>
               <p className="text-[10px] font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#10B981' }}>
-                <HeartHandshake size={12} /> Hayata Taşı · Bugünün küçük ameli
+                <HeartHandshake size={12} /> {tt('Hayata Taşı · Bugünün küçük ameli')}
               </p>
               <p className="text-[13.5px] leading-[1.7] mb-3" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{applyText}</p>
               <button onClick={applyTask} disabled={applied}
@@ -330,7 +341,7 @@ export default function StoriesPage() {
                 style={applied
                   ? { background: '#10B98115', border: '1px solid #10B98140', color: '#10B981' }
                   : { background: 'linear-gradient(135deg, #059669, #10B981)', color: '#fff' }}>
-                {applied ? (<><Check size={13} /> Hayata taşındı</>) : 'Uyguladım · +8 XP'}
+                {applied ? (<><Check size={13} /> {tt('Hayata taşındı')}</>) : tt('Uyguladım · +8 XP')}
               </button>
             </motion.div>
           )}
@@ -342,8 +353,8 @@ export default function StoriesPage() {
               style={{ background: 'linear-gradient(135deg, #1E1B4B, #312E81)', border: '1px solid #6366F150' }}>
               <span className="text-2xl">🌙</span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-black" style={{ color: '#E0E7FF' }}>Gece Modunda Dinle</p>
-                <p className="text-[10px]" style={{ color: '#A5B4FC' }}>Ney eşliğinde sesli okuma + uyku zamanlayıcısı</p>
+                <p className="text-xs font-black" style={{ color: '#E0E7FF' }}>{tt('Gece Modunda Dinle')}</p>
+                <p className="text-[10px]" style={{ color: '#A5B4FC' }}>{tt('Ney eşliğinde sesli okuma + uyku zamanlayıcısı')}</p>
               </div>
               <ChevronRight size={15} style={{ color: '#A5B4FC' }} />
             </button>
@@ -358,7 +369,7 @@ export default function StoriesPage() {
                 style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
                 <span className="text-2xl">{next.emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-bold uppercase" style={{ color: theme.textSecondary }}>Sıradaki kıssa</p>
+                  <p className="text-[9px] font-bold uppercase" style={{ color: theme.textSecondary }}>{tt('Sıradaki kıssa')}</p>
                   <p className="text-xs font-black truncate" style={{ color: theme.textPrimary }}>{next.title}</p>
                 </div>
                 <ChevronRight size={15} style={{ color: theme.gold }} />
@@ -380,9 +391,9 @@ export default function StoriesPage() {
       <div className="px-5 pt-6 pb-3">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-2xl">🕯️</span>
-          <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>İbretlik Hikayeler</h1>
+          <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt('İbretlik Hikayeler')}</h1>
         </div>
-        <p className="text-xs" style={{ color: theme.textSecondary }}>Bir kıssa, bir soru, bir hikmet · {readIds.length}/{STORIES.length} okundu</p>
+        <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Bir kıssa, bir soru, bir hikmet')} · {readIds.length}/{STORIES.length}</p>
       </div>
 
       {/* 💎 Cevher rafı */}
@@ -390,14 +401,14 @@ export default function StoriesPage() {
         <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #312E8118, ${theme.surface})`, border: `1px solid ${theme.cardBorder}` }}>
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}>
-              <Gem size={13} style={{ color: '#818CF8' }} /> Hikmet Cevherlerin
+              <Gem size={13} style={{ color: '#818CF8' }} /> {tt('Hikmet Cevherlerin')}
             </p>
             <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: '#818CF818', color: '#818CF8' }}>
               {gemCount}/{Object.keys(STORY_GEMS).length}
             </span>
           </div>
           {gemCount === 0 ? (
-            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Her tamamlanan kıssa bir cevher kazandırır. İlk cevherin seni bekliyor ✨</p>
+            <p className="text-[11px]" style={{ color: theme.textSecondary }}>{tt('Her tamamlanan kıssa bir cevher kazandırır. İlk cevherin seni bekliyor ✨')}</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {Object.entries(STORY_GEMS).map(([sid, g]) => {
@@ -426,8 +437,8 @@ export default function StoriesPage() {
           <span className="absolute bottom-3 right-24 text-[7px]" style={{ color: '#818CF8' }}>✦</span>
           <span className="text-3xl">🌙</span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-black" style={{ color: '#E0E7FF' }}>Gece Modu</p>
-            <p className="text-[11px]" style={{ color: '#A5B4FC' }}>Ney sesi · sesli kıssa okuma · uyku zamanlayıcısı</p>
+            <p className="text-sm font-black" style={{ color: '#E0E7FF' }}>{tt('Gece Modu')}</p>
+            <p className="text-[11px]" style={{ color: '#A5B4FC' }}>{tt('Ney sesi · sesli kıssa okuma · uyku zamanlayıcısı')}</p>
           </div>
           <ChevronRight size={16} style={{ color: '#A5B4FC' }} />
         </button>
@@ -440,8 +451,8 @@ export default function StoriesPage() {
         return (
           <motion.div key={cat.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: ci * 0.06 }} className="mb-6">
             <div className="px-5 flex items-center gap-2 mb-2.5">
-              <p className="text-sm font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{cat.emoji} {cat.title}</p>
-              {isDeepCat && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider" style={{ background: '#818CF820', color: '#818CF8' }}>Duraklı okuma</span>}
+              <p className="text-sm font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{cat.emoji} {f(cat, 'title')}</p>
+              {isDeepCat && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider" style={{ background: '#818CF820', color: '#818CF8' }}>{tt('Duraklı okuma')}</span>}
             </div>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1 md:grid md:grid-cols-3 md:overflow-visible">
               {items.map(s => {
@@ -456,9 +467,9 @@ export default function StoriesPage() {
                       <span className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: 'rgba(0,0,0,0.4)' }}>{STORY_GEMS[s.id].emoji}</span>
                     )}
                     <div className="p-3">
-                      <p className="text-xs font-black leading-snug mb-1" style={{ color: theme.textPrimary }}>{s.title}</p>
+                      <p className="text-xs font-black leading-snug mb-1" style={{ color: theme.textPrimary }}>{f(s, 'title')}</p>
                       <p className="text-[10px] flex items-center gap-1" style={{ color: theme.textSecondary }}>
-                        <Star size={9} style={{ color: theme.gold }} /> {s.read} dk · {s.deep ? `${(s.checkpoints || []).length} durak` : 'düşündüren son'}
+                        <Star size={9} style={{ color: theme.gold }} /> {s.read} {tt('dk')} · {s.deep ? `${(s.checkpoints || []).length} ${tt('durak')}` : tt('düşündüren son')}
                       </p>
                     </div>
                   </button>

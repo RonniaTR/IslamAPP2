@@ -560,4 +560,10 @@ export const STORY_APPLY = {
   'iki-kus':    'Bugün "taşıyan kuş" ol: Bir ihtiyaç sahibine küçük de olsa somut bir yardım ulaştır.',
 };
 
+// ═══════════════ 🌍 İngilizce içerik iliştir (contentI18n) ═══════════════
+import STORIES_EN, { STORY_CATEGORIES_EN, STORY_GEMS_EN, STORY_APPLY_EN } from './stories.en';
+STORIES.forEach((s) => { if (STORIES_EN[s.id]) s.en = STORIES_EN[s.id]; });
+STORY_CATEGORIES.forEach((c) => { if (STORY_CATEGORIES_EN[c.id]) c.en = { title: STORY_CATEGORIES_EN[c.id] }; });
+export { STORY_GEMS_EN, STORY_APPLY_EN };
+
 export default STORIES;
