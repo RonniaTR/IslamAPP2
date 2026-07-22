@@ -395,6 +395,30 @@ const EN = {
   '4 soruluk değerlendirme · 1 dakika': '4-question assessment · 1 minute',
   'görev': 'tasks',
   'gün seri · dokun ve yoluna devam et': 'day streak · tap to continue your path',
+  'Günün Buluşu': "Today's Discovery",
+
+  // ── Esma sınavı (soru tarzları) ──
+  '📖 Anlamı ne?': '📖 What does it mean?',
+  '🔎 Hangi isim?': '🔎 Which name?',
+  '✒️ Hattı tanı': '✒️ Recognize the script',
+  '💭 Tefekkürden bul': '💭 Find it from the reflection',
+  'Bu hat hangi ismi yazıyor?': 'Which name does this calligraphy spell?',
+  '"X" ne demektir?': '"X" — what does it mean?',
+  '"X" — bu hangi ismin anlamıdır?': '"X" — which name has this meaning?',
+  '"X" — bu tefekkür hangi ismi anlatıyor?': '"X" — which name does this reflection describe?',
+
+  // ── Zaman Yolcusu sınavı (soru tarzları) ──
+  '🕵️ Kim / Ne?': '🕵️ Who / What?',
+  '🔍 Ne yaptı?': '🔍 What did they do?',
+  '📅 Hangi tarih?': '📅 Which date?',
+  '🗺️ Hangi dönem?': '🗺️ Which era?',
+  '⚖️ Doğru mu, yanlış mı?': '⚖️ True or false?',
+  'Bu katkı hangisine aittir?': 'Whose contribution is this?',
+  'bu maddenin katkısı hangisidir?': "which is this entry's contribution?",
+  'hangi tarihe kaydedilir?': 'to which date is it recorded?',
+  'hangi dönemin parçasıdır?': 'which era does it belong to?',
+  'Doğru': 'True',
+  'Yanlış': 'False',
 };
 
 export default EN;

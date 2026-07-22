@@ -107,4 +107,8 @@ export const ESMA = [
   { n: 99, ar: 'الصَّبُورُ', name: 'es-Sabûr', mean: 'Çok sabırlı olan', tef: 'İsyan edene bile nimeti kesmeyen bir sabır... Kullarına sabırsızlanan bizlere ne büyük ders.' },
 ];
 
+// İngilizce içerik iliştir (dile göre otomatik seçilir — contentI18n)
+import ESMA_EN from './esma.en';
+ESMA.forEach((e) => { if (ESMA_EN[e.n]) e.en = ESMA_EN[e.n]; });
+
 export default ESMA;

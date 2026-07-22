@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronRight, ChevronDown, Copy, Check, RotateCcw, Sparkles, Share2, Search, Swords, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTx } from '../i18n';
+import { useField } from '../services/contentI18n';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import { HIDAYET_DUALARI, TESBIHAT_SETS, TARIH_DONEMLERI, TARIH_TOPLAM, MUCIZELER, HAZINE_BOLUMLERI } from '../data/nurHazine';
@@ -385,6 +386,7 @@ function Head({ title, sub, onBack, theme }) {
 // ─── 🤲 DUALAR ───
 function DualarSection({ theme, onBack }) {
   const tt = useTx();
+  const f = useField();
   const [open, setOpen] = useState(null);
   const [copied, setCopied] = useState(null);
   const openDua = (id) => {
@@ -394,7 +396,7 @@ function DualarSection({ theme, onBack }) {
   };
   const copy = (d, e) => {
     e.stopPropagation();
-    navigator.clipboard?.writeText(`${d.ar}\n\n"${d.tr}"\n— ${d.source}`).catch(() => {});
+    navigator.clipboard?.writeText(`${d.ar}\n\n"${f(d,'tr')}"\n— ${d.source}`).catch(() => {});
     setCopied(d.id); setTimeout(() => setCopied(null), 1500);
   };
   return (
@@ -409,7 +411,7 @@ function DualarSection({ theme, onBack }) {
               className="w-full text-left rounded-2xl p-4 transition-all"
               style={{ background: theme.surface, border: `1.5px solid ${isOpen ? `${theme.gold}55` : theme.cardBorder}` }}>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0" style={{ background: `${theme.gold}14`, color: theme.gold }}>{d.when}</span>
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0" style={{ background: `${theme.gold}14`, color: theme.gold }}>{f(d,'when')}</span>
                 <span className="text-[10px] font-bold ml-auto shrink-0" style={{ color: theme.textSecondary }}>{d.source}</span>
                 <ChevronDown size={13} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
               </div>
@@ -420,8 +422,8 @@ function DualarSection({ theme, onBack }) {
                 {isOpen && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                     <p className="text-[11px] mt-2 italic" style={{ color: theme.textSecondary }}>{d.read}</p>
-                    <p className="text-[13.5px] mt-2.5 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>"{d.tr}"</p>
-                    <p className="text-[11px] mt-2.5 leading-relaxed pl-2.5" style={{ borderLeft: `2px solid ${theme.gold}50`, color: theme.textSecondary }}>{d.note}</p>
+                    <p className="text-[13.5px] mt-2.5 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>"{f(d,'tr')}"</p>
+                    <p className="text-[11px] mt-2.5 leading-relaxed pl-2.5" style={{ borderLeft: `2px solid ${theme.gold}50`, color: theme.textSecondary }}>{f(d,'note')}</p>
                     <span onClick={(e) => copy(d, e)} role="button"
                       className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl text-[10px] font-black active:scale-95"
                       style={{ background: `${theme.gold}12`, color: copied === d.id ? '#10B981' : theme.gold, border: `1px solid ${theme.gold}30` }}>
@@ -441,6 +443,7 @@ function DualarSection({ theme, onBack }) {
 // ─── 📿 TESBİHAT (sayaçlı) ───
 function TesbihatSection({ theme, user, onBack }) {
   const tt = useTx();
+  const f = useField();
   const [setId, setSetId] = useState(null);
   const [stepIdx, setStepIdx] = useState(0);
   const [count, setCount] = useState(0);
@@ -475,7 +478,7 @@ function TesbihatSection({ theme, user, onBack }) {
     return (
       <div className="max-w-xl mx-auto">
         {celebrate && <Confetti count={26} />}
-        <Head title={`${active.emoji} ${active.title}`} sub={active.source} onBack={() => setSetId(null)} theme={theme} />
+        <Head title={`${active.emoji} ${f(active,'title')}`} sub={active.source} onBack={() => setSetId(null)} theme={theme} />
         {/* Adım göstergesi */}
         {active.steps.length > 1 && (
           <div className="px-5 flex gap-1.5 mb-3">
@@ -488,8 +491,8 @@ function TesbihatSection({ theme, user, onBack }) {
           <div className="px-5">
             <div className="rounded-3xl p-5 text-center" style={{ background: theme.surface, border: `1.5px solid ${active.color}35` }}>
               <p dir="rtl" className="text-2xl leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: active.color }}>{step.ar}</p>
-              <p className="text-sm font-black mt-1" style={{ color: theme.textPrimary }}>{step.name}</p>
-              <p className="text-[10.5px] mt-1" style={{ color: theme.textSecondary }}>{step.mean}</p>
+              <p className="text-sm font-black mt-1" style={{ color: theme.textPrimary }}>{(f(active,'steps') || active.steps)[stepIdx]?.name || step.name}</p>
+              <p className="text-[10.5px] mt-1" style={{ color: theme.textSecondary }}>{(f(active,'steps') || active.steps)[stepIdx]?.mean || step.mean}</p>
             </div>
             {/* Dev sayaç */}
             <button onClick={tap} className="mx-auto mt-6 block active:scale-95 transition-transform" aria-label="Say">
@@ -546,8 +549,8 @@ function TesbihatSection({ theme, user, onBack }) {
             style={{ background: theme.surface, border: `1.5px solid ${todayLog[s.id] ? `${s.color}60` : theme.cardBorder}` }}>
             {todayLog[s.id] && <span className="absolute top-2.5 right-2.5 text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${s.color}18`, color: s.color }}>{tt('Bugün ✓')}</span>}
             <span className="text-3xl">{s.emoji}</span>
-            <p className="text-sm font-black mt-2" style={{ color: theme.textPrimary }}>{s.title}</p>
-            <p className="text-[10.5px] mt-0.5" style={{ color: theme.textSecondary }}>{s.desc}</p>
+            <p className="text-sm font-black mt-2" style={{ color: theme.textPrimary }}>{f(s,'title')}</p>
+            <p className="text-[10.5px] mt-0.5" style={{ color: theme.textSecondary }}>{f(s,'desc')}</p>
             <p className="text-[9px] mt-2 font-bold" style={{ color: s.color }}>{s.source}</p>
           </motion.button>
         ))}
@@ -557,8 +560,8 @@ function TesbihatSection({ theme, user, onBack }) {
 }
 
 // ─── 🎯 Zaman Yolcusu soru üretici — 5 farklı soru tarzı, her seferinde taze ───
-function makeTarihRounds() {
-  const flat = TARIH_DONEMLERI.flatMap(era => era.items.map(it => ({ ...it, eraTitle: era.title })));
+function makeTarihRounds(f, tt = (x)=>x) {
+  const flat = TARIH_DONEMLERI.flatMap(era => era.items.map(it => ({ ...it, title: f(it,'title'), desc: f(it,'desc'), detail: f(it,'detail'), year: it.year, eraTitle: f(era,'title') })));
   const pool = shuffle(flat);
   const offset = Math.floor(Math.random() * 5);
   const rounds = [];
@@ -568,18 +571,18 @@ function makeTarihRounds() {
     const info = it.detail.length > 150 ? `${it.detail.slice(0, 150)}...` : it.detail;
     const style = (i + offset) % 5;
     if (style === 0) {
-      rounds.push({ tag: '🕵️ Kim / Ne?', q: `"${it.desc}" — Bu katkı hangisine aittir?`, opts: shuffle([it, ...others]).map(x => x.title), correct: it.title, info });
+      rounds.push({ tag: tt('🕵️ Kim / Ne?'), q: `"${it.desc}" — ${tt('Bu katkı hangisine aittir?')}`, opts: shuffle([it, ...others]).map(x => x.title), correct: it.title, info });
     } else if (style === 1) {
-      rounds.push({ tag: '🔍 Ne yaptı?', q: `${it.title} — bu maddenin katkısı hangisidir?`, opts: shuffle([it, ...others]).map(x => x.desc), correct: it.desc, info });
+      rounds.push({ tag: tt('🔍 Ne yaptı?'), q: `${it.title} — ${tt('bu maddenin katkısı hangisidir?')}`, opts: shuffle([it, ...others]).map(x => x.desc), correct: it.desc, info });
     } else if (style === 2) {
       const years = [...new Set(flat.map(x => x.year))].filter(y => y !== it.year);
-      rounds.push({ tag: '📅 Hangi tarih?', q: `${it.title} hangi tarihe kaydedilir?`, opts: shuffle([it.year, ...shuffle(years).slice(0, 3)]), correct: it.year, info });
+      rounds.push({ tag: tt('📅 Hangi tarih?'), q: `${it.title} — ${tt('hangi tarihe kaydedilir?')}`, opts: shuffle([it.year, ...shuffle(years).slice(0, 3)]), correct: it.year, info });
     } else if (style === 3) {
-      rounds.push({ tag: '🗺️ Hangi dönem?', q: `"${it.title}" hangi dönemin parçasıdır?`, opts: shuffle(TARIH_DONEMLERI.map(e => e.title)), correct: it.eraTitle, info });
+      rounds.push({ tag: tt('🗺️ Hangi dönem?'), q: `"${it.title}" — ${tt('hangi dönemin parçasıdır?')}`, opts: shuffle(TARIH_DONEMLERI.map(e => f(e,'title'))), correct: it.eraTitle, info });
     } else {
       const truth = Math.random() < 0.5;
       const desc = truth ? it.desc : others[0].desc;
-      rounds.push({ tag: '⚖️ Doğru mu, yanlış mı?', q: `${it.title}: "${desc}"`, opts: ['Doğru', 'Yanlış'], correct: truth ? 'Doğru' : 'Yanlış', info });
+      rounds.push({ tag: tt('⚖️ Doğru mu, yanlış mı?'), q: `${it.title}: "${desc}"`, opts: [tt('Doğru'), tt('Yanlış')], correct: truth ? tt('Doğru') : tt('Yanlış'), info });
     }
   }
   return shuffle(rounds);
@@ -588,11 +591,12 @@ function makeTarihRounds() {
 // ─── 🏛️ TARİH — katmanlı: madde → SVG çizim + derin anlatım ───
 function TarihSection({ theme, user, onBack }) {
   const tt = useTx();
+  const f = useField();
   const [open, setOpen] = useState(null);
   const [quiz, setQuiz] = useState(false);
   const [readIds, setReadIds] = useState(() => load('tarih_read', []));
 
-  const flat = useMemo(() => TARIH_DONEMLERI.flatMap(era => era.items.map(it => ({ ...it, color: era.color, eraTitle: era.title }))), []);
+  const flat = useMemo(() => TARIH_DONEMLERI.flatMap(era => era.items.map(it => ({ ...it, color: era.color, title: f(it,'title'), desc: f(it,'desc'), detail: f(it,'detail'), eraTitle: f(era,'title') }))), [f]);
   const featured = useMemo(() => {
     const doy = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     return flat[doy % flat.length];
@@ -618,11 +622,11 @@ function TarihSection({ theme, user, onBack }) {
           style={{ background: isOpen ? `${color}0c` : 'transparent', border: `1px solid ${isOpen ? `${color}40` : 'transparent'}` }}>
           <p className="text-xs font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}>
             <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0" style={{ background: `${color}16`, color }}>{it.year}</span>
-            <span className="flex-1">{it.title}</span>
+            <span className="flex-1">{f(it,'title')}</span>
             {isRead && <Check size={11} style={{ color }} className="shrink-0" />}
             <ChevronDown size={12} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
           </p>
-          <p className="text-[10.5px] mt-1 leading-relaxed" style={{ color: theme.textSecondary }}>{it.desc}</p>
+          <p className="text-[10.5px] mt-1 leading-relaxed" style={{ color: theme.textSecondary }}>{f(it,'desc')}</p>
           <AnimatePresence>
             {isOpen && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
@@ -631,9 +635,9 @@ function TarihSection({ theme, user, onBack }) {
                   <TarihArt type={it.art} color={color} />
                   <p className="text-center text-[8px] font-black uppercase tracking-[0.2em] pb-2" style={{ color }}>{tt('Ne ile uğraştı?')}</p>
                 </div>
-                <p className="text-[11px] mt-2.5 leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{it.detail}</p>
+                <p className="text-[11px] mt-2.5 leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{f(it,'detail')}</p>
                 <span className="flex items-center gap-2 mt-2.5">
-                  <span role="button" onClick={(e) => { e.stopPropagation(); shareText(`💡 Biliyor muydun?\n${it.year} — ${it.title}\n\n${it.desc}\n\n${it.detail}\n\n🏛️ Dünya Tarihinde Müslümanlar · İslami Yaşam Asistanı`); }}
+                  <span role="button" onClick={(e) => { e.stopPropagation(); shareText(`💡 ${tt('Günün Buluşu')}\n${it.year} — ${f(it,'title')}\n\n${f(it,'desc')}\n\n${f(it,'detail')}\n\n🏛️ ${tt('Dünya Tarihinde Müslümanlar')}`); }}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black active:scale-95"
                     style={{ background: `${color}14`, color, border: `1px solid ${color}35` }}>
                     <Share2 size={10} /> Paylaş
@@ -653,7 +657,7 @@ function TarihSection({ theme, user, onBack }) {
       <div className="max-w-2xl mx-auto">
         <Head title={tt("🎯 Zaman Yolcusu")} sub={tt("Buluş bilgini sına — sorular her seferinde farklı tarzda gelir")} onBack={() => setQuiz(false)} theme={theme} />
         <MiniQuiz title="Zaman Yolcusu" color="#A78BFA" theme={theme} user={user}
-          makeRounds={makeTarihRounds} xpKey="tarihquiz" onExit={() => setQuiz(false)} />
+          makeRounds={() => makeTarihRounds(f, tt)} xpKey="tarihquiz" onExit={() => setQuiz(false)} />
       </div>
     );
   }
@@ -701,13 +705,13 @@ function TarihSection({ theme, user, onBack }) {
                 <span className="text-3xl">{era.emoji}</span>
                 <div className="flex-1">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: era.color }}>{era.era}</p>
-                  <p className="text-base font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{era.title}</p>
+                  <p className="text-base font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{f(era,'title')}</p>
                 </div>
                 <span className="text-[9px] font-black px-2 py-1 rounded-full shrink-0" style={{ background: `${era.color}14`, color: era.color }}>
                   {eraRead}/{era.items.length}
                 </span>
               </div>
-              <p className="text-[11px] leading-relaxed mb-3" style={{ color: theme.textSecondary }}>{era.intro}</p>
+              <p className="text-[11px] leading-relaxed mb-3" style={{ color: theme.textSecondary }}>{f(era,'intro')}</p>
               <div className="relative pl-4 space-y-2">
                 <span className="absolute left-[5px] top-1 bottom-1 w-0.5 rounded-full" style={{ background: `linear-gradient(180deg, ${era.color}, ${era.color}15)` }} />
                 {era.items.map(it => <ItemCard key={it.id} it={it} color={era.color} />)}
@@ -726,6 +730,7 @@ function TarihSection({ theme, user, onBack }) {
 // ─── ✨ MUCİZELER ───
 function MucizelerSection({ theme, user, onBack }) {
   const tt = useTx();
+  const f = useField();
   const [open, setOpen] = useState(null);
   const [readIds, setReadIds] = useState(() => load('mucize_read', []));
   const markRead = (m) => {
@@ -763,7 +768,7 @@ function MucizelerSection({ theme, user, onBack }) {
                 <div className="px-4 pb-3 pt-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{m.emoji}</span>
-                    <p className="text-sm font-black flex-1" style={{ color: theme.textPrimary }}>{m.title}</p>
+                    <p className="text-sm font-black flex-1" style={{ color: theme.textPrimary }}>{f(m,'title')}</p>
                     {isRead && <Check size={13} style={{ color: m.color }} />}
                     <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
                   </div>
@@ -775,14 +780,14 @@ function MucizelerSection({ theme, user, onBack }) {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                     <div className="px-4 pb-4">
                       <p className="text-[12.5px] italic leading-relaxed pl-2.5" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary, borderLeft: `2px solid ${m.color}` }}>
-                        {m.verse}
+                        {f(m,'verse')}
                       </p>
                       <div className="rounded-xl p-3 mt-3" style={{ background: `${m.color}0c`, border: `1px solid ${m.color}25` }}>
                         <p className="text-[9px] font-black uppercase tracking-wider mb-1" style={{ color: m.color }}>{tt('🔬 Modern bilgi')}</p>
-                        <p className="text-[11.5px] leading-relaxed" style={{ color: theme.textPrimary }}>{m.fact}</p>
+                        <p className="text-[11.5px] leading-relaxed" style={{ color: theme.textPrimary }}>{f(m,'fact')}</p>
                       </div>
                       <p className="text-[10.5px] mt-2.5 leading-relaxed" style={{ color: theme.textSecondary }}>
-                        <Sparkles size={10} className="inline mr-1" style={{ color: m.color }} />{m.detail}
+                        <Sparkles size={10} className="inline mr-1" style={{ color: m.color }} />{f(m,'detail')}
                       </p>
                     </div>
                   </motion.div>
@@ -797,23 +802,25 @@ function MucizelerSection({ theme, user, onBack }) {
 }
 
 // ─── 🌟 Esma sınavı — 4 farklı soru tarzı, her seferinde taze ───
-function makeEsmaRounds() {
+function makeEsmaRounds(f, tt = (x)=>x) {
   const pool = shuffle(ESMA);
   const offset = Math.floor(Math.random() * 4);
   const rounds = [];
   for (let i = 0; i < 10; i++) {
     const e = pool[i % pool.length];
     const others = shuffle(ESMA.filter(x => x.n !== e.n)).slice(0, 3);
-    const info = `${e.name}: ${e.mean}`;
+    const nm = f(e,'name'), mn = f(e,'mean'), tf = f(e,'tef');
+    const others2 = others.map(x => ({ name: f(x,'name'), mean: f(x,'mean') }));
+    const info = `${nm}: ${mn}`;
     const style = (i + offset) % 4;
     if (style === 0) {
-      rounds.push({ tag: '📖 Anlamı ne?', q: `"${e.name}" ne demektir?`, opts: shuffle([e, ...others]).map(x => x.mean), correct: e.mean, info });
+      rounds.push({ tag: tt('📖 Anlamı ne?'), q: tt('"X" ne demektir?').replace('X', nm), opts: shuffle([{mean:mn}, ...others2]).map(x => x.mean), correct: mn, info });
     } else if (style === 1) {
-      rounds.push({ tag: '🔎 Hangi isim?', q: `"${e.mean}" — bu hangi ismin anlamıdır?`, opts: shuffle([e, ...others]).map(x => x.name), correct: e.name, info });
+      rounds.push({ tag: tt('🔎 Hangi isim?'), q: tt('"X" — bu hangi ismin anlamıdır?').replace('X', mn), opts: shuffle([{name:nm}, ...others2]).map(x => x.name), correct: nm, info });
     } else if (style === 2) {
-      rounds.push({ tag: '✒️ Hattı tanı', qAr: e.ar, q: 'Bu hat hangi ismi yazıyor?', opts: shuffle([e, ...others]).map(x => x.name), correct: e.name, info });
+      rounds.push({ tag: tt('✒️ Hattı tanı'), qAr: e.ar, q: tt('Bu hat hangi ismi yazıyor?'), opts: shuffle([{name:nm}, ...others2]).map(x => x.name), correct: nm, info });
     } else {
-      rounds.push({ tag: '💭 Tefekkürden bul', q: `"${e.tef}" — bu tefekkür hangi ismi anlatıyor?`, opts: shuffle([e, ...others]).map(x => x.name), correct: e.name, info: e.mean });
+      rounds.push({ tag: tt('💭 Tefekkürden bul'), q: tt('"X" — bu tefekkür hangi ismi anlatıyor?').replace('X', tf), opts: shuffle([{name:nm}, ...others2]).map(x => x.name), correct: nm, info: mn });
     }
   }
   return shuffle(rounds);
@@ -822,6 +829,7 @@ function makeEsmaRounds() {
 // ─── 🌟 ESMAÜL HÜSNA — derin katman ───
 function EsmaSection({ theme, user, onBack }) {
   const tt = useTx();
+  const f = useField();
   const [openN, setOpenN] = useState(null);
   const [query, setQuery] = useState('');
   const [quiz, setQuiz] = useState(false);
@@ -845,7 +853,7 @@ function EsmaSection({ theme, user, onBack }) {
 
   const active = ESMA.find(e => e.n === openN);
   const filtered = query.trim()
-    ? ESMA.filter(e => e.name.toLowerCase().includes(query.toLowerCase()) || e.mean.toLowerCase().includes(query.toLowerCase()))
+    ? ESMA.filter(e => `${e.name} ${e.mean} ${f(e,'name')} ${f(e,'mean')}`.toLowerCase().includes(query.toLowerCase()))
     : ESMA;
 
   if (quiz) {
@@ -853,7 +861,7 @@ function EsmaSection({ theme, user, onBack }) {
       <div className="max-w-2xl mx-auto">
         <Head title={tt("🎯 Esma Ezberi")} sub={tt("4 farklı soru tarzı — hat, anlam ve tefekkürden")} onBack={() => setQuiz(false)} theme={theme} />
         <MiniQuiz title="Esma Ezberi" color="#E8C56C" theme={theme} user={user}
-          makeRounds={makeEsmaRounds} xpKey="esmaquiz" onExit={() => setQuiz(false)} />
+          makeRounds={() => makeEsmaRounds(f, tt)} xpKey="esmaquiz" onExit={() => setQuiz(false)} />
       </div>
     );
   }
@@ -872,8 +880,8 @@ function EsmaSection({ theme, user, onBack }) {
           <p dir="rtl" className="text-4xl mt-2 text-center" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: '#F5E3B0', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.4))' }}>
             {featured.ar}
           </p>
-          <p className="text-center text-base font-black mt-1.5" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{featured.name}</p>
-          <p className="text-center text-[11px] mt-0.5" style={{ color: 'rgba(245,240,228,0.85)' }}>{featured.mean}</p>
+          <p className="text-center text-base font-black mt-1.5" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{f(featured,'name')}</p>
+          <p className="text-center text-[11px] mt-0.5" style={{ color: 'rgba(245,240,228,0.85)' }}>{f(featured,'mean')}</p>
           <p className="text-center text-[9px] mt-2 font-bold" style={{ color: '#E8C56C' }}>{tt('dokun — tefekkürü açılsın')}</p>
         </motion.button>
       </div>
@@ -911,8 +919,8 @@ function EsmaSection({ theme, user, onBack }) {
               <span className="absolute top-1.5 left-2 text-[8px] font-black" style={{ color: theme.textSecondary }}>{e.n}</span>
               {isRead && <span className="absolute top-1.5 right-2 text-[9px]" style={{ color: theme.gold }}>✦</span>}
               <p dir="rtl" className="text-xl leading-snug" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: theme.gold }}>{e.ar}</p>
-              <p className="text-[10.5px] font-black mt-1" style={{ color: theme.textPrimary }}>{e.name}</p>
-              <p className="text-[8.5px] mt-0.5 leading-tight line-clamp-2" style={{ color: theme.textSecondary }}>{e.mean}</p>
+              <p className="text-[10.5px] font-black mt-1" style={{ color: theme.textPrimary }}>{f(e,'name')}</p>
+              <p className="text-[8.5px] mt-0.5 leading-tight line-clamp-2" style={{ color: theme.textSecondary }}>{f(e,'mean')}</p>
             </button>
           );
         })}
@@ -934,16 +942,16 @@ function EsmaSection({ theme, user, onBack }) {
               <p dir="rtl" className="text-5xl mt-3 relative" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: theme.gold, filter: `drop-shadow(0 0 16px ${theme.gold}50)` }}>
                 {active.ar}
               </p>
-              <p className="text-xl font-black mt-2 relative" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{active.name}</p>
-              <p className="text-xs mt-1 relative" style={{ color: theme.textSecondary }}>{active.mean}</p>
+              <p className="text-xl font-black mt-2 relative" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{f(active,'name')}</p>
+              <p className="text-xs mt-1 relative" style={{ color: theme.textSecondary }}>{f(active,'mean')}</p>
               <div className="rounded-2xl p-3.5 mt-4 text-left relative" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}30` }}>
                 <p className="text-[9px] font-black uppercase tracking-wider mb-1.5" style={{ color: theme.gold }}>{tt('💭 Tefekkür')}</p>
-                <p className="text-[12px] leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{active.tef}</p>
+                <p className="text-[12px] leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{f(active,'tef')}</p>
               </div>
               <div className="flex gap-2 mt-4 relative">
                 <button onClick={() => { const i = ESMA.findIndex(x => x.n === active.n); openEsma(ESMA[(i - 1 + ESMA.length) % ESMA.length]); }}
                   className="w-10 py-2.5 rounded-xl text-xs font-black active:scale-95" style={{ background: `${theme.textSecondary}12`, color: theme.textSecondary }}>←</button>
-                <button onClick={() => shareText(`🌟 Esmaül Hüsna · ${active.n}/99\n\n${active.ar}\n${active.name} — ${active.mean}\n\n💭 ${active.tef}\n\nİslami Yaşam Asistanı`)}
+                <button onClick={() => shareText(`🌟 ${tt('Esmaül Hüsna')} · ${active.n}/99\n\n${active.ar}\n${f(active,'name')} — ${f(active,'mean')}\n\n💭 ${f(active,'tef')}`)}
                   className="flex-1 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 active:scale-95"
                   style={{ background: `${theme.gold}14`, border: `1px solid ${theme.gold}40`, color: theme.gold }}>
                   <Share2 size={12} /> Paylaş
@@ -962,6 +970,7 @@ function EsmaSection({ theme, user, onBack }) {
 // ─── 🗂️ MERKEZ: büyük kartlar (canlı ilerleme rozetli) ───
 export function HazineCards({ theme, navigate, compact = false }) {
   const tt = useTx();
+  const f = useField();
   // Her bölümün gerçek ilerlemesi — kartın köşesinde canlı rozet
   const progress = {
     dualar: `${load('dua_read', []).length}/${HIDAYET_DUALARI.length} dua`,
@@ -985,9 +994,9 @@ export function HazineCards({ theme, navigate, compact = false }) {
           <div className="flex items-start gap-3.5 relative">
             <span className="text-4xl shrink-0" style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.4))' }}>{b.emoji}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-base font-black leading-tight" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{b.title}</p>
-              <p className="text-[9px] font-black uppercase tracking-wider mt-1" style={{ color: b.accent }}>{b.meta}</p>
-              <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'rgba(245,240,228,0.82)' }}>{b.desc}</p>
+              <p className="text-base font-black leading-tight" style={{ fontFamily: 'Playfair Display, serif', color: '#F5F0E4' }}>{f(b,'title')}</p>
+              <p className="text-[9px] font-black uppercase tracking-wider mt-1" style={{ color: b.accent }}>{f(b,'meta')}</p>
+              <p className="text-[11px] mt-2 leading-relaxed" style={{ color: 'rgba(245,240,228,0.82)' }}>{f(b,'desc')}</p>
               {progress[b.id] && (
                 <span className="inline-block mt-2.5 text-[9px] font-black px-2.5 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.3)', color: b.accent, border: `1px solid ${b.accent}40` }}>
                   📊 {progress[b.id]}

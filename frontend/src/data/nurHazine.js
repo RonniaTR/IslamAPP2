@@ -366,4 +366,15 @@ export const HAZINE_BOLUMLERI = [
   },
 ];
 
+// ═══════════════ 🌍 İngilizce içerik iliştir (contentI18n) ═══════════════
+import { DUALAR_EN, TESBIHAT_EN, MUCIZELER_EN, TARIH_ERA_EN, TARIH_ITEM_EN, BOLUM_EN } from './nurHazine.en';
+HAZINE_BOLUMLERI.forEach((b) => { if (BOLUM_EN[b.id]) b.en = BOLUM_EN[b.id]; });
+HIDAYET_DUALARI.forEach((d) => { if (DUALAR_EN[d.id]) d.en = DUALAR_EN[d.id]; });
+TESBIHAT_SETS.forEach((s) => { if (TESBIHAT_EN[s.id]) s.en = TESBIHAT_EN[s.id]; });
+MUCIZELER.forEach((m) => { if (MUCIZELER_EN[m.id]) m.en = MUCIZELER_EN[m.id]; });
+TARIH_DONEMLERI.forEach((era) => {
+  if (TARIH_ERA_EN[era.id]) era.en = TARIH_ERA_EN[era.id];
+  era.items.forEach((it) => { if (TARIH_ITEM_EN[it.id]) it.en = TARIH_ITEM_EN[it.id]; });
+});
+
 export default { HIDAYET_DUALARI, TESBIHAT_SETS, TARIH_DONEMLERI, MUCIZELER, HAZINE_BOLUMLERI };
