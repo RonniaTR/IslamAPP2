@@ -2,8 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Flame, Star, Check, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTx } from '../i18n';
 
 export default function JourneyTracker() {
+  const tt = useTx();
   const navigate = useNavigate();
   
   // 28 Günlük Dummy Veri Üretimi
@@ -16,11 +18,11 @@ export default function JourneyTracker() {
     <div className="min-h-screen bg-[#032212] text-[#f7e6ae] font-sans pb-20">
       {/* Üst Bilgi (Header) - Glassmorphism */}
       <div className="sticky top-0 z-50 bg-[#032212]/80 backdrop-blur-md border-b border-[#ffd369]/20 p-6 pt-10 shadow-lg">
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-4 text-[#ffd369]">İman Yolculuğu</h1>
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-4 text-[#ffd369]">{tt('İman Yolculuğu')}</h1>
         <div className="flex justify-between items-center text-[#ffd369] font-bold text-lg">
           <div className="flex items-center gap-2 bg-[#ffd369]/10 px-4 py-2 rounded-full">
             <Flame size={20} className="text-[#ffd369]" /> 
-            <span>6. Gün</span>
+            <span>{tt('6. Gün')}</span>
           </div>
           <div className="flex items-center gap-2 bg-[#ffd369]/10 px-4 py-2 rounded-full">
             <Star size={20} className="text-[#ffd369]" /> 

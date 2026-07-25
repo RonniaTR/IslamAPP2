@@ -859,7 +859,7 @@ export default function SurahDetail() {
                                 <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: `${theme.gold}08`, color: theme.textSecondary }}>{c.scholar?.school || ''}</span>
                               </div>
                               {c.premium_required ? (
-                                <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>Premium üyelik gerektirir</p>
+                                <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>{tt('Premium üyelik gerektirir')}</p>
                               ) : c.error ? (
                                 <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>{txt.noData}</p>
                               ) : (

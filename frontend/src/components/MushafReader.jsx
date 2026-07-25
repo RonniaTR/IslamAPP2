@@ -4,6 +4,7 @@ import { ArrowLeft, Maximize, Minimize, Play, Pause, X, Type, Sun, ChevronLeft, 
 import { useReadingSettings } from '../services/readingSettings';
 import ReadingSettingsSheet from './ReadingSettingsSheet';
 import api from '../api';
+import { useTx } from '../i18n';
 
 // 🕌 MUSHAF GÖRÜNÜMÜ — tam ekran, kesintisiz sağdan-sola Arapça okuma.
 // Gerçek mushaf gibi SURE BİTİNCE DURMAZ: sayfanın sonuna yaklaşınca
@@ -19,6 +20,7 @@ const toArabicDigits = (n) => String(n).replace(/\d/g, d => AR_DIGITS[d]);
 const LS_AWAKE = 'mushaf_awake';
 
 export default function MushafReader({ surah, initialVerse, onClose, onPosition }) {
+  const tt = useTx();
   // Okuma ayarları: tema paleti + Arapça boyutu (ReadingSettingsSheet yönetir)
   const { settings, theme: rt, arabicSize } = useReadingSettings();
   const [showSettings, setShowSettings] = useState(false);
@@ -209,14 +211,14 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
             {/* Yazı boyutu */}
             <button onClick={() => setShowSettings(true)}
               className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
-              style={{ background: `${rt.accent}10` }} aria-label="Okuma ayarları">
+              style={{ background: `${rt.accent}10` }} aria-label={tt('Okuma ayarları')}>
               <Type size={15} style={{ color: rt.accent }} />
             </button>
             {/* Ekranı açık tut */}
             <button onClick={() => setKeepAwake(k => { localStorage.setItem(LS_AWAKE, k ? '0' : '1'); return !k; })}
               className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90"
               style={{ background: keepAwake ? `${rt.accent}25` : `${rt.accent}10` }}
-              aria-label="Ekranı açık tut" title="Ekranı açık tut">
+              aria-label={tt('Ekranı açık tut')} title={tt('Ekranı açık tut')}>
               <Sun size={15} style={{ color: keepAwake ? rt.accent : rt.secondary }} />
             </button>
             {/* Tam ekran */}
@@ -292,8 +294,8 @@ export default function MushafReader({ surah, initialVerse, onClose, onPosition 
           ) : (
             <div className="text-center pb-24 select-none">
               <p className="text-2xl mb-2">🤲</p>
-              <p className="text-sm font-black" style={{ color: rt.accent }}>Kur'an-ı Kerîm'in sonuna ulaştın</p>
-              <p className="text-[11px] mt-1" style={{ color: rt.secondary }}>Allah kabul etsin, hatmin mübarek olsun</p>
+              <p className="text-sm font-black" style={{ color: rt.accent }}>{tt("Kur'an-ı Kerîm'in sonuna ulaştın")}</p>
+              <p className="text-[11px] mt-1" style={{ color: rt.secondary }}>{tt('Allah kabul etsin, hatmin mübarek olsun')}</p>
             </div>
           )}
         </div>

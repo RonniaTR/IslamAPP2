@@ -2,6 +2,8 @@ import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Volume2, Check, X, ChevronLeft, ChevronRight, RefreshCw, Trophy, Info, GraduationCap } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
+import { useField } from '../services/contentI18n';
 import { useAuth } from '../contexts/AuthContext';
 import { awardXPOnce } from '../services/gamification';
 import { LETTERS, HAREKELER, TENVIN, ILERI, TECVID, KELIMELER, DERSLER } from '../data/elifba';
@@ -37,6 +39,8 @@ function useArabicSpeech() {
 
 export default function ElifBaPage() {
   const { theme } = useTheme();
+  const tt = useTx();
+  const f = useField();
   const { user } = useAuth();
   const { speak } = useArabicSpeech();
   const [lesson, setLesson] = useState(null); // ders tipi
@@ -61,7 +65,7 @@ export default function ElifBaPage() {
             <span className="text-2xl" style={glyphFont}>ا ب ت</span>
             <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Elif Ba</h1>
           </div>
-          <p className="text-xs" style={{ color: theme.textSecondary }}>Kur'an okumayı sıfırdan öğren · {done.length}/{DERSLER.length} ders</p>
+          <p className="text-xs" style={{ color: theme.textSecondary }}>{tt("Kur'an okumayı sıfırdan öğren")} · {done.length}/{DERSLER.length} {tt('ders')}</p>
         </div>
 
         {/* Tanıtım kartı */}
@@ -69,7 +73,7 @@ export default function ElifBaPage() {
           style={{ background: `linear-gradient(150deg, ${theme.gold}16, ${theme.surface})`, border: `1px solid ${theme.gold}35` }}>
           <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full opacity-20" style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
           <p className="text-5xl mb-2 relative" style={glyphFont}>بِسْمِ اللّٰه</p>
-          <p className="text-xs relative" style={{ color: theme.textSecondary }}>Her yolculuk Besmele ile başlar. Harflerden kelimelere, adım adım.</p>
+          <p className="text-xs relative" style={{ color: theme.textSecondary }}>{tt('Her yolculuk Besmele ile başlar. Harflerden kelimelere, adım adım.')}</p>
         </div>
 
         {/* Ders kartları */}
@@ -86,15 +90,15 @@ export default function ElifBaPage() {
                   <span className="text-3xl" style={d.emoji.match(/[◌ًّ]/) ? glyphFont : {}}>{d.emoji}</span>
                   {isDone && <Check size={16} style={{ color: '#10B981' }} />}
                 </div>
-                <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{d.title}</p>
-                <p className="text-[10px] mt-0.5 leading-relaxed" style={{ color: theme.textSecondary }}>{d.desc}</p>
+                <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{f(d, 'title')}</p>
+                <p className="text-[10px] mt-0.5 leading-relaxed" style={{ color: theme.textSecondary }}>{f(d, 'desc')}</p>
               </motion.button>
             );
           })}
         </div>
 
         <p className="text-center text-[10px] mt-6 px-8" style={{ color: theme.textSecondary }}>
-          💡 Sesler cihazının Arapça okuma özelliğiyle çalışır. Sesi duymuyorsan, harfin altındaki Türkçe okunuşu takip edebilirsin.
+          {tt('💡 Sesler cihazının Arapça okuma özelliğiyle çalışır. Sesi duymuyorsan, harfin altındaki Türkçe okunuşu takip edebilirsin.')}
         </p>
       </div>
     );
@@ -115,7 +119,7 @@ export default function ElifBaPage() {
     return (
       <div className="min-h-screen pb-24 max-w-3xl mx-auto" style={{ background: theme.bg }}>
         <Header title="Harfler" />
-        <p className="px-5 text-xs mb-3" style={{ color: theme.textSecondary }}>Bir harfe dokun; şeklini, adını, sesini ve çıkış yerini gör.</p>
+        <p className="px-5 text-xs mb-3" style={{ color: theme.textSecondary }}>{tt('Bir harfe dokun; şeklini, adını, sesini ve çıkış yerini gör.')}</p>
         <div className="px-5 grid grid-cols-4 sm:grid-cols-5 gap-2.5">
           {LETTERS.map((l, i) => (
             <motion.button key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.015 }}
@@ -129,7 +133,7 @@ export default function ElifBaPage() {
         </div>
         <div className="px-5 mt-6">
           <button onClick={() => markDone('harfler')} className="w-full py-3 rounded-2xl font-black text-sm" style={{ background: done.includes('harfler') ? `${theme.gold}16` : 'linear-gradient(135deg,#10B981,#059669)', color: done.includes('harfler') ? theme.gold : '#fff', border: done.includes('harfler') ? `1px solid ${theme.gold}45` : 'none' }}>
-            {done.includes('harfler') ? 'Tamamlandı ✓' : 'Harfleri öğrendim (+15 XP)'}
+            {done.includes('harfler') ? tt('Tamamlandı ✓') : tt('Harfleri öğrendim (+15 XP)')}
           </button>
         </div>
 
@@ -148,12 +152,12 @@ export default function ElifBaPage() {
                 </button>
                 <p className="text-8xl mb-1" style={{ ...glyphFont, color: theme.gold }}>{detail.ar}</p>
                 <p className="text-xl font-black" style={{ color: theme.textPrimary }}>{detail.name}</p>
-                <p className="text-sm mb-4" style={{ color: theme.textSecondary }}>Ses: <span style={{ color: theme.gold }}>{detail.tr}</span></p>
+                <p className="text-sm mb-4" style={{ color: theme.textSecondary }}>{tt('Ses')}: <span style={{ color: theme.gold }}>{f(detail, 'tr')}</span></p>
                 <div className="rounded-xl p-3 mb-4 text-left flex items-start gap-2" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.cardBorder}` }}>
                   <Info size={14} className="mt-0.5 shrink-0" style={{ color: theme.gold }} />
                   <div>
-                    <p className="text-[10px] font-black uppercase" style={{ color: theme.gold }}>Çıkış Yeri (Mahrec)</p>
-                    <p className="text-xs mt-0.5 leading-relaxed" style={{ color: theme.textPrimary }}>{detail.mahrec}</p>
+                    <p className="text-[10px] font-black uppercase" style={{ color: theme.gold }}>{tt('Çıkış Yeri (Mahrec)')}</p>
+                    <p className="text-xs mt-0.5 leading-relaxed" style={{ color: theme.textPrimary }}>{f(detail, 'mahrec')}</p>
                   </div>
                 </div>
                 <button onClick={() => speak(detail.ar)} className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2" style={{ background: theme.gold, color: theme.bg }}>
@@ -177,7 +181,7 @@ export default function ElifBaPage() {
     const groups = lesson.type === 'harekeler' ? HAREKELER : lesson.type === 'tenvin' ? TENVIN : lesson.type === 'tecvid' ? TECVID : ILERI;
     return (
       <div className="min-h-screen pb-24 max-w-3xl mx-auto" style={{ background: theme.bg }}>
-        <Header title={lesson.title} />
+        <Header title={f(lesson, 'title')} />
         <div className="px-5 space-y-4">
           {groups.map((g, gi) => (
             <motion.div key={g.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: gi * 0.06 }}
@@ -185,11 +189,11 @@ export default function ElifBaPage() {
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm font-black" style={{ color: theme.textPrimary }}>
                   {g.mark && <span className="text-2xl mr-2" style={{ ...glyphFont, color: theme.gold }}>◌{g.mark}</span>}
-                  {g.name}
+                  {f(g, 'name')}
                 </p>
                 {g.sound && <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: `${theme.gold}14`, color: theme.gold }}>{g.sound}</span>}
               </div>
-              {g.desc && <p className="text-[11px] mb-3 leading-relaxed" style={{ color: theme.textSecondary }}>{g.desc}</p>}
+              {g.desc && <p className="text-[11px] mb-3 leading-relaxed" style={{ color: theme.textSecondary }}>{f(g, 'desc')}</p>}
               <div className="flex gap-2 flex-wrap">
                 {g.ex.map((e, ei) => (
                   <button key={ei} onClick={() => speak(e.ar)}
@@ -203,9 +207,9 @@ export default function ElifBaPage() {
             </motion.div>
           ))}
           <button onClick={() => markDone(lesson.id)} className="w-full py-3 rounded-2xl font-black text-sm mt-2" style={{ background: done.includes(lesson.id) ? `${theme.gold}16` : 'linear-gradient(135deg,#10B981,#059669)', color: done.includes(lesson.id) ? theme.gold : '#fff', border: done.includes(lesson.id) ? `1px solid ${theme.gold}45` : 'none' }}>
-            {done.includes(lesson.id) ? 'Tamamlandı ✓' : `${lesson.title} tamam (+15 XP)`}
+            {done.includes(lesson.id) ? tt('Tamamlandı ✓') : `${f(lesson, 'title')} ${tt('tamam (+15 XP)')}`}
           </button>
-          <p className="text-center text-[10px]" style={{ color: theme.textSecondary }}>Örneklere dokunarak sesini dinle</p>
+          <p className="text-center text-[10px]" style={{ color: theme.textSecondary }}>{tt('Örneklere dokunarak sesini dinle')}</p>
         </div>
       </div>
     );
@@ -215,8 +219,8 @@ export default function ElifBaPage() {
   if (lesson.type === 'kelimeler') {
     return (
       <div className="min-h-screen pb-24 max-w-3xl mx-auto" style={{ background: theme.bg }}>
-        <Header title="İlk Kelimeler" />
-        <p className="px-5 text-xs mb-3" style={{ color: theme.textSecondary }}>Tebrikler! Artık harfleri birleştirip kelime okuyabilirsin. Dokun, dinle.</p>
+        <Header title={tt('İlk Kelimeler')} />
+        <p className="px-5 text-xs mb-3" style={{ color: theme.textSecondary }}>{tt('Tebrikler! Artık harfleri birleştirip kelime okuyabilirsin. Dokun, dinle.')}</p>
         <div className="px-5 grid grid-cols-2 gap-3">
           {KELIMELER.map((k, i) => (
             <motion.button key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
@@ -224,13 +228,13 @@ export default function ElifBaPage() {
               className="rounded-2xl p-5 text-center active:scale-95" style={S.card}>
               <p className="text-4xl mb-2" style={{ ...glyphFont, color: theme.gold }}>{k.ar}</p>
               <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{k.read}</p>
-              <p className="text-[10px]" style={{ color: theme.textSecondary }}>{k.mean}</p>
+              <p className="text-[10px]" style={{ color: theme.textSecondary }}>{f(k, 'mean')}</p>
             </motion.button>
           ))}
         </div>
         <div className="px-5 mt-6">
           <button onClick={() => markDone('kelimeler', 20)} className="w-full py-3 rounded-2xl font-black text-sm" style={{ background: done.includes('kelimeler') ? `${theme.gold}16` : 'linear-gradient(135deg,#10B981,#059669)', color: done.includes('kelimeler') ? theme.gold : '#fff', border: done.includes('kelimeler') ? `1px solid ${theme.gold}45` : 'none' }}>
-            {done.includes('kelimeler') ? 'Tamamlandı ✓' : 'İlk kelimelerimi okudum (+20 XP)'}
+            {done.includes('kelimeler') ? tt('Tamamlandı ✓') : tt('İlk kelimelerimi okudum (+20 XP)')}
           </button>
         </div>
       </div>
@@ -281,9 +285,9 @@ function ElifBaQuiz({ theme, glyphFont, speak, onFinish, onExit }) {
         <Confetti count={30} />
         <Trophy size={48} style={{ color: theme.gold }} className="mb-4" />
         <h2 className="text-3xl font-black mb-1" style={{ color: theme.gold }}>{score}/{rounds.length}</h2>
-        <p className="text-sm mb-6" style={{ color: theme.textSecondary }}>doğru tanıdın! {score >= 8 ? 'Maşallah, harfleri öğrendin 🌟' : 'Güzel gidiyorsun, tekrar dene!'}</p>
+        <p className="text-sm mb-6" style={{ color: theme.textSecondary }}>{tt('doğru tanıdın!')} {score >= 8 ? tt('Maşallah, harfleri öğrendin 🌟') : tt('Güzel gidiyorsun, tekrar dene!')}</p>
         <button onClick={onExit} className="inline-flex items-center gap-2 px-8 py-3 rounded-2xl font-bold text-sm" style={{ background: theme.gold, color: theme.bg }}>
-          <GraduationCap size={16} /> Derslere Dön
+          <GraduationCap size={16} /> {tt('Derslere Dön')}
         </button>
       </div>
     );
@@ -309,7 +313,7 @@ function ElifBaQuiz({ theme, glyphFont, speak, onFinish, onExit }) {
               <Volume2 size={13} /> Dinle
             </button>
           </div>
-          <p className="text-center text-xs font-bold mb-3" style={{ color: theme.textSecondary }}>Bu harfin adı nedir?</p>
+          <p className="text-center text-xs font-bold mb-3" style={{ color: theme.textSecondary }}>{tt('Bu harfin adı nedir?')}</p>
           <div className="grid grid-cols-2 gap-3">
             {r.options.map((opt, i) => {
               const chosen = flash === opt.name;

@@ -133,4 +133,18 @@ export const DERSLER = [
   { id: 'sinav', title: 'Alıştırma', emoji: '🎯', desc: 'Harfi tanı, sesini eşleştir', color: '#EF4444', type: 'quiz' },
 ];
 
+// ── İngilizce içerik katmanı ──
+import { LETTER_EN, HAREKE_EN, TENVIN_EN, ILERI_EN, KELIME_EN, TECVID_EN, DERS_EN } from './elifba.en';
+LETTERS.forEach((l) => { if (LETTER_EN[l.ar]) l.en = LETTER_EN[l.ar]; });
+HAREKELER.forEach((h) => { if (HAREKE_EN[h.id]) h.en = HAREKE_EN[h.id]; });
+TENVIN.forEach((t) => { if (TENVIN_EN[t.id]) t.en = TENVIN_EN[t.id]; });
+ILERI.forEach((i) => { if (ILERI_EN[i.id]) i.en = ILERI_EN[i.id]; });
+KELIMELER.forEach((k) => { if (KELIME_EN[k.ar]) k.en = { mean: KELIME_EN[k.ar] }; });
+TECVID.forEach((t) => {
+  const e = TECVID_EN[t.id];
+  if (!e) return;
+  t.en = { name: e.name, desc: e.desc, ex: (t.ex || []).map((x, i) => ({ ...x, read: (e.ex && e.ex[i]) || x.read })) };
+});
+DERSLER.forEach((d) => { if (DERS_EN[d.id]) d.en = DERS_EN[d.id]; });
+
 export default LETTERS;

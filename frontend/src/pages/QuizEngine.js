@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Zap, Target, Flame, Trophy } from 'lucide-react';
 // 400+ soruluk birleşik bankadan çeker (quizData + büyük havuz)
 import { drawQuestions as getRandomQuestions } from '../data/questionBank';
+import { useTx } from '../i18n';
 
 export default function QuizEngine() {
+  const tt = useTx();
   const navigate = useNavigate();
   
   // OYUN DURUMLARI: 'lobby' | 'playing'
@@ -87,8 +89,8 @@ export default function QuizEngine() {
         
         {/* Radar Grafikli Mevcut Durum */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md bg-[#1a3a2a]/30 p-6 rounded-[30px] border border-[#ffd369]/20 shadow-lg mb-8">
-          <h2 className="text-xl font-extrabold mb-1 text-[#f7e6ae] text-center">İlim Radarı</h2>
-          <p className="text-[10px] text-center text-[#A8B5A0] mb-6">Mevcut bilgi seviyeniz. XP kazandıkça grafik genişler.</p>
+          <h2 className="text-xl font-extrabold mb-1 text-[#f7e6ae] text-center">{tt('İlim Radarı')}</h2>
+          <p className="text-[10px] text-center text-[#A8B5A0] mb-6">{tt('Mevcut bilgi seviyeniz. XP kazandıkça grafik genişler.')}</p>
           
           <div className="relative w-full aspect-square max-w-[220px] mx-auto">
             <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
@@ -128,13 +130,13 @@ export default function QuizEngine() {
 
         {/* Oyun Modları */}
         <div className="w-full max-w-md flex flex-col gap-4">
-          <h2 className="text-[#ffd369] font-black text-lg mb-2">Oyun Modunu Seç</h2>
+          <h2 className="text-[#ffd369] font-black text-lg mb-2">{tt('Oyun Modunu Seç')}</h2>
           
           <button onClick={() => startGame(5, 1.0)} className="w-full flex items-center justify-between bg-gradient-to-r from-[#1a3a2a] to-[#0a1710] border border-[#ffd369]/20 p-4 rounded-2xl active:scale-95 transition-all">
             <div className="flex items-center gap-4">
               <div className="bg-emerald-500/20 p-3 rounded-full"><Zap className="text-emerald-400" size={24}/></div>
               <div className="text-left">
-                <h3 className="text-[#f7e6ae] font-bold text-lg">Hızlı Oyun</h3>
+                <h3 className="text-[#f7e6ae] font-bold text-lg">{tt('Hızlı Oyun')}</h3>
                 <p className="text-[#A8B5A0] text-xs">5 Soru • 1.0x XP</p>
               </div>
             </div>
@@ -146,7 +148,7 @@ export default function QuizEngine() {
               <div className="bg-[#ffd369]/20 p-3 rounded-full"><Target className="text-[#ffd369]" size={24}/></div>
               <div className="text-left">
                 <h3 className="text-[#f7e6ae] font-bold text-lg">Klasik Test</h3>
-                <p className="text-[#A8B5A0] text-xs">10 Soru • 1.2x XP Çarpanı</p>
+                <p className="text-[#A8B5A0] text-xs">{tt('10 Soru • 1.2x XP Çarpanı')}</p>
               </div>
             </div>
             <Play className="text-[#ffd369]" size={20}/>
@@ -177,8 +179,8 @@ export default function QuizEngine() {
     if (currentQ.type === 'tf') {
       return (
         <div className="flex gap-4 w-full mt-4">
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleAnswer(0)} className="flex-1 bg-emerald-600/20 border-2 border-emerald-500/50 text-emerald-400 py-8 rounded-3xl text-2xl font-black shadow-lg">DOĞRU</motion.button>
-          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleAnswer(1)} className="flex-1 bg-red-600/20 border-2 border-red-500/50 text-red-400 py-8 rounded-3xl text-2xl font-black shadow-lg">YANLIŞ</motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleAnswer(0)} className="flex-1 bg-emerald-600/20 border-2 border-emerald-500/50 text-emerald-400 py-8 rounded-3xl text-2xl font-black shadow-lg">{tt('DOĞRU')}</motion.button>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleAnswer(1)} className="flex-1 bg-red-600/20 border-2 border-red-500/50 text-red-400 py-8 rounded-3xl text-2xl font-black shadow-lg">{tt('YANLIŞ')}</motion.button>
         </div>
       );
     }

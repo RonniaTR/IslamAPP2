@@ -5,8 +5,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
 export default function SettingsPage() {
+  const tt = useTx();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { t, lang, setLang, selectedCity, setSelectedCity, LANGUAGES } = useLang();
@@ -50,7 +52,7 @@ export default function SettingsPage() {
       <div className="px-5 pt-6 pb-4" style={{ background: 'linear-gradient(180deg, rgba(15,61,46,0.4) 0%, transparent 100%)' }}>
         <div className="flex items-center gap-3 mb-2">
           <Settings size={24} className="text-[#D4AF37]" />
-          <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{t.settings || 'Ayarlar'}</h1>
+          <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{t.settings || tt('Ayarlar')}</h1>
         </div>
       </div>
       <div className="px-4 space-y-3 pb-6">
@@ -74,11 +76,11 @@ export default function SettingsPage() {
 
         {/* Language Selection */}
         <div className="card-islamic rounded-xl p-4">
-          <button onClick={() => setShowLang(!showLang)} className="w-full flex items-center justify-between" aria-label="Dil seçimi">
+          <button onClick={() => setShowLang(!showLang)} className="w-full flex items-center justify-between" aria-label={tt('Dil seçimi')}>
             <div className="flex items-center gap-3">
               <Languages size={18} className="text-[#D4AF37]" />
               <div>
-                <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.language || 'Dil'}</p>
+                <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.language || tt('Dil')}</p>
                 <p className="text-xs text-[#A8B5A0]">{LANGUAGES.find(l => l.code === lang)?.name}</p>
               </div>
             </div>
@@ -100,12 +102,12 @@ export default function SettingsPage() {
 
         {/* City Selection */}
         <div className="card-islamic rounded-xl p-4">
-          <button onClick={() => setShowCities(!showCities)} className="w-full flex items-center justify-between" aria-label="Şehir seçimi">
+          <button onClick={() => setShowCities(!showCities)} className="w-full flex items-center justify-between" aria-label={tt('Şehir seçimi')}>
             <div className="flex items-center gap-3">
               <MapPin size={18} className="text-[#D4AF37]" />
               <div>
-                <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.city || 'Şehir'}</p>
-                <p className="text-xs text-[#A8B5A0]">{cityObj?.name || t.select || 'Seçiniz'}</p>
+                <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.city || tt('Şehir')}</p>
+                <p className="text-xs text-[#A8B5A0]">{cityObj?.name || t.select || tt('Seçiniz')}</p>
               </div>
             </div>
             <ChevronDown size={16} className={`text-[#A8B5A0] transition-transform ${showCities ? 'rotate-180' : ''}`} />
@@ -113,7 +115,7 @@ export default function SettingsPage() {
           {showCities && (
             <div className="mt-3 pt-3 border-t border-[#D4AF37]/10">
               <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-hide pb-1">
-                {[{ label: t.all || 'Tümü', val: null }, { label: t.all_turkey || 'Türkiye', val: 'TR' }].map(({ label, val }) => (
+                {[{ label: t.all || tt('Tümü'), val: null }, { label: t.all_turkey || tt('Türkiye'), val: 'TR' }].map(({ label, val }) => (
                   <button key={label} onClick={() => setCountryFilter(val)}
                     className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium ${countryFilter === val ? 'text-[#D4AF37]' : 'text-[#A8B5A0]'}`}
                     style={{ background: countryFilter === val ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)' }}>
@@ -146,7 +148,7 @@ export default function SettingsPage() {
         <div className="card-islamic rounded-xl p-4">
           <div className="flex items-center gap-3 mb-3">
             <Palette size={18} style={{ color: theme.gold }} />
-            <p className="text-sm font-medium" style={{ color: theme.textPrimary }}>{t.theme || 'Tema'}</p>
+            <p className="text-sm font-medium" style={{ color: theme.textPrimary }}>{t.theme || tt('Tema')}</p>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {Object.values(themes).map(t => (
@@ -171,7 +173,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Globe size={18} className="text-[#D4AF37]" />
             <div>
-              <p className="text-sm font-medium text-[#F5F5DC]">{t.qibla || 'Kıble'}</p>
+              <p className="text-sm font-medium text-[#F5F5DC]">{t.qibla || tt('Kıble')}</p>
               <p className="text-xs text-[#A8B5A0]">{cityObj?.qibla_direction?.toFixed(1) || '--'}°</p>
             </div>
           </div>
@@ -184,8 +186,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 {notifEnabled ? <Bell size={18} className="text-[#D4AF37]" /> : <BellOff size={18} className="text-[#A8B5A0]" />}
                 <div>
-                  <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.daily_notifications || 'Günlük Bildirimler'}</p>
-                  <p className="text-xs text-[#A8B5A0]">{notifEnabled ? (t.notif_on || 'Açık') : (t.notif_off || 'Kapalı')}</p>
+                  <p className="text-sm font-medium text-[#F5F5DC] text-left">{t.daily_notifications || tt('Günlük Bildirimler')}</p>
+                  <p className="text-xs text-[#A8B5A0]">{notifEnabled ? (t.notif_on || tt('Açık')) : (t.notif_off || tt('Kapalı'))}</p>
                 </div>
               </div>
               <div className={`w-10 h-6 rounded-full flex items-center p-0.5 transition-colors ${notifEnabled ? 'bg-[#D4AF37]' : 'bg-white/10'}`}>
@@ -196,10 +198,10 @@ export default function SettingsPage() {
         )}
 
         <button onClick={async () => { await logout(); navigate('/login', { replace: true }); }} data-testid="logout-btn"
-          aria-label="Çıkış yap"
+          aria-label={tt('Çıkış yap')}
           className="w-full card-islamic rounded-xl p-4 flex items-center gap-3 text-red-400 hover:bg-red-500/10 transition-colors">
           <LogOut size={18} />
-          <span className="text-sm font-medium">{t.logout || 'Çıkış Yap'}</span>
+          <span className="text-sm font-medium">{t.logout || tt('Çıkış Yap')}</span>
         </button>
       </div>
     </div>

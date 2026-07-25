@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
 export default function AuthCallback() {
+  const tt = useTx();
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const hasProcessed = useRef(false);
@@ -42,14 +44,14 @@ export default function AuthCallback() {
           <>
             <div className="w-10 h-10 border-2 rounded-full animate-spin"
               style={{ borderColor: '#C8A55A', borderTopColor: 'transparent' }} />
-            <p className="text-sm font-medium" style={{ color: '#EBE5D8' }}>Giriş yapılıyor...</p>
-            <p className="text-xs" style={{ color: '#7E8A9E' }}>Lütfen bekleyiniz</p>
+            <p className="text-sm font-medium" style={{ color: '#EBE5D8' }}>{tt('Giriş yapılıyor...')}</p>
+            <p className="text-xs" style={{ color: '#7E8A9E' }}>{tt('Lütfen bekleyiniz')}</p>
           </>
         ) : (
           <>
             <div className="text-3xl">⚠️</div>
-            <p className="text-sm font-medium" style={{ color: '#EBE5D8' }}>Bağlantı hatası</p>
-            <p className="text-xs" style={{ color: '#7E8A9E' }}>Giriş sayfasına yönlendiriliyorsunuz...</p>
+            <p className="text-sm font-medium" style={{ color: '#EBE5D8' }}>{tt('Bağlantı hatası')}</p>
+            <p className="text-xs" style={{ color: '#7E8A9E' }}>{tt('Giriş sayfasına yönlendiriliyorsunuz...')}</p>
           </>
         )}
       </div>

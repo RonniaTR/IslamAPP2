@@ -141,7 +141,7 @@ export default function FiqhPage() {
                 className="w-full max-w-[520px] rounded-t-3xl p-5 max-h-[80vh] overflow-y-auto"
                 style={{ background: theme.surface }}>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold" style={{ color: theme.gold }}>⚖️ AI Müftü</h3>
+                  <h3 className="font-bold" style={{ color: theme.gold }}>⚖️ {tt('AI Müftü')}</h3>
                   <button onClick={() => { setAskMode(false); setAnswer(null); }} className="p-2 rounded-xl" style={{ background: theme.bg }}>
                     <X size={18} style={{ color: theme.textSecondary }} />
                   </button>

@@ -1,8 +1,10 @@
 import React from 'react';
 // Lottie optional - fallback to SVG if unavailable
 import '../styles/DeenConnect.css';
+import { useTx } from '../../i18n';
 
 export default function SuccessAnimation() {
+  const tt = useTx();
   const params = new URLSearchParams(window.location.search);
   const xp = params.get('xp') || '150';
   return (
@@ -14,8 +16,8 @@ export default function SuccessAnimation() {
             <path d="M34 62 L50 78 L86 42" fill="none" stroke="#ffd369" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        <h2 style={{ color: '#f7e6ae', fontSize: 28, fontWeight: 900, marginTop: 12 }}>Elhamdülillah!</h2>
-        <p style={{ color: '#a8b5a0' }}>Puanlarınız toplandı.</p>
+        <h2 style={{ color: '#f7e6ae', fontSize: 28, fontWeight: 900, marginTop: 12 }}>{tt('Elhamdülillah!')}</h2>
+        <p style={{ color: '#a8b5a0' }}>{tt('Puanlarınız toplandı.')}</p>
         <div style={{ marginTop: 18, padding: 18, borderRadius: 16, border: '1px solid rgba(255,211,105,0.2)', background: 'rgba(255,211,105,0.06)' }}>
           <div style={{ color: '#ffd369', fontWeight: 900, fontSize: 22 }}>Points Earned: {xp} XP</div>
         </div>

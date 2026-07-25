@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import '../styles/DeenConnect.css';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { useTx } from '../../i18n';
 
 const data = [
   { subject: 'Kuran', A: 85 },
@@ -12,6 +13,7 @@ const data = [
 ];
 
 export default function KnowledgeProfile() {
+  const tt = useTx();
   return (
     <div className="min-h-screen p-6" style={{ background: '#032212' }}>
       <div className="card-deen-glass p-6 mb-6" style={{ display: 'flex', gap: 20 }}>
@@ -20,7 +22,7 @@ export default function KnowledgeProfile() {
         </div>
         <div>
           <h2 style={{ color: '#f7e6ae', fontSize: 28, fontWeight: 900 }}>Leyla</h2>
-          <div style={{ color: '#a8b5a0' }}>Seviye 12 - İlim Talebesi</div>
+          <div style={{ color: '#a8b5a0' }}>{tt('Seviye 12 - İlim Talebesi')}</div>
         </div>
       </div>
 

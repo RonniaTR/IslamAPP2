@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLang } from '../contexts/LangContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
 const RELIGION_COLORS = {
   'islam': '#10B981',
@@ -14,22 +15,24 @@ const RELIGION_COLORS = {
 };
 
 const RELIGION_LABELS = {
-  'islam': { name: 'İslam', icon: '☪️', source: "Kur'an-ı Kerim" },
-  'christianity': { name: 'Hristiyanlık', icon: '✝️', source: 'İncil' },
-  'judaism': { name: 'Yahudilik', icon: '✡️', source: 'Tevrat' },
-  'hadith': { name: 'Hadis', icon: '📖', source: 'Hadis-i Şerif' },
+  'islam': { name: 'İslam', nameEn: 'Islam', icon: '☪️', source: "Kur'an-ı Kerim", sourceEn: "The Noble Qur'an" },
+  'christianity': { name: 'Hristiyanlık', nameEn: 'Christianity', icon: '✝️', source: 'İncil', sourceEn: 'The Bible' },
+  'judaism': { name: 'Yahudilik', nameEn: 'Judaism', icon: '✡️', source: 'Tevrat', sourceEn: 'The Torah' },
+  'hadith': { name: 'Hadis', nameEn: 'Hadith', icon: '📖', source: 'Hadis-i Şerif', sourceEn: 'Noble Hadith' },
 };
 
 const CATEGORY_LABELS = {
-  inanc: { label: 'İnanç Esasları', icon: '🕌' },
-  ibadet: { label: 'İbadet', icon: '🤲' },
-  ahlak: { label: 'Ahlak & Değerler', icon: '💚' },
-  toplum: { label: 'Toplum & Yaşam', icon: '🏛️' },
+  inanc: { label: 'İnanç Esasları', labelEn: 'Articles of Faith', icon: '🕌' },
+  ibadet: { label: 'İbadet', labelEn: 'Worship', icon: '🤲' },
+  ahlak: { label: 'Ahlak & Değerler', labelEn: 'Ethics & Values', icon: '💚' },
+  toplum: { label: 'Toplum & Yaşam', labelEn: 'Society & Life', icon: '🏛️' },
 };
 
 export default function ComparativePage() {
+  const tt = useTx();
   const { theme } = useTheme();
   const { lang } = useLang();
+  const L = (o, k = 'label') => (lang === 'tr' ? o[k] : (o[k + 'En'] || o[k]));
   const navigate = useNavigate();
   const [topics, setTopics] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -101,7 +104,7 @@ export default function ComparativePage() {
       try {
         const { data } = await api.post('/comparative/ai-compare', { topic_id: selectedTopic });
         setAiAnalysis(data.analysis || data.response || '');
-      } catch { setAiAnalysis('AI analizi şu an kullanılamıyor.'); }
+      } catch { setAiAnalysis(tt('AI analizi şu an kullanılamıyor.')); }
     }
     setAiLoading(false);
   };
@@ -122,9 +125,9 @@ export default function ComparativePage() {
             <ArrowLeft size={18} style={{ color: theme.textPrimary }} />
           </button>
           <div>
-            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>Karşılaştırmalı Dinler</h1>
+            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>{tt('Karşılaştırmalı Dinler')}</h1>
             <p className="text-xs" style={{ color: theme.textSecondary }}>
-              {topics.length} konu · Kur'an, İncil ve Tevrat'ta ortak konular
+              {topics.length} {tt("konu · Kur'an, İncil ve Tevrat'ta ortak konular")}
             </p>
           </div>
           <Globe size={24} className="ml-auto" style={{ color: theme.gold }} />
@@ -134,7 +137,7 @@ export default function ComparativePage() {
         <div className="relative mt-3">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: theme.textSecondary }} />
           <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Konu ara..."
+            placeholder={tt('Konu ara...')}
             className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm outline-none"
             style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
         </div>
@@ -148,7 +151,7 @@ export default function ComparativePage() {
             style={selectedCategory === 'all'
               ? { background: `${theme.gold}20`, color: theme.gold, border: `1px solid ${theme.gold}30` }
               : { background: theme.inputBg, color: theme.textSecondary, border: `1px solid ${theme.inputBorder}` }}>
-            Tümü ({topics.length})
+            {tt('Tümü')} ({topics.length})
           </button>
           {Object.entries(CATEGORY_LABELS).map(([id, cat]) => {
             const count = topics.filter(t => t.category === id).length;
@@ -159,7 +162,7 @@ export default function ComparativePage() {
                 style={selectedCategory === id
                   ? { background: `${theme.gold}20`, color: theme.gold, border: `1px solid ${theme.gold}30` }
                   : { background: theme.inputBg, color: theme.textSecondary, border: `1px solid ${theme.inputBorder}` }}>
-                {cat.icon} {cat.label} ({count})
+                {cat.icon} {L(cat)} ({count})
               </button>
             );
           })}
@@ -172,7 +175,7 @@ export default function ComparativePage() {
           <div className="flex justify-center py-8"><Loader className="animate-spin" style={{ color: theme.gold }} /></div>
         ) : filteredTopics.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm" style={{ color: theme.textSecondary }}>Konu bulunamadı</p>
+            <p className="text-sm" style={{ color: theme.textSecondary }}>{tt('Konu bulunamadı')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
@@ -189,7 +192,7 @@ export default function ComparativePage() {
                 {topic.category && CATEGORY_LABELS[topic.category] && (
                   <div className="text-[9px] mt-1 px-1.5 py-0.5 rounded-full inline-block"
                     style={{ background: `${theme.gold}10`, color: theme.textSecondary }}>
-                    {CATEGORY_LABELS[topic.category].label}
+                    {L(CATEGORY_LABELS[topic.category])}
                   </div>
                 )}
               </motion.button>
@@ -215,7 +218,7 @@ export default function ComparativePage() {
           </button>
           <div className="flex-1">
             <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>{topicName}</h1>
-            <p className="text-xs" style={{ color: theme.textSecondary }}>Karşılaştırmalı inceleme</p>
+            <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Karşılaştırmalı inceleme')}</p>
           </div>
         </div>
       </div>
@@ -229,7 +232,7 @@ export default function ComparativePage() {
             <div className="rounded-xl border p-4" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
               <div className="flex items-center gap-2 mb-3">
                 <Globe size={16} style={{ color: theme.gold }} />
-                <h3 className="text-sm font-semibold" style={{ color: theme.gold }}>Karşılaştırmalı Analiz</h3>
+                <h3 className="text-sm font-semibold" style={{ color: theme.gold }}>{tt('Karşılaştırmalı Analiz')}</h3>
               </div>
               <div className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}
                 dangerouslySetInnerHTML={{ __html: formatText(comparisonText) }} />
@@ -249,8 +252,8 @@ export default function ComparativePage() {
                   style={{ background: `${color}10` }}>
                   <span className="text-xl">{rel.icon}</span>
                   <div className="flex-1">
-                    <div className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{rel.name}</div>
-                    <div className="text-[11px]" style={{ color: theme.textSecondary }}>{rel.source}</div>
+                    <div className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{L(rel, 'name')}</div>
+                    <div className="text-[11px]" style={{ color: theme.textSecondary }}>{L(rel, 'source')}</div>
                   </div>
                   {isExpanded ? <ChevronUp size={16} style={{ color: theme.textSecondary }} /> : <ChevronDown size={16} style={{ color: theme.textSecondary }} />}
                 </button>
@@ -269,7 +272,7 @@ export default function ComparativePage() {
                         )}
                         {data.translation && (
                           <div>
-                            <div className="text-[10px] font-medium mb-1" style={{ color: theme.textSecondary }}>Türkçe Çeviri</div>
+                            <div className="text-[10px] font-medium mb-1" style={{ color: theme.textSecondary }}>{tt('Türkçe Çeviri')}</div>
                             <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{data.translation}</p>
                           </div>
                         )}

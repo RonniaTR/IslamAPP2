@@ -3,6 +3,8 @@ import { ArrowLeft, MapPin, Loader2, RotateCcw, Info, Smartphone, Share2 } from 
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LangContext';
+import { useTx } from '../i18n';
 
 /* ── Constants ── */
 const KAABA_LAT = 21.4225;
@@ -195,7 +197,7 @@ function AccuracyArc({ diff, aligned, near }) {
   return (
     <div className="w-full max-w-[220px] mx-auto mt-3">
       <div className="flex justify-between items-center mb-1">
-        <span className="text-[10px] text-[#A8B5A0]">Hizalama Doğruluğu</span>
+        <span className="text-[10px] text-[#A8B5A0]">{tt('Hizalama Doğruluğu')}</span>
         <span className="text-[10px] font-bold" style={{ color }}>{Math.round(pct)}%</span>
       </div>
       <div className="h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
@@ -209,6 +211,9 @@ function AccuracyArc({ diff, aligned, near }) {
 export default function QiblaPage() {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { lang } = useLang();
+  const tt = useTx();
+  const locale = lang === 'tr' ? 'tr-TR' : 'en-US';
 
   // Core state
   const [qiblaAngle, setQiblaAngle] = useState(null);
@@ -256,7 +261,7 @@ export default function QiblaPage() {
         setLoading(false);
       },
       (err) => {
-        setError(err.code === 1 ? 'Konum izni reddedildi' : err.code === 2 ? 'Konum alınamıyor' : 'Konum zaman aşımı');
+        setError(err.code === 1 ? tt('Konum izni reddedildi') : err.code === 2 ? tt('Konum alınamıyor') : tt('Konum zaman aşımı'));
         setLoading(false);
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
@@ -397,8 +402,8 @@ export default function QiblaPage() {
 
   // Calibration message
   const calibMsg = useMemo(() => {
-    if (compassAccuracy !== null && compassAccuracy > 30) return 'Pusula hassasiyeti düşük — telefonunuzu 8 çizin';
-    if (needsCalibration) return 'Pusula kalibrasyonu gerekebilir — 8 hareketi yapın';
+    if (compassAccuracy !== null && compassAccuracy > 30) return tt('Pusula hassasiyeti düşük — telefonunuzu 8 çizin');
+    if (needsCalibration) return tt('Pusula kalibrasyonu gerekebilir — 8 hareketi yapın');
     return null;
   }, [compassAccuracy, needsCalibration]);
 
@@ -412,9 +417,9 @@ export default function QiblaPage() {
   // Share function
   const handleShare = useCallback(async () => {
     if (!location || !qiblaAngle) return;
-    const text = `Kıble Yönü: ${Math.round(qiblaAngle)}° (${dirName}) — Konum: ${location.lat.toFixed(4)}°N, ${location.lng.toFixed(4)}°E — Kabe'ye ${distanceKm ? Math.round(distanceKm).toLocaleString('tr-TR') + ' km' : ''}`;
+    const text = `${tt('Kıble Yönü')}: ${Math.round(qiblaAngle)}° (${dirName}) — ${tt('Konum')}: ${location.lat.toFixed(4)}°N, ${location.lng.toFixed(4)}°E — ${tt("Kâbe'ye")} ${distanceKm ? Math.round(distanceKm).toLocaleString(locale) + ' km' : ''}`;
     if (navigator.share) {
-      try { await navigator.share({ title: 'Kıble Yönü', text }); } catch {}
+      try { await navigator.share({ title: tt('Kıble Yönü'), text }); } catch {}
     } else {
       try { await navigator.clipboard.writeText(text); setShowShareToast(true); setTimeout(() => setShowShareToast(false), 2000); } catch {}
     }
@@ -423,12 +428,12 @@ export default function QiblaPage() {
   /* ── Status text & color ── */
   const statusColor = stableAligned ? '#4ADE80' : isNear ? theme.gold : theme.textSecondary;
   const statusText = !compassReady
-    ? (displayHeading !== null ? 'Pusula hazırlanıyor...' : 'Pusula verisi bekleniyor...')
+    ? (displayHeading !== null ? tt('Pusula hazırlanıyor...') : tt('Pusula verisi bekleniyor...'))
     : stableAligned
-      ? '✓ Kıble Bulundu!'
+      ? tt('✓ Kıble Bulundu!')
       : isNear
         ? 'Yaklaşıyorsunuz...'
-        : 'Kıbleyi arayın';
+        : tt('Kıbleyi arayın');
 
   return (
     <div className="animate-fade-in min-h-screen flex flex-col relative overflow-hidden" style={{ background: theme.bg }} data-testid="qibla-page">
@@ -448,7 +453,7 @@ export default function QiblaPage() {
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs font-medium"
             style={{ background: theme.gold, color: theme.bg }}>
-            Kopyalandı!
+            {tt('Kopyalandı!')}
           </motion.div>
         )}
       </AnimatePresence>
@@ -461,7 +466,7 @@ export default function QiblaPage() {
               <ArrowLeft size={16} style={{ color: theme.cream }} />
             </button>
             <div>
-              <h1 className="text-lg font-bold" style={{ color: theme.cream, fontFamily: 'Playfair Display, serif' }}>Kıble Pusulası</h1>
+              <h1 className="text-lg font-bold" style={{ color: theme.cream, fontFamily: 'Playfair Display, serif' }}>{tt('Kıble Pusulası')}</h1>
               <p className="text-[10px]" style={{ color: theme.textSecondary }}>
                 {distanceKm ? `Kâbe'ye ${Math.round(distanceKm).toLocaleString('tr-TR')} km • ${dirName}` : 'Mekke yönünü bulun'}
               </p>
@@ -496,12 +501,12 @@ export default function QiblaPage() {
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
             className="mx-5 mb-2 rounded-xl overflow-hidden" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
             <div className="p-4 space-y-2.5 text-xs" style={{ color: theme.textSecondary }}>
-              <p className="font-semibold" style={{ color: theme.cream }}>Nasıl Kullanılır?</p>
-              <p>📱 Telefonunuzu düz, yere paralel tutun</p>
-              <p>🧭 Pusula üzerindeki ok + seccade Kâbe yönünü gösterir</p>
-              <p>🟢 Yeşil yanınca kıbleye hizalandınız (titreşim verir)</p>
-              <p>🔄 Pusula yanlışsa telefonunuzu havada 8 şeklinde çevirin</p>
-              <p>📐 Manyetik sapma otomatik olarak hesaplanır</p>
+              <p className="font-semibold" style={{ color: theme.cream }}>{tt('Nasıl Kullanılır?')}</p>
+              <p>{tt('📱 Telefonunuzu düz, yere paralel tutun')}</p>
+              <p>{tt('🧭 Pusula üzerindeki ok + seccade Kâbe yönünü gösterir')}</p>
+              <p>{tt('🟢 Yeşil yanınca kıbleye hizalandınız (titreşim verir)')}</p>
+              <p>{tt('🔄 Pusula yanlışsa telefonunuzu havada 8 şeklinde çevirin')}</p>
+              <p>{tt('📐 Manyetik sapma otomatik olarak hesaplanır')}</p>
               <p className="text-[10px] opacity-60 pt-1">Doğruluk: ±{ALIGN_THRESHOLD}° | Hesaplama: Büyük Daire formülü</p>
             </div>
           </motion.div>
@@ -515,8 +520,8 @@ export default function QiblaPage() {
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
               <Loader2 size={36} style={{ color: theme.gold }} />
             </motion.div>
-            <p className="text-sm mt-3" style={{ color: theme.textSecondary }}>Konum alınıyor...</p>
-            <p className="text-[10px] mt-1" style={{ color: `${theme.textSecondary}80` }}>Yüksek doğruluklu GPS kullanılıyor</p>
+            <p className="text-sm mt-3" style={{ color: theme.textSecondary }}>{tt('Konum alınıyor...')}</p>
+            <p className="text-[10px] mt-1" style={{ color: `${theme.textSecondary}80` }}>{tt('Yüksek doğruluklu GPS kullanılıyor')}</p>
           </div>
         ) : error ? (
           <div className="text-center px-6">
@@ -525,7 +530,7 @@ export default function QiblaPage() {
             </div>
             <p className="text-sm font-semibold text-red-400 mb-2">{error}</p>
             <p className="text-xs mb-4" style={{ color: theme.textSecondary }}>
-              Tarayıcı ayarlarından konum iznini açın
+              {tt('Tarayıcı ayarlarından konum iznini açın')}
             </p>
             <button onClick={() => window.location.reload()} className="px-5 py-2.5 rounded-xl text-sm font-medium" style={{ color: theme.bg, background: `linear-gradient(135deg, ${theme.gold}, #B8860B)` }}>
               Tekrar Dene
@@ -537,13 +542,13 @@ export default function QiblaPage() {
             <div className="w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(212,175,55,0.1)' }}>
               <Smartphone size={36} style={{ color: theme.gold }} />
             </div>
-            <h2 className="text-base font-bold mb-2" style={{ color: theme.cream }}>Pusula İzni Gerekli</h2>
+            <h2 className="text-base font-bold mb-2" style={{ color: theme.cream }}>{tt('Pusula İzni Gerekli')}</h2>
             <p className="text-xs mb-5 max-w-xs mx-auto" style={{ color: theme.textSecondary }}>
-              Kıble yönünü bulmak için cihazınızın pusula sensörüne erişmemiz gerekiyor.
+              {tt('Kıble yönünü bulmak için cihazınızın pusula sensörüne erişmemiz gerekiyor.')}
             </p>
             <motion.button onClick={requestIOSPermission} whileTap={{ scale: 0.96 }}
               className="px-8 py-3.5 rounded-xl text-sm font-bold" style={{ color: theme.bg, background: `linear-gradient(135deg, ${theme.gold}, #B8860B)` }}>
-              🧭 Pusula İznini Aç
+              {tt('🧭 Pusula İznini Aç')}
             </motion.button>
           </div>
         ) : (
@@ -579,7 +584,7 @@ export default function QiblaPage() {
             <div className="mt-3 text-center">
               <div className="flex items-center justify-center gap-4 mb-2">
                 <div>
-                  <p className="text-[9px] uppercase tracking-wider" style={{ color: theme.textSecondary }}>Kıble</p>
+                  <p className="text-[9px] uppercase tracking-wider" style={{ color: theme.textSecondary }}>{tt('Kıble')}</p>
                   <p className="text-lg font-bold tabular-nums" style={{ color: theme.gold }}>{qiblaAngle !== null ? `${Math.round(qiblaAngle)}°` : '—'}</p>
                 </div>
                 <div className="w-px h-7" style={{ background: theme.cardBorder }} />
@@ -621,9 +626,9 @@ export default function QiblaPage() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 3 }}
                 className="mt-4 mx-4 p-4 rounded-xl text-center" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
                 <Smartphone size={20} className="mx-auto mb-2" style={{ color: theme.gold }} />
-                <p className="text-xs font-medium mb-1" style={{ color: theme.cream }}>Pusula sensörü algılanamadı</p>
+                <p className="text-xs font-medium mb-1" style={{ color: theme.cream }}>{tt('Pusula sensörü algılanamadı')}</p>
                 <p className="text-[10px]" style={{ color: theme.textSecondary }}>
-                  Bu cihazda pusula desteği olmayabilir. Kıble açınız: <strong style={{ color: theme.gold }}>{qiblaAngle !== null ? `${Math.round(qiblaAngle)}° ${dirName}` : '—'}</strong>
+                  {tt('Bu cihazda pusula desteği olmayabilir. Kıble açınız:')} <strong style={{ color: theme.gold }}>{qiblaAngle !== null ? `${Math.round(qiblaAngle)}° ${dirName}` : '—'}</strong>
                 </p>
               </motion.div>
             )}
@@ -635,7 +640,7 @@ export default function QiblaPage() {
       {!loading && !error && !needsIOSPerm && (
         <div className="relative z-10 pb-24 pt-3 text-center">
           <motion.p className="text-[10px]" style={{ color: `${theme.textSecondary}60` }} animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 4, repeat: Infinity }}>
-            {compassReady ? 'Telefonu düz tutun • Seccade kıbleyi gösterir' : 'Pusula sensörü aranıyor...'}
+            {compassReady ? tt('Telefonu düz tutun • Seccade kıbleyi gösterir') : tt('Pusula sensörü aranıyor...')}
           </motion.p>
         </div>
       )}

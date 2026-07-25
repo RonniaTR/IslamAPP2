@@ -4,8 +4,10 @@ import { motion } from 'framer-motion';
 import { Trophy, Crown, Medal, TrendingUp, Sparkles, ArrowLeft, Target, Loader2 } from 'lucide-react';
 import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTx } from '../i18n';
 
 export default function LeaderboardPage() {
+  const tt = useTx();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [list, setList] = useState([]);
@@ -33,7 +35,7 @@ export default function LeaderboardPage() {
     return (
       <div className="min-h-screen bg-[#032212] flex flex-col items-center justify-center text-[#ffd369]">
         <Loader2 size={48} className="animate-spin mb-4" />
-        <h2 className="text-xl font-black tracking-widest animate-pulse">LİG YÜKLENİYOR...</h2>
+        <h2 className="text-xl font-black tracking-widest animate-pulse">{tt('LİG YÜKLENİYOR...')}</h2>
       </div>
     );
   }
@@ -58,9 +60,9 @@ export default function LeaderboardPage() {
         </button>
         <div className="text-center">
           <h1 className="text-2xl font-black text-[#ffd369] tracking-widest uppercase flex items-center gap-2 justify-center">
-            <Trophy size={24} /> Şeref Tablosu
+            <Trophy size={24} /> {tt('Şeref Tablosu')}
           </h1>
-          <p className="text-xs text-[#A8B5A0] font-bold tracking-widest mt-1">GLOBAL İLİM LİGİ</p>
+          <p className="text-xs text-[#A8B5A0] font-bold tracking-widest mt-1">{tt('GLOBAL İLİM LİGİ')}</p>
         </div>
         <div className="w-12" /> {/* Dengeleyici */}
       </div>
@@ -71,9 +73,9 @@ export default function LeaderboardPage() {
         {list.length === 0 ? (
           <div className="text-center py-20 bg-white/5 rounded-[40px] border border-white/10 backdrop-blur-xl mt-10">
             <Sparkles size={64} className="mx-auto text-[#ffd369]/30 mb-6" />
-            <h2 className="text-2xl font-black text-[#f7e6ae] mb-2">Lig Henüz Boş</h2>
-            <p className="text-[#A8B5A0]">İlk quizi çöz ve zirveye adını altın harflerle yazdır!</p>
-            <button onClick={() => navigate('/quiz')} className="mt-8 bg-[#ffd369] text-[#032212] px-8 py-4 rounded-2xl font-black shadow-lg">Hemen Başla</button>
+            <h2 className="text-2xl font-black text-[#f7e6ae] mb-2">{tt('Lig Henüz Boş')}</h2>
+            <p className="text-[#A8B5A0]">{tt('İlk quizi çöz ve zirveye adını altın harflerle yazdır!')}</p>
+            <button onClick={() => navigate('/quiz')} className="mt-8 bg-[#ffd369] text-[#032212] px-8 py-4 rounded-2xl font-black shadow-lg">{tt('Hemen Başla')}</button>
           </div>
         ) : (
           <>
@@ -110,7 +112,7 @@ export default function LeaderboardPage() {
             <div className="bg-white/5 backdrop-blur-2xl rounded-[40px] p-4 md:p-8 border border-white/10 shadow-2xl">
               <div className="flex items-center gap-3 mb-6 px-2">
                 <TrendingUp size={24} className="text-[#ffd369]" />
-                <h3 className="text-lg font-black text-[#f7e6ae] uppercase tracking-widest">Genel Sıralama</h3>
+                <h3 className="text-lg font-black text-[#f7e6ae] uppercase tracking-widest">{tt('Genel Sıralama')}</h3>
               </div>
 
               <div className="space-y-3">

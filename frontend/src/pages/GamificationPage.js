@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Flame, Star, Target, ChevronRight, Crown, Gift, Users, Zap, Share2, Copy, Check } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LangContext';
+import { useTx } from '../i18n';
 import { usePremium } from '../contexts/PremiumContext';
 import { trackFeature } from '../services/analytics';
 import api from '../api';
@@ -23,6 +25,8 @@ function ProgressRing({ progress, size = 60, stroke = 4, theme }) {
 export default function GamificationPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { lang } = useLang();
+  const tt = useTx();
   const { premium } = usePremium();
   const [stats, setStats] = useState(null);
   const [tab, setTab] = useState('overview');
@@ -64,7 +68,7 @@ export default function GamificationPage() {
       setRedeemCode('');
       api.get(`/gamification/v2/stats/${user.user_id}`).then(r => setStats(r.data)).catch(() => {});
     } catch (e) {
-      setRedeemMsg(e.response?.data?.detail || 'Hata oluştu');
+      setRedeemMsg(e.response?.data?.detail || tt('Hata oluştu'));
     }
   };
 
@@ -73,7 +77,7 @@ export default function GamificationPage() {
       await api.post('/social/share', { user_id: user.user_id, achievement_type: type, achievement_id: id });
       const text = type === 'streak' ? `${stats.current_streak} günlük seri!` : type === 'level' ? `Seviye ${stats.level}!` : `${id} rozetini kazandım!`;
       if (navigator.share) {
-        await navigator.share({ title: 'İslam APP Başarım', text: `İslam APP'te ${text} 🏆`, url: 'https://islamapp-5942a.web.app' });
+        await navigator.share({ title: tt('İslam APP Başarım'), text: `${tt('İslam APP\'te')} ${text} 🏆`, url: 'https://islamapp-5942a.web.app' });
       }
     } catch {}
   };
@@ -150,8 +154,8 @@ export default function GamificationPage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 { label: 'Toplam XP', value: stats.total_xp, icon: '⭐' },
-                { label: 'Haftalık XP', value: stats.weekly_xp, icon: '📈' },
-                { label: 'Günlük Seri', value: `${stats.current_streak} gün`, icon: '🔥' },
+                { label: tt('Haftalık XP'), value: stats.weekly_xp, icon: '📈' },
+                { label: tt('Günlük Seri'), value: `${stats.current_streak} ${tt('gün')}`, icon: '🔥' },
                 { label: 'En Uzun Seri', value: `${stats.longest_streak} gün`, icon: '🏆' },
               ].map((s, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
@@ -169,8 +173,8 @@ export default function GamificationPage() {
                 className="w-full p-3 rounded-xl flex items-center gap-3" style={{ background: `${theme.gold}15`, border: `1px solid ${theme.gold}30` }}>
                 <Flame size={20} style={{ color: theme.gold }} />
                 <div className="flex-1 text-left">
-                  <p className="text-xs font-semibold" style={{ color: theme.gold }}>{stats.current_streak} Günlük Seri!</p>
-                  <p className="text-[9px]" style={{ color: theme.textSecondary }}>Başarını paylaş</p>
+                  <p className="text-xs font-semibold" style={{ color: theme.gold }}>{stats.current_streak} {tt('Günlük Seri!')}</p>
+                  <p className="text-[9px]" style={{ color: theme.textSecondary }}>{tt('Başarını paylaş')}</p>
                 </div>
                 <Share2 size={14} style={{ color: theme.gold }} />
               </motion.button>
@@ -204,7 +208,7 @@ export default function GamificationPage() {
 
         {tab === 'quests' && (
           <motion.div key="quests" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="px-4 space-y-2">
-            <p className="text-xs font-semibold mb-2" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>Günlük Görevler</p>
+            <p className="text-xs font-semibold mb-2" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>{tt('Günlük Görevler')}</p>
             {(stats.daily_quests || []).map((q, i) => (
               <motion.div key={q.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
                 className="flex items-center gap-3 p-3 rounded-xl" style={{ background: q.completed ? `${theme.gold}15` : theme.cardBg, border: `1px solid ${q.completed ? theme.gold + '30' : theme.cardBorder}` }}>
@@ -233,9 +237,9 @@ export default function GamificationPage() {
             <div className="p-4 rounded-2xl" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
               <div className="flex items-center gap-2 mb-3">
                 <Gift size={18} style={{ color: theme.gold }} />
-                <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Arkadaş Davet</p>
+                <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{tt('Arkadaş Davet')}</p>
               </div>
-              <p className="text-[11px] mb-3" style={{ color: theme.textSecondary }}>Arkadaşlarını davet et, birlikte 100 XP kazanın!</p>
+              <p className="text-[11px] mb-3" style={{ color: theme.textSecondary }}>{tt('Arkadaşlarını davet et, birlikte 100 XP kazanın!')}</p>
               {referralCode ? (
                 <div className="flex items-center gap-2">
                   <div className="flex-1 px-3 py-2 rounded-lg text-sm font-mono" style={{ background: theme.inputBg, color: theme.textPrimary }}>{referralCode}</div>
@@ -247,7 +251,7 @@ export default function GamificationPage() {
               ) : (
                 <motion.button whileTap={{ scale: 0.97 }} onClick={createReferral}
                   className="w-full py-2.5 rounded-xl text-xs font-medium text-white" style={{ background: theme.gold }}>
-                  Davet Kodu Oluştur
+                  {tt('Davet Kodu Oluştur')}
                 </motion.button>
               )}
               {referralUses > 0 && <p className="text-[10px] mt-2" style={{ color: theme.gold }}>{referralUses} kişi kodunu kullandı</p>}
@@ -273,7 +277,7 @@ export default function GamificationPage() {
               <Star size={18} style={{ color: theme.gold }} />
               <div className="flex-1 text-left">
                 <p className="text-xs font-semibold" style={{ color: theme.textPrimary }}>Seviye {stats.level} başarını paylaş</p>
-                <p className="text-[9px]" style={{ color: theme.textSecondary }}>Arkadaşlarını motive et</p>
+                <p className="text-[9px]" style={{ color: theme.textSecondary }}>{tt('Arkadaşlarını motive et')}</p>
               </div>
               <Share2 size={14} style={{ color: theme.gold }} />
             </motion.button>

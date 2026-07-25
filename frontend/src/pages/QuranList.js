@@ -117,7 +117,7 @@ export default function QuranList() {
               {txt.title}
             </h1>
             <p className="text-[11px] mt-0.5" style={{ color: theme.textSecondary }}>
-              {surahs.length > 0 ? `${surahs.length} ${t.surahs || 'Sure'}` : ''}
+              {surahs.length > 0 ? `${surahs.length} ${t.surahs || tt('Sure')}` : ''}
             </p>
           </div>
           {/* Dua button */}

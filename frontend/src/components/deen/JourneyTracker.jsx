@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import '../styles/DeenConnect.css';
+import { useTx } from '../../i18n';
 
 export default function JourneyTracker() {
+  const tt = useTx();
   const days = Array.from({ length: 28 }).map((_, i) => {
     const idx = i + 1;
     const status = idx < 6 ? 'completed' : idx === 6 ? 'active' : 'locked';
@@ -29,7 +31,7 @@ export default function JourneyTracker() {
               </div>
               <div>
                 <div style={{ color: '#f7e6ae', fontWeight: 800 }}>Gün {d.day}</div>
-                <div style={{ color: '#a8b5a0', fontSize: 13 }}>Kısa görev açıklaması burada.</div>
+                <div style={{ color: '#a8b5a0', fontSize: 13 }}>{tt('Kısa görev açıklaması burada.')}</div>
               </div>
             </div>
             <div style={{ color: d.status === 'completed' ? '#032212' : '#ffd369', fontWeight: 800 }}>{d.status === 'completed' ? 'Tamamlandı' : d.status === 'active' ? 'Aktif' : 'Kilidi Açılmadı'}</div>

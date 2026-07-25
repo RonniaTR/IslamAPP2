@@ -224,7 +224,7 @@ export default function PathPage() {
               </h1>
             </div>
             <button onClick={shareJourney} className="mt-1 w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 shrink-0"
-              style={{ background: 'rgba(232,197,108,0.12)', border: `1px solid ${NUR.border}` }} aria-label="Yolculuğu paylaş">
+              style={{ background: 'rgba(232,197,108,0.12)', border: `1px solid ${NUR.border}` }} aria-label={tt('Yolculuğu paylaş')}>
               <Share2 size={15} style={{ color: NUR.gold }} />
             </button>
           </div>

@@ -121,7 +121,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
                   </div>
                   <input type="range" min={AR_MIN} max={AR_MAX} step="2" value={settings.arabicSize}
                     onChange={e => set({ arabicSize: parseInt(e.target.value, 10) })}
-                    className="w-full" style={{ accentColor: rt.accent }} aria-label="Arapça boyutu" />
+                    className="w-full" style={{ accentColor: rt.accent }} aria-label={tt('Arapça boyutu')} />
                 </div>
               )}
             </div>

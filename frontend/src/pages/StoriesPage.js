@@ -221,7 +221,7 @@ export default function StoriesPage() {
             </button>
             <button onClick={() => setShowRS(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black active:scale-95"
-              style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }} aria-label="Okuma ayarları">
+              style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }} aria-label={tt('Okuma ayarları')}>
               <Type size={11} /> Görünüm
             </button>
             <span className="h-px w-10" style={{ background: `${rrt.accent}50` }} />

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLang } from '../contexts/LangContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
 const PACK_ICONS = {
   quran_tr: '📖', quran_en: '📖', quran_ar: '📖',
@@ -13,6 +14,7 @@ const PACK_ICONS = {
 };
 
 export default function OfflinePacksPage() {
+  const tt = useTx();
   const { theme } = useTheme();
   const { lang } = useLang();
   const navigate = useNavigate();
@@ -90,7 +92,7 @@ export default function OfflinePacksPage() {
             <ArrowLeft size={18} style={{ color: theme.textPrimary }} />
           </button>
           <div>
-            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>Çevrimdışı Paketler</h1>
+            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>{tt('Çevrimdışı Paketler')}</h1>
             <p className="text-xs" style={{ color: theme.textSecondary }}>
               İnternet olmadan da kullanın
             </p>
@@ -116,7 +118,7 @@ export default function OfflinePacksPage() {
           </div>
         ) : packs.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm" style={{ color: theme.textSecondary }}>Paket bulunamadı</p>
+            <p className="text-sm" style={{ color: theme.textSecondary }}>{tt('Paket bulunamadı')}</p>
           </div>
         ) : (
           packs.map((pack, i) => {

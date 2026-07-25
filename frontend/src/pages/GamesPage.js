@@ -25,6 +25,8 @@ import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
 import Confetti from './games/Confetti';
 import { ADVENTURE } from '../data/adventureData';
+import { useTx } from '../i18n';
+import { useLang } from '../contexts/LangContext';
 
 // ════════════════════════════════════════════════════════════
 // OYUN MERKEZİ — referans tasarım birebir (mobil düzene uyarlı)
@@ -69,6 +71,7 @@ const CAT_ICONS = {
 };
 
 const WEEK_DAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cts', 'Paz'];
+const WEEK_DAYS_EN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 // ─── Yerel ilerleme (görevler / sandıklar / başarılar) ───
 const todayKey = () => new Date().toISOString().split('T')[0];
@@ -120,6 +123,7 @@ function pickDailyQuestion(dateKey) {
 }
 
 function DailyQuestion({ theme, onXP, onEvent }) {
+  const tt = useTx();
   const dateKey = todayKey();
   const q = useMemo(() => pickDailyQuestion(dateKey), [dateKey]);
   const [answered, setAnswered] = useState(() => load(`dq_${dateKey}`, null));
@@ -149,9 +153,9 @@ function DailyQuestion({ theme, onXP, onEvent }) {
       style={{ background: `linear-gradient(150deg, #10B98112, ${theme.surface})`, border: '1.5px solid #10B98140' }}>
       <div className="flex items-center justify-between mb-2">
         <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#10B981' }}>
-          📌 Günün Sorusu · +30 XP
+          {tt('📌 Günün Sorusu · +30 XP')}
         </p>
-        {streak > 0 && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: '#F59E0B18', color: '#F59E0B' }}>🔁 {streak} gün</span>}
+        {streak > 0 && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: '#F59E0B18', color: '#F59E0B' }}>🔁 {streak} {tt('gün')}</span>}
       </div>
       <p className="text-sm font-bold mb-3" style={{ color: theme.textPrimary }}>{q.question}</p>
       <div className="grid grid-cols-2 gap-2">
@@ -173,7 +177,7 @@ function DailyQuestion({ theme, onXP, onEvent }) {
       </div>
       {answered && (
         <p className="text-[10px] mt-2.5 leading-relaxed" style={{ color: answered.ok ? '#10B981' : theme.textSecondary }}>
-          {answered.ok ? '✅ Doğru! Yarın yeni soru seni bekliyor.' : `❌ Doğrusu: ${q.options[q.correct_index]}.`} {q.explanation}
+          {answered.ok ? tt('✅ Doğru! Yarın yeni soru seni bekliyor.') : `❌ ${tt('Doğrusu')}: ${q.options[q.correct_index]}.`} {q.explanation}
         </p>
       )}
     </motion.div>
@@ -228,6 +232,9 @@ function LeagueEmblem({ color, size = 52 }) {
 }
 
 export default function GamesPage() {
+  const tt = useTx();
+  const { lang } = useLang();
+  const numLocale = lang === 'tr' ? 'tr-TR' : 'en-US';
   const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -423,14 +430,14 @@ export default function GamesPage() {
   const totalXP = stats.total_points || 0;
   const { lvl, next, pct } = levelInfo(totalXP);
   const league = leagueInfo(totalXP);
-  const levelTitle = LEVEL_TITLES[Math.min((stats.level || lvl) - 1, LEVEL_TITLES.length - 1)];
+  const levelTitle = tt(LEVEL_TITLES[Math.min((stats.level || lvl) - 1, LEVEL_TITLES.length - 1)]);
   const activeGame = GAME_MODES.find(g => g.id === active);
 
   const TASKS = [
-    { id: 'hadis5', icon: '🏆', label: '5 hadis sorusu çöz', cur: daily.hadis, max: 5, xp: 20 },
-    { id: 'cevap20', icon: '🎯', label: '20 soru cevapla', cur: daily.answers, max: 20, xp: 20 },
-    { id: 'kazan1', icon: '🎮', label: '1 oyun kazan', cur: daily.wins, max: 1, xp: 20 },
-    { id: 'seri3', icon: '⚡', label: '3 doğru üst üste yap', cur: daily.bestCombo, max: 3, xp: 20 },
+    { id: 'hadis5', icon: '🏆', label: tt('5 hadis sorusu çöz'), cur: daily.hadis, max: 5, xp: 20 },
+    { id: 'cevap20', icon: '🎯', label: tt('20 soru cevapla'), cur: daily.answers, max: 20, xp: 20 },
+    { id: 'kazan1', icon: '🎮', label: tt('1 oyun kazan'), cur: daily.wins, max: 1, xp: 20 },
+    { id: 'seri3', icon: '⚡', label: tt('3 doğru üst üste yap'), cur: daily.bestCombo, max: 3, xp: 20 },
   ];
   const CHESTS = [
     { id: 'bronz', name: 'Bronz Sandık', emoji: '🥉', need: 2, xp: 25, color: '#CD7F32' },
@@ -468,11 +475,11 @@ export default function GamesPage() {
               style={{ background: `${theme.gold}22`, border: `3px solid ${theme.gold}`, color: theme.gold }}>
               {levelUp}
             </motion.div>
-            <p className="text-[11px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: theme.gold }}>Seviye Atladın!</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: theme.gold }}>{tt('Seviye Atladın!')}</p>
             <h2 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
-              {LEVEL_TITLES[Math.min(levelUp - 1, LEVEL_TITLES.length - 1)]}
+              {tt(LEVEL_TITLES[Math.min(levelUp - 1, LEVEL_TITLES.length - 1)])}
             </h2>
-            <p className="text-xs mt-2" style={{ color: theme.textSecondary }}>İlim yolculuğun yükseliyor 🌙</p>
+            <p className="text-xs mt-2" style={{ color: theme.textSecondary }}>{tt('İlim yolculuğun yükseliyor 🌙')}</p>
           </motion.div>
         </motion.div>
       )}
@@ -501,7 +508,7 @@ export default function GamesPage() {
             className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
             <ArrowLeft size={20} style={{ color: theme.gold }} />
           </button>
-          <h1 className="text-xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{activeGame.title}</h1>
+          <h1 className="text-xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt(activeGame.title)}</h1>
           {dailyGameId === activeGame.id && (
             <span className="ml-auto text-[10px] font-black px-2.5 py-1 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B', border: '1px solid #F59E0B55' }}>🔥 2x XP</span>
           )}
@@ -525,8 +532,8 @@ export default function GamesPage() {
             <ArrowLeft size={20} style={{ color: theme.gold }} />
           </button>
           <div>
-            <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Oyun Modları</h1>
-            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{GAME_MODES.length} mod · her biri farklı bir deneyim</p>
+            <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt('Oyun Modları')}</h1>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{GAME_MODES.length} {tt('mod · her biri farklı bir deneyim')}</p>
           </div>
         </div>
 
@@ -540,11 +547,11 @@ export default function GamesPage() {
             <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 2.4, repeat: Infinity }}
               className="text-5xl" style={{ filter: `drop-shadow(0 6px 16px ${featured.color}80)` }}>{featured.emoji}</motion.span>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: featured.color }}>Öne Çıkan</p>
-              <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{featured.title}</p>
-              <p className="text-[11px]" style={{ color: theme.textSecondary }}>{featured.desc}</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: featured.color }}>{tt('Öne Çıkan')}</p>
+              <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt(featured.title)}</p>
+              <p className="text-[11px]" style={{ color: theme.textSecondary }}>{tt(featured.desc)}</p>
             </div>
-            <span className="text-[11px] font-black px-3.5 py-2 rounded-xl shrink-0" style={{ background: featured.color, color: '#fff' }}>{featured.cta || 'Oyna'}</span>
+            <span className="text-[11px] font-black px-3.5 py-2 rounded-xl shrink-0" style={{ background: featured.color, color: '#fff' }}>{tt(featured.cta || 'Oyna')}</span>
           </div>
         </motion.button>
 
@@ -566,10 +573,10 @@ export default function GamesPage() {
                   <span className="text-3xl mb-2 block" style={{ filter: `drop-shadow(0 2px 8px ${g.color}60)` }}>{g.emoji}</span>
                   {isDaily && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B' }}>🔥 2x</span>}
                 </div>
-                <p className="text-sm font-black leading-tight" style={{ color: theme.textPrimary }}>{g.title}</p>
-                <p className="text-[10px] mt-1 flex-1 leading-relaxed" style={{ color: theme.textSecondary }}>{g.desc}</p>
+                <p className="text-sm font-black leading-tight" style={{ color: theme.textPrimary }}>{tt(g.title)}</p>
+                <p className="text-[10px] mt-1 flex-1 leading-relaxed" style={{ color: theme.textSecondary }}>{tt(g.desc)}</p>
                 <p className="text-[9px] font-bold mt-2" style={{ color: g.color }}>
-                  {meta ? `${meta.plays} oyun · ${meta.xp} XP` : 'Hiç oynanmadı'}
+                  {meta ? `${meta.plays} ${tt('oyun')} · ${meta.xp} XP` : tt('Hiç oynanmadı')}
                 </p>
               </motion.button>
             );
@@ -598,19 +605,19 @@ export default function GamesPage() {
 
       {/* ─── BAŞLIK + ÇİPLER ─── */}
       <div className="px-5 pt-6 pb-3">
-        <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Oyun Merkezi</h1>
-        <p className="text-xs mt-0.5 mb-3" style={{ color: theme.textSecondary }}>Bilgiyle yarış, ilimle yüksel!</p>
+        <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt('Oyun Merkezi')}</h1>
+        <p className="text-xs mt-0.5 mb-3" style={{ color: theme.textSecondary }}>{tt('Bilgiyle yarış, ilimle yüksel!')}</p>
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
           {[
-            { icon: <Flame size={13} style={{ color: '#EF4444' }} />, val: streak, label: 'Günlük Seri' },
-            { icon: <Star size={13} style={{ color: theme.gold }} />, val: totalXP.toLocaleString('tr-TR'), label: 'XP Puanı' },
-            { icon: <Gem size={13} style={{ color: '#10B981' }} />, val: totals.correct, label: 'İlmi' },
+            { icon: <Flame size={13} style={{ color: '#EF4444' }} />, val: streak, label: tt('Günlük Seri') },
+            { icon: <Star size={13} style={{ color: theme.gold }} />, val: totalXP.toLocaleString(numLocale), label: tt('XP Puanı') },
+            { icon: <Gem size={13} style={{ color: '#10B981' }} />, val: totals.correct, label: tt('İlmi') },
           ].map((c, i) => (
             <div key={i} className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl" style={S.card}>
               {c.icon}
               <div>
                 <p className="text-sm font-black leading-none tabular-nums" style={{ color: theme.textPrimary }}>{c.val}</p>
-                <p className="text-[8px] uppercase tracking-wide mt-0.5" style={{ color: theme.textSecondary }}>{c.label}</p>
+                <p className="text-[8px] uppercase tracking-wide mt-0.5" style={{ color: theme.textSecondary }}>{tt(c.label)}</p>
               </div>
             </div>
           ))}
@@ -645,17 +652,17 @@ export default function GamesPage() {
                   style={{ background: 'linear-gradient(90deg, #ffd369, #d4af37)' }} />
               </div>
               <p className="text-[10px] mt-1" style={{ color: '#A8B5A0' }}>
-                {totalXP.toLocaleString('tr-TR')} / {next.toLocaleString('tr-TR')} XP · Sonraki seviye: <span style={{ color: '#ffd369' }}>{Math.max(0, next - totalXP)} XP kaldı</span>
+                {totalXP.toLocaleString(numLocale)} / {next.toLocaleString(numLocale)} XP · {tt('Sonraki seviye')}: <span style={{ color: '#ffd369' }}>{Math.max(0, next - totalXP)} {tt('XP kaldı')}</span>
               </p>
             </div>
           </div>
           {/* İstatistik şeridi */}
           <div className="grid grid-cols-4 gap-1.5 mt-4">
             {[
-              { icon: '🔥', val: streak, label: 'Günlük Seri' },
-              { icon: '🏆', val: (stats.badges || []).length, label: 'Rozet' },
-              { icon: '🎮', val: totals.wins, label: 'Oyun Kazanımı' },
-              { icon: '✅', val: totals.correct.toLocaleString('tr-TR'), label: 'Doğru Cevap' },
+              { icon: '🔥', val: streak, label: tt('Günlük Seri') },
+              { icon: '🏆', val: (stats.badges || []).length, label: tt('Rozet') },
+              { icon: '🎮', val: totals.wins, label: tt('Oyun Kazanımı') },
+              { icon: '✅', val: totals.correct.toLocaleString(numLocale), label: tt('Doğru Cevap') },
             ].map((s, i) => (
               <div key={i} className="rounded-xl px-1 py-2 text-center" style={{ background: '#ffffff0a', border: '1px solid #ffd36920' }}>
                 <p className="text-sm font-black tabular-nums" style={{ color: '#f7e6ae' }}>{s.icon} {s.val}</p>
@@ -675,13 +682,13 @@ export default function GamesPage() {
         <button onClick={() => ambient.toggle()}
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 active:scale-90 transition-transform"
           style={{ background: amb.playing ? '#10B98122' : `${theme.gold}12`, border: `1.5px solid ${amb.playing ? '#10B981' : `${theme.gold}35`}` }}
-          aria-label={amb.playing ? 'Atmosferi durdur' : 'Atmosferi başlat'}>
+          aria-label={amb.playing ? tt('Atmosferi durdur') : tt('Atmosferi başlat')}>
           <span className="text-lg">{amb.playing ? '⏸️' : '🎵'}</span>
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-xs font-black shrink-0" style={{ color: theme.textPrimary }}>
-              Atmosfer {amb.playing && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ color: '#10B981' }}>·</motion.span>}
+              {tt('Atmosfer')} {amb.playing && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ color: '#10B981' }}>·</motion.span>}
             </p>
             <div className="flex gap-1">
               {amb.tracks.map(t => (
@@ -692,7 +699,7 @@ export default function GamesPage() {
                     border: `1px solid ${amb.track === t.id ? `${theme.gold}50` : theme.cardBorder}`,
                     color: amb.track === t.id ? theme.gold : theme.textSecondary,
                   }}>
-                  {t.icon || '🎙️'} {t.name.split(' ')[0]}
+                  {t.icon || '🎙️'} {((lang === 'tr' ? t.name : (t.nameEn || t.name)) || '').split(' ')[0]}
                 </button>
               ))}
             </div>
@@ -706,7 +713,7 @@ export default function GamesPage() {
           className="shrink-0 flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl active:scale-95 transition-transform"
           style={{ background: sfxOn ? `${theme.gold}12` : `${theme.textSecondary}10`, border: `1px solid ${sfxOn ? `${theme.gold}35` : theme.cardBorder}` }}>
           <span className="text-sm">{sfxOn ? '🔔' : '🔕'}</span>
-          <span className="text-[8px] font-bold" style={{ color: sfxOn ? theme.gold : theme.textSecondary }}>Efektler</span>
+          <span className="text-[8px] font-bold" style={{ color: sfxOn ? theme.gold : theme.textSecondary }}>{tt('Efektler')}</span>
         </button>
       </motion.div>
 
@@ -723,8 +730,8 @@ export default function GamesPage() {
             style={{ background: `linear-gradient(135deg, ${lastGame.color}12, ${theme.surface})`, border: `1.5px solid ${lastGame.color}40` }}>
             <span className="text-2xl">{lastGame.emoji}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{lastGame.title}</p>
-              <p className="text-[9px]" style={{ color: theme.textSecondary }}>Son oynadığın mod</p>
+              <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{tt(lastGame.title)}</p>
+              <p className="text-[9px]" style={{ color: theme.textSecondary }}>{tt('Son oynadığın mod')}</p>
             </div>
             <span className="text-[11px] font-black px-3.5 py-2 rounded-xl" style={{ background: lastGame.color, color: '#fff' }}>Devam Et</span>
           </motion.button>
@@ -737,15 +744,17 @@ export default function GamesPage() {
         <LeagueEmblem color={league.cur.color} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="text-base font-black" style={{ color: league.cur.color }}>{league.cur.name}</p>
+            <p className="text-base font-black" style={{ color: league.cur.color }}>{tt(league.cur.name)}</p>
             {(() => {
               const now = new Date();
               const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
               const daysLeft = Math.max(1, Math.ceil((monthEnd - now) / 86400000));
-              const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+              const months = lang === 'tr'
+      ? ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık']
+      : ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
               return (
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold }}>
-                  Sezon: {months[now.getMonth()]} · {daysLeft} gün
+                  {tt('Sezon')}: {months[now.getMonth()]} · {daysLeft} {tt('gün')}
                 </span>
               );
             })()}
@@ -755,8 +764,8 @@ export default function GamesPage() {
           </div>
           <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>
             {league.next
-              ? <>{totalXP.toLocaleString('tr-TR')} / {league.next.min.toLocaleString('tr-TR')} XP · Sonraki Lig: <span style={{ color: league.next.color }}>{league.next.name.replace(' Lig', '')}</span> 🛡️</>
-              : 'En yüksek ligdesin! 👑'}
+              ? <>{totalXP.toLocaleString(numLocale)} / {league.next.min.toLocaleString(numLocale)} XP · {tt('Sonraki Lig')}: <span style={{ color: league.next.color }}>{tt(league.next.name).replace(/ (Lig|League)$/, '')}</span> 🛡️</>
+              : tt('En yüksek ligdesin! 👑')}
           </p>
         </div>
       </motion.div>
@@ -776,15 +785,15 @@ export default function GamesPage() {
           style={{ background: `linear-gradient(105deg, transparent 42%, ${theme.gold}14 50%, transparent 58%)` }} />
         <div className="flex items-center justify-between relative mb-3.5">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: theme.gold }}>Oyun Modları</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: theme.gold }}>{tt('Oyun Modları')}</p>
             <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
-              {GAME_MODES.length} farklı deneyim
+              {GAME_MODES.length} {tt('farklı deneyim')}
             </p>
-            <p className="text-[10px]" style={{ color: theme.textSecondary }}>Blitz'ten Maceraya — hepsi seni bekliyor</p>
+            <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt("Blitz'ten Maceraya — hepsi seni bekliyor")}</p>
           </div>
           <span className="text-[11px] font-black px-4 py-2.5 rounded-xl shrink-0 flex items-center gap-1"
             style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight})`, color: theme.bg }}>
-            Modlara Git <ChevronRight size={13} />
+            {tt('Modlara Git')} <ChevronRight size={13} />
           </span>
         </div>
         {/* Emoji mozaiği — modların vitrini */}
@@ -809,7 +818,7 @@ export default function GamesPage() {
       <div className="px-5 mb-5">
         <div className="rounded-2xl p-4" style={S.card}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>Günlük Görevler</h2>
+            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>{tt('Günlük Görevler')}</h2>
             <span className="text-[10px] font-bold tabular-nums px-2 py-1 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold }}>⏳ {midnight}</span>
           </div>
           <div className="space-y-2.5">
@@ -821,7 +830,7 @@ export default function GamesPage() {
                   <span className="text-base w-6 text-center">{t.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{t.label}</p>
+                      <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{tt(t.label)}</p>
                       <span className="text-[10px] font-bold tabular-nums" style={{ color: done ? '#10B981' : theme.textSecondary }}>{Math.min(t.cur, t.max)} / {t.max}</span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
@@ -843,9 +852,9 @@ export default function GamesPage() {
       <div className="px-5 mb-5">
         <div className="rounded-2xl p-4" style={S.card}>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>🎯 Haftalık Hedef</h2>
+            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>{tt('🎯 Haftalık Hedef')}</h2>
             {week.claimed
-              ? <span className="text-[10px] font-black" style={{ color: '#10B981' }}>Alındı ✓</span>
+              ? <span className="text-[10px] font-black" style={{ color: '#10B981' }}>{tt('Alındı ✓')}</span>
               : week.xp >= WEEK_GOAL
                 ? <button onClick={claimWeek} className="text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95" style={{ background: '#10B981', color: '#fff' }}>+{WEEK_BONUS} Al</button>
                 : <span className="text-[10px] font-bold tabular-nums" style={{ color: theme.textSecondary }}>{Math.min(week.xp, WEEK_GOAL)} / {WEEK_GOAL} XP</span>}
@@ -855,7 +864,7 @@ export default function GamesPage() {
               style={{ background: week.xp >= WEEK_GOAL ? '#10B981' : `linear-gradient(90deg, ${theme.gold}, ${theme.goldLight})` }} />
           </div>
           <p className="text-[10px] mt-1.5" style={{ color: theme.textSecondary }}>
-            Bu hafta {WEEK_GOAL} XP topla, +{WEEK_BONUS} bonus kazan! Hafta pazartesi sıfırlanır.
+            {tt('Bu hafta')} {WEEK_GOAL} {tt('XP topla')}, +{WEEK_BONUS} {tt('bonus kazan! Hafta pazartesi sıfırlanır.')}
           </p>
         </div>
       </div>
@@ -863,7 +872,7 @@ export default function GamesPage() {
       {/* ─── SANDIKLAR + ETKİNLİKLER ─── */}
       <div className="px-5 mb-5 grid grid-cols-1 gap-4">
         <div className="rounded-2xl p-4" style={S.card}>
-          <h2 className="text-sm font-black mb-3" style={{ color: theme.textPrimary }}>Sandıklar</h2>
+          <h2 className="text-sm font-black mb-3" style={{ color: theme.textPrimary }}>{tt('Sandıklar')}</h2>
           <div className="grid grid-cols-3 gap-2.5">
             {CHESTS.map(c => {
               const ready = daily.wins >= c.need;
@@ -872,12 +881,12 @@ export default function GamesPage() {
                 <div key={c.id} className="rounded-xl p-3 text-center" style={{ background: `${c.color}0e`, border: `1px solid ${c.color}35` }}>
                   <motion.span animate={ready && !claimed ? { rotate: [-4, 4, -4], scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.9, repeat: Infinity }}
                     className="text-2xl block mb-1">{claimed ? '📭' : '🎁'}</motion.span>
-                  <p className="text-[10px] font-black" style={{ color: c.color }}>{c.name}</p>
+                  <p className="text-[10px] font-black" style={{ color: c.color }}>{tt(c.name)}</p>
                   <p className="text-[9px] mb-2 tabular-nums" style={{ color: theme.textSecondary }}>{Math.min(daily.wins, c.need)} / {c.need} Galibiyet</p>
                   {claimed
-                    ? <span className="text-[9px] font-bold" style={{ color: '#10B981' }}>Alındı ✓</span>
+                    ? <span className="text-[9px] font-bold" style={{ color: '#10B981' }}>{tt('Alındı ✓')}</span>
                     : ready
-                      ? <button onClick={() => claimReward('chest', c.id, c.xp)} className="text-[9px] font-black px-2.5 py-1 rounded-lg active:scale-95" style={{ background: c.color, color: '#04150d' }}>+{c.xp} Aç</button>
+                      ? <button onClick={() => claimReward('chest', c.id, c.xp)} className="text-[9px] font-black px-2.5 py-1 rounded-lg active:scale-95" style={{ background: c.color, color: '#04150d' }}>+{c.xp} {tt('Aç')}</button>
                       : <span className="text-[9px] font-bold flex items-center justify-center gap-0.5" style={{ color: theme.textSecondary }}><Gift size={9} /> +{c.xp} XP</span>}
                 </div>
               );
@@ -885,7 +894,7 @@ export default function GamesPage() {
           </div>
           {daily.wins < 10 && (
             <p className="text-[10px] text-center mt-3" style={{ color: theme.textSecondary }}>
-              Sonraki sandık için <span style={{ color: theme.gold }}>{CHESTS.find(c => daily.wins < c.need)?.need - daily.wins} oyun kazan</span>!
+              {tt('Sonraki sandık için')} <span style={{ color: theme.gold }}>{CHESTS.find(c => daily.wins < c.need)?.need - daily.wins} oyun kazan</span>!
             </p>
           )}
         </div>
@@ -895,9 +904,9 @@ export default function GamesPage() {
           <h2 className="text-sm font-black mb-3" style={{ color: theme.textPrimary }}>Etkinlikler</h2>
           <div className="space-y-2">
             {[
-              { icon: '⭐', name: 'Cuma Özel Meydan Okuması', when: 'Her Cuma', active: new Date().getDay() === 5 },
-              { icon: '🎉', name: 'Haftasonu Çılgınlığı', when: 'Cmt-Paz', active: [0, 6].includes(new Date().getDay()) },
-              { icon: '🌙', name: 'Ramazan Turnuvası', when: 'Ramazan ayında', active: false },
+              { icon: '⭐', name: tt('Cuma Özel Meydan Okuması'), when: tt('Her Cuma'), active: new Date().getDay() === 5 },
+              { icon: '🎉', name: tt('Haftasonu Çılgınlığı'), when: tt('Cmt-Paz'), active: [0, 6].includes(new Date().getDay()) },
+              { icon: '🌙', name: tt('Ramazan Turnuvası'), when: tt('Ramazan ayında'), active: false },
             ].map((e, i) => (
               <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: e.active ? `${theme.gold}10` : `${theme.textSecondary}08`, border: `1px solid ${e.active ? `${theme.gold}35` : 'transparent'}` }}>
                 <span className="text-lg">{e.icon}</span>
@@ -905,7 +914,7 @@ export default function GamesPage() {
                   <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{e.name}</p>
                   <p className="text-[9px]" style={{ color: theme.textSecondary }}>{e.when}</p>
                 </div>
-                {e.active && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: '#10B98122', color: '#10B981' }}>Bugün!</span>}
+                {e.active && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: '#10B98122', color: '#10B981' }}>{tt('Bugün!')}</span>}
               </div>
             ))}
           </div>
@@ -918,11 +927,11 @@ export default function GamesPage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>Liderlik Tablosu</h2>
             <button onClick={() => navigate('/profile')} className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: theme.gold }}>
-              Tüm Sıralama <ChevronRight size={11} />
+              {tt('Tüm Sıralama')} <ChevronRight size={11} />
             </button>
           </div>
           {leaderboard.length === 0 ? (
-            <p className="text-xs text-center py-4" style={{ color: theme.textSecondary }}>İlk oyununu oyna, sıralamaya gir! 🏁</p>
+            <p className="text-xs text-center py-4" style={{ color: theme.textSecondary }}>{tt('İlk oyununu oyna, sıralamaya gir! 🏁')}</p>
           ) : (
             <div className="space-y-2">
               {leaderboard.map((e, i) => (
@@ -942,7 +951,7 @@ export default function GamesPage() {
         <div className="rounded-2xl p-4" style={S.card}>
           <div className="flex items-center justify-between mb-2.5">
             <h2 className="text-sm font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}><Library size={14} style={{ color: theme.gold }} /> Kategoriler</h2>
-            <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>Dokun → o konuda test başlat</span>
+            <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>{tt('Dokun → o konuda test başlat')}</span>
           </div>
           {/* Kompakt yatay şerit — dokununca o kategoriyle Klasik Test açılır */}
           <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
@@ -954,7 +963,7 @@ export default function GamesPage() {
                 }}
                 className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-black active:scale-95 transition-transform"
                 style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}25`, color: theme.textPrimary }}>
-                <span className="text-sm">{CAT_ICONS[c.name] || '📚'}</span> {c.name}
+                <span className="text-sm">{CAT_ICONS[c.name] || '📚'}</span> {tt(c.name)}
               </button>
             ))}
           </div>
@@ -965,9 +974,9 @@ export default function GamesPage() {
       <div className="px-5 mb-5">
         <div className="rounded-2xl p-4" style={S.card}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>Başarılarım</h2>
+            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>{tt('Başarılarım')}</h2>
             <button onClick={() => navigate('/achievements')} className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: theme.gold }}>
-              Tüm Rozetler <ChevronRight size={11} />
+              {tt('Tüm Rozetler')} <ChevronRight size={11} />
             </button>
           </div>
           <div className="space-y-3">
@@ -978,10 +987,10 @@ export default function GamesPage() {
                   <span className="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0" style={{ background: `${theme.gold}12`, border: `1px solid ${theme.gold}25` }}>{a.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{a.name}</p>
+                      <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{tt(a.name)}</p>
                       {done ? <CheckCircle2 size={14} style={{ color: '#10B981' }} /> : <span className="text-[9px] tabular-nums" style={{ color: theme.textSecondary }}>{Math.min(a.cur, a.max)} / {a.max}</span>}
                     </div>
-                    <p className="text-[9px] mb-1" style={{ color: theme.textSecondary }}>{a.desc}</p>
+                    <p className="text-[9px] mb-1" style={{ color: theme.textSecondary }}>{tt(a.desc)}</p>
                     <div className="h-1 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
                       <div className="h-full rounded-full" style={{ width: `${Math.min(100, (a.cur / a.max) * 100)}%`, background: done ? '#10B981' : theme.gold }} />
                     </div>
@@ -1002,11 +1011,11 @@ export default function GamesPage() {
           <div className="px-5 mb-5">
             <div className="rounded-2xl p-4" style={S.card}>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>🎒 Koleksiyon Albümü</h2>
-                <span className="text-[10px] font-bold" style={{ color: theme.gold }}>{artifacts.length + badges.length} parça</span>
+                <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>{tt('🎒 Koleksiyon Albümü')}</h2>
+                <span className="text-[10px] font-bold" style={{ color: theme.gold }}>{artifacts.length + badges.length} {tt('parça')}</span>
               </div>
               {/* Macera hatıraları */}
-              <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>Macera Hatıraları</p>
+              <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>{tt('Macera Hatıraları')}</p>
               <div className="grid grid-cols-6 gap-1.5 mb-3">
                 {ADVENTURE.map(c => {
                   const owned = artifacts.includes(c.id);
@@ -1026,7 +1035,7 @@ export default function GamesPage() {
               {/* Rozetler */}
               {badges.length > 0 && (
                 <>
-                  <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>Kazanılan Rozetler</p>
+                  <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>{tt('Kazanılan Rozetler')}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {badges.map(b => (
                       <span key={b} className="text-[9px] font-black px-2.5 py-1 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold, border: `1px solid ${theme.gold}35` }}>
@@ -1037,7 +1046,7 @@ export default function GamesPage() {
                 </>
               )}
               {artifacts.length === 0 && badges.length === 0 && (
-                <p className="text-[10px] text-center py-2" style={{ color: theme.textSecondary }}>Macera duraklarını bitir, hatıraları topla! 🌍</p>
+                <p className="text-[10px] text-center py-2" style={{ color: theme.textSecondary }}>{tt('Macera duraklarını bitir, hatıraları topla! 🌍')}</p>
               )}
             </div>
           </div>
@@ -1059,13 +1068,13 @@ export default function GamesPage() {
               </div>
             </div>
             <div>
-              <p className="text-sm font-black" style={{ color: theme.textPrimary }}>Günlük Seri</p>
-              <p className="text-[10px]" style={{ color: theme.textSecondary }}>Serini koru, ödülleri kap!</p>
+              <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{tt('Günlük Seri')}</p>
+              <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt('Serini koru, ödülleri kap!')}</p>
             </div>
           </div>
           {/* Hafta günleri */}
           <div className="flex justify-between mb-4">
-            {WEEK_DAYS.map((d, i) => {
+            {(lang === 'tr' ? WEEK_DAYS : WEEK_DAYS_EN).map((d, i) => {
               const filled = i <= todayIdx && (todayIdx - i) < streak;
               return (
                 <div key={d} className="flex flex-col items-center gap-1">
@@ -1083,11 +1092,11 @@ export default function GamesPage() {
             {[
               { emoji: '💚', days: 10, reward: '50 XP' },
               { emoji: '⚔️', days: 20, reward: '100 XP' },
-              { emoji: '👑', days: 30, reward: 'Özel Rozet' },
+              { emoji: '👑', days: 30, reward: tt('Özel Rozet') },
             ].map((r, i) => (
               <div key={i} className="rounded-xl p-2.5 text-center" style={{ background: streak >= r.days ? '#10B98112' : `${theme.textSecondary}08`, border: `1px solid ${streak >= r.days ? '#10B98140' : theme.cardBorder}` }}>
                 <span className="text-lg block">{r.emoji}</span>
-                <p className="text-[9px] font-black mt-0.5" style={{ color: theme.textPrimary }}>{r.days} Gün</p>
+                <p className="text-[9px] font-black mt-0.5" style={{ color: theme.textPrimary }}>{r.days} {tt('Gün')}</p>
                 <p className="text-[8px]" style={{ color: streak >= r.days ? '#10B981' : theme.textSecondary }}>{r.reward}</p>
               </div>
             ))}
@@ -1100,14 +1109,14 @@ export default function GamesPage() {
         {[
           { icon: <Library size={14} />, label: 'Soru Havuzu', to: '/quiz' },
           { icon: <Award size={14} />, label: 'Rozetler', to: '/achievements' },
-          { icon: <Swords size={14} />, label: 'Düello', to: '/multiplayer' },
+          { icon: <Swords size={14} />, label: tt('Düello'), to: '/multiplayer' },
           { icon: <Trophy size={14} />, label: 'Liderlik', to: '/profile' },
         ].map((l, i) => (
           <button key={i} onClick={() => navigate(l.to)}
             className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl active:scale-95 transition-all"
             style={S.card}>
             <span style={{ color: theme.gold }}>{l.icon}</span>
-            <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>{l.label}</span>
+            <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>{tt(l.label)}</span>
           </button>
         ))}
       </div>

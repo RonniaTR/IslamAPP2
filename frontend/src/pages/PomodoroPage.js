@@ -3,37 +3,42 @@ import { Clock, Play, Pause, RotateCcw, BookOpen, Trophy, Target, Coffee, Volume
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LangContext';
+import { useTx } from '../i18n';
 import api from '../api';
 
 const PRESETS = [
-  { label: '25 dk', minutes: 25, break: 5, icon: '📖', desc: 'Klasik Pomodoro' },
-  { label: '45 dk', minutes: 45, break: 10, icon: '📚', desc: 'Derin Çalışma' },
-  { label: '15 dk', minutes: 15, break: 3, icon: '⚡', desc: 'Hızlı Tekrar' },
-  { label: '60 dk', minutes: 60, break: 15, icon: '🎓', desc: 'Maraton' },
+  { label: '25 dk', labelEn: '25 min', minutes: 25, break: 5, icon: '📖', desc: 'Klasik Pomodoro', descEn: 'Classic Pomodoro' },
+  { label: '45 dk', labelEn: '45 min', minutes: 45, break: 10, icon: '📚', desc: 'Derin Çalışma', descEn: 'Deep Study' },
+  { label: '15 dk', labelEn: '15 min', minutes: 15, break: 3, icon: '⚡', desc: 'Hızlı Tekrar', descEn: 'Quick Review' },
+  { label: '60 dk', labelEn: '60 min', minutes: 60, break: 15, icon: '🎓', desc: 'Maraton', descEn: 'Marathon' },
 ];
 
 const TOPICS = [
-  { id: 'quran', label: "Kur'an Okuma", icon: '📖' },
-  { id: 'hadith', label: 'Hadis Çalışma', icon: '📜' },
-  { id: 'tafsir', label: 'Tefsir', icon: '🔍' },
-  { id: 'fiqh', label: 'Fıkıh', icon: '⚖️' },
-  { id: 'arabic', label: 'Arapça', icon: '🗣️' },
-  { id: 'seerah', label: 'Siyer', icon: '🕌' },
-  { id: 'general', label: 'Genel İlim', icon: '💡' },
+  { id: 'quran', label: "Kur'an Okuma", labelEn: "Qur'an Reading", icon: '📖' },
+  { id: 'hadith', label: 'Hadis Çalışma', labelEn: 'Hadith Study', icon: '📜' },
+  { id: 'tafsir', label: 'Tefsir', labelEn: 'Tafsir', icon: '🔍' },
+  { id: 'fiqh', label: 'Fıkıh', labelEn: 'Fiqh', icon: '⚖️' },
+  { id: 'arabic', label: 'Arapça', labelEn: 'Arabic', icon: '🗣️' },
+  { id: 'seerah', label: 'Siyer', labelEn: 'Sīra', icon: '🕌' },
+  { id: 'general', label: 'Genel İlim', labelEn: 'General Knowledge', icon: '💡' },
 ];
 
 const ISLAMIC_QUOTES = [
-  { text: "İlim öğrenmek her Müslümana farzdır.", source: "İbn Mace" },
-  { text: "Beşikten mezara kadar ilim öğreniniz.", source: "Hz. Muhammed (s.a.v)" },
-  { text: "Bir saat tefekkür, bir sene nafile ibadetten hayırlıdır.", source: "Hadis-i Şerif" },
-  { text: "İlim Çin'de de olsa gidip alınız.", source: "Hz. Muhammed (s.a.v)" },
-  { text: "Ya öğreten ol, ya öğrenen, ya dinleyen, ya da ilmi seven. Beşincisi olma helak olursun.", source: "Hz. Muhammed (s.a.v)" },
-  { text: "Allah, ilim öğrenmek için yola çıkan kimseye cennetin yolunu kolaylaştırır.", source: "Müslim" },
+  { text: "İlim öğrenmek her Müslümana farzdır.", textEn: 'Seeking knowledge is an obligation upon every Muslim.', source: "İbn Mace", sourceEn: 'Ibn Māja' },
+  { text: "Beşikten mezara kadar ilim öğreniniz.", textEn: 'Seek knowledge from the cradle to the grave.', source: "Hz. Muhammed (s.a.v)", sourceEn: 'The Prophet Muhammad (pbuh)' },
+  { text: "Bir saat tefekkür, bir sene nafile ibadetten hayırlıdır.", textEn: 'An hour of contemplation is better than a year of voluntary worship.', source: "Hadis-i Şerif", sourceEn: 'Noble Hadith' },
+  { text: "İlim Çin'de de olsa gidip alınız.", textEn: 'Seek knowledge even if it be in China.', source: "Hz. Muhammed (s.a.v)", sourceEn: 'The Prophet Muhammad (pbuh)' },
+  { text: "Ya öğreten ol, ya öğrenen, ya dinleyen, ya da ilmi seven. Beşincisi olma helak olursun.", textEn: 'Be a teacher, a learner, a listener, or one who loves knowledge. Do not be a fifth, lest you perish.', source: "Hz. Muhammed (s.a.v)", sourceEn: 'The Prophet Muhammad (pbuh)' },
+  { text: "Allah, ilim öğrenmek için yola çıkan kimseye cennetin yolunu kolaylaştırır.", textEn: 'Allah makes the path to Paradise easy for whoever sets out to seek knowledge.', source: "Müslim", sourceEn: 'Muslim' },
 ];
 
 export default function PomodoroPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const { lang } = useLang();
+  const tt = useTx();
+  const L = (o, k = 'label') => (lang === 'tr' ? o[k] : (o[k + 'En'] || o[k]));
   const navigate = useNavigate();
   const [phase, setPhase] = useState('setup'); // setup, focus, break, done
   const [selectedPreset, setSelectedPreset] = useState(0);
@@ -124,15 +129,15 @@ export default function PomodoroPage() {
             <ArrowLeft size={18} style={{ color: theme.textPrimary }} />
           </button>
           <div>
-            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>İlim Saati</h1>
-            <p className="text-xs" style={{ color: theme.textSecondary }}>Odaklanarak öğren</p>
+            <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>{tt('İlim Saati')}</h1>
+            <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Odaklanarak öğren')}</p>
           </div>
           <Clock size={24} className="ml-auto" style={{ color: theme.gold }} />
         </div>
         {/* Quote */}
         <div className="mt-3 rounded-xl p-3" style={{ background: `${theme.gold}10` }}>
-          <p className="text-xs italic" style={{ color: theme.gold }}>"{quote.text}"</p>
-          <p className="text-[10px] mt-1 text-right" style={{ color: theme.textSecondary }}>— {quote.source}</p>
+          <p className="text-xs italic" style={{ color: theme.gold }}>"{L(quote, 'text')}"</p>
+          <p className="text-[10px] mt-1 text-right" style={{ color: theme.textSecondary }}>— {L(quote, 'source')}</p>
         </div>
       </div>
 
@@ -142,7 +147,7 @@ export default function PomodoroPage() {
           <div className="rounded-xl p-3 text-center" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
             <Target size={18} className="mx-auto mb-1" style={{ color: '#10B981' }} />
             <div className="text-lg font-bold" style={{ color: theme.textPrimary }}>{completedToday}</div>
-            <div className="text-[10px]" style={{ color: theme.textSecondary }}>Bugün</div>
+            <div className="text-[10px]" style={{ color: theme.textSecondary }}>{tt('Bugün')}</div>
           </div>
           <div className="rounded-xl p-3 text-center" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
             <Clock size={18} className="mx-auto mb-1" style={{ color: theme.gold }} />
@@ -158,7 +163,7 @@ export default function PomodoroPage() {
 
         {/* Süre Seçimi */}
         <div>
-          <h3 className="text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>Süre</h3>
+          <h3 className="text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>{tt('Süre')}</h3>
           <div className="grid grid-cols-2 gap-2">
             {PRESETS.map((p, i) => (
               <button key={i} onClick={() => setSelectedPreset(i)}
@@ -167,8 +172,8 @@ export default function PomodoroPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{p.icon}</span>
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: selectedPreset === i ? theme.gold : theme.textPrimary }}>{p.label}</div>
-                    <div className="text-[10px]" style={{ color: theme.textSecondary }}>{p.desc} • {p.break} dk mola</div>
+                    <div className="text-sm font-semibold" style={{ color: selectedPreset === i ? theme.gold : theme.textPrimary }}>{L(p)}</div>
+                    <div className="text-[10px]" style={{ color: theme.textSecondary }}>{L(p, 'desc')} • {p.break} {tt('dk mola')}</div>
                   </div>
                 </div>
               </button>
@@ -184,7 +189,7 @@ export default function PomodoroPage() {
               <button key={t.id} onClick={() => setSelectedTopic(t.id)}
                 className="px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1"
                 style={{ background: selectedTopic === t.id ? theme.gold : theme.inputBg, color: selectedTopic === t.id ? '#000' : theme.textSecondary }}>
-                {t.icon} {t.label}
+                {t.icon} {L(t)}
               </button>
             ))}
           </div>
@@ -194,7 +199,7 @@ export default function PomodoroPage() {
         <button onClick={startTimer}
           className="w-full py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
           style={{ background: theme.gold, color: '#000' }}>
-          <Play size={18} /> Başla — {PRESETS[selectedPreset].label}
+          <Play size={18} /> {tt('Başla')} — {L(PRESETS[selectedPreset])}
         </button>
       </div>
     </div>
@@ -210,7 +215,7 @@ export default function PomodoroPage() {
           {phase === 'focus' ? '🎯 Odaklanma' : '☕ Mola'}
         </span>
         <p className="text-xs mt-2" style={{ color: theme.textSecondary }}>
-          {phase === 'focus' ? TOPICS.find(t => t.id === selectedTopic)?.label : 'Dinlen, su iç, dua et'}
+          {phase === 'focus' ? (() => { const tp = TOPICS.find(t => t.id === selectedTopic); return tp ? L(tp) : ''; })() : tt('Dinlen, su iç, dua et')}
         </p>
       </div>
 
@@ -249,7 +254,7 @@ export default function PomodoroPage() {
       {/* Motivational quote during focus */}
       {phase === 'focus' && (
         <div className="mt-8 px-6 text-center rounded-xl p-3" style={{ background: `${theme.gold}08` }}>
-          <p className="text-xs italic" style={{ color: theme.textSecondary }}>"{quote.text}"</p>
+          <p className="text-xs italic" style={{ color: theme.textSecondary }}>"{L(quote, 'text')}"</p>
         </div>
       )}
     </div>

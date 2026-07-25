@@ -5,12 +5,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { fetchStats, subscribeStats, getCachedStats, getUserId } from '../services/gamification';
+import { useTx } from '../i18n';
 
 const LEVEL_TITLES = ['Çaylak', 'Talebe', 'Meraklı', 'Bilge Adayı', 'Âlim Yolcusu', 'Hafız Ruhlu', 'İlim Eri', 'Üstat', 'Ârif', 'Ulu Bilge'];
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const tt = useTx();
   
   const [activeTab, setActiveTab] = useState('stats'); // 'stats' veya 'leaderboard'
   const [leaderboard, setLeaderboard] = useState([]);
@@ -26,12 +28,12 @@ export default function ProfilePage() {
 
   const totalXP = liveStats.total_points || 0;
   const level = liveStats.level || 1;
-  const levelTitle = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)] || 'Çaylak';
+  const levelTitle = tt(LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)] || 'Çaylak');
 
   // MİSAFİR İSMİNİ OTOMATİK BULAN SİSTEM
   const displayName = user?.name && user.name !== "Misafir" && user.name !== "Kardeşim" 
     ? user.name 
-    : (localStorage.getItem('islamapp_guest_name') || "İsimsiz Kahraman");
+    : (localStorage.getItem('islamapp_guest_name') || tt("İsimsiz Kahraman"));
 
   // RADAR GRAFİĞİ İÇİN ÖRNEK VERİLER
   const stats = [
@@ -131,7 +133,7 @@ export default function ProfilePage() {
                 <h2 className="text-xl font-extrabold mb-1 text-[#f7e6ae] flex items-center gap-2">
                   <Target className="text-[#ffd369]" size={20}/> Mevcut Durum Analizi
                 </h2>
-                <p className="text-xs text-[#A8B5A0] mb-6">İlim dallarındaki dengenizi inceleyin.</p>
+                <p className="text-xs text-[#A8B5A0] mb-6">{tt('İlim dallarındaki dengenizi inceleyin.')}</p>
                 
                 {/* RADAR GRAFİĞİ */}
                 <div className="relative w-full aspect-square flex items-center justify-center max-w-[260px] mx-auto my-6">
@@ -194,7 +196,7 @@ export default function ProfilePage() {
               {loadingLeaderboard ? (
                 <div className="flex flex-col items-center justify-center py-20 text-[#ffd369]">
                   <Loader2 size={32} className="animate-spin mb-4" />
-                  <p className="text-sm font-bold animate-pulse">Liderler Yükleniyor...</p>
+                  <p className="text-sm font-bold animate-pulse">{tt('Liderler Yükleniyor...')}</p>
                 </div>
               ) : (
                 <LeaderboardTab leaderboard={leaderboard} currentUserId={getUserId(user)} />
@@ -222,7 +224,7 @@ function LeaderboardTab({ leaderboard, currentUserId }) {
       <div className="text-center py-12 rounded-3xl border border-[#ffd369]/20 bg-[#1a3a2a]/30 shadow-lg mt-4">
         <Trophy size={48} className="mx-auto mb-4 text-[#A8B5A0]/30" />
         <p className="text-lg font-bold text-[#f7e6ae] mb-1">Meydan Okuma Bekliyor</p>
-        <p className="text-sm text-[#A8B5A0]">İlk quiz'i tamamla ve kürsüdeki yerini al!</p>
+        <p className="text-sm text-[#A8B5A0]">{tt("İlk quiz'i tamamla ve kürsüdeki yerini al!")}</p>
       </div>
     );
   }
@@ -277,7 +279,7 @@ function LeaderboardTab({ leaderboard, currentUserId }) {
       <div className="bg-[#1a3a2a]/40 rounded-3xl p-4 md:p-6 border border-[#ffd369]/10 shadow-xl">
         <div className="flex items-center gap-2 mb-4 px-2">
           <TrendingUp size={18} className="text-[#ffd369]" />
-          <h3 className="text-sm font-bold text-[#f7e6ae] uppercase tracking-wider">Lig Sıralaması</h3>
+          <h3 className="text-sm font-bold text-[#f7e6ae] uppercase tracking-wider">{tt('Lig Sıralaması')}</h3>
         </div>
 
         <div className="space-y-3">
