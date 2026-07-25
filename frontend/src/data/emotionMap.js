@@ -105,4 +105,7 @@ export const EMOTIONS = [
   },
 ];
 
+import EMOTIONS_EN from './emotionMap.en';
+EMOTIONS.forEach((e) => { if (EMOTIONS_EN[e.id]) e.en = EMOTIONS_EN[e.id]; });
+
 export default EMOTIONS;

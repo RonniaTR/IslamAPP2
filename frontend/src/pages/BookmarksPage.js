@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Bookmark, BookOpen, Trash2, Clock, Search, ChevronRight, Star } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
 import api from '../api';
 
 const SURAH_NAMES = {
@@ -31,6 +32,7 @@ const JUZ_MAP = {1:1,2:1,3:3,4:4,5:6,6:7,7:8,8:9,9:10,10:11,11:12,12:12,13:13,14
 export default function BookmarksPage() {
   const { user } = useAuth();
   const { theme } = useTheme();
+  const tt = useTx();
   const navigate = useNavigate();
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,7 @@ export default function BookmarksPage() {
         <div className="flex items-center gap-2 mb-4">
           <Bookmark size={20} style={{ color: theme.gold }} />
           <h1 className="text-xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
-            Yer İmleri & Okuma
+            {tt('Yer İmleri & Okuma')}
           </h1>
         </div>
 
@@ -95,9 +97,9 @@ export default function BookmarksPage() {
               <Clock size={18} style={{ color: theme.gold }} />
             </div>
             <div className="flex-1 text-left">
-              <p className="text-xs font-medium" style={{ color: theme.gold }}>Kaldığın Yerden Devam Et</p>
+              <p className="text-xs font-medium" style={{ color: theme.gold }}>{tt('Kaldığın Yerden Devam Et')}</p>
               <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
-                {SURAH_NAMES[lastRead.surah] || `Sure ${lastRead.surah}`} — Ayet {lastRead.verse}
+                {SURAH_NAMES[lastRead.surah] || `${tt('Sure')} ${lastRead.surah}`} — {tt('Ayet')} {lastRead.verse}
               </p>
             </div>
             <ChevronRight size={16} style={{ color: theme.gold }} />
@@ -106,7 +108,7 @@ export default function BookmarksPage() {
 
         {/* Tab Switcher */}
         <div className="flex gap-2 mb-3">
-          {[{id:'bookmarks',label:'Yer İmleri',icon:Bookmark},{id:'juz',label:'Cüz Okuma',icon:BookOpen}].map(tab => (
+          {[{id:'bookmarks',label:tt('Yer İmleri'),icon:Bookmark},{id:'juz',label:tt('Cüz Okuma'),icon:BookOpen}].map(tab => (
             <button key={tab.id} onClick={() => setView(tab.id)}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all"
               style={{ background: view === tab.id ? `${theme.gold}20` : theme.inputBg,
@@ -123,7 +125,7 @@ export default function BookmarksPage() {
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: theme.textSecondary }} />
             <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Sure veya ayet ara..."
+              placeholder={tt('Sure veya ayet ara...')}
               className="w-full pl-9 pr-4 py-2 rounded-lg text-sm outline-none"
               style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
           </div>
@@ -140,10 +142,10 @@ export default function BookmarksPage() {
             <div className="text-center py-12">
               <Bookmark size={40} className="mx-auto mb-3 opacity-30" style={{ color: theme.textSecondary }} />
               <p className="text-sm" style={{ color: theme.textSecondary }}>
-                {search ? 'Sonuç bulunamadı' : 'Henüz yer imi eklenmemiş'}
+                {search ? tt('Sonuç bulunamadı') : tt('Henüz yer imi eklenmemiş')}
               </p>
               <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>
-                Sure okurken ayetleri yer imlerine ekleyebilirsiniz
+                {tt('Sure okurken ayetleri yer imlerine ekleyebilirsiniz')}
               </p>
             </div>
           ) : (
@@ -155,8 +157,8 @@ export default function BookmarksPage() {
                       {surah}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{SURAH_NAMES[Number(surah)] || `Sure ${surah}`}</p>
-                      <p className="text-[10px]" style={{ color: theme.textSecondary }}>Cüz {JUZ_MAP[Number(surah)] || '—'}</p>
+                      <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{SURAH_NAMES[Number(surah)] || `${tt('Sure')} ${surah}`}</p>
+                      <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt('Cüz')} {JUZ_MAP[Number(surah)] || '—'}</p>
                     </div>
                     <Star size={14} style={{ color: theme.gold }} />
                   </div>
@@ -164,12 +166,12 @@ export default function BookmarksPage() {
                     {items.sort((a,b) => a.verse - b.verse).map(b => (
                       <div key={b.id} className="flex items-center px-4 py-2.5 gap-3">
                         <button onClick={() => goToVerse(b.surah, b.verse)} className="flex-1 text-left">
-                          <span className="text-sm font-medium" style={{ color: theme.textPrimary }}>Ayet {b.verse}</span>
+                          <span className="text-sm font-medium" style={{ color: theme.textPrimary }}>{tt('Ayet')} {b.verse}</span>
                         </button>
                         <button onClick={() => goToVerse(b.surah, b.verse)}
                           className="px-2.5 py-1 rounded-md text-xs font-medium"
                           style={{ background: `${theme.gold}15`, color: theme.gold }}>
-                          Oku
+                          {tt('Oku')}
                         </button>
                         <button onClick={() => removeBookmark(b.id)}
                           className="p-1.5 rounded-md transition-colors hover:bg-red-500/10">
@@ -194,7 +196,7 @@ export default function BookmarksPage() {
                   className="p-3 rounded-xl text-center transition-transform active:scale-95"
                   style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
                   <p className="text-lg font-bold" style={{ color: theme.gold }}>{juz}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>Cüz</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{tt('Cüz')}</p>
                   {first && last && (
                     <p className="text-[9px] mt-1 truncate" style={{ color: theme.textSecondary }}>
                       {SURAH_NAMES[first]}–{SURAH_NAMES[last]}

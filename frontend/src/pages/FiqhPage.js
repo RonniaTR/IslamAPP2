@@ -2,12 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, ChevronRight, ChevronLeft, Search, MessageCircle, Droplets, Moon as MoonIcon, Clock, Sparkles, Send, Loader, X, ShowerHead, BookMarked } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LangContext';
+import { useTx } from '../i18n';
 import api from '../api';
 
 const CATEGORY_ICONS = { abdest: Droplets, namaz: BookOpen, oruc: MoonIcon, gunluk_ibadet: Clock, temizlik: ShowerHead };
 
 export default function FiqhPage() {
   const { theme } = useTheme();
+  const { lang } = useLang();
+  const tt = useTx();
   const [categories, setCategories] = useState([]);
   const [selectedCat, setSelectedCat] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
@@ -36,13 +40,13 @@ export default function FiqhPage() {
     setAsking(true);
     setAnswer(null);
     try {
-      const r = await api.post('/fiqh/ask', { question: question.trim(), category: selectedCat?.id }, { timeout: 30000 });
+      const r = await api.post('/fiqh/ask', { question: question.trim(), category: selectedCat?.id, language: lang }, { timeout: 30000 });
       setAnswer(r.data);
     } catch {
-      setAnswer({ answer: 'Şu an cevap oluşturulamıyor. Lütfen daha sonra tekrar deneyin.', error: true });
+      setAnswer({ answer: tt('Şu an cevap oluşturulamıyor. Lütfen daha sonra tekrar deneyin.'), error: true });
     }
     setAsking(false);
-  }, [question, asking, selectedCat]);
+  }, [question, asking, selectedCat, lang, tt]);
 
   // ── Topic Detail View ──
   if (selectedTopic) {
@@ -121,8 +125,8 @@ export default function FiqhPage() {
             style={{ background: `linear-gradient(135deg, ${theme.gold}20, ${theme.gold}08)`, border: `1px solid ${theme.gold}30` }}>
             <MessageCircle size={20} style={{ color: theme.gold }} />
             <div className="flex-1 text-left">
-              <p className="font-semibold text-sm" style={{ color: theme.gold }}>Soru Sor (AI Müftü)</p>
-              <p className="text-xs" style={{ color: theme.textSecondary }}>Hanefi fıkhına göre cevap al</p>
+              <p className="font-semibold text-sm" style={{ color: theme.gold }}>{tt('Soru Sor (AI Müftü)')}</p>
+              <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Hanefi fıkhına göre cevap al')}</p>
             </div>
             <Sparkles size={16} style={{ color: theme.gold }} />
           </button>
@@ -142,12 +146,12 @@ export default function FiqhPage() {
                     <X size={18} style={{ color: theme.textSecondary }} />
                   </button>
                 </div>
-                <p className="text-xs mb-4" style={{ color: theme.textSecondary }}>Hanefi mezhebine göre Kur'an ve Hadis kaynaklı cevaplar</p>
+                <p className="text-xs mb-4" style={{ color: theme.textSecondary }}>{tt("Hanefi mezhebine göre Kur'an ve Hadis kaynaklı cevaplar")}</p>
 
                 <div className="flex gap-2 mb-4">
                   <input value={question} onChange={e => setQuestion(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && askQuestion()}
-                    placeholder="Sorunuzu yazın..."
+                    placeholder={tt('Sorunuzu yazın...')}
                     className="flex-1 rounded-xl px-4 py-3 text-sm outline-none"
                     style={{ background: theme.bg, color: theme.textPrimary, border: `1px solid ${theme.cardBorder}` }}
                     maxLength={2000} />
@@ -161,7 +165,7 @@ export default function FiqhPage() {
                 {asking && (
                   <div className="text-center py-8">
                     <Loader size={24} className="animate-spin mx-auto mb-2" style={{ color: theme.gold }} />
-                    <p className="text-xs" style={{ color: theme.textSecondary }}>Cevap hazırlanıyor...</p>
+                    <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Cevap hazırlanıyor...')}</p>
                   </div>
                 )}
 
@@ -193,14 +197,14 @@ export default function FiqhPage() {
     <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
       {/* Header */}
       <div className="px-5 pt-6 pb-4">
-        <h1 className="text-2xl font-bold" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>İslami Bilgi</h1>
-        <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>Hanefi fıkhına göre ibadet rehberi</p>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt('İslami Bilgi')}</h1>
+        <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>{tt('Hanefi fıkhına göre ibadet rehberi')}</p>
       </div>
 
       {/* Arabic Header */}
       <div className="mx-5 mb-5 rounded-2xl p-5 text-center" style={{ background: `linear-gradient(135deg, ${theme.surface}, rgba(200,165,90,0.08))`, border: `1px solid ${theme.cardBorder}` }}>
         <p className="text-2xl mb-2" style={{ fontFamily: 'Amiri, serif', color: theme.gold, direction: 'rtl' }}>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
-        <p className="text-xs" style={{ color: theme.textSecondary }}>Rahman ve Rahim olan Allah'ın adıyla</p>
+        <p className="text-xs" style={{ color: theme.textSecondary }}>{tt("Rahman ve Rahim olan Allah'ın adıyla")}</p>
       </div>
 
       {loading ? (
@@ -225,7 +229,7 @@ export default function FiqhPage() {
                     <span className="text-sm" style={{ fontFamily: 'Amiri, serif', color: theme.gold }}>{cat.arabic}</span>
                   </div>
                   <p className="text-xs mt-0.5" style={{ color: theme.textSecondary }}>{cat.description}</p>
-                  <p className="text-[10px] mt-1" style={{ color: theme.gold }}>{cat.topic_count} konu</p>
+                  <p className="text-[10px] mt-1" style={{ color: theme.gold }}>{cat.topic_count} {tt('konu')}</p>
                 </div>
                 <ChevronRight size={18} style={{ color: theme.textSecondary }} />
               </motion.button>
@@ -242,8 +246,8 @@ export default function FiqhPage() {
                 <Sparkles size={22} style={{ color: theme.gold }} />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-sm" style={{ color: theme.gold }}>AI Müftü'ye Sor</p>
-                <p className="text-xs mt-0.5" style={{ color: theme.textSecondary }}>Kur'an ve Hadis kaynaklı, Hanefi görüşüne göre cevap</p>
+                <p className="font-bold text-sm" style={{ color: theme.gold }}>{tt("AI Müftü'ye Sor")}</p>
+                <p className="text-xs mt-0.5" style={{ color: theme.textSecondary }}>{tt("Kur'an ve Hadis kaynaklı, Hanefi görüşüne göre cevap")}</p>
               </div>
               <MessageCircle size={20} style={{ color: theme.gold }} />
             </div>
