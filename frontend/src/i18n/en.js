@@ -128,7 +128,7 @@ const EN = {
   'Mertebe, günün TÜM görevlerini bitirdiğin "tam gün" sayısıyla büyür. Şu an:': 'Your rank grows with "full days" — days you finish ALL tasks. Currently:',
   'tam gün': 'full days',
   'Her tam gün bir durak ilerletir. Şu an': 'Each full day advances one station. You are now at',
-  'duraktasın': '',
+  'duraktasın': 'stop(s) in',
   'her satır bir haftalık temadır': 'each row is one weekly theme',
   'Yolun azığı: dualar, tesbihat, kıssalar, tarih ve mucizeler — kartı seç, hazine açılsın.': 'Provisions for the road: duas, dhikr, parables, history and miracles — pick a card to open the treasury.',
   '💛 Nur Hazinesi': '💛 Treasury of Light',
@@ -1097,6 +1097,7 @@ const EN = {
   'OTO': 'AUTO',
   'AÇIK': 'ON',
   'KAPALI': 'OFF',
+  'Yolun zirvesindesin — devamlılık en büyük mertebedir': 'You are at the summit of the path — constancy is the highest rank',
 };
 
 export default EN;

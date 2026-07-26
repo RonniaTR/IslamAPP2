@@ -10,6 +10,7 @@ import Layout from './components/Layout';
 import SplashScreen from './components/SplashScreen';
 import VoiceCommand from './components/VoiceCommand';
 import InstallPrompt from './components/InstallPrompt';
+import LanguageGate from './components/LanguageGate';
 import PageTransition from './components/PageTransition';
 import { initOfflineSync } from './services/offlineSync';
 import api from './api';
@@ -147,6 +148,7 @@ export default function App() {
           <LangProvider>
             <ThemeProvider>
               <PremiumProvider>
+                <LanguageGate />
                 <AppRouter />
               </PremiumProvider>
             </ThemeProvider>
