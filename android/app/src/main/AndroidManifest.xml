@@ -2,21 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- İzinler -->
+    <!-- İzinler — YALNIZCA fiilen kullanılanlar.
+         Play Store, uygulamanın kullanmadığı hassas izinleri reddeder.
+           INTERNET / ACCESS_NETWORK_STATE : içerik ve namaz vakti API'leri
+           RECORD_AUDIO                    : sesli komut (Web Speech API)
+           ACCESS_*_LOCATION               : kıble yönü + namaz vakitleri
+         KALDIRILDI: CAMERA, READ/WRITE_EXTERNAL_STORAGE, READ_MEDIA_IMAGES
+         (uygulamada karşılık gelen bir özellik yok) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
-        tools:targetApi="33" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Konum donanımı zorunlu değil: cihazda GPS yoksa da uygulama kurulabilir -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
 
     <application
         android:allowBackup="true"

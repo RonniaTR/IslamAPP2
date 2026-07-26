@@ -4,10 +4,17 @@
 // Arayüz metinleri i18n/ ile (tt) çevrilir; İÇERİK (kıssa, esma, dua,
 // makale gibi veri nesneleri) ise bu katmanla çevrilir.
 //
-// Kural: Türkçe alan KANONİK'tir. Her veri nesnesine opsiyonel bir `en`
-// nesnesi iliştirilir (ayrı *.en.js dosyalarından). `field(item, lang, key)`
-// dil EN ise item.en[key]'i, yoksa item[key]'i döndürür. Arapça şimdilik
-// İngilizce'ye, o da yoksa Türkçe'ye düşer — hiçbir alan asla boş kalmaz.
+// Kural: Türkçe alan KANONİK'tir. Her veri nesnesine dil kodlu opsiyonel
+// nesneler iliştirilir (ayrı *.en.js / *.ar.js dosyalarından):
+//   item.en = { title, ... }   item.ar = { title, ... }
+//
+// YEDEKLEME ZİNCİRİ (field):
+//   tr  →  item[key]
+//   en  →  item.en[key]                    →  item[key]
+//   ar  →  item.ar[key]  →  item.en[key]   →  item[key]
+//
+// Böylece Arapça içerik kademeli eklenebilir; eksik alan Türkçe yerine
+// İngilizce'ye düşer ve hiçbir alan asla boş kalmaz.
 //
 // Kullanım (bileşen içinde):
 //   const f = useField();
@@ -18,21 +25,29 @@
 
 import { useLang } from '../contexts/LangContext';
 
-// Bir veri dizisine İngilizce haritasını iliştir (id/anahtar → {alanlar}).
+// Bir veri dizisine dil haritasını iliştir (id/anahtar → {alanlar}).
 // keyFn: item'dan harita anahtarını üretir (varsayılan: item.id).
-export function attachEn(list, enMap, keyFn = (x) => x.id) {
-  if (!Array.isArray(list) || !enMap) return list;
+export function attachLang(list, map, lang = 'en', keyFn = (x) => x.id) {
+  if (!Array.isArray(list) || !map) return list;
   for (const item of list) {
     const k = keyFn(item);
-    if (enMap[k]) item.en = enMap[k];
+    if (map[k]) item[lang] = map[k];
   }
   return list;
 }
 
-// Dile göre alan seçer.
+// Geriye dönük uyumluluk: attachEn(list, enMap, keyFn)
+export function attachEn(list, enMap, keyFn = (x) => x.id) {
+  return attachLang(list, enMap, 'en', keyFn);
+}
+
+// Dile göre alan seçer (zincir: item[lang] → item.en → Türkçe).
 export function field(item, lang, key) {
   if (!item) return undefined;
-  if (lang && lang !== 'tr' && item.en && item.en[key] != null) return item.en[key];
+  if (!lang || lang === 'tr') return item[key];
+  const own = item[lang];
+  if (own && own[key] != null) return own[key];
+  if (item.en && item.en[key] != null) return item.en[key];
   return item[key];
 }
 
@@ -42,5 +57,5 @@ export function useField() {
   return (item, key) => field(item, lang, key);
 }
 
-const contentI18n = { attachEn, field, useField };
+const contentI18n = { attachLang, attachEn, field, useField };
 export default contentI18n;
