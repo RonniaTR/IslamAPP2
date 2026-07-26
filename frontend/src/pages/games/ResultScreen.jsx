@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Trophy, RefreshCw, Share2, RotateCcw, Star } from 'lucide-react';
 import { shareOrCopy } from '../../hooks/useShared';
 import Confetti from './Confetti';
+import { useTx } from '../../i18n';
 
 /**
  * OYNAMA SONUCU — premium bitiş ekranı (referans birebir):
@@ -30,6 +31,7 @@ export default function ResultScreen({
   title, correct, total, xp, stats = [], wrongCount = 0,
   onReplay, onReplayWrongs, theme,
 }) {
+  const tt = useTx();
   const pctRight = total > 0 ? correct / total : 0;
   const starCount = pctRight >= 0.9 ? 5 : pctRight >= 0.75 ? 4 : pctRight >= 0.55 ? 3 : pctRight >= 0.35 ? 2 : pctRight > 0 ? 1 : 0;
   const animCorrect = useCountUp(correct, 800);
@@ -61,7 +63,7 @@ export default function ResultScreen({
         <p className="text-4xl font-black tabular-nums" style={{ color: theme.gold }}>
           {animCorrect} <span className="text-lg" style={{ color: theme.textSecondary }}>/ {total}</span>
         </p>
-        <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: theme.textSecondary }}>Doğru Cevap</p>
+        <p className="text-[10px] uppercase tracking-wider mb-3" style={{ color: theme.textSecondary }}>{tt('Doğru Cevap')}</p>
         <div className="flex justify-center gap-2">
           <span className="text-xs font-black px-3 py-1.5 rounded-full tabular-nums" style={{ background: `${theme.gold}18`, color: theme.gold }}>⚡ +{animXp} XP</span>
           <span className="text-xs font-black px-3 py-1.5 rounded-full tabular-nums" style={{ background: '#10B98118', color: '#10B981' }}>💎 +{animCorrect} İlmi</span>
@@ -85,7 +87,7 @@ export default function ResultScreen({
         <button onClick={() => shareOrCopy('İslami Bilgi Yarışması', `${title}: ${correct}/${total} doğru, +${xp} XP kazandım! Sen de dene 🏆`)}
           className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
           style={{ background: '#10B981', color: '#fff' }}>
-          <Share2 size={15} /> Sonuçları Paylaş
+          <Share2 size={15} /> {tt('Sonuçları Paylaş')}
         </button>
         <div className="flex gap-2.5">
           <button onClick={onReplay}

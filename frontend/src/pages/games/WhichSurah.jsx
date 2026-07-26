@@ -5,6 +5,7 @@ import { SURAH_HINTS } from '../../data/surahHints';
 import FeedbackOverlay from './FeedbackOverlay';
 import ResultScreen from './ResultScreen';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 // 🔎 HANGİ SURE? — ipuçlarından sureyi tanı.
 // Az ipucuyla bil → çok XP: 1 ipucu 25, 2 ipucu 15, 3 ipucu 8 XP.
@@ -29,6 +30,7 @@ function buildRounds() {
 }
 
 export default function WhichSurah({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [phase, setPhase] = useState('playing'); // playing | done
   const [rounds, setRounds] = useState(buildRounds);
   const [idx, setIdx] = useState(0);
@@ -96,9 +98,9 @@ export default function WhichSurah({ theme, onXP, onEvent = () => {} }) {
     return (
       <ResultScreen theme={theme} title="Hangi Sure?" correct={correct} total={rounds.length} xp={xp}
         stats={[
-          { val: `%${Math.round((correct / Math.max(1, rounds.length)) * 100)}`, label: 'Doğruluk' },
-          { val: oneHintCount, label: 'Tek İpucuyla' },
-          { val: `+${correct}`, label: 'İlmi' },
+          { val: `%${Math.round((correct / Math.max(1, rounds.length)) * 100)}`, label: tt('Doğruluk') },
+          { val: oneHintCount, label: tt('Tek İpucuyla') },
+          { val: `+${correct}`, label: tt('İlmi') },
         ]}
         onReplay={restart} />
     );

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ListOrdered, RefreshCw, Trophy } from 'lucide-react';
 import { ORDER_PUZZLES } from '../../data/gameData';
 import Confetti from './Confetti';
+import { useTx } from '../../i18n';
 
 function shuffled(items) {
   const a = items.map((text, i) => ({ text, correctIdx: i }));
@@ -24,6 +25,7 @@ function newPuzzle(prevTitle) {
 
 // Doğru Sırala: karışık öğelere sırayla dokun; doğru öğe yerine oturur.
 export default function OrderGame({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [puzzle, setPuzzle] = useState(() => newPuzzle(null));
   const [pool, setPool] = useState(() => shuffled(puzzle.items));
   const [placed, setPlaced] = useState(0); // kaç öğe doğru yerleşti
@@ -100,7 +102,7 @@ export default function OrderGame({ theme, onXP, onEvent = () => {} }) {
           <p className="text-xl font-black mb-1" style={{ color: theme.gold }}>+{earned} XP</p>
           <p className="text-xs mb-4" style={{ color: theme.textSecondary }}>{mistakes === 0 ? 'Hatasız! Mükemmel sıralama 🎯' : `${mistakes} hata ile tamamladın`}</p>
           <button onClick={restart} className="inline-flex items-center gap-2 px-7 py-2.5 rounded-xl font-bold text-sm" style={{ background: theme.gold, color: theme.bg }}>
-            <RefreshCw size={15} /> Yeni Sıralama
+            <RefreshCw size={15} /> {tt('Yeni Sıralama')}
           </button>
         </motion.div>
       ) : (

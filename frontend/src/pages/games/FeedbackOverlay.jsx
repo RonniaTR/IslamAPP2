@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import Confetti from './Confetti';
+import { useTx } from '../../i18n';
 
 /**
  * DOĞRU / YANLIŞ CEVAP overlay'i — referans tasarım birebir.
@@ -10,6 +11,7 @@ import Confetti from './Confetti';
  * wrong:   { answer, explanation, source }
  */
 export default function FeedbackOverlay({ mode, data = {}, onContinue, theme }) {
+  const tt = useTx();
   return (
     <AnimatePresence>
       {mode && (
@@ -34,7 +36,7 @@ export default function FeedbackOverlay({ mode, data = {}, onContinue, theme }) 
             {mode === 'correct' ? (
               <>
                 <h3 className="text-2xl font-black mb-1" style={{ color: '#10B981' }}>Harika!</h3>
-                <p className="text-xs mb-3" style={{ color: '#A8B5A0' }}>Doğru cevapladın.</p>
+                <p className="text-xs mb-3" style={{ color: '#A8B5A0' }}>{tt('Doğru cevapladın.')}</p>
                 <p className="text-3xl font-black mb-1" style={{ color: '#ffd369' }}>+{data.xp} XP</p>
                 {data.combo >= 2 && (
                   <motion.p initial={{ scale: 0.6 }} animate={{ scale: 1 }} className="text-sm font-black" style={{ color: '#F59E0B' }}>
@@ -46,11 +48,11 @@ export default function FeedbackOverlay({ mode, data = {}, onContinue, theme }) 
               <>
                 <h3 className="text-2xl font-black mb-1" style={{ color: '#EF4444' }}>Maalesef!</h3>
                 <p className="text-xs mb-3" style={{ color: '#A8B5A0' }}>
-                  Doğru cevap: <span className="font-black" style={{ color: '#ffd369' }}>{data.answer}</span>
+                  {tt('Doğru cevap:')} <span className="font-black" style={{ color: '#ffd369' }}>{data.answer}</span>
                 </p>
                 {data.explanation && (
                   <div className="rounded-xl p-3 mb-2 text-left" style={{ background: '#ffffff08', border: '1px solid #ffffff12' }}>
-                    <p className="text-[10px] font-black uppercase tracking-wide mb-1" style={{ color: '#ffd369' }}>Açıklama</p>
+                    <p className="text-[10px] font-black uppercase tracking-wide mb-1" style={{ color: '#ffd369' }}>{tt('Açıklama')}</p>
                     <p className="text-xs leading-relaxed" style={{ color: '#e5ddd0' }}>{data.explanation}</p>
                   </div>
                 )}

@@ -5,6 +5,7 @@ import { drawQuestions, BANK_CATEGORIES } from '../../data/questionBank';
 import FeedbackOverlay from './FeedbackOverlay';
 import ResultScreen from './ResultScreen';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 // 📖 KLASİK TEST — soru sayısı + kategori + zorluk seç,
 // yanlışları sona bırak, premium sonuç ekranı.
@@ -17,6 +18,7 @@ const DIFFS = [
 ];
 
 export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [phase, setPhase] = useState('setup'); // setup | playing | done
   const [count, setCount] = useState(10);
   // Hub'daki kategori çipinden gelen ön-seçim (varsa)
@@ -92,7 +94,7 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
         <div className="rounded-2xl p-5 space-y-5" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
           {/* Soru sayısı */}
           <div>
-            <p className="text-xs font-black mb-2" style={{ color: theme.textPrimary }}>Soru Sayısı</p>
+            <p className="text-xs font-black mb-2" style={{ color: theme.textPrimary }}>{tt('Soru Sayısı')}</p>
             <div className="grid grid-cols-4 gap-2">
               {COUNTS.map(n => (
                 <button key={n} onClick={() => setCount(n)}
@@ -122,7 +124,7 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
                   <div className="max-h-44 overflow-y-auto">
                     <button onClick={() => { setCategory(null); setCatOpen(false); }}
                       className="w-full text-left px-3 py-2.5 text-xs font-bold" style={{ color: !category ? theme.gold : theme.textPrimary, background: !category ? `${theme.gold}0d` : 'transparent' }}>
-                      Tümü (Karışık)
+                      {tt('Tümü (Karışık)')}
                     </button>
                     {BANK_CATEGORIES.map(c => (
                       <button key={c.name} onClick={() => { setCategory(c.name); setCatOpen(false); }}
@@ -148,7 +150,7 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
                     background: diff.label === d.label ? '#10B981' : `${theme.textSecondary}0d`,
                     color: diff.label === d.label ? '#fff' : theme.textSecondary,
                     border: `1px solid ${diff.label === d.label ? '#10B981' : theme.cardBorder}`,
-                  }}>{d.label}</button>
+                  }}>{tt(d.label)}</button>
               ))}
             </div>
           </div>
@@ -156,8 +158,8 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
           {/* Yanlışları sona bırak */}
           <button onClick={() => setRetryWrongs(r => !r)} className="w-full flex items-center justify-between">
             <div className="text-left">
-              <p className="text-xs font-black" style={{ color: theme.textPrimary }}>Yanlışları Sona Bırak</p>
-              <p className="text-[9px]" style={{ color: theme.textSecondary }}>Yanlış cevapladığın sorular testin sonunda tekrar sorulur</p>
+              <p className="text-xs font-black" style={{ color: theme.textPrimary }}>{tt('Yanlışları Sona Bırak')}</p>
+              <p className="text-[9px]" style={{ color: theme.textSecondary }}>{tt('Yanlış cevapladığın sorular testin sonunda tekrar sorulur')}</p>
             </div>
             <span className="w-11 h-6 rounded-full p-0.5 transition-all shrink-0" style={{ background: retryWrongs ? '#10B981' : `${theme.textSecondary}30` }}>
               <span className="block w-5 h-5 rounded-full bg-white transition-transform" style={{ transform: retryWrongs ? 'translateX(20px)' : 'none' }} />
@@ -166,7 +168,7 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
 
           <button onClick={() => start()} className="w-full py-3.5 rounded-2xl font-black text-base active:scale-95 transition-all"
             style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: '#fff' }}>
-            Başla
+            {tt('Başla')}
           </button>
         </div>
       </div>
@@ -178,9 +180,9 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
     return (
       <ResultScreen theme={theme} title={`Klasik Test (${total} soru)`} correct={correct} total={queue.length} xp={xp}
         stats={[
-          { val: `%${Math.round((correct / Math.max(1, queue.length)) * 100)}`, label: 'Doğruluk' },
+          { val: `%${Math.round((correct / Math.max(1, queue.length)) * 100)}`, label: tt('Doğruluk') },
           { val: category || 'Karışık', label: 'Kategori' },
-          { val: diff.label, label: 'Zorluk' },
+          { val: tt(diff.label), label: tt('Zorluk') },
         ]}
         wrongCount={wrongs.length}
         onReplay={() => setPhase('setup')}
@@ -196,7 +198,7 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
 
       <div className="flex items-center justify-between mb-3">
         <span className="px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: theme.surface, color: theme.textPrimary }}>{idx + 1}/{queue.length}</span>
-        {isRetry && <span className="text-[9px] font-black px-2 py-1 rounded-full" style={{ background: '#F59E0B18', color: '#F59E0B' }}>🔁 Yanlış Tekrarı</span>}
+        {isRetry && <span className="text-[9px] font-black px-2 py-1 rounded-full" style={{ background: '#F59E0B18', color: '#F59E0B' }}>{tt('🔁 Yanlış Tekrarı')}</span>}
         <span className="px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5" style={{ background: '#10B98118', color: '#10B981' }}>
           <Check size={13} /> {correct}
         </span>

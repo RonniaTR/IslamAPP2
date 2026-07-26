@@ -4,6 +4,7 @@ import { Bot, RefreshCw, Trophy, User } from 'lucide-react';
 import { drawQuestions } from '../../data/questionBank';
 import Confetti from './Confetti';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 const ROUNDS = 10;
 // Rakipler: büyük âlimlerin ekollerinden ilham alan AI talebeler
@@ -18,6 +19,7 @@ const BOTS = [
 
 // AI Rakip: 10 soruluk düello. Bot her soruda kendi isabet oranıyla cevaplar.
 export default function AIDuel({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [phase, setPhase] = useState('idle'); // idle | playing | done
   const [bot, setBot] = useState(BOTS[0]);
   const [questions, setQuestions] = useState([]);
@@ -78,7 +80,7 @@ export default function AIDuel({ theme, onXP, onEvent = () => {} }) {
               <span className="text-2xl">{b.emoji}</span>
               <div className="flex-1">
                 <p className="text-sm font-black" style={{ color: b.color }}>{b.name}</p>
-                <p className="text-[10px]" style={{ color: theme.textSecondary }}>{b.title} · isabet ~%{Math.round(b.acc * 100)} · zafer +{b.bonus} XP</p>
+                <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt(b.title)} · {tt('isabet')} ~%{Math.round(b.acc * 100)} · {tt('zafer')} +{b.bonus} XP</p>
               </div>
             </button>
           ))}
@@ -101,7 +103,7 @@ export default function AIDuel({ theme, onXP, onEvent = () => {} }) {
         <p className="text-lg font-black mb-1" style={{ color: theme.gold }}>{myScore} - {botScore}</p>
         <p className="text-sm mb-5" style={{ color: theme.textSecondary }}>+{xp} XP kazandın{won ? ` (zafer bonusu +${bot.bonus} dahil)` : ''}</p>
         <button onClick={() => setPhase('idle')} className="inline-flex items-center gap-2 px-8 py-3 rounded-2xl font-bold text-sm" style={{ background: theme.gold, color: theme.bg }}>
-          <RefreshCw size={16} /> Yeni Düello
+          <RefreshCw size={16} /> {tt('Yeni Düello')}
         </button>
       </motion.div>
     );

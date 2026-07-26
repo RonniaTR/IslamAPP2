@@ -6,6 +6,7 @@ import { drawQuestions } from '../../data/questionBank';
 import FeedbackOverlay from './FeedbackOverlay';
 import Confetti from './Confetti';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 // 📜 HİKÂYE MODU — kıssaları bölüm bölüm ilerle.
 // Bölümü geçmek için en az %60 doğru gerekir; her bölüm XP,
@@ -29,6 +30,7 @@ function chapterQuestions(story, chapter) {
 }
 
 export default function StoryMode({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [view, setView] = useState('list'); // list | map | intro | play | result
   const [story, setStory] = useState(null);
   const [chapterIdx, setChapterIdx] = useState(0);
@@ -219,15 +221,15 @@ export default function StoryMode({ theme, onXP, onEvent = () => {} }) {
         </h2>
         {storyDone && <p className="text-xs font-black mb-1" style={{ color: '#10B981' }}>🏅 "{story.badge}" rozeti kazanıldı! (+{STORY_BONUS} bonus)</p>}
         <p className="text-sm mb-1" style={{ color: theme.textSecondary }}>{correct}/{queue.length} doğru {passed && `· +${xp} XP`}</p>
-        {!passed && <p className="text-[10px] mb-4" style={{ color: theme.textSecondary }}>Geçmek için en az %60 doğru gerekli</p>}
+        {!passed && <p className="text-[10px] mb-4" style={{ color: theme.textSecondary }}>{tt('Geçmek için en az %60 doğru gerekli')}</p>}
         <div className="flex gap-2.5 mt-5">
           <button onClick={() => setView('map')} className="flex-1 py-3 rounded-2xl font-bold text-sm" style={{ background: `${theme.gold}16`, border: `1px solid ${theme.gold}40`, color: theme.gold }}>
-            Haritaya Dön
+            {tt('Haritaya Dön')}
           </button>
           <button onClick={passed && chapterIdx + 1 < story.chapters.length ? () => startChapter(chapterIdx + 1) : beginQuestions}
             className="flex-1 py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-1.5"
             style={{ background: story.color, color: '#fff' }}>
-            {passed && chapterIdx + 1 < story.chapters.length ? <>Sonraki Bölüm →</> : <><Trophy size={14} /> Tekrar Dene</>}
+            {passed && chapterIdx + 1 < story.chapters.length ? <>{tt('Sonraki Bölüm →')}</> : <><Trophy size={14} /> Tekrar Dene</>}
           </button>
         </div>
       </motion.div>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, RefreshCw, Trophy, Volume2, Loader, Music } from 'lucide-react';
 import { SURAHS, FAMOUS_SURAHS, verseAudioUrl } from '../../data/surahData';
 import Confetti from './Confetti';
+import { useTx } from '../../i18n';
 
 const ROUNDS = 10;
 // Backend'deki QURAN_RECITERS ile aynı id/quality değerleri
@@ -56,6 +57,7 @@ function pickRound(mode, prevSurah) {
 // Sesli Tahmin: kıraati dinle, hangi sure olduğunu bil.
 // Ses kaynağı: uygulamanın Kur'an bölümüyle aynı CDN (cdn.islamic.network, Alafasy).
 export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [phase, setPhase] = useState('idle'); // idle | playing | done
   const [mode, setMode] = useState(MODES[0]);
   const [round, setRound] = useState(null);
@@ -138,7 +140,7 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
               style={{ background: `${m.color}12`, border: `1.5px solid ${m.color}40` }}>
               <Volume2 size={22} style={{ color: m.color }} />
               <div className="flex-1">
-                <p className="text-sm font-black" style={{ color: m.color }}>{m.label}</p>
+                <p className="text-sm font-black" style={{ color: m.color }}>{tt(m.label)}</p>
                 <p className="text-[10px]" style={{ color: theme.textSecondary }}>{m.desc} · doğru başına +{m.xp} XP</p>
               </div>
             </button>
@@ -156,7 +158,7 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
         {correct >= 5 && <Confetti count={30} />}
         <Trophy size={44} style={{ color: theme.gold }} className="mb-4" />
         <h2 className="text-3xl font-black mb-1" style={{ color: theme.gold }}>+{xp} XP</h2>
-        <p className="text-sm mb-5" style={{ color: theme.textSecondary }}>{correct}/{ROUNDS} doğru tahmin · {mode.label} mod</p>
+        <p className="text-sm mb-5" style={{ color: theme.textSecondary }}>{correct}/{ROUNDS} {tt('doğru tahmin')} · {tt(mode.label)} {tt('mod')}</p>
         <button onClick={() => setPhase('idle')} className="inline-flex items-center gap-2 px-8 py-3 rounded-2xl font-bold text-sm" style={{ background: theme.gold, color: theme.bg }}>
           <RefreshCw size={16} /> Tekrar Oyna
         </button>
@@ -172,7 +174,7 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
     <div className="px-4 w-full max-w-md mx-auto">
       <div className="flex items-center justify-between mb-4">
         <span className="px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: theme.surface, color: theme.textPrimary }}>{roundNo}/{ROUNDS}</span>
-        <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: `${mode.color}18`, color: mode.color }}>{mode.label}</span>
+        <span className="text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: `${mode.color}18`, color: mode.color }}>{tt(mode.label)}</span>
         <span className="px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: `${theme.gold}18`, color: theme.gold }}>{xp} XP</span>
       </div>
 
@@ -190,7 +192,7 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
         </div>
         {audioState === 'error' ? (
           <div>
-            <p className="text-xs mb-3" style={{ color: '#EF4444' }}>Ses yüklenemedi — bağlantını kontrol et</p>
+            <p className="text-xs mb-3" style={{ color: '#EF4444' }}>{tt('Ses yüklenemedi — bağlantını kontrol et')}</p>
             <button onClick={() => playAudio(round.url)} className="px-5 py-2 rounded-xl text-xs font-bold" style={{ background: '#22C55E', color: '#04150d' }}>Tekrar Dene</button>
           </div>
         ) : (

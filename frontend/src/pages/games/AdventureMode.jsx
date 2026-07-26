@@ -5,6 +5,7 @@ import { ADVENTURE, ADVENTURE_BADGE } from '../../data/adventureData';
 import FeedbackOverlay from './FeedbackOverlay';
 import Confetti from './Confetti';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 // 🌍 İSLAM TARİHİ MACERASI — Mekke'den Veda Hutbesi'ne 12 durak.
 // Harita → görev sayfası → karışık etkileşimler → RPG tadında zafer ekranı.
@@ -72,6 +73,7 @@ function OrderStep({ step, theme, color, onDone }) {
 }
 
 export default function AdventureMode({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [view, setView] = useState('map'); // map | mission | play | victory
   const [chIdx, setChIdx] = useState(0);
   const [progress, setProgress] = useState(loadProg);
@@ -145,7 +147,7 @@ export default function AdventureMode({ theme, onXP, onEvent = () => {} }) {
       <div className="px-5 w-full max-w-md mx-auto pb-6">
         <div className="text-center mb-5">
           <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: gold }}>Mekke → Veda Hutbesi</p>
-          <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>Tarihin içinde yolculuk et. Her durak yeni bir hatıra açar.</p>
+          <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>{tt('Tarihin içinde yolculuk et. Her durak yeni bir hatıra açar.')}</p>
           <p className="text-[10px] mt-1.5 font-bold" style={{ color: theme.gold }}>%{Math.round((progress / ADVENTURE.length) * 100)} tamamlandı · {progress}/{ADVENTURE.length} durak</p>
         </div>
         <div className="relative">
@@ -218,8 +220,8 @@ export default function AdventureMode({ theme, onXP, onEvent = () => {} }) {
         <div className="grid grid-cols-3 gap-2 mb-5">
           {[
             { icon: <Target size={14} />, label: 'Hedef', val: '%60+ doğru' },
-            { icon: <Clock size={14} />, label: 'Süre', val: '~2 dk' },
-            { icon: <Gift size={14} />, label: 'Ödül', val: `${ch.artifact} + ${CHAPTER_XP + ch.steps.length * 10} XP` },
+            { icon: <Clock size={14} />, label: tt('Süre'), val: '~2 dk' },
+            { icon: <Gift size={14} />, label: tt('Ödül'), val: `${ch.artifact} + ${CHAPTER_XP + ch.steps.length * 10} XP` },
           ].map((x, i) => (
             <div key={i} className="rounded-xl py-2.5 px-1 text-center" style={{ background: `${gold}0c`, border: `1px solid ${gold}30` }}>
               <span className="flex justify-center mb-1" style={{ color: gold }}>{x.icon}</span>
@@ -230,7 +232,7 @@ export default function AdventureMode({ theme, onXP, onEvent = () => {} }) {
         </div>
         <button onClick={begin} className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 active:scale-95 transition-all"
           style={{ background: `linear-gradient(135deg, ${gold}, #D97706)`, color: '#fff', boxShadow: `0 8px 30px ${gold}40` }}>
-          <Play size={17} fill="#fff" /> Göreve Başla
+          <Play size={17} fill="#fff" /> {tt('Göreve Başla')}
         </button>
       </motion.div>
     );
@@ -251,13 +253,13 @@ export default function AdventureMode({ theme, onXP, onEvent = () => {} }) {
         </h2>
         {journeyDone && <p className="text-xs font-black mb-1" style={{ color: '#10B981' }}>🏅 "{ADVENTURE_BADGE}" rozeti + 200 bonus XP!</p>}
         <p className="text-sm mb-1" style={{ color: theme.textSecondary }}>{correct}/{ch.steps.length} doğru {passed && `· +${xp} XP`}</p>
-        {!passed && <p className="text-[10px] mb-3" style={{ color: theme.textSecondary }}>Durağı geçmek için en az %60 gerekli — özeti tekrar oku!</p>}
+        {!passed && <p className="text-[10px] mb-3" style={{ color: theme.textSecondary }}>{tt('Durağı geçmek için en az %60 gerekli — özeti tekrar oku!')}</p>}
         {passed && !journeyDone && chIdx + 1 < ADVENTURE.length && (
           <p className="text-[10px] mb-3 font-bold" style={{ color: gold }}>⭐ Yeni durak açıldı: {ADVENTURE[chIdx + 1].emoji} {ADVENTURE[chIdx + 1].title}</p>
         )}
         <div className="flex gap-2.5 mt-4">
           <button onClick={() => setView('map')} className="flex-1 py-3 rounded-2xl font-bold text-sm" style={{ background: `${theme.gold}16`, border: `1px solid ${theme.gold}40`, color: theme.gold }}>
-            Haritaya Dön
+            {tt('Haritaya Dön')}
           </button>
           <button onClick={passed && chIdx + 1 < ADVENTURE.length ? () => openMission(chIdx + 1) : begin}
             className="flex-1 py-3 rounded-2xl font-black text-sm" style={{ background: gold, color: '#fff' }}>

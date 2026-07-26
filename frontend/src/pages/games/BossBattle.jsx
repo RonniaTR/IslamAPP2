@@ -4,6 +4,7 @@ import { Swords, RefreshCw, Heart, Shield } from 'lucide-react';
 import { drawQuestions } from '../../data/questionBank';
 import Confetti from './Confetti';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 // 👹 PATRON SAVAŞI — cehalet ordusuna karşı ilim meydanları.
 // Doğru cevap patrona hasar verir, yanlış senden can götürür.
@@ -18,6 +19,7 @@ const loadBadges = () => { try { return JSON.parse(localStorage.getItem('gc_badg
 const addBadge = (b) => { try { const list = loadBadges(); if (!list.includes(b)) localStorage.setItem('gc_badges', JSON.stringify([...list, b])); } catch { /* ignore */ } };
 
 export default function BossBattle({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [phase, setPhase] = useState('pick'); // pick | playing | won | lost
   const [arena, setArena] = useState(ARENAS[0]);
   const [queue, setQueue] = useState([]);
@@ -101,7 +103,7 @@ export default function BossBattle({ theme, onXP, onEvent = () => {} }) {
     return (
       <div className="px-5 w-full max-w-md mx-auto">
         <p className="text-xs text-center mb-4" style={{ color: theme.textSecondary }}>
-          Meydanını seç! Her doğru cevap patrona hasar verir, her yanlış bir kalbini götürür.
+          {tt('Meydanını seç! Her doğru cevap patrona hasar verir, her yanlış bir kalbini götürür.')}
         </p>
         <div className="space-y-3">
           {ARENAS.map(a => {
@@ -193,7 +195,7 @@ export default function BossBattle({ theme, onXP, onEvent = () => {} }) {
           <button onClick={useHint} disabled={!jokers.hint || q?.type === 'tf'}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[9px] font-black disabled:opacity-35 active:scale-95"
             style={{ background: `${theme.gold}15`, border: `1px solid ${theme.gold}40`, color: theme.gold }}>
-            💡 İpucu
+            {tt('💡 İpucu')}
           </button>
           <span className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold" style={{ background: `${theme.gold}18`, color: theme.gold }}>{xp} XP</span>
         </div>

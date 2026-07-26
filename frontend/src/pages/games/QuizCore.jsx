@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Check, X, Volume2, Loader } from 'lucide-react';
 import api from '../../api';
+import { useTx } from '../../i18n';
 
 /**
  * QUIZCORE — bütün soru tabanlı modların ortak motoru.
@@ -23,6 +24,7 @@ export const narrationEnabled = () => { try { return localStorage.getItem(LS_NAR
 export const setNarrationEnabled = (on) => { try { localStorage.setItem(LS_NARRATE, on ? '1' : '0'); } catch { /* ignore */ } };
 
 export default function QuizCore({ q, accent, theme, flash, hidden = [], onPick, percentHint, minHeight = 110 }) {
+  const tt = useTx();
   const options = q ? (q.type === 'tf' ? ['Doğru', 'Yanlış'] : q.options) : [];
 
   // 📳 Titreşim: cevap anında (doğru kısa, yanlış çift)
@@ -91,7 +93,7 @@ export default function QuizCore({ q, accent, theme, flash, hidden = [], onPick,
       <div className="rounded-2xl p-5 mb-4 relative" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}`, minHeight }}>
         <div className="flex items-center justify-between gap-2">
           {q.category && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${accent}18`, color: accent }}>{q.category}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${accent}18`, color: accent }}>{tt(q.category)}</span>
           )}
           <div className="flex items-center gap-1.5 ml-auto">
             {/* Tek seferlik okuma */}
@@ -109,7 +111,7 @@ export default function QuizCore({ q, accent, theme, flash, hidden = [], onPick,
                 border: `1px solid ${narrate ? `${accent}50` : theme.cardBorder}`,
                 color: narrate ? accent : theme.textSecondary,
               }}>
-              OTO {narrate ? 'AÇIK' : 'KAPALI'}
+              {tt('OTO')} {narrate ? tt('AÇIK') : tt('KAPALI')}
             </button>
           </div>
         </div>

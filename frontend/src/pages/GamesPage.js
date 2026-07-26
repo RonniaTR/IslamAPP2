@@ -7,7 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { awardXP, fetchStats, subscribeStats, getCachedStats, getUsername } from '../services/gamification';
 import sfx, { sfxEnabled, setSfxEnabled } from '../services/sfx';
 import ambient from '../services/ambient';
-import { BANK_CATEGORIES, QUESTION_BANK } from '../data/questionBank';
+import { BANK_CATEGORIES, QUESTION_BANK, localizeQuestion } from '../data/questionBank';
 import api from '../api';
 import WheelGame from './games/WheelGame';
 import WordGame from './games/WordGame';
@@ -125,7 +125,8 @@ function pickDailyQuestion(dateKey) {
 function DailyQuestion({ theme, onXP, onEvent }) {
   const tt = useTx();
   const dateKey = todayKey();
-  const q = useMemo(() => pickDailyQuestion(dateKey), [dateKey]);
+  const { lang } = useLang();
+  const q = useMemo(() => localizeQuestion(pickDailyQuestion(dateKey), lang), [dateKey, lang]);
   const [answered, setAnswered] = useState(() => load(`dq_${dateKey}`, null));
   const [streak, setStreak] = useState(() => Number(localStorage.getItem('dq_streak') || 0));
 

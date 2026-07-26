@@ -4,6 +4,7 @@ import { RotateCw, Check, X, Info } from 'lucide-react';
 import { WHEEL_CATEGORIES } from '../../data/gameData';
 import { drawQuestions } from '../../data/questionBank';
 import Confetti from './Confetti';
+import { useTx } from '../../i18n';
 
 const SEG = 360 / WHEEL_CATEGORIES.length;
 
@@ -19,6 +20,7 @@ function slicePath(cx, cy, r, start, end) {
 }
 
 export default function WheelGame({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [category, setCategory] = useState(null);
@@ -69,7 +71,7 @@ export default function WheelGame({ theme, onXP, onEvent = () => {} }) {
   return (
     <div className="flex flex-col items-center px-4">
       <div className="text-center mb-3">
-        <p className="text-xs" style={{ color: theme.textSecondary }}>Çarkı çevir, gelen kategoriden soruyu bil, XP kazan!</p>
+        <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Çarkı çevir, gelen kategoriden soruyu bil, XP kazan!')}</p>
         <div className="flex items-center justify-center gap-3 mt-1">
           <p className="text-sm font-bold" style={{ color: theme.gold }}>Bu tur: {sessionXP} XP</p>
           {round > 0 && <p className="text-xs" style={{ color: theme.textSecondary }}>{round}. çevirme</p>}
@@ -150,7 +152,7 @@ export default function WheelGame({ theme, onXP, onEvent = () => {} }) {
           )}
           {answered && (
             <button onClick={spin} className="w-full mt-4 py-2.5 rounded-xl text-sm font-bold" style={{ background: `${theme.gold}18`, color: theme.gold }}>
-              Tekrar Çevir →
+              {tt('Tekrar Çevir →')}
             </button>
           )}
         </motion.div>

@@ -1,4 +1,9 @@
 import React from 'react';
+import { useTx } from '../i18n';
+import { ttFor } from '../i18n';
+
+// Sınıf bileşeni hook kullanamaz; aktif dili doğrudan okuruz.
+const EB_LANG = () => { try { return localStorage.getItem('app_lang') || 'tr'; } catch { return 'tr'; } };
 
 export class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -23,8 +28,8 @@ export class ErrorBoundary extends React.Component {
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <h2 className="text-lg font-bold text-[#F5F5DC] mb-2">Bir hata oluştu</h2>
-          <p className="text-sm text-[#A8B5A0] mb-2">Uygulama beklenmedik bir hata ile karşılaştı.</p>
+          <h2 className="text-lg font-bold text-[#F5F5DC] mb-2">{ttFor(EB_LANG(), 'Bir hata oluştu')}</h2>
+          <p className="text-sm text-[#A8B5A0] mb-2">{ttFor(EB_LANG(), 'Uygulama beklenmedik bir hata ile karşılaştı.')}</p>
           {this.state.errorMsg && <p className="text-xs text-red-400/70 mb-4 break-all max-w-xs">{this.state.errorMsg}</p>}
           <button
             onClick={async () => {
@@ -41,7 +46,7 @@ export class ErrorBoundary extends React.Component {
             className="px-6 py-3 rounded-xl text-sm font-bold text-[#0A1F14]"
             style={{ background: 'linear-gradient(135deg, #D4AF37, #B8860B)' }}
             data-testid="error-retry">
-            Yeniden Başlat
+            {ttFor(EB_LANG(), 'Yeniden Başlat')}
           </button>
         </div>
       );

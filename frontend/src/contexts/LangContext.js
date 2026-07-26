@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api';
+import { setQuizLang } from '../data/questionBank';
 
 const LangContext = createContext(null);
 
@@ -53,6 +54,8 @@ export function LangProvider({ children }) {
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    // Soru bankası veri modülüne aktif dili bildir (hook kullanamaz)
+    setQuizLang(lang);
   }, [lang]);
 
   const setLang = (newLang) => {

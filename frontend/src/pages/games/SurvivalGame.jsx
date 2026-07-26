@@ -4,9 +4,11 @@ import { Infinity as InfinityIcon, RefreshCw, Skull, Flame } from 'lucide-react'
 import { drawQuestions } from '../../data/questionBank';
 import Confetti from './Confetti';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 // Sonsuz Mod: yanlış yapana kadar devam et. Seri arttıkça soru başı XP artar.
 export default function SurvivalGame({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [phase, setPhase] = useState('playing'); // playing | dead (lobi GamesPage'de)
   const [queue, setQueue] = useState(() => drawQuestions(200));
   const [idx, setIdx] = useState(0);
@@ -53,11 +55,11 @@ export default function SurvivalGame({ theme, onXP, onEvent = () => {} }) {
           <InfinityIcon size={38} style={{ color: '#3B82F6' }} />
         </div>
         <h2 className="text-xl font-black mb-1" style={{ color: theme.textPrimary }}>Sonsuz Mod</h2>
-        <p className="text-sm mb-2 max-w-xs" style={{ color: theme.textSecondary }}>Yanlış yapana kadar mücadele et! Serin uzadıkça soru başına XP artar.</p>
+        <p className="text-sm mb-2 max-w-xs" style={{ color: theme.textSecondary }}>{tt('Yanlış yapana kadar mücadele et! Serin uzadıkça soru başına XP artar.')}</p>
         <p className="text-[11px] mb-6" style={{ color: '#3B82F6' }}>{best > 0 ? `En uzun serin: ${best} doğru` : 'İlk serini başlat!'}</p>
         <button onClick={start} className="px-10 py-3.5 rounded-2xl font-black text-base active:scale-95 transition-all"
           style={{ background: 'linear-gradient(135deg, #3B82F6, #60A5FA)', color: '#fff' }}>
-          Mücadeleye Başla
+          {tt('Mücadeleye Başla')}
         </button>
       </div>
     );

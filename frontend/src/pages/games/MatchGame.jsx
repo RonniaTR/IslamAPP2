@@ -4,6 +4,7 @@ import { RefreshCw, Trophy, Link2 } from 'lucide-react';
 import { MATCH_PAIRS } from '../../data/gameData';
 import { ESMAUL_HUSNA } from '../../data/surahData';
 import Confetti from './Confetti';
+import { useTx } from '../../i18n';
 
 // Desteler: klasik terim-anlam + Esmaül Hüsna (99 isim-anlam)
 const DECKS = [
@@ -31,6 +32,7 @@ function buildRound(pairs = MATCH_PAIRS) {
 }
 
 export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [deck, setDeck] = useState(DECKS[0]);
   const [round, setRound] = useState(() => buildRound());
   const [selLeft, setSelLeft] = useState(null);
@@ -92,7 +94,7 @@ export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
   return (
     <div className="px-4 w-full max-w-md mx-auto">
       <div className="text-center mb-4">
-        <p className="text-xs" style={{ color: theme.textSecondary }}>Terimi doğru anlamıyla eşleştir. Ne kadar az hamle, o kadar çok XP!</p>
+        <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Terimi doğru anlamıyla eşleştir. Ne kadar az hamle, o kadar çok XP!')}</p>
         {/* Deste seçimi */}
         <div className="flex justify-center gap-1.5 mt-2">
           {DECKS.map(d => (
@@ -103,7 +105,7 @@ export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
                 border: `1px solid ${deck.id === d.id ? `${theme.gold}50` : theme.cardBorder}`,
                 color: deck.id === d.id ? theme.gold : theme.textSecondary,
               }}>
-              {d.label}
+              {tt(d.label)}
             </button>
           ))}
         </div>
@@ -156,7 +158,7 @@ export default function MatchGame({ theme, onXP, onEvent = () => {} }) {
 
       {!done && (
         <div className="flex items-center justify-center gap-1.5 mt-5 text-[11px]" style={{ color: theme.textSecondary }}>
-          <Link2 size={13} /> Soldan bir terim, sağdan anlamını seç
+          <Link2 size={13} /> {tt('Soldan bir terim, sağdan anlamını seç')}
         </div>
       )}
     </div>

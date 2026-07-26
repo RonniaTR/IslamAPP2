@@ -5,6 +5,7 @@ import { drawQuestions } from '../../data/questionBank';
 import FeedbackOverlay from './FeedbackOverlay';
 import ResultScreen from './ResultScreen';
 import QuizCore from './QuizCore';
+import { useTx } from '../../i18n';
 
 // ⚡ BLITZ — 30 saniye, 10 soru, 3 kalp, combo sistemi, jokerler.
 const DURATION = 30;
@@ -20,6 +21,7 @@ function estPercent(q) {
 }
 
 export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
+  const tt = useTx();
   const [phase, setPhase] = useState('playing'); // playing | done
   const [questions, setQuestions] = useState(() => drawQuestions(MAX_Q));
   const [idx, setIdx] = useState(0);
@@ -137,9 +139,9 @@ export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
     return (
       <ResultScreen theme={theme} title="Blitz Modu" correct={correct} total={questions.length} xp={xp}
         stats={[
-          { val: `x${bestCombo}`, label: 'En Yüksek Combo' },
-          { val: `${avg}sn`, label: 'Ortalama Süre' },
-          { val: `${fastest}sn`, label: 'En Hızlı Cevap' },
+          { val: `x${bestCombo}`, label: tt('En Yüksek Combo') },
+          { val: `${avg}sn`, label: tt('Ortalama Süre') },
+          { val: `${fastest}sn`, label: tt('En Hızlı Cevap') },
         ]}
         wrongCount={wrongs.length}
         onReplay={() => restart()}
@@ -201,7 +203,7 @@ export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
         {[
           { key: 'fifty', label: '50:50', icon: '➗', fn: useFifty, on: jokers.fifty && q?.type !== 'tf' },
           { key: 'time', label: '+15sn', icon: '⏱️', fn: useTime, on: jokers.time },
-          { key: 'second', label: 'Çift Cevap', icon: '🎯', fn: useSecond, on: jokers.second && !secondChance },
+          { key: 'second', label: tt('Çift Cevap'), icon: '🎯', fn: useSecond, on: jokers.second && !secondChance },
         ].map(j => (
           <button key={j.key} onClick={j.fn} disabled={!j.on}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black transition-all active:scale-95 disabled:opacity-35"
@@ -209,7 +211,7 @@ export default function RapidQuiz({ theme, onXP, onEvent = () => {} }) {
             <span className="text-sm">{j.icon}</span> {j.label}
           </button>
         ))}
-        {secondChance && <span className="text-[9px] font-bold self-center" style={{ color: '#10B981' }}>Çift cevap aktif ✓</span>}
+        {secondChance && <span className="text-[9px] font-bold self-center" style={{ color: '#10B981' }}>{tt('Çift cevap aktif ✓')}</span>}
       </div>
     </motion.div>
   );
