@@ -13,6 +13,8 @@ import InstallPrompt from './components/InstallPrompt';
 import LanguageGate from './components/LanguageGate';
 import PageTransition from './components/PageTransition';
 import { initOfflineSync } from './services/offlineSync';
+// Yan etki: Geri Dönüş modunun plan filtresini pathEngine'e kaydeder.
+import './services/returnEngine';
 import api from './api';
 
 // --- SAYFALAR ---

@@ -27,6 +27,7 @@ import Confetti from './games/Confetti';
 import { ADVENTURE } from '../data/adventureData';
 import { useTx } from '../i18n';
 import { useLang } from '../contexts/LangContext';
+import { isReturnMode } from '../services/returnEngine';
 
 // ════════════════════════════════════════════════════════════
 // OYUN MERKEZİ — referans tasarım birebir (mobil düzene uyarlı)
@@ -434,6 +435,11 @@ export default function GamesPage() {
   const levelTitle = tt(LEVEL_TITLES[Math.min((stats.level || lvl) - 1, LEVEL_TITLES.length - 1)]);
   const activeGame = GAME_MODES.find(g => g.id === active);
 
+  // 🕯️ Geri dönüş modu: karşılaştırma bu aşamada zehirlidir. XP ve rozetler
+  // (kişisel ilerleme) kalır; lig, liderlik tablosu ve düello gizlenir.
+  const donus = useMemo(() => isReturnMode(), []);
+  const MODES = useMemo(() => (donus ? GAME_MODES.filter(g => g.id !== 'duel') : GAME_MODES), [donus]);
+
   const TASKS = [
     { id: 'hadis5', icon: '🏆', label: tt('5 hadis sorusu çöz'), cur: daily.hadis, max: 5, xp: 20 },
     { id: 'cevap20', icon: '🎯', label: tt('20 soru cevapla'), cur: daily.answers, max: 20, xp: 20 },
@@ -523,8 +529,8 @@ export default function GamesPage() {
 
   // ═══ OYUN MODLARI EKRANI (şık liste) ═══
   if (stage === 'modes') {
-    const featured = GAME_MODES.find(g => g.featured) || GAME_MODES[0];
-    const rest = GAME_MODES.filter(g => g.id !== featured.id);
+    const featured = MODES.find(g => g.featured) || MODES[0];
+    const rest = MODES.filter(g => g.id !== featured.id);
     return (
       <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
         {levelUpOverlay}
@@ -534,7 +540,7 @@ export default function GamesPage() {
           </button>
           <div>
             <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{tt('Oyun Modları')}</h1>
-            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{GAME_MODES.length} {tt('mod · her biri farklı bir deneyim')}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{MODES.length} {tt('mod · her biri farklı bir deneyim')}</p>
           </div>
         </div>
 
@@ -739,7 +745,8 @@ export default function GamesPage() {
         );
       })()}
 
-      {/* ─── LİG PANELİ + SEZON ─── */}
+      {/* ─── LİG PANELİ + SEZON (dönüş modunda gizli) ─── */}
+      {!donus && (
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
         className="mx-5 mb-5 rounded-2xl p-4 flex items-center gap-4" style={S.card}>
         <LeagueEmblem color={league.cur.color} />
@@ -770,6 +777,7 @@ export default function GamesPage() {
           </p>
         </div>
       </motion.div>
+      )}
 
       {/* ─── OYUN MODLARI VİTRİNİ (özet görsel → mod listesi ekranı) ─── */}
       <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
@@ -788,7 +796,7 @@ export default function GamesPage() {
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: theme.gold }}>{tt('Oyun Modları')}</p>
             <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
-              {GAME_MODES.length} {tt('farklı deneyim')}
+              {MODES.length} {tt('farklı deneyim')}
             </p>
             <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt("Blitz'ten Maceraya — hepsi seni bekliyor")}</p>
           </div>
@@ -799,7 +807,7 @@ export default function GamesPage() {
         </div>
         {/* Emoji mozaiği — modların vitrini */}
         <div className="flex gap-1.5 relative">
-          {GAME_MODES.slice(0, 8).map((g, i) => (
+          {MODES.slice(0, 8).map((g, i) => (
             <motion.span key={g.id}
               animate={{ y: [0, i % 2 === 0 ? -3 : 3, 0] }}
               transition={{ duration: 2 + (i % 3) * 0.4, repeat: Infinity, ease: 'easeInOut' }}
@@ -810,7 +818,7 @@ export default function GamesPage() {
           ))}
           <span className="w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0"
             style={{ background: `${theme.gold}12`, border: `1px dashed ${theme.gold}45`, color: theme.gold }}>
-            +{GAME_MODES.length - 8}
+            +{MODES.length - 8}
           </span>
         </div>
       </motion.button>
@@ -922,7 +930,8 @@ export default function GamesPage() {
         </div>
       </div>
 
-      {/* ─── LİDERLİK TABLOSU ─── */}
+      {/* ─── LİDERLİK TABLOSU (dönüş modunda gizli) ─── */}
+      {!donus && (
       <div className="px-5 mb-5">
         <div className="rounded-2xl p-4" style={S.card}>
           <div className="flex items-center justify-between mb-3">
@@ -946,6 +955,7 @@ export default function GamesPage() {
           )}
         </div>
       </div>
+      )}
 
       {/* ─── KATEGORİLER (Soru Havuzu) ─── */}
       <div className="px-5 mb-5">
@@ -1110,8 +1120,10 @@ export default function GamesPage() {
         {[
           { icon: <Library size={14} />, label: 'Soru Havuzu', to: '/quiz' },
           { icon: <Award size={14} />, label: 'Rozetler', to: '/achievements' },
-          { icon: <Swords size={14} />, label: tt('Düello'), to: '/multiplayer' },
-          { icon: <Trophy size={14} />, label: 'Liderlik', to: '/profile' },
+          ...(donus ? [] : [
+            { icon: <Swords size={14} />, label: tt('Düello'), to: '/multiplayer' },
+            { icon: <Trophy size={14} />, label: 'Liderlik', to: '/profile' },
+          ]),
         ].map((l, i) => (
           <button key={i} onClick={() => navigate(l.to)}
             className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl active:scale-95 transition-all"

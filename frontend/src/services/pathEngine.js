@@ -15,7 +15,17 @@ const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } cat
 export const todayKey = () => new Date().toISOString().slice(0, 10);
 
 // ─── Değerlendirme soruları ───
+// İlk soru YOLU BELİRLER: 'donus' seçildiğinde returnEngine devreye girer
+// (kademeli yük + şefkat serisi + dönüş mertebeleri).
 export const ASSESSMENT = [
+  {
+    id: 'mode', q: 'Bu yolda neredesin?', icon: '🧭',
+    options: [
+      { id: 'normal', label: 'Yolumda devam ediyorum' },
+      { id: 'yeni',   label: 'Yeni başlıyorum' },
+      { id: 'donus',  label: 'Uzun süredir ara verdim, dönmek istiyorum' },
+    ],
+  },
   {
     id: 'namaz', q: 'Namaz düzenin nasıl?', icon: '🕌',
     options: [
@@ -53,7 +63,9 @@ export const ASSESSMENT = [
 
 export function getProfile() { return load('nur_profile', null); }
 export function saveProfile(answers) {
-  const p = { ...answers, createdAt: Date.now() };
+  // 'yeni' ve 'normal' aynı motoru kullanır; yalnız 'donus' ayrışır.
+  const mode = answers.mode === 'donus' ? 'donus' : 'normal';
+  const p = { ...answers, mode, createdAt: Date.now() };
   save('nur_profile', p);
   return p;
 }
@@ -293,11 +305,13 @@ export function detectNewEvents() {
 }
 
 // ─── Mertebe atlama kutlaması (bir kez gösterilir) ───
-export function checkStageCelebration() {
-  const stage = getStage();
-  const seen = load('nur_stage_seen', 0);
+// stageArg/seenKey: geri dönüş modu kendi mertebe setini ve kendi "görüldü"
+// anahtarını verir; iki modun kutlamaları birbirini bastırmaz.
+export function checkStageCelebration(stageArg, seenKey = 'nur_stage_seen') {
+  const stage = stageArg || getStage();
+  const seen = load(seenKey, 0);
   if (stage.current.id > seen) {
-    save('nur_stage_seen', stage.current.id);
+    save(seenKey, stage.current.id);
     if (stage.current.id > 0) {
       logEvent('stage', `${stage.current.emoji} ${stage.current.name} mertebesine ulaşıldı`, '🏆');
       return stage.current;
@@ -339,6 +353,21 @@ export function generatePlan(profile) {
   return ids;
 }
 
+// Alternatif modlar (ör. Geri Dönüş) plan listesini daraltabilir.
+// returnEngine bu kancaya kendini kaydeder — böylece pathEngine
+// returnEngine'i import etmez ve döngüsel bağımlılık oluşmaz.
+let planFilter = null;
+export function registerPlanFilter(fn) { planFilter = typeof fn === 'function' ? fn : null; }
+
+function buildTasks(profile) {
+  const tasks = generatePlan(profile);
+  if (!planFilter) return tasks;
+  try {
+    const filtered = planFilter(tasks, profile);
+    return Array.isArray(filtered) && filtered.length ? filtered : tasks;
+  } catch { return tasks; }
+}
+
 export function getTodayPlan() {
   const profile = getProfile();
   if (!profile) return null;
@@ -347,7 +376,7 @@ export function getTodayPlan() {
   if (!plan) {
     plan = {
       date: todayKey(),
-      tasks: generatePlan(profile),
+      tasks: buildTasks(profile),
       done: [],
       planTime: Date.now(),
       snap: {
@@ -438,6 +467,6 @@ const pathEngine = {
   getTodayPlan, isTaskDone, toggleTask,
   getHistory, getStreak, getFullDays, getStage, syncHistory, todayKey,
   getWeekTheme, getDailyQuote, getDailyDua, getBadges, checkStageCelebration,
-  logEvent, getEvents, detectNewEvents,
+  logEvent, getEvents, detectNewEvents, registerPlanFilter,
 };
 export default pathEngine;
