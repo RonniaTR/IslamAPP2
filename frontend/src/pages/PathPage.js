@@ -17,6 +17,9 @@ import {
 import {
   isReturnMode, reconcile, creditToday, getMercyStreak, getReturnStage,
   getReturnDay, getArcProgress, RETURN_STAGES, ARC_DAYS,
+  getTodayLesson, getTodayPhase, getReadDays, isDayRead,
+  getLessonProgress, getReturnBadges, graduateToNormal,
+  RETURN_PHASES, LAST_DAY,
 } from '../services/returnEngine';
 import ReturnIntro from '../components/ReturnIntro';
 import Confetti from './games/Confetti';
@@ -71,6 +74,62 @@ function Stars({ n = 20 }) {
   );
 }
 
+// 🕯️ KIRK GÜNLÜK HARİTA — dönüş modunda "Yol Durakları"nın yerini alır.
+// Haftalık tema yerine müfredatın beş fazı ve kırk günü gösterilir.
+// Açılmış gün = tıklanabilir · okunmuş gün = ✓ · ileri gün = kilitli.
+function ArcMap({ day, readDays, navigate, tt }) {
+  const maxOpen = Math.min(day, LAST_DAY);
+  return (
+    <div className="space-y-3">
+      {RETURN_PHASES.map((ph) => {
+        const days = Array.from({ length: ph.to - ph.from + 1 }, (_, i) => ph.from + i);
+        const readInPhase = days.filter(d => readDays.includes(d)).length;
+        const active = maxOpen >= ph.from && maxOpen <= ph.to;
+        return (
+          <div key={ph.id} className="rounded-2xl p-3.5"
+            style={{
+              background: NUR.surface,
+              border: `1px solid ${active ? NUR.border : NUR.borderSoft}`,
+            }}>
+            <div className="flex items-baseline gap-2 mb-2.5">
+              <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: NUR.gold }}>
+                {ph.emoji} {tt(ph.name)}
+              </p>
+              <p className="text-[9.5px] flex-1 truncate" style={{ color: NUR.dim }}>{tt(ph.desc)}</p>
+              <p className="text-[9px] font-black tabular-nums" style={{ color: active ? NUR.gold : NUR.dim }}>
+                {readInPhase}/{days.length}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {days.map((d) => {
+                const isRead = readDays.includes(d);
+                const isOpen = d <= maxOpen;
+                const isToday = d === maxOpen;
+                return (
+                  <button key={d}
+                    onClick={() => isOpen && navigate(`/yol/gun/${d}`)}
+                    disabled={!isOpen}
+                    aria-label={`${tt('Gün')} ${d}`}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black relative disabled:cursor-default"
+                    style={{
+                      background: isRead ? NUR.gold : isToday ? 'rgba(232,197,108,0.15)' : 'rgba(255,255,255,0.04)',
+                      color: isRead ? '#03130B' : isOpen ? NUR.text : `${NUR.dim}70`,
+                      border: `1.5px solid ${isRead ? NUR.gold : isToday ? NUR.gold : NUR.borderSoft}`,
+                      boxShadow: isToday && !isRead ? '0 0 12px rgba(232,197,108,0.45)' : 'none',
+                      opacity: isOpen ? 1 : 0.45,
+                    }}>
+                    {isRead ? '✓' : d}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function PathPage() {
   const { user } = useAuth();
   const tt = useTx();
@@ -98,11 +157,17 @@ export default function PathPage() {
   const mercy = donus ? getMercyStreak() : null;
   const returnDay = donus ? getReturnDay() : 0;
   const arc = donus ? getArcProgress() : 0;
+  const lesson = donus && returnDay <= LAST_DAY ? getTodayLesson(lang, returnDay) : null;
+  const phase = donus ? getTodayPhase(returnDay) : null;
+  const lessonProgress = donus ? getLessonProgress() : null;
   const history = getHistory();
   const weekTheme = profile ? getWeekTheme(profile) : null;
   const quote = getDailyQuote();
   const dua = getDailyDua();
-  const badges = useMemo(() => getBadges(), [doneCount, profile]); // eslint bilinçli
+  const badges = useMemo(
+    () => (donus ? getReturnBadges() : getBadges()),
+    [donus, doneCount, profile], // eslint bilinçli
+  );
   const earnedCount = badges.filter(b => b.earned).length;
   const stats = getCachedStats();
   const events = useMemo(() => getEvents(), [doneCount, stagePop, badgeToast]); // eslint bilinçli
@@ -145,7 +210,7 @@ export default function PathPage() {
     }
     const popped = checkStageCelebration(stage, donus ? 'donus_stage_seen' : 'nur_stage_seen');
     if (popped) setStagePop(popped);
-    const fresh = detectNewEvents();
+    const fresh = detectNewEvents(badges, donus ? 'donus_badges_seen' : 'nur_badges_seen');
     if (fresh.length) {
       setBadgeToast(fresh[0]);
       setTimeout(() => setBadgeToast(null), 4000);
@@ -351,11 +416,84 @@ export default function PathPage() {
                   <p className="text-[9.5px] mt-1.5 leading-relaxed" style={{ color: `${NUR.dim}b0` }}>
                     {tt('Bir gün gelemezsen serin sıfırlanmaz; bir şefkat hakkı harcanır. Gelen her gün onu geri kazandırır.')}
                   </p>
+                  {lessonProgress && (
+                    <div className="flex items-center gap-1.5 mt-3 pt-3" style={{ borderTop: `1px solid ${NUR.borderSoft}` }}>
+                      <span className="text-[10px]">📖</span>
+                      <p className="text-[10px] font-bold" style={{ color: NUR.dim }}>
+                        {lessonProgress.read}/{lessonProgress.total} {tt('ders okundu')}
+                      </p>
+                      <span className="text-[10px] font-black ml-auto" style={{ color: NUR.gold }}>
+                        {phase.emoji} {tt(phase.name)}
+                      </span>
+                    </div>
+                  )}
                 </motion.div>
               </div>
             )}
 
-            {weekTheme && (
+            {/* ── KIRK GÜN TAMAMLANDI — müfredat bitince mod değişimi teklifi ── */}
+            {donus && !lesson && (
+              <div className="px-5 mt-4">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl p-5 text-center"
+                  style={{ background: 'linear-gradient(150deg, rgba(232,197,108,0.16), rgba(13,51,36,0.85))', border: `1.5px solid ${NUR.gold}` }}>
+                  <span className="text-4xl block mb-2">🌳</span>
+                  <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
+                    {tt('Kırk gün tamamlandı')}
+                  </p>
+                  <p className="text-[11.5px] mt-2 leading-relaxed" style={{ color: NUR.dim }}>
+                    {tt('Müfredat burada bitiyor, yol bitmiyor. İstersen Nur Yolu’na geçebilirsin — serin, dersler ve rozetlerin yerinde kalır.')}
+                  </p>
+                  <button
+                    onClick={() => { const p = graduateToNormal(); if (p) { setProfile(p); force(x => x + 1); } }}
+                    className="w-full mt-4 py-3.5 rounded-2xl text-sm font-black active:scale-97"
+                    style={{ background: NUR.gold, color: '#03130B' }}>
+                    {tt('Nur Yolu’na geç 🤲')}
+                  </button>
+                  <button onClick={() => navigate(`/yol/gun/${LAST_DAY}`)}
+                    className="mt-2.5 text-[11px] font-bold py-2" style={{ color: NUR.dim }}>
+                    {tt('Kırkıncı günü yeniden oku')}
+                  </button>
+                </motion.div>
+              </div>
+            )}
+
+            {/* ── GÜNÜN DERSİ — kırk günlük müfredatın bugünkü sayfası ── */}
+            {lesson && (
+              <div className="px-5 mt-4">
+                <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+                  onClick={() => navigate('/yol/gun')} whileTap={{ scale: 0.98 }}
+                  className="w-full text-left rounded-2xl p-4 relative overflow-hidden"
+                  style={{ background: 'linear-gradient(120deg, rgba(232,197,108,0.14), rgba(13,51,36,0.7))', border: `1.5px solid ${NUR.border}` }}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[9px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full"
+                      style={{ background: 'rgba(232,197,108,0.15)', color: NUR.gold }}>
+                      {returnDay}. {tt('Gün')} · {tt(phase.name)}
+                    </span>
+                    {isDayRead(returnDay) && (
+                      <span className="flex items-center gap-1 text-[9px] font-black" style={{ color: NUR.green }}>
+                        <Check size={10} strokeWidth={3} /> {tt('Okundu')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-lg font-black leading-tight" dir={lang === 'ar' ? 'ltr' : undefined}
+                    style={{ fontFamily: 'Playfair Display, serif', color: NUR.text, textAlign: lang === 'ar' ? 'left' : undefined }}>
+                    🕯️ {lesson.title}
+                  </p>
+                  <p className="text-[11.5px] mt-1 italic" dir={lang === 'ar' ? 'ltr' : undefined}
+                    style={{ color: NUR.gold, textAlign: lang === 'ar' ? 'left' : undefined }}>{lesson.lead}</p>
+                  <p className="text-[11.5px] mt-2 leading-relaxed" dir={lang === 'ar' ? 'ltr' : undefined}
+                    style={{ color: `${NUR.text}b8`, textAlign: lang === 'ar' ? 'left' : undefined }}>
+                    {lesson.reading[0].slice(0, 132)}…
+                  </p>
+                  <p className="text-[10.5px] font-black mt-3 flex items-center gap-1" style={{ color: NUR.gold }}>
+                    {tt('Dersi aç')} <ChevronRight size={12} />
+                  </p>
+                </motion.button>
+              </div>
+            )}
+
+            {weekTheme && !donus && (
               <div className="px-5 mt-4">
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                   className="rounded-2xl p-4 relative overflow-hidden"
@@ -520,11 +658,16 @@ export default function PathPage() {
             <div className="px-5 mt-6">
               <div className="rounded-2xl p-4 text-center relative overflow-hidden" style={{ background: NUR.surface, border: `1.5px solid ${NUR.border}` }}>
                 <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: NUR.gold }}>{tt('🤲 Günün Duası')}</p>
-                <p dir="rtl" className="text-xl leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: NUR.gold }}>{dua.ar}</p>
+                <p dir="rtl" lang="ar" className="text-xl leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: NUR.gold }}>
+                  {lesson ? lesson.dua.ar : dua.ar}
+                </p>
                 {lang !== 'ar' && (
-                  <p className="text-[12px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd` }}>"{tt(dua.tr)}"</p>
+                  <p className="text-[12px] italic mt-2 leading-relaxed" dir={lang === 'ar' ? 'ltr' : undefined}
+                    style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd`, textAlign: 'center' }}>
+                    "{lesson ? lesson.dua.tr : tt(dua.tr)}"
+                  </p>
                 )}
-                <p className="text-[9.5px] mt-1.5 font-bold" style={{ color: NUR.dim }}>— {tt(dua.source)}</p>
+                <p className="text-[9.5px] mt-1.5 font-bold" style={{ color: NUR.dim }}>— {lesson ? lesson.dua.ref : tt(dua.source)}</p>
               </div>
             </div>
 
@@ -550,13 +693,19 @@ export default function PathPage() {
         {/* ════════ SEKME: HARİTA ════════ */}
         {tab === 'harita' && (
           <>
-            {/* Yılan-yol durakları: her satır 1 hafta */}
+            {/* Yol haritası: dönüşte kırk günlük müfredat, normalde haftalık duraklar */}
             <div className="px-5 mt-4">
-              <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt('🗺️ Yol Durakları')}</p>
-              <p className="text-[10px] mb-3" style={{ color: NUR.dim }}>
-                {donus ? tt('Yolda geçen her gün bir durak ilerletir. Şu an') : tt('Her tam gün bir durak ilerletir. Şu an')}{' '}
-                <span style={{ color: NUR.gold }}>#{currentStation}</span> — {tt('her satır bir haftalık temadır')}.
+              <p className="text-sm font-black mb-1" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>
+                {donus ? tt('🗺️ Kırk Günlük Yol') : tt('🗺️ Yol Durakları')}
               </p>
+              <p className="text-[10px] mb-3" style={{ color: NUR.dim }}>
+                {donus
+                  ? <>{tt('Beş bölüm, kırk gün. Bugün')} <span style={{ color: NUR.gold }}>{Math.min(returnDay, LAST_DAY)}.</span> {tt('gündesin — geçmiş dersleri istediğin zaman açabilirsin')}.</>
+                  : <>{tt('Her tam gün bir durak ilerletir. Şu an')} <span style={{ color: NUR.gold }}>#{currentStation}</span> — {tt('her satır bir haftalık temadır')}.</>}
+              </p>
+              {donus ? (
+                <ArcMap day={returnDay} readDays={getReadDays()} navigate={navigate} tt={tt} />
+              ) : (
               <div className="space-y-3">
                 {Array.from({ length: weekCount }, (_, w) => {
                   const theme = WEEKLY_THEMES[w % WEEKLY_THEMES.length];
@@ -596,6 +745,7 @@ export default function PathPage() {
                   );
                 })}
               </div>
+              )}
             </div>
 
             {/* Aylık ısı takvimi */}
@@ -629,8 +779,8 @@ export default function PathPage() {
             <div className="px-5 mt-6">
               <p className="text-sm font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: NUR.text }}>{tt('🏔️ Mertebeler')}</p>
               <div className="relative">
-                <div className="absolute left-0 right-0 h-0.5 top-[38px]" style={{ background: `linear-gradient(90deg, ${NUR.gold}, rgba(232,197,108,0.1))` }} />
-                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 relative">
+                <div className="absolute left-0 right-0 h-0.5 top-[50px]" style={{ background: `linear-gradient(90deg, ${NUR.gold}, rgba(232,197,108,0.1))` }} />
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pt-3 pb-1 relative">
                   {stageList.map(s => {
                     const reached = stage.days >= s.need;
                     const isCurrent = stage.current.id === s.id;

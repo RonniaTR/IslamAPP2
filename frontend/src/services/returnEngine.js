@@ -18,8 +18,12 @@
 // oradan gelir; burada yalnız yük ve seri yorumu değişir.
 
 import {
-  todayKey, getProfile, getHistory, generatePlan, TASK_POOL, registerPlanFilter,
+  todayKey, getProfile, getHistory, generatePlan, TASK_POOL,
+  registerPlanFilter, registerTasks, logEvent,
 } from './pathEngine';
+import { getDayContent, getPhase, RETURN_PHASES, LAST_DAY } from '../data/returnPath';
+
+export { RETURN_PHASES, LAST_DAY };
 
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* quota */ } };
@@ -167,22 +171,125 @@ export function getReturnStage() {
   return { current: cur, next, days: measure };
 }
 
+// ─── Kırk günlük müfredat ───
+
+const READ_KEY = 'donus_read';
+
+/** Bugünün ders içeriği (F2 müfredatı). Kırkıncı günden sonra son gün kalır. */
+export function getTodayLesson(lang = 'tr', day = getReturnDay()) {
+  return getDayContent(Math.min(day, LAST_DAY), lang);
+}
+
+/** Günün ait olduğu faz (Kapı · Temel · Bağ · Ahlak · Kökleşme). */
+export function getTodayPhase(day = getReturnDay()) {
+  return getPhase(Math.min(day, LAST_DAY));
+}
+
+/** Okunmuş ders günlerinin listesi. */
+export function getReadDays() {
+  const v = load(READ_KEY, []);
+  return Array.isArray(v) ? v : [];
+}
+
+export function isDayRead(day = getReturnDay()) {
+  return getReadDays().includes(Math.min(day, LAST_DAY));
+}
+
+/** Bir dersi okundu işaretler; faz tamamlandıysa günlüğe yazar. */
+export function markDayRead(day = getReturnDay()) {
+  const d = Math.min(day, LAST_DAY);
+  const list = getReadDays();
+  if (list.includes(d)) return list;
+  list.push(d);
+  save(READ_KEY, list);
+  const phase = getPhase(d);
+  if (phase && d === phase.to) {
+    logEvent('phase', `${phase.emoji} "${phase.name}" bölümü tamamlandı`, phase.emoji);
+  }
+  return list;
+}
+
+/** Müfredat ilerlemesi: okunan ders sayısı / 40. */
+export function getLessonProgress() {
+  const read = getReadDays().length;
+  return { read, total: LAST_DAY, pct: Math.min(1, read / LAST_DAY) };
+}
+
+/** Kırk gün doldu mu — bitiş ekranı için. */
+export function isArcComplete(day = getReturnDay()) {
+  return day > LAST_DAY || (day === LAST_DAY && isDayRead(LAST_DAY));
+}
+
+// ─── Dönüş rozetleri ───
+// Normal rozetler "tam gün" ve uzun seri ister; dönüş modunda bunların çoğu
+// haftalarca erişilemez ve rozet rafı boş bir vitrine dönüşür. Bu set
+// müfredat ilerlemesine bağlıdır — yani gerçekten yapılan işe.
+export const RETURN_BADGES = [
+  { id: 'r-esik',   emoji: '🚪', name: 'Eşik',        desc: 'İlk dersi tamamla' },
+  { id: 'r-kapi',   emoji: '🕯️', name: 'Kapı',        desc: 'İlk bölümü bitir (7 gün)' },
+  { id: 'r-temel',  emoji: '🕌', name: 'Temel',       desc: 'Namaz bölümünü bitir (16 gün)' },
+  { id: 'r-bag',    emoji: '📖', name: 'Bağ',         desc: "Kur'an ve zikir bölümünü bitir (26 gün)" },
+  { id: 'r-ahlak',  emoji: '🌿', name: 'Ahlak',       desc: 'Ahlak bölümünü bitir (34 gün)' },
+  { id: 'r-kirk',   emoji: '🌳', name: 'Kırk Gün',    desc: 'Kırk günün tamamını oku' },
+  { id: 'r-sefkat', emoji: '🤲', name: 'Şefkat',      desc: 'Bir gün atladıktan sonra geri dön' },
+  { id: 'r-sebat',  emoji: '💠', name: 'Sebat',       desc: 'Yolda 21 gün topla' },
+];
+
+/** Dönüş rozetlerini kazanılma durumuyla döndürür. */
+export function getReturnBadges() {
+  const read = getReadDays();
+  const has = (upTo) => read.length > 0 && RETURN_PHASES
+    .filter(p => p.to <= upTo)
+    .every(p => Array.from({ length: p.to - p.from + 1 }, (_, i) => p.from + i).every(d => read.includes(d)));
+  const s = getReturnState();
+  const { days } = getReturnStage();
+  const earned = {
+    'r-esik': read.length >= 1,
+    'r-kapi': has(7),
+    'r-temel': has(16),
+    'r-bag': has(26),
+    'r-ahlak': has(34),
+    'r-kirk': read.length >= LAST_DAY,
+    'r-sefkat': s.mercy < MAX_MERCY && s.streak > 0,
+    'r-sebat': days >= 21,
+  };
+  return RETURN_BADGES.map(b => ({ ...b, earned: !!earned[b.id] }));
+}
+
+/**
+ * Kırk gün bitince normal Nur Yolu'na geçiş.
+ * Profil modu değişir; şefkat serisi ve okunan dersler KORUNUR — kişi
+ * isterse geri dönebilir ve geçmişi yerinde durur.
+ */
+export function graduateToNormal() {
+  const p = getProfile();
+  if (!p) return null;
+  const next = { ...p, mode: 'normal', graduatedAt: Date.now() };
+  save('nur_profile', next);
+  logEvent('phase', '🌳 Kırk günlük yol tamamlandı — Nur Yolu\'na geçildi', '🌳');
+  return next;
+}
+
 /**
  * Dönüş modunda bugünün planı — pathEngine'in ürettiği sıralamanın
- * ilk N görevini alır. Muhasebe (amel defteri) her zaman içeride kalır:
- * dönüşün kalbi kendini gözlemlemektir.
+ * ilk N görevini alır. İki görev her zaman ayrıcalıklıdır:
+ *   ders     — kırk günlük müfredatın o günkü sayfası (yolun omurgası)
+ *   muhasebe — dönüşün kalbi kendini gözlemlemektir
  */
 export function buildReturnTasks(profile = getProfile(), day = getReturnDay()) {
   const count = getTaskCount(day);
-  const full = generatePlan(profile);
   const picked = [];
-  // Muhasebe önceliklidir (varsa)
-  if (full.includes('muhasebe')) picked.push('muhasebe');
+  // 1) Günün dersi — müfredat sürdüğü sürece her gün plandadır
+  if (day <= LAST_DAY) picked.push('ders');
+  // 2) Muhasebe (planda üretildiyse)
+  const full = generatePlan(profile);
+  if (picked.length < count && full.includes('muhasebe')) picked.push('muhasebe');
+  // 3) Kalanı normal plandan doldur
   for (const id of full) {
     if (picked.length >= count) break;
     if (!picked.includes(id) && TASK_POOL[id]) picked.push(id);
   }
-  return picked.slice(0, count);
+  return picked.slice(0, Math.max(count, 1));
 }
 
 /** Kırk günlük yayda ilerleme oranı (0..1) — ilerleme çubuğu için. */
@@ -192,9 +299,18 @@ export function getArcProgress() {
 }
 
 // ─── Motoru pathEngine'e tanıt ───
-// Bu modül yüklendiği anda plan filtresi kurulur; dönüş modundaki kullanıcı
-// için "Bugünün Yolu" otomatik olarak kademeli görev sayısına iner.
+// Bu modül yüklendiği anda plan filtresi ve "günün dersi" görevi kurulur;
+// dönüş modundaki kullanıcı için "Bugünün Yolu" otomatik olarak kademeli
+// görev sayısına iner ve müfredat dersini içerir.
 // (App.js bu modülü yan etki olarak import eder — bkz. App.js)
+registerTasks({
+  ders: {
+    id: 'ders', icon: '🕯️', title: 'Günün dersi', minutes: 4, xp: 20, route: '/yol/gun',
+    desc: 'Kırk günlük yolun bugünkü sayfası — okuma, ayet, dua ve tek adım',
+    detect: () => isDayRead(),
+  },
+});
+
 registerPlanFilter((tasks, profile) => {
   if (!isReturnMode(profile)) return tasks;
   return buildReturnTasks(profile);
@@ -204,5 +320,8 @@ const returnEngine = {
   isReturnMode, getReturnState, resetReturnState, getReturnDay, getTaskCount,
   reconcile, creditToday, getMercyStreak, getReturnStage, buildReturnTasks,
   getArcProgress, RETURN_STAGES, MAX_MERCY, ARC_DAYS,
+  getTodayLesson, getTodayPhase, getReadDays, isDayRead, markDayRead,
+  getLessonProgress, isArcComplete, RETURN_PHASES, LAST_DAY,
+  RETURN_BADGES, getReturnBadges, graduateToNormal,
 };
 export default returnEngine;

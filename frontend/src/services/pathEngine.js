@@ -150,6 +150,13 @@ const TASKS = {
 };
 export const TASK_POOL = TASKS;
 
+// Alternatif modlar havuza kendi görevlerini ekleyebilir (ör. Geri Dönüş'ün
+// "günün dersi" görevi). registerPlanFilter ile aynı gerekçe: pathEngine
+// diğer modülleri import etmez, onlar kendilerini tanıtır.
+export function registerTasks(extra) {
+  if (extra && typeof extra === 'object') Object.assign(TASKS, extra);
+}
+
 // ─── Haftalık tema müfredatı ───
 // Yol, haftalara bölünmüş temalarla ilerler; her temanın bir "yıldız
 // görevi" vardır ve o hafta plana öncelikli girer. Ayet mealleri özgün
@@ -281,15 +288,18 @@ export function logEvent(type, title, emoji) {
 export function getEvents() { return load('nur_events', []); }
 
 // Yeni kazanımları algıla: yeni rozetler döner (bildirim için), günlüğe yazar
-export function detectNewEvents() {
+// badgeList/seenKey: geri dönüş modu kendi rozet setini verir; iki setin
+// "görüldü" kayıtları birbirine karışmaz.
+export function detectNewEvents(badgeList, seenKey = 'nur_badges_seen') {
   const fresh = [];
-  const earned = getBadges().filter(b => b.earned).map(b => b.id);
-  const seen = load('nur_badges_seen', []);
+  const list = Array.isArray(badgeList) && badgeList.length ? badgeList : getBadges();
+  const earned = list.filter(b => b.earned).map(b => b.id);
+  const seen = load(seenKey, []);
   const newOnes = earned.filter(id => !seen.includes(id));
   if (newOnes.length) {
-    save('nur_badges_seen', earned);
+    save(seenKey, earned);
     newOnes.forEach(id => {
-      const b = NUR_BADGES.find(x => x.id === id);
+      const b = list.find(x => x.id === id);
       if (b) { logEvent('badge', `"${b.name}" rozeti kazanıldı`, b.emoji); fresh.push(b); }
     });
   }
@@ -467,6 +477,6 @@ const pathEngine = {
   getTodayPlan, isTaskDone, toggleTask,
   getHistory, getStreak, getFullDays, getStage, syncHistory, todayKey,
   getWeekTheme, getDailyQuote, getDailyDua, getBadges, checkStageCelebration,
-  logEvent, getEvents, detectNewEvents, registerPlanFilter,
+  logEvent, getEvents, detectNewEvents, registerPlanFilter, registerTasks,
 };
 export default pathEngine;

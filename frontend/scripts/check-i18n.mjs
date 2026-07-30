@@ -11,6 +11,7 @@
 //   3) Soru bankası İngilizce katmanı: aynı id'ler + aynı şık sayısı
 //      (şık sayısı bozulursa correct_index yanlış cevabı işaretler!)
 //   4) İçerik overlay'leri (makale/kıssa/esma/duygu): id kapsaması
+//   5) Geri Dönüş müfredatı: 40 günün bütünlüğü, Arapça dua, EN overlay, ton
 //
 // Çıkış kodu 0 = temiz, 1 = hata var (CI'da build'i durdurur).
 // ─────────────────────────────────────────────────────────────
@@ -162,6 +163,56 @@ for (const [label, srcFile, srcRe, enFile, enRe] of pairs) {
   const miss = [...a].filter(id => !b.has(id));
   if (miss.length) warn(`${label}: ${miss.length} kayıt çevrilmemiş (${miss.slice(0, 5).join(', ')})`);
   else ok(`${label}: ${a.size} kaydın tamamı çevrilmiş`);
+}
+
+// ── 5) Geri Dönüş müfredatı (40 gün) ─────────────────────────
+console.log('\n5) Geri Dönüş müfredatı');
+{
+  const trFile = join(SRC, 'data/returnPath.js');
+  const enFile = join(SRC, 'data/returnPath.en.js');
+  if (!existsSync(trFile) || !existsSync(enFile)) {
+    warn('returnPath dosyaları bulunamadı, atlanıyor');
+  } else {
+    const tr = readFileSync(trFile, 'utf8');
+    const en = readFileSync(enFile, 'utf8');
+    const trDays = [...tr.matchAll(/^\s{4}day:\s*(\d+),/gm)].map(m => +m[1]);
+    const enDays = [...en.matchAll(/^\s{2}(\d+):\s*\{/gm)].map(m => +m[1]);
+
+    // Gün numaraları 1..N kesintisiz mi?
+    const expected = Array.from({ length: trDays.length }, (_, i) => i + 1);
+    const bad = expected.filter((d, i) => trDays[i] !== d);
+    if (bad.length) fail(`Gün numaraları sıralı değil (ilk sorun: ${bad[0]})`);
+    else ok(`${trDays.length} gün sıralı ve eksiksiz`);
+
+    // Her günün zorunlu alanları var mı?
+    const blocks = tr.split(/^\s{4}day:\s*\d+,/m).slice(1);
+    const required = ['title:', 'lead:', 'reading:', 'source:', 'dua:', 'step:', 'question:'];
+    const incomplete = [];
+    blocks.forEach((blk, i) => {
+      const missing = required.filter(k => !blk.includes(k));
+      if (missing.length) incomplete.push(`${i + 1}. gün (${missing.join(', ')})`);
+    });
+    if (incomplete.length) fail(`Eksik alanlı gün: ${incomplete.slice(0, 3).join(' · ')}`);
+    else ok('Her günde okuma, kaynak, dua, adım ve soru var');
+
+    // Her duanın Arapça metni var mı?
+    const arCount = (tr.match(/^\s{6}ar:\s*`/gm) || []).length;
+    if (arCount !== trDays.length) fail(`${trDays.length} günden ${arCount}'inde Arapça dua metni var`);
+    else ok(`${arCount} duanın tamamında Arapça metin var`);
+
+    // İngilizce overlay kapsaması
+    const missEn = trDays.filter(d => !enDays.includes(d));
+    if (missEn.length) warn(`İngilizce: ${missEn.length} gün çevrilmemiş (${missEn.slice(0, 5).join(', ')})`);
+    else ok(`İngilizce: ${trDays.length} günün tamamı çevrilmiş`);
+
+    // Ton denetimi — suçlayıcı ifadeler dönüş içeriğinde yasak
+    // Yorum satırları hariç: kuralın kendisi dosyanın başında yazılı.
+    const BANNED = ['geride kaldın', 'kaçırdın', 'telafi et', 'kaybettiğin yıllar', 'boşa geçen'];
+    const low = tr.split('\n').filter(l => !l.trim().startsWith('//')).join('\n').toLowerCase();
+    const hits = BANNED.filter(w => low.includes(w));
+    if (hits.length) fail(`Ton kuralı ihlali: "${hits.join('", "')}"`);
+    else ok('Ton kuralı temiz (suçlayıcı ifade yok)');
+  }
 }
 
 // ── Özet ─────────────────────────────────────────────────────

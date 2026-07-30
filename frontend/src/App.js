@@ -50,6 +50,7 @@ const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 const ElifBaPage = lazy(() => import('./pages/ElifBaPage'));
 const NightPage = lazy(() => import('./pages/NightPage'));
 const PathPage = lazy(() => import('./pages/PathPage'));
+const ReturnDayPage = lazy(() => import('./pages/ReturnDayPage'));
 const HifzPage = lazy(() => import('./pages/HifzPage'));
 const HazinePage = lazy(() => import('./pages/HazinePage'));
 
@@ -106,6 +107,8 @@ function AppRouter() {
             <Route path="/elifba" element={<PageTransition><ElifBaPage /></PageTransition>} />
             <Route path="/night" element={<PageTransition><NightPage /></PageTransition>} />
             <Route path="/yol" element={<PageTransition><PathPage /></PageTransition>} />
+            <Route path="/yol/gun" element={<PageTransition><ReturnDayPage /></PageTransition>} />
+            <Route path="/yol/gun/:day" element={<PageTransition><ReturnDayPage /></PageTransition>} />
             <Route path="/hifz" element={<PageTransition><HifzPage /></PageTransition>} />
             <Route path="/hazine" element={<PageTransition><HazinePage /></PageTransition>} />
             <Route path="/hazine/:section" element={<PageTransition><HazinePage /></PageTransition>} />
