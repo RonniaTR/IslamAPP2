@@ -1224,6 +1224,24 @@ const EN = {
   'Bir gün atladıktan sonra geri dön': 'Come back after missing a day',
   'Sebat': 'Steadfastness',
   'Yolda 21 gün topla': 'Gather 21 days on the path',
+  // ── 🕯️ Dönüş Odası (F3) ──
+  'Arka plan sesi': 'Background sound',
+  'Ses seviyesi': 'Volume',
+  'Uygulamaya dön': 'Back to the app',
+  'Dönüş Odası': 'The Return Room',
+  'Dönüş Odası’na gir': 'Enter the Return Room',
+  'Kapı senin için açılıyor': 'The door is opening for you',
+  'Yol artık senin': 'The path is yours now',
+  'Bugün buradasın': 'You are here today',
+  'İlk adım bugün. Tek ders yeter.': 'Today is your first step. One lesson is enough.',
+  'Bu oda hep açık kalacak. İstediğin günü tekrar okuyabilirsin.': 'This room stays open. You can reread any day you like.',
+  'Yolun bölümleri': 'Sections of the path',
+  'Temeller': 'Foundations',
+  'Sırası yok, her an açılır: namaz nasıl kılınır, abdest nasıl alınır, hangi dualar gerekir.': 'No order, open any time: how to pray, how to perform wudu, which supplications you need.',
+  'Bugünün adımı': 'Today\'s step',
+  'Yakında açılır': 'Opens soon',
+  'Bulunamadı': 'Not found',
+  'Bu bölümü bitirdin — istediğin zaman geri dönebilirsin': 'You finished this section — you can come back any time',
 };
 
 export default EN;

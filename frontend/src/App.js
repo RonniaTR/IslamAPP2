@@ -50,7 +50,11 @@ const StoriesPage = lazy(() => import('./pages/StoriesPage'));
 const ElifBaPage = lazy(() => import('./pages/ElifBaPage'));
 const NightPage = lazy(() => import('./pages/NightPage'));
 const PathPage = lazy(() => import('./pages/PathPage'));
-const ReturnDayPage = lazy(() => import('./pages/ReturnDayPage'));
+const DonusShell = lazy(() => import('./components/donus/DonusShell'));
+const DonusHome = lazy(() => import('./pages/donus/DonusHome'));
+const DonusLesson = lazy(() => import('./pages/donus/DonusLesson'));
+const DonusPhase = lazy(() => import('./pages/donus/DonusPhase'));
+const DonusTemel = lazy(() => import('./pages/donus/DonusTemel'));
 const HifzPage = lazy(() => import('./pages/HifzPage'));
 const HazinePage = lazy(() => import('./pages/HazinePage'));
 
@@ -107,8 +111,8 @@ function AppRouter() {
             <Route path="/elifba" element={<PageTransition><ElifBaPage /></PageTransition>} />
             <Route path="/night" element={<PageTransition><NightPage /></PageTransition>} />
             <Route path="/yol" element={<PageTransition><PathPage /></PageTransition>} />
-            <Route path="/yol/gun" element={<PageTransition><ReturnDayPage /></PageTransition>} />
-            <Route path="/yol/gun/:day" element={<PageTransition><ReturnDayPage /></PageTransition>} />
+            <Route path="/yol/gun" element={<Navigate to="/donus/gun" replace />} />
+            <Route path="/yol/gun/:day" element={<Navigate to="/donus" replace />} />
             <Route path="/hifz" element={<PageTransition><HifzPage /></PageTransition>} />
             <Route path="/hazine" element={<PageTransition><HazinePage /></PageTransition>} />
             <Route path="/hazine/:section" element={<PageTransition><HazinePage /></PageTransition>} />
@@ -130,6 +134,15 @@ function AppRouter() {
             <Route path="/premium" element={<PageTransition><PremiumPage /></PageTransition>} />
             <Route path="/achievements" element={<PageTransition><GamificationPage /></PageTransition>} />
             <Route path="/offline-packs" element={<PageTransition><OfflinePacksPage /></PageTransition>} />
+          </Route>
+          {/* 🕯️ Dönüş Odası — uygulamanın içinde ayrı bir mod (kendi kabuğu,
+              kendi sesi, alt menüsü yok). Tema ayarı burada da geçerlidir. */}
+          <Route element={<ProtectedRoute><DonusShell /></ProtectedRoute>}>
+            <Route path="/donus" element={<DonusHome />} />
+            <Route path="/donus/gun" element={<DonusLesson />} />
+            <Route path="/donus/gun/:day" element={<DonusLesson />} />
+            <Route path="/donus/bolum/:id" element={<DonusPhase />} />
+            <Route path="/donus/temeller/:id" element={<DonusTemel />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

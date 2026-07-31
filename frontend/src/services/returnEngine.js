@@ -305,7 +305,7 @@ export function getArcProgress() {
 // (App.js bu modülü yan etki olarak import eder — bkz. App.js)
 registerTasks({
   ders: {
-    id: 'ders', icon: '🕯️', title: 'Günün dersi', minutes: 4, xp: 20, route: '/yol/gun',
+    id: 'ders', icon: '🕯️', title: 'Günün dersi', minutes: 4, xp: 20, route: '/donus/gun',
     desc: 'Kırk günlük yolun bugünkü sayfası — okuma, ayet, dua ve tek adım',
     detect: () => isDayRead(),
   },

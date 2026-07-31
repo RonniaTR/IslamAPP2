@@ -698,6 +698,24 @@ const AR = {
   'Bir gün atladıktan sonra geri dön': 'ارجع بعد أن يفوتك يوم',
   'Sebat': 'الثبات',
   'Yolda 21 gün topla': 'اجمع ٢١ يومًا في الطريق',
+  // ── 🕯️ غرفة العودة ──
+  'Arka plan sesi': 'صوت الخلفية',
+  'Ses seviyesi': 'مستوى الصوت',
+  'Uygulamaya dön': 'العودة إلى التطبيق',
+  'Dönüş Odası': 'غرفة العودة',
+  'Dönüş Odası’na gir': 'ادخل غرفة العودة',
+  'Kapı senin için açılıyor': 'الباب يُفتح لك',
+  'Yol artık senin': 'الطريق لك الآن',
+  'Bugün buradasın': 'أنت هنا اليوم',
+  'İlk adım bugün. Tek ders yeter.': 'اليوم خطوتك الأولى. درس واحد يكفي.',
+  'Bu oda hep açık kalacak. İstediğin günü tekrar okuyabilirsin.': 'تبقى هذه الغرفة مفتوحة دائمًا. يمكنك إعادة قراءة أي يوم تشاء.',
+  'Yolun bölümleri': 'أقسام الطريق',
+  'Temeller': 'الأساسيات',
+  'Sırası yok, her an açılır: namaz nasıl kılınır, abdest nasıl alınır, hangi dualar gerekir.': 'بلا ترتيب، تُفتح في أي وقت: كيف تُصلّي، كيف تتوضّأ، وأي الأدعية تحتاج.',
+  'Bugünün adımı': 'خطوة اليوم',
+  'Yakında açılır': 'يُفتح قريبًا',
+  'Bulunamadı': 'غير موجود',
+  'Bu bölümü bitirdin — istediğin zaman geri dönebilirsin': 'أتممت هذا القسم — ويمكنك العودة إليه متى شئت',
 };
 
 export default AR;

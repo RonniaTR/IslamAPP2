@@ -12,6 +12,7 @@
 //      (şık sayısı bozulursa correct_index yanlış cevabı işaretler!)
 //   4) İçerik overlay'leri (makale/kıssa/esma/duygu): id kapsaması
 //   5) Geri Dönüş müfredatı: 40 günün bütünlüğü, Arapça dua, EN overlay, ton
+//   6) Temeller rafı: modül ve adım sayılarının TR/EN eşleşmesi
 //
 // Çıkış kodu 0 = temiz, 1 = hata var (CI'da build'i durdurur).
 // ─────────────────────────────────────────────────────────────
@@ -212,6 +213,39 @@ console.log('\n5) Geri Dönüş müfredatı');
     const hits = BANNED.filter(w => low.includes(w));
     if (hits.length) fail(`Ton kuralı ihlali: "${hits.join('", "')}"`);
     else ok('Ton kuralı temiz (suçlayıcı ifade yok)');
+  }
+}
+
+// ── 6) Temeller rafı ─────────────────────────────────────────
+console.log('\n6) Temeller rafı');
+{
+  const trFile = join(SRC, 'data/donusTemeller.js');
+  const enFile = join(SRC, 'data/donusTemeller.en.js');
+  if (!existsSync(trFile) || !existsSync(enFile)) {
+    warn('donusTemeller dosyaları bulunamadı, atlanıyor');
+  } else {
+    const tr = readFileSync(trFile, 'utf8');
+    const en = readFileSync(enFile, 'utf8');
+    const ids = [...tr.matchAll(/^\s{4}id:\s*'([a-z]+)'/gm)].map(m => m[1]);
+    const enIds = [...en.matchAll(/^\s{2}([a-z]+):\s*\{/gm)].map(m => m[1]);
+    if (!ids.length) fail('Modül bulunamadı');
+    else ok(`${ids.length} modül tanımlı`);
+
+    // Modül başına adım sayıları TR ve EN'de eşleşmeli
+    const count = (src, re) => [...src.matchAll(re)].length;
+    const trBlocks = tr.split(/^\s{4}id:\s*'[a-z]+'/m).slice(1);
+    const enBlocks = en.split(/^\s{2}[a-z]+:\s*\{/m).slice(1);
+    let mismatch = [];
+    ids.forEach((id, i) => {
+      const a = count(trBlocks[i] || '', /^\s{6}\{\s*title:/gm);
+      const b = count(enBlocks[i] || '', /^\s{6}\{\s*title:/gm);
+      if (a !== b) mismatch.push(`${id} (${a}≠${b})`);
+    });
+    const missEn = ids.filter(id => !enIds.includes(id));
+    if (missEn.length) warn(`İngilizce: ${missEn.join(', ')} çevrilmemiş`);
+    else ok(`İngilizce: ${ids.length} modülün tamamı çevrilmiş`);
+    if (mismatch.length) fail(`Adım sayısı uyuşmuyor: ${mismatch.join(' · ')}`);
+    else ok('Adım sayıları TR/EN eşleşiyor');
   }
 }
 

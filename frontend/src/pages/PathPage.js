@@ -107,7 +107,7 @@ function ArcMap({ day, readDays, navigate, tt }) {
                 const isToday = d === maxOpen;
                 return (
                   <button key={d}
-                    onClick={() => isOpen && navigate(`/yol/gun/${d}`)}
+                    onClick={() => isOpen && navigate(`/donus/gun/${d}`)}
                     disabled={!isOpen}
                     aria-label={`${tt('Gün')} ${d}`}
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black relative disabled:cursor-default"
@@ -450,7 +450,7 @@ export default function PathPage() {
                     style={{ background: NUR.gold, color: '#03130B' }}>
                     {tt('Nur Yolu’na geç 🤲')}
                   </button>
-                  <button onClick={() => navigate(`/yol/gun/${LAST_DAY}`)}
+                  <button onClick={() => navigate(`/donus/gun/${LAST_DAY}`)}
                     className="mt-2.5 text-[11px] font-bold py-2" style={{ color: NUR.dim }}>
                     {tt('Kırkıncı günü yeniden oku')}
                   </button>
@@ -462,7 +462,7 @@ export default function PathPage() {
             {lesson && (
               <div className="px-5 mt-4">
                 <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-                  onClick={() => navigate('/yol/gun')} whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate('/donus')} whileTap={{ scale: 0.98 }}
                   className="w-full text-left rounded-2xl p-4 relative overflow-hidden"
                   style={{ background: 'linear-gradient(120deg, rgba(232,197,108,0.14), rgba(13,51,36,0.7))', border: `1.5px solid ${NUR.border}` }}>
                   <div className="flex items-center gap-2 mb-1.5">
@@ -487,7 +487,7 @@ export default function PathPage() {
                     {lesson.reading[0].slice(0, 132)}…
                   </p>
                   <p className="text-[10.5px] font-black mt-3 flex items-center gap-1" style={{ color: NUR.gold }}>
-                    {tt('Dersi aç')} <ChevronRight size={12} />
+                    {tt('Dönüş Odası’na gir')} <ChevronRight size={12} />
                   </p>
                 </motion.button>
               </div>
