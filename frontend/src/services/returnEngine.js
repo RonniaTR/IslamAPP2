@@ -256,6 +256,60 @@ export function getReturnBadges() {
   return RETURN_BADGES.map(b => ({ ...b, earned: !!earned[b.id] }));
 }
 
+// ─── EMANET — kendine mektup ───
+//
+// Birinci gün kişi kendine bir mektup yazar; mektup MÜHÜRLENİR ve ancak
+// kırkıncı gün açılır. Neden: geri dönenin en zayıf anı, dönüşünün
+// sebebini unuttuğu andır. O sebebi kendi el yazısıyla saklamak, kırk gün
+// sonra karşısına çıkan en güçlü hatırlatıcıdır.
+//
+// Mektup cihazdan çıkmaz — sunucuya gönderilmez, kimse okumaz.
+
+const LETTER_KEY = 'donus_emanet';
+
+export function getLetter() {
+  const v = load(LETTER_KEY, null);
+  if (!v || typeof v !== 'object') return null;
+  return v;
+}
+
+/** Mektubu yaz veya güncelle (mühürlenmeden önce serbestçe düzeltilebilir). */
+export function saveLetter(text) {
+  const cur = getLetter();
+  const rec = {
+    text: String(text || ''),
+    writtenAt: cur?.writtenAt || Date.now(),
+    writtenDay: cur?.writtenDay || getReturnDay(),
+    openedAt: cur?.openedAt || null,
+  };
+  save(LETTER_KEY, rec);
+  if (!cur) logEvent('phase', '✉️ Kendine bir mektup bıraktın — kırkıncı gün açılacak', '✉️');
+  return rec;
+}
+
+/** Mektup açılabilir mi? Kırkıncı güne varmak ya da kırk dersi bitirmek yeter. */
+export function canOpenLetter() {
+  const l = getLetter();
+  if (!l || !l.text.trim()) return false;
+  return getReturnDay() >= LAST_DAY || getReadDays().length >= LAST_DAY;
+}
+
+export function openLetter() {
+  const l = getLetter();
+  if (!l || l.openedAt) return l;
+  const rec = { ...l, openedAt: Date.now() };
+  save(LETTER_KEY, rec);
+  logEvent('phase', '✉️ Kırkıncı gün: kendi mektubunu açtın', '✉️');
+  return rec;
+}
+
+/** Mektubun yazılmasından bu yana geçen gün. */
+export function letterAgeDays() {
+  const l = getLetter();
+  if (!l) return 0;
+  return Math.max(0, Math.floor((Date.now() - l.writtenAt) / 86400000));
+}
+
 /**
  * Kırk gün bitince normal Nur Yolu'na geçiş.
  * Profil modu değişir; şefkat serisi ve okunan dersler KORUNUR — kişi
@@ -323,5 +377,6 @@ const returnEngine = {
   getTodayLesson, getTodayPhase, getReadDays, isDayRead, markDayRead,
   getLessonProgress, isArcComplete, RETURN_PHASES, LAST_DAY,
   RETURN_BADGES, getReturnBadges, graduateToNormal,
+  getLetter, saveLetter, canOpenLetter, openLetter, letterAgeDays,
 };
 export default returnEngine;

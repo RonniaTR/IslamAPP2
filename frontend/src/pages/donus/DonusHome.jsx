@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronRight, Check, Lock } from 'lucide-react';
+import { ChevronRight, Check, Lock, Mail, Feather } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLang } from '../../contexts/LangContext';
 import { useTx } from '../../i18n';
@@ -9,8 +9,10 @@ import { donusPalette, PHASE_COLORS, TEMEL_COLORS, alpha } from '../../donus/pal
 import {
   getReturnDay, getTodayLesson, getTodayPhase, getReadDays, isDayRead,
   getMercyStreak, getLessonProgress, getReturnBadges, RETURN_PHASES, LAST_DAY,
+  getLetter, canOpenLetter,
 } from '../../services/returnEngine';
-import { getTemelList } from '../../data/donusTemeller';
+import { getTemelList, TEMEL_GRUPLARI } from '../../data/donusTemeller';
+import Kandil from '../../components/donus/Kandil';
 
 // 🕯️ DÖNÜŞ ODASI — giriş ekranı ("oda")
 //
@@ -28,33 +30,6 @@ const stagger = (i) => ({
   animate: { opacity: 1, y: 0 },
   transition: { delay: 0.05 + i * 0.055, duration: 0.45, ease: [0.22, 1, 0.36, 1] },
 });
-
-/** Kırk günlük yay — nefes alan halka. */
-function ArcRing({ p, read, total, day }) {
-  const R = 46, C = 2 * Math.PI * R;
-  const pct = Math.min(1, read / total);
-  return (
-    <div className="relative shrink-0" style={{ width: 112, height: 112 }}>
-      <motion.div className="absolute inset-0 rounded-full"
-        animate={{ scale: [1, 1.06, 1], opacity: [0.35, 0.6, 0.35] }}
-        transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ background: `radial-gradient(circle, ${alpha(p.accentGlow, 0.45)} 0%, transparent 68%)` }} />
-      <svg width="112" height="112" viewBox="0 0 112 112" className="-rotate-90 relative">
-        <circle cx="56" cy="56" r={R} fill="none" stroke={alpha(p.accent, 0.16)} strokeWidth="8" />
-        <motion.circle cx="56" cy="56" r={R} fill="none" stroke={p.accent} strokeWidth="8" strokeLinecap="round"
-          strokeDasharray={C} initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct) }}
-          transition={{ duration: 1.1, ease: 'easeOut' }}
-          style={{ filter: `drop-shadow(0 0 7px ${alpha(p.accentGlow, 0.8)})` }} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[26px] font-black leading-none tabular-nums" style={{ color: p.text }}>{day}</span>
-        <span className="text-[8.5px] font-black uppercase tracking-[0.2em] mt-1" style={{ color: p.dim }}>
-          / {total}
-        </span>
-      </div>
-    </div>
-  );
-}
 
 export default function DonusHome() {
   const { theme } = useTheme();
@@ -74,12 +49,14 @@ export default function DonusHome() {
   const earned = badges.filter(b => b.earned);
   const todayRead = isDayRead(day);
   const temeller = useMemo(() => getTemelList(lang), [lang]);
+  const letter = getLetter();
+  const letterReady = canOpenLetter();
 
   return (
     <div className="px-5 pt-5">
       {/* ── Karşılama + yay ── */}
       <motion.div {...stagger(0)} className="flex items-center gap-4 mb-6">
-        <ArcRing p={p} read={prog.read} total={LAST_DAY} day={day} />
+        <Kandil p={p} read={prog.read} total={LAST_DAY} day={day} />
         <div className="flex-1 min-w-0">
           <p className="text-[9px] font-black uppercase tracking-[0.28em]" style={{ color: p.accent }}>
             {phase.emoji} {tt(phase.name)}
@@ -155,6 +132,38 @@ export default function DonusHome() {
         </motion.div>
       )}
 
+      {/* ── EMANET — kendine mektup ── */}
+      <motion.button {...stagger(2)} whileTap={{ scale: 0.985 }}
+        onClick={() => navigate('/donus/emanet')}
+        className="w-full text-left rounded-2xl p-4 flex items-center gap-3.5 relative overflow-hidden mb-1"
+        style={{
+          background: letterReady ? p.cardStrong : p.card,
+          border: `1.5px solid ${letterReady ? p.border : p.borderSoft}`,
+          boxShadow: letterReady ? p.shadow : 'none',
+        }}>
+        <motion.span className="text-2xl shrink-0"
+          animate={letterReady ? { rotate: [0, -8, 8, 0], scale: [1, 1.12, 1] } : { rotate: [0, -3, 3, 0] }}
+          transition={{ duration: letterReady ? 2.2 : 6, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ filter: `drop-shadow(0 0 10px ${alpha(p.accentGlow, letterReady ? 0.75 : 0.35)})` }}>
+          ✉️
+        </motion.span>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-black" style={{ color: p.text }}>{tt('Emanet')}</p>
+          <p className="text-[10px] mt-0.5 leading-snug" style={{ color: p.dim }}>
+            {!letter?.text
+              ? tt('Kendine bir mektup bırak — kırkıncı gün açılsın')
+              : letter.openedAt
+                ? tt('Mektubunu okudun')
+                : letterReady
+                  ? tt('Mektubun açılmaya hazır')
+                  : tt('Mektubun mühürlü bekliyor')}
+          </p>
+        </div>
+        <span className="shrink-0" style={{ color: p.accent }}>
+          {!letter?.text ? <Feather size={15} /> : letterReady ? <Mail size={15} /> : <Lock size={14} />}
+        </span>
+      </motion.button>
+
       {/* ── BEŞ BÖLÜM ── */}
       <motion.p {...stagger(2)} className="text-[10px] font-black uppercase tracking-[0.24em] mb-2.5 mt-7"
         style={{ color: p.dim }}>
@@ -209,29 +218,49 @@ export default function DonusHome() {
           {tt('Temeller')}
         </p>
         <p className="text-[11px] mb-3 leading-snug" style={{ color: p.dim }}>
-          {tt('Sırası yok, her an açılır: namaz nasıl kılınır, abdest nasıl alınır, hangi dualar gerekir.')}
+          {temeller.length} {tt('modül · sırası yok, her an açılır: namaz, abdest, oruç, zekât, siyer ve merak ettiklerin.')}
         </p>
-        <div className="grid grid-cols-2 gap-2.5">
-          {temeller.map((t, i) => {
-            const tp = donusPalette(theme, TEMEL_COLORS[t.color]);
-            return (
-              <motion.button key={t.id} {...stagger(10 + i)} whileTap={{ scale: 0.97 }}
-                onClick={() => navigate(`/donus/temeller/${t.id}`)}
-                className="rounded-2xl p-3.5 text-left relative overflow-hidden"
-                style={{ background: tp.cardStrong, border: `1.5px solid ${tp.borderSoft}` }}>
-                <motion.span className="text-2xl block mb-1.5"
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 3 + (i % 4) * 0.5, repeat: Infinity, ease: 'easeInOut' }}
-                  style={{ filter: `drop-shadow(0 0 8px ${alpha(tp.accentGlow, 0.5)})` }}>
-                  {t.icon}
-                </motion.span>
-                <p className="text-[12px] font-black leading-tight" style={{ color: tp.text }}>{t.title}</p>
-                <p className="text-[9.5px] mt-1 leading-snug" style={{ color: tp.dim }}>{t.lead}</p>
-                <p className="text-[9px] font-black mt-2" style={{ color: tp.accent }}>{t.minutes} {tt('dk')}</p>
-              </motion.button>
-            );
-          })}
-        </div>
+        {TEMEL_GRUPLARI.map((grp, gi) => {
+          const list = temeller.filter(t => t.group === grp.id);
+          if (!list.length) return null;
+          return (
+            <div key={grp.id} className={gi ? 'mt-5' : ''}>
+              <div className="flex items-baseline gap-2 mb-2">
+                <p className="text-[11px] font-black" style={{ color: p.text }}>
+                  {grp.emoji} {tt(grp.name)}
+                </p>
+                <p className="text-[9.5px] truncate" style={{ color: p.dim }}>{tt(grp.desc)}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                {list.map((t, i) => {
+                  const tp = donusPalette(theme, TEMEL_COLORS[t.color]);
+                  return (
+                    <motion.button key={t.id}
+                      initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-40px' }}
+                      transition={{ delay: i * 0.05, duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate(`/donus/temeller/${t.id}`)}
+                      className="rounded-2xl p-3.5 text-left relative overflow-hidden"
+                      style={{ background: tp.cardStrong, border: `1.5px solid ${tp.borderSoft}` }}>
+                      <motion.span className="text-2xl block mb-1.5"
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 3 + (i % 4) * 0.5, repeat: Infinity, ease: 'easeInOut' }}
+                        style={{ filter: `drop-shadow(0 0 8px ${alpha(tp.accentGlow, 0.5)})` }}>
+                        {t.icon}
+                      </motion.span>
+                      <p className="text-[12px] font-black leading-tight" style={{ color: tp.text }}>{t.title}</p>
+                      <p className="text-[9.5px] mt-1 leading-snug" style={{ color: tp.dim }}>{t.lead}</p>
+                      <p className="text-[9px] font-black mt-2" style={{ color: tp.accent }}>
+                        {t.minutes} {tt('dk')} · {t.items.length} {tt('adım')}
+                      </p>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </motion.div>
 
       {/* ── ROZETLER ── */}

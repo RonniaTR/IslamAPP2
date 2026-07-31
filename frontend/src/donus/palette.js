@@ -39,6 +39,14 @@ export const TEMEL_COLORS = {
   dua:     { dark: '#F472B6', light: '#BE185D' },
   helal:   { dark: '#FB923C', light: '#C2410C' },
   adab:    { dark: '#A3E635', light: '#4D7C0F' },
+  oruc:    { dark: '#C4B5FD', light: '#5B21B6' },
+  zekat:   { dark: '#2DD4BF', light: '#0F766E' },
+  kuran:   { dark: '#60A5FA', light: '#1D4ED8' },
+  siyer:   { dark: '#FCD34D', light: '#A16207' },
+  tovbe:   { dark: '#67E8F9', light: '#0E7490' },
+  aile:    { dark: '#FDA4AF', light: '#9F1239' },
+  ahiret:  { dark: '#94A3B8', light: '#334155' },
+  sorular: { dark: '#F0ABFC', light: '#86198F' },
 };
 
 /**

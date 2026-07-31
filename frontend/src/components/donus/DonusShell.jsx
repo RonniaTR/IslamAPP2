@@ -8,7 +8,7 @@ import { useTx } from '../../i18n';
 import ambient from '../../services/ambient';
 import { donusPalette, PHASE_COLORS, alpha } from '../../donus/palette';
 import { getReturnDay, getTodayPhase, isReturnMode, LAST_DAY } from '../../services/returnEngine';
-import DoorOpening from './DoorOpening';
+import GateAnimation from './GateAnimation';
 
 // 🕯️ DÖNÜŞ ODASI KABUĞU
 //
@@ -19,7 +19,7 @@ import DoorOpening from './DoorOpening';
 // Çıkış her ekranda tek dokunuş uzakta: kimse burada kilitli kalmaz.
 
 const AMB_KEY = 'donus_ambient';
-const DOOR_KEY = 'donus_door_seen';
+const GATE_KEY = 'donus_gate_seen';
 
 /** Yükselen nur zerreleri — odanın "canlı" hissi. */
 function Aura({ p }) {
@@ -120,18 +120,18 @@ export default function DonusShell() {
   const tt = useTx();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [door, setDoor] = useState(false);
+  const [gate, setGate] = useState(false);
 
   const day = Math.min(getReturnDay(), LAST_DAY);
   const phase = getTodayPhase(day);
   const p = donusPalette(theme, PHASE_COLORS[phase.id]);
   const isRtl = lang === 'ar';
 
-  // Kapı açılışı: oturum başına bir kez
+  // Eşik sahnesi: oturum başına bir kez
   useEffect(() => {
     let seen = true;
-    try { seen = sessionStorage.getItem(DOOR_KEY) === '1'; } catch { /* ignore */ }
-    if (!seen) setDoor(true);
+    try { seen = sessionStorage.getItem(GATE_KEY) === '1'; } catch { /* ignore */ }
+    if (!seen) setGate(true);
   }, []);
 
   // Odaya girerken arka plan sesi — kullanıcı daha önce açtıysa hatırlanır.
@@ -185,10 +185,10 @@ export default function DonusShell() {
       dir={isRtl ? 'rtl' : 'ltr'} style={{ background: p.bg }} data-testid="donus-shell">
 
       <AnimatePresence>
-        {door && (
-          <DoorOpening onDone={() => {
-            try { sessionStorage.setItem(DOOR_KEY, '1'); } catch { /* ignore */ }
-            setDoor(false);
+        {gate && (
+          <GateAnimation onDone={() => {
+            try { sessionStorage.setItem(GATE_KEY, '1'); } catch { /* ignore */ }
+            setGate(false);
           }} />
         )}
       </AnimatePresence>

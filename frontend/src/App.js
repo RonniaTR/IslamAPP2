@@ -55,6 +55,7 @@ const DonusHome = lazy(() => import('./pages/donus/DonusHome'));
 const DonusLesson = lazy(() => import('./pages/donus/DonusLesson'));
 const DonusPhase = lazy(() => import('./pages/donus/DonusPhase'));
 const DonusTemel = lazy(() => import('./pages/donus/DonusTemel'));
+const DonusMektup = lazy(() => import('./pages/donus/DonusMektup'));
 const HifzPage = lazy(() => import('./pages/HifzPage'));
 const HazinePage = lazy(() => import('./pages/HazinePage'));
 
@@ -143,6 +144,7 @@ function AppRouter() {
             <Route path="/donus/gun/:day" element={<DonusLesson />} />
             <Route path="/donus/bolum/:id" element={<DonusPhase />} />
             <Route path="/donus/temeller/:id" element={<DonusTemel />} />
+            <Route path="/donus/emanet" element={<DonusMektup />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
