@@ -1274,6 +1274,28 @@ const EN = {
   'Ahlak, aile, kazanç, tövbe': 'Character, family, earnings, repentance',
   'Bilmek iyi olur': 'Good to know',
   'Siyer, ahiret ve merak edilenler': 'The seerah, the hereafter, and common questions',
+  // ── 🎭 Kırk Perde · anlatı katmanı ──
+  'Kırkıncı Sır': 'The Fortieth Secret',
+  'Her bölüm bittiğinde bir parça açılır. Kırkıncı günde cümle tamamlanır.': 'One fragment opens at the end of each section. On the fortieth day the sentence completes.',
+  'Sonraki parça': 'Next fragment',
+  'Perde': 'Veil',
+  'Aralandı': 'Lifted',
+  'Perdeyi arala': 'Lift the veil',
+  'Bu günün perdesi henüz yazılmadı': 'This day’s veil has not been written yet',
+  'Anlatı katmanı gün gün ekleniyor. Şimdilik günün dersini okuyabilirsin.': 'The narration is being added day by day. For now you can read the day’s lesson.',
+  'Sesli': 'Voiced',
+  'Okuma': 'Reading',
+  'Perdeden kalan': 'What remains of the veil',
+  'Duraklat': 'Pause',
+  'Başlat': 'Play',
+  'Baştan': 'Restart',
+  'insan sesi': 'human voice',
+  'okuma modu': 'reading mode',
+  'Okuma hızı': 'Playback speed',
+  'Seslendirme': 'Narration',
+  'Perdeyi kapat ve günü tamamla': 'Close the veil and complete the day',
+  'Bu perde aralandı': 'This veil has been lifted',
+  'Günün dersini de oku': 'Read the day’s lesson too',
 };
 
 export default EN;

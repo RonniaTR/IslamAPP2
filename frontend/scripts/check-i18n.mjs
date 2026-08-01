@@ -13,6 +13,7 @@
 //   4) İçerik overlay'leri (makale/kıssa/esma/duygu): id kapsaması
 //   5) Geri Dönüş müfredatı: 40 günün bütünlüğü, Arapça dua, EN overlay, ton
 //   6) Temeller rafı: modül ve adım sayılarının TR/EN eşleşmesi
+//   7) Kırk Perde: satır sayısı eşleşmesi (zaman damgaları) + ton
 //
 // Çıkış kodu 0 = temiz, 1 = hata var (CI'da build'i durdurur).
 // ─────────────────────────────────────────────────────────────
@@ -246,6 +247,44 @@ console.log('\n6) Temeller rafı');
     else ok(`İngilizce: ${ids.length} modülün tamamı çevrilmiş`);
     if (mismatch.length) fail(`Adım sayısı uyuşmuyor: ${mismatch.join(' · ')}`);
     else ok('Adım sayıları TR/EN eşleşiyor');
+  }
+}
+
+// ── 7) Kırk Perde (anlatı katmanı) ───────────────────────────
+console.log('\n7) Kırk Perde');
+{
+  const trFile = join(SRC, 'data/donusPerde.js');
+  const enFile = join(SRC, 'data/donusPerde.en.js');
+  if (!existsSync(trFile) || !existsSync(enFile)) {
+    warn('donusPerde dosyaları bulunamadı, atlanıyor');
+  } else {
+    const tr = readFileSync(trFile, 'utf8');
+    const en = readFileSync(enFile, 'utf8');
+    const days = [...tr.matchAll(/^\s{4}day:\s*(\d+),/gm)].map(m => +m[1]);
+    const enDays = [...en.matchAll(/^\s{2}(\d+):\s*\{/gm)].map(m => +m[1]);
+    ok(`${days.length}/40 perde yazıldı (${days.join(', ')})`);
+
+    // TR ve EN satır sayıları eşleşmeli — zaman damgaları satıra bağlı
+    const trBlocks = tr.split(/^\s{4}day:\s*\d+,/m).slice(1);
+    const enBlocks = en.split(/^\s{2}\d+:\s*\{/m).slice(1);
+    const bad = [];
+    days.forEach((d, i) => {
+      const a = [...(trBlocks[i] || '').matchAll(/\{\s*t:\s*\d+/g)].length;
+      const b = [...(enBlocks[i] || '').matchAll(/^\s{6}`/gm)].length;
+      if (enDays.includes(d) && a !== b) bad.push(`${d}. gün (${a}≠${b})`);
+    });
+    const missEn = days.filter(d => !enDays.includes(d));
+    if (missEn.length) warn(`İngilizce: ${missEn.join(', ')}. gün çevrilmemiş`);
+    else ok(`İngilizce: yazılmış perdelerin tamamı çevrilmiş`);
+    if (bad.length) fail(`Satır sayısı uyuşmuyor (zaman damgaları kayar): ${bad.join(' · ')}`);
+    else ok('TR/EN satır sayıları eşleşiyor');
+
+    // Perdelerde fetva dili olmamalı — ton denetimi
+    const BANNED = ['haramdır', 'farzdır', 'vaciptir', 'yapmalısın', 'sevgili kardeşim'];
+    const low = tr.split('\n').filter(l => !l.trim().startsWith('//')).join('\n').toLowerCase();
+    const hits = BANNED.filter(w => low.includes(w));
+    if (hits.length) fail(`Perde ton kuralı ihlali (fetva/vaaz dili): "${hits.join('", "')}"`);
+    else ok('Ton kuralı temiz (fetva/vaaz dili yok)');
   }
 }
 

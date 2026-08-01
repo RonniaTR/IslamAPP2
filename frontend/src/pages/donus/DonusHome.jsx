@@ -13,6 +13,8 @@ import {
 } from '../../services/returnEngine';
 import { getTemelList, TEMEL_GRUPLARI } from '../../data/donusTemeller';
 import Kandil from '../../components/donus/Kandil';
+import KirkinciSir from '../../components/donus/KirkinciSir';
+import { getPerde } from '../../data/donusPerde';
 
 // 🕯️ DÖNÜŞ ODASI — giriş ekranı ("oda")
 //
@@ -51,6 +53,7 @@ export default function DonusHome() {
   const temeller = useMemo(() => getTemelList(lang), [lang]);
   const letter = getLetter();
   const letterReady = canOpenLetter();
+  const perde = useMemo(() => getPerde(day, lang), [day, lang]);
 
   return (
     <div className="px-5 pt-5">
@@ -73,12 +76,49 @@ export default function DonusHome() {
         </div>
       </motion.div>
 
+      {/* ── BUGÜNÜN PERDESİ — anlatı katmanı, dersten önce gelir ── */}
+      {!beyond && perde && (
+        <motion.button {...stagger(1)} whileTap={{ scale: 0.985 }}
+          onClick={() => navigate('/donus/perde')}
+          className="w-full text-left rounded-3xl p-5 relative overflow-hidden mb-3"
+          style={{ background: p.cardStrong, border: `1.5px solid ${p.border}`, boxShadow: p.shadow }}>
+          <motion.div className="absolute inset-0 pointer-events-none"
+            animate={{ x: ['-120%', '160%'] }}
+            transition={{ duration: 4.6, repeat: Infinity, repeatDelay: 2.2, ease: 'easeInOut' }}
+            style={{ background: `linear-gradient(105deg, transparent 40%, ${alpha(p.accentGlow, 0.18)} 50%, transparent 60%)` }} />
+
+          <div className="flex items-center gap-2 mb-2.5 relative">
+            <span className="text-[9px] font-black uppercase tracking-[0.22em] px-2.5 py-1 rounded-full"
+              style={{ background: alpha(p.accent, 0.18), color: p.accent }}>
+              {day}. {tt('Perde')}
+            </span>
+            {todayRead && (
+              <span className="flex items-center gap-1 text-[9px] font-black" style={{ color: p.accent }}>
+                <Check size={11} strokeWidth={3} /> {tt('Aralandı')}
+              </span>
+            )}
+          </div>
+
+          <p className="text-[21px] font-black leading-tight relative" dir={lang === 'ar' ? 'ltr' : undefined}
+            style={{ fontFamily: 'Playfair Display, serif', color: p.text, textAlign: lang === 'ar' ? 'left' : undefined }}>
+            {perde.title}
+          </p>
+          <p className="text-[12.5px] mt-2 leading-relaxed italic relative" dir={lang === 'ar' ? 'ltr' : undefined}
+            style={{ color: p.text, opacity: 0.7, textAlign: lang === 'ar' ? 'left' : undefined }}>
+            {perde.lines[0].text}
+          </p>
+          <p className="text-[11.5px] font-black mt-4 flex items-center gap-1 relative" style={{ color: p.accent }}>
+            {tt('Perdeyi arala')} <ChevronRight size={13} />
+          </p>
+        </motion.button>
+      )}
+
       {/* ── BUGÜNÜN DERSİ ── */}
       {!beyond && (
         <motion.button {...stagger(1)} whileTap={{ scale: 0.985 }}
           onClick={() => navigate('/donus/gun')}
-          className="w-full text-left rounded-3xl p-5 relative overflow-hidden mb-4"
-          style={{ background: p.cardStrong, border: `1.5px solid ${p.border}`, boxShadow: p.shadow }}>
+          className="w-full text-left rounded-2xl p-4 relative overflow-hidden mb-4"
+          style={{ background: p.card, border: `1px solid ${p.borderSoft}` }}>
           {/* Kart içi ışık hareketi */}
           <motion.div className="absolute inset-0 pointer-events-none"
             animate={{ x: ['-120%', '160%'] }}
@@ -261,6 +301,11 @@ export default function DonusHome() {
             </div>
           );
         })}
+      </motion.div>
+
+      {/* ── KIRKINCI SIR ── */}
+      <motion.div {...stagger(18)} className="mt-8">
+        <KirkinciSir p={p} day={Math.max(day, prog.read)} />
       </motion.div>
 
       {/* ── ROZETLER ── */}

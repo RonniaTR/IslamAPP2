@@ -741,6 +741,24 @@ const AR = {
   'İbadetler': 'العبادات',
   'Hayat': 'الحياة',
   'Bilmek iyi olur': 'من الجيد أن تعرف',
+  // ── 🎭 الحجب الأربعون ──
+  'Kırkıncı Sır': 'السرّ الأربعون',
+  'Sonraki parça': 'الجزء التالي',
+  'Perde': 'الحجاب',
+  'Aralandı': 'انكشف',
+  'Perdeyi arala': 'ارفع الحجاب',
+  'Sesli': 'مسموع',
+  'Okuma': 'قراءة',
+  'Perdeden kalan': 'ما بقي من الحجاب',
+  'Duraklat': 'إيقاف مؤقت',
+  'Başlat': 'تشغيل',
+  'Baştan': 'من البداية',
+  'insan sesi': 'صوت بشري',
+  'okuma modu': 'وضع القراءة',
+  'Okuma hızı': 'سرعة التشغيل',
+  'Seslendirme': 'السرد',
+  'Bu perde aralandı': 'انكشف هذا الحجاب',
+  'Günün dersini de oku': 'اقرأ درس اليوم أيضًا',
 };
 
 export default AR;
