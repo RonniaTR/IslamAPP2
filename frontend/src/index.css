@@ -514,3 +514,85 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
   color: rgba(212,175,55,0.6);
   animation: twinkle 2s ease-in-out infinite;
 }
+
+/* ═══════════════ RESPONSIVE (tablet & PC) ═══════════════ */
+/* Kök yazı ölçeği: tablet ve masaüstünde her şey orantılı büyür */
+@media (min-width: 768px) {
+  html { font-size: 17px; }
+}
+@media (min-width: 1024px) {
+  html { font-size: 17.5px; }
+}
+
+/* Hub ve ana sayfalar tablet ve üstünde iki sütuna akar */
+@media (min-width: 768px) {
+  .hub-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 4px;
+    align-items: start;
+  }
+  .hub-grid > * { min-width: 0; }
+  .hub-span { grid-column: 1 / -1; }
+}
+
+/* ═══════════════ OKUMA MODÜLÜ (kitap tipografisi) ═══════════════ */
+.article-body {
+  font-family: Georgia, 'Noto Serif', 'Times New Roman', serif;
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+.article-body p {
+  line-height: 1.78;
+  margin-bottom: 1.15em;
+  text-indent: 1.4em;
+}
+.article-body p.no-indent { text-indent: 0; }
+/* İlk paragrafta zarif başlangıç harfi (drop cap) */
+.article-body > p:first-of-type { text-indent: 0; }
+.article-body > p:first-of-type::first-letter {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 3.1em;
+  font-weight: 800;
+  float: left;
+  line-height: 0.85;
+  padding: 0.04em 0.12em 0 0;
+  color: var(--gold, #C8A55A);
+}
+.article-quote {
+  font-family: Georgia, 'Noto Serif', serif;
+  text-align: center;
+}
+
+/* ═══════════════ MUSHAF GÖRÜNÜMÜ ═══════════════ */
+.mushaf-text {
+  font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+  text-align: justify;
+  text-align-last: center;
+  direction: rtl;
+  word-spacing: 0.08em;
+}
+.mushaf-ayah {
+  cursor: pointer;
+  transition: background 0.25s ease;
+  padding: 0 0.08em;
+  -webkit-tap-highlight-color: transparent;
+}
+.mushaf-medallion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.55em;
+  height: 1.55em;
+  font-size: 0.5em;
+  border: 1px solid;
+  border-radius: 9999px;
+  margin: 0 0.35em;
+  vertical-align: 0.35em;
+  padding: 0 0.15em;
+  user-select: none;
+}
+
+/* Yıldız parıltısı (Gece Modu + Nur Yolu) */
+@keyframes nightTwinkle { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.85; } }

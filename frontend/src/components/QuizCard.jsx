@@ -1,14 +1,16 @@
 import React from 'react';
+import { useTx } from '../i18n';
 
 export default function QuizCard({ question, onAnswer, selectedIndex, disabled, showResult, wasCorrect }) {
+  const tt = useTx();
   if (!question) return null;
 
   const renderOptions = () => {
     if (question.type === 'tf' || question.type === 'swipe') {
       return (
         <div style={{ display: 'flex', gap: 12 }}>
-          <button className="btn-primary" onClick={() => onAnswer(1)} disabled={disabled}>Doğru</button>
-          <button className="btn-secondary" onClick={() => onAnswer(0)} disabled={disabled}>Yanlış</button>
+          <button className="btn-primary" onClick={() => onAnswer(1)} disabled={disabled}>{tt('Doğru')}</button>
+          <button className="btn-secondary" onClick={() => onAnswer(0)} disabled={disabled}>{tt('Yanlış')}</button>
         </div>
       );
     }

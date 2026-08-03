@@ -103,3 +103,16 @@ android-sdk/ -e
 sa-key.json
 *.firebase-adminsdk*.json
 backend/data/islamapp-5942a-*.json
+
+# Android imzalama sırları — ASLA commit edilmez
+android/keystore.properties
+*.jks
+*.keystore
+
+# Android derleme çıktıları
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+# Web build'i assets'e kopyalanır; kaynak build zaten üretilir
+android/app/src/main/assets/static/

@@ -4,11 +4,13 @@ import { Users, Plus, Copy, Play, Trophy, Clock, ArrowLeft, Check, X, Loader, Za
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'https://islamapp2.onrender.com';
 const WS_URL = API_URL.replace('https://', 'wss://').replace('http://', 'ws://');
 
 export default function MultiplayerQuiz() {
+  const tt = useTx();
   const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -106,7 +108,7 @@ export default function MultiplayerQuiz() {
   }, [question, view, selected]);
 
   const createRoom = async () => {
-    if (!roomName.trim()) { setError('Oda adı girin'); return; }
+    if (!roomName.trim()) { setError(tt('Oda adı girin')); return; }
     setLoading(true); setError('');
     try {
       const { data } = await api.post('/quiz/rooms/create', {
@@ -115,7 +117,7 @@ export default function MultiplayerQuiz() {
       setCurrentRoom(data);
       connectWS(data.id || data.room_id);
       setView('waiting');
-    } catch (e) { setError('Oda oluşturulamadı'); }
+    } catch (e) { setError(tt('Oda oluşturulamadı')); }
     setLoading(false);
   };
 
@@ -126,7 +128,7 @@ export default function MultiplayerQuiz() {
       setCurrentRoom(data);
       connectWS(roomId);
       setView('waiting');
-    } catch (e) { setError('Odaya katılınamadı'); }
+    } catch (e) { setError(tt('Odaya katılınamadı')); }
     setLoading(false);
   };
 
@@ -134,7 +136,7 @@ export default function MultiplayerQuiz() {
     if (!currentRoom) return;
     try {
       await api.post(`/quiz/rooms/${currentRoom.id || currentRoom.room_id}/start`);
-    } catch (e) { setError('Oyun başlatılamadı'); }
+    } catch (e) { setError(tt('Oyun başlatılamadı')); }
   };
 
   const handleAnswer = async (optIdx) => {
@@ -163,7 +165,7 @@ export default function MultiplayerQuiz() {
           <button onClick={() => navigate('/quiz')} className="p-2 rounded-xl" style={{ background: theme.inputBg }}><ArrowLeft size={18} style={{ color: theme.textPrimary }} /></button>
           <div>
             <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>Multiplayer Quiz</h1>
-            <p className="text-xs" style={{ color: theme.textSecondary }}>Arkadaşlarınla yarış!</p>
+            <p className="text-xs" style={{ color: theme.textSecondary }}>{tt('Arkadaşlarınla yarış!')}</p>
           </div>
           <Users size={24} className="ml-auto" style={{ color: theme.gold }} />
         </div>
@@ -173,16 +175,16 @@ export default function MultiplayerQuiz() {
         {/* Oda Oluştur */}
         <div className="rounded-xl p-4 border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: theme.gold }}>
-            <Plus size={16} /> Yeni Oda Oluştur
+            <Plus size={16} /> {tt('Yeni Oda Oluştur')}
           </h3>
-          <input value={roomName} onChange={e => setRoomName(e.target.value)} placeholder="Oda adı..."
+          <input value={roomName} onChange={e => setRoomName(e.target.value)} placeholder={tt('Oda adı...')}
             className="w-full rounded-lg px-3 py-2 text-sm mb-2 outline-none"
             style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
           <div className="flex gap-2 flex-wrap mb-3">
             <button onClick={() => setSelCategory('mixed')}
               className="px-3 py-1 rounded-full text-xs font-medium transition-all"
               style={{ background: selCategory === 'mixed' ? theme.gold : theme.inputBg, color: selCategory === 'mixed' ? '#000' : theme.textSecondary }}>
-              Karışık
+              {tt('Karışık')}
             </button>
             {categories.slice(0, 5).map(c => (
               <button key={c.id} onClick={() => setSelCategory(c.id)}
@@ -202,7 +204,7 @@ export default function MultiplayerQuiz() {
         {/* Odaya Katıl */}
         <div className="rounded-xl p-4 border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: theme.gold }}>
-            <Users size={16} /> Odaya Katıl
+            <Users size={16} /> {tt('Odaya Katıl')}
           </h3>
           <div className="flex gap-2">
             <input value={joinCode} onChange={e => setJoinCode(e.target.value)} placeholder="Oda kodu..."
@@ -210,7 +212,7 @@ export default function MultiplayerQuiz() {
               style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
             <button onClick={() => joinCode && joinRoom(joinCode)} disabled={loading}
               className="px-4 py-2 rounded-xl text-sm font-medium"
-              style={{ background: theme.gold, color: '#000' }}>Katıl</button>
+              style={{ background: theme.gold, color: '#000' }}>{tt('Katıl')}</button>
           </div>
         </div>
 
@@ -218,7 +220,7 @@ export default function MultiplayerQuiz() {
         {rooms.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: theme.textPrimary }}>
-              <Wifi size={14} style={{ color: theme.gold }} /> Açık Odalar
+              <Wifi size={14} style={{ color: theme.gold }} /> {tt('Açık Odalar')}
             </h3>
             <div className="space-y-2">
               {rooms.filter(r => r.status === 'waiting').map(r => (
@@ -231,7 +233,7 @@ export default function MultiplayerQuiz() {
                     <div className="text-[11px]" style={{ color: theme.textSecondary }}>{(r.players || []).length} oyuncu</div>
                   </div>
                   <button onClick={() => joinRoom(r.id)} className="px-3 py-1.5 rounded-lg text-xs font-medium"
-                    style={{ background: theme.gold, color: '#000' }}>Katıl</button>
+                    style={{ background: theme.gold, color: '#000' }}>{tt('Katıl')}</button>
                 </div>
               ))}
             </div>
@@ -286,10 +288,10 @@ export default function MultiplayerQuiz() {
             <button onClick={startGame} disabled={players.length < 1}
               className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 mt-4 transition-all"
               style={{ background: theme.gold, color: '#000', opacity: players.length < 1 ? 0.5 : 1 }}>
-              <Play size={18} /> Oyunu Başlat
+              <Play size={18} /> {tt('Oyunu Başlat')}
             </button>
           )}
-          {!isHost && <p className="text-center text-xs mt-4" style={{ color: theme.textSecondary }}>Oda sahibinin oyunu başlatması bekleniyor...</p>}
+          {!isHost && <p className="text-center text-xs mt-4" style={{ color: theme.textSecondary }}>{tt('Oda sahibinin oyunu başlatması bekleniyor...')}</p>}
         </div>
       </div>
     );
@@ -354,7 +356,7 @@ export default function MultiplayerQuiz() {
         {correct !== null && Object.keys(scores).length > 0 && (
           <div className="px-4 mt-4">
             <div className="rounded-xl p-3 border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
-              <h4 className="text-xs font-semibold mb-2" style={{ color: theme.textSecondary }}>Anlık Skor</h4>
+              <h4 className="text-xs font-semibold mb-2" style={{ color: theme.textSecondary }}>{tt('Anlık Skor')}</h4>
               {Object.entries(scores).sort(([,a], [,b]) => b - a).map(([id, score], i) => (
                 <div key={id} className="flex items-center justify-between py-1">
                   <span className="text-xs" style={{ color: id === uid ? theme.gold : theme.textPrimary }}>{id === uid ? 'Sen' : `Oyuncu ${i + 1}`}</span>
@@ -385,7 +387,7 @@ export default function MultiplayerQuiz() {
         </div>
 
         <div className="px-4 mt-4 space-y-2">
-          <h3 className="text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>Sonuçlar</h3>
+          <h3 className="text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>{tt('Sonuçlar')}</h3>
           {sorted.map(([id, score], i) => (
             <div key={id} className={`flex items-center gap-3 rounded-xl p-3 border ${id === uid ? 'ring-1' : ''}`}
               style={{ background: id === uid ? `${theme.gold}10` : theme.cardBg, borderColor: id === uid ? theme.gold : theme.cardBorder }}>
@@ -400,7 +402,7 @@ export default function MultiplayerQuiz() {
 
         <div className="px-4 mt-6 flex gap-3">
           <button onClick={() => { setView('lobby'); setCurrentRoom(null); setResults(null); }}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: theme.inputBg, color: theme.textPrimary }}>Lobiye Dön</button>
+            className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: theme.inputBg, color: theme.textPrimary }}>{tt('Lobiye Dön')}</button>
           <button onClick={() => navigate('/quiz')}
             className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: theme.gold, color: '#000' }}>Solo Quiz</button>
         </div>

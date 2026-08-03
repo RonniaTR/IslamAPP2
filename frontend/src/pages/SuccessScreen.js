@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Loader2, Target, Flame, Zap, Sparkles, Star, ChevronRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
 export default function SuccessScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const tt = useTx();
   
   // Gelen verileri emniyete alıyoruz
   const stats = location.state || { totalScore: 0, baseScore: 0, comboScore: 0, multiplier: 1, correctCount: 0 };
@@ -23,7 +25,7 @@ const [playerName, setPlayerName] = useState(localStorage.getItem('islamapp_gues
     if (user?.name && user.name !== "Misafir" && user.name !== "Kardeşim") return user.name;
     const localName = localStorage.getItem('islamapp_guest_name');
     if (localName && localName !== "Misafir") return localName;
-    return "İlim Yolcusu";
+    return tt("İlim Yolcusu");
   };
 
   // SUNUCU İÇİN GÜVENLİ ID
@@ -73,12 +75,12 @@ const [playerName, setPlayerName] = useState(localStorage.getItem('islamapp_gues
       navigate('/profile'); 
     } catch (error) {
       console.error("Skor mühürleme hatası:", error);
-      setErrorMsg("Sunucu bağlantısı sağlanamadı. Lütfen tekrar deneyin.");
+      setErrorMsg(tt("Sunucu bağlantısı sağlanamadı. Lütfen tekrar deneyin."));
       setIsSubmitting(false);
     }
   };
 
-  const unlockedWisdom = "Allah, her zorluğun ardından bir kolaylık yaratacaktır. (Talâk, 7)";
+  const unlockedWisdom = tt("Allah, her zorluğun ardından bir kolaylık yaratacaktır. (Talâk, 7)");
 
   return (
     <div className="min-h-screen bg-[#032212] flex flex-col items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden">
@@ -98,13 +100,13 @@ const [playerName, setPlayerName] = useState(localStorage.getItem('islamapp_gues
           <motion.div animate={{ rotate: -360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }} className="absolute -inset-4 border-2 border-dashed border-[#ffd369]/40 rounded-full z-0" />
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-black text-[#ffd369] mb-2 tracking-tight">Harika Bir İş!</h1>
-        <p className="text-sm text-[#A8B5A0] mb-8">Zihnini parlattın, XP'leri topladın.</p>
+        <h1 className="text-3xl md:text-4xl font-black text-[#ffd369] mb-2 tracking-tight">{tt('Harika Bir İş!')}</h1>
+        <p className="text-sm text-[#A8B5A0] mb-8">{tt("Zihnini parlattın, XP'leri topladın.")}</p>
 
         <AnimatePresence>
           {revealStep >= 1 && (
             <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#ffd369]/10 border border-[#ffd369]/30 rounded-2xl p-4 mb-6">
-              <div className="flex items-center gap-2 mb-2 text-[#ffd369]"><Star size={16} fill="currentColor"/><span className="text-xs font-bold uppercase tracking-wider">Kilidi Açılan Hikmet</span></div>
+              <div className="flex items-center gap-2 mb-2 text-[#ffd369]"><Star size={16} fill="currentColor"/><span className="text-xs font-bold uppercase tracking-wider">{tt('Kilidi Açılan Hikmet')}</span></div>
               <p className="text-sm text-[#f7e6ae] text-left italic leading-relaxed">"{unlockedWisdom}"</p>
             </motion.div>
           )}
@@ -113,10 +115,10 @@ const [playerName, setPlayerName] = useState(localStorage.getItem('islamapp_gues
         <AnimatePresence>
           {revealStep >= 2 && (
             <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="bg-black/40 border border-white/5 rounded-3xl p-5 mb-8 text-left space-y-4 shadow-inner">
-              <div className="flex justify-between items-center"><span className="text-[#A8B5A0] text-sm flex items-center gap-2"><Target size={18} className="text-emerald-400"/> Doğru Cevaplar</span><span className="text-emerald-400 font-bold text-lg">{stats.correctCount}</span></div>
-              <div className="flex justify-between items-center"><span className="text-[#A8B5A0] text-sm flex items-center gap-2"><Zap size={18} className="text-blue-400"/> Zorluk Çarpanı</span><span className="text-blue-400 font-bold text-lg">x{stats.multiplier}</span></div>
-              {stats.comboScore > 0 && <div className="flex justify-between items-center"><span className="text-[#A8B5A0] text-sm flex items-center gap-2"><Flame size={18} className="text-orange-400"/> Seri Ateşi</span><span className="text-orange-400 font-bold text-lg">+{stats.comboScore}</span></div>}
-              <div className="border-t border-white/10 pt-4 mt-2 flex justify-between items-end"><span className="text-[#f7e6ae] font-bold text-sm uppercase tracking-wider">Kazanılan XP</span><span className="text-[#ffd369] font-black text-4xl">+{Math.round(stats.totalScore)}</span></div>
+              <div className="flex justify-between items-center"><span className="text-[#A8B5A0] text-sm flex items-center gap-2"><Target size={18} className="text-emerald-400"/> {tt('Doğru Cevaplar')}</span><span className="text-emerald-400 font-bold text-lg">{stats.correctCount}</span></div>
+              <div className="flex justify-between items-center"><span className="text-[#A8B5A0] text-sm flex items-center gap-2"><Zap size={18} className="text-blue-400"/> {tt('Zorluk Çarpanı')}</span><span className="text-blue-400 font-bold text-lg">x{stats.multiplier}</span></div>
+              {stats.comboScore > 0 && <div className="flex justify-between items-center"><span className="text-[#A8B5A0] text-sm flex items-center gap-2"><Flame size={18} className="text-orange-400"/> {tt('Seri Ateşi')}</span><span className="text-orange-400 font-bold text-lg">+{stats.comboScore}</span></div>}
+              <div className="border-t border-white/10 pt-4 mt-2 flex justify-between items-end"><span className="text-[#f7e6ae] font-bold text-sm uppercase tracking-wider">{tt('Kazanılan XP')}</span><span className="text-[#ffd369] font-black text-4xl">+{Math.round(stats.totalScore)}</span></div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -144,7 +146,7 @@ const [playerName, setPlayerName] = useState(localStorage.getItem('islamapp_gues
               </motion.button>
               
               <button onClick={() => navigate('/journey')} className="w-full text-[#A8B5A0] py-2 text-sm font-semibold hover:text-white transition-colors">
-                Liderliği Es Geç ve Yolculuğa Dön
+                {tt('Liderliği Es Geç ve Yolculuğa Dön')}
               </button>
             </motion.div>
           )}

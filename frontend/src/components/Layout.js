@@ -1,8 +1,9 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, BookOpen, MessageCircle, Compass, Settings, ScrollText, Heart, Trophy } from 'lucide-react';
+import { Home, BookOpen, MessageCircle, Compass, Settings, Heart, Gamepad2, Route } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
 
 const NavTab = memo(function NavTab({ icon: Icon, label, active, theme, onClick }) {
   return (
@@ -28,31 +29,40 @@ export default memo(function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { t, lang } = useLang();
+  const tt = useTx();
   const { theme } = useTheme();
   const hideNav = pathname.match(/\/quran\/\d+/);
   const isRtl = lang === 'ar';
 
+  // Tablet/PC'de konteyner dışı "siyah çerçeve" (letterbox) kalmasın:
+  // sayfa arka planı temayla birleşsin
+  useEffect(() => {
+    document.body.style.background = theme.bg;
+    document.documentElement.style.background = theme.bg;
+  }, [theme.bg]);
+
   const safeT = t || {};
   const tabs = useMemo(() => [
-    { path: '/', icon: Home, label: safeT.home || 'Ana Sayfa' },
-    { path: '/quran', icon: BookOpen, label: safeT.quran || "Kur'an" },
-    { path: '/hadith', icon: ScrollText, label: safeT.hadith || 'Hadis' },
-    { path: '/quiz', icon: Trophy, label: safeT.quiz || 'Quiz' },
-    { path: '/fiqh', icon: Heart, label: 'İbadet' },
-    { path: '/discover', icon: Compass, label: safeT.explore || 'Keşfet' },
-    { path: '/chat', icon: MessageCircle, label: safeT.chat || 'Sohbet' },
-    { path: '/settings', icon: Settings, label: safeT.settings || 'Ayarlar' },
-  ], [safeT]);
+    { path: '/', icon: Home, label: tt('Ana Sayfa') },
+    { path: '/yol', icon: Route, label: tt('Yol') },
+    { path: '/quran', icon: BookOpen, label: tt("Kur'an") },
+    { path: '/games', icon: Gamepad2, label: tt('Oyun') },
+    { path: '/fiqh', icon: Heart, label: tt('İbadet') },
+    { path: '/discover', icon: Compass, label: tt('Keşfet') },
+    { path: '/chat', icon: MessageCircle, label: tt('Sohbet') },
+    { path: '/settings', icon: Settings, label: tt('Ayarlar') },
+    // tt, lang'a bağlıdır; dil değişince yeniden kurulur
+  ], [lang, tt]);
 
   return (
-    <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[768px] lg:max-w-[520px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
+    <div className={`min-h-screen flex flex-col w-full max-w-[520px] md:max-w-[880px] lg:max-w-[1060px] xl:max-w-[1200px] mx-auto relative ${isRtl ? 'rtl' : 'ltr'}`}
       style={{ background: theme.bg }}
       data-testid="app-layout" dir={isRtl ? 'rtl' : 'ltr'}>
       <main className="flex-1 overflow-y-auto pb-20 scrollbar-hide">
         <Outlet />
       </main>
       {!hideNav && (
-        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] md:max-w-[768px] lg:max-w-[520px] z-50 safe-bottom"
+        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] md:max-w-[880px] lg:max-w-[1060px] xl:max-w-[1200px] z-50 safe-bottom"
           style={{
             background: theme.navBg,
             backdropFilter: 'blur(24px)',

@@ -7,27 +7,28 @@ import { useLang } from '../contexts/LangContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { trackFeature } from '../services/analytics';
 import api from '../api';
+import { useTx } from '../i18n';
 
-const getQuickQuestions = (t) => [
-  { q: t.ai_q_prayer || "Namaz nasıl kılınır?", icon: "🕌", cat: t.ai_q_prayer_cat || "İbadet" },
-  { q: t.ai_q_fasting || "Oruç kimlere farzdır?", icon: "🌙", cat: t.ai_q_fasting_cat || "Ramazan" },
-  { q: t.ai_q_zakat || "Zekat nasıl hesaplanır?", icon: "💰", cat: t.ai_q_zakat_cat || "Zekat" },
-  { q: t.ai_q_ablution || "Abdest nasıl alınır?", icon: "💧", cat: t.ai_q_ablution_cat || "Temizlik" },
-  { q: t.ai_q_tafsir || "Bakara suresi 255. ayet tefsiri", icon: "📖", cat: t.ai_q_tafsir_cat || "Tefsir" },
-  { q: t.ai_q_hadith || "Ameller niyetlere göredir hadisi", icon: "📜", cat: t.ai_q_hadith_cat || "Hadis" },
-  { q: t.ai_q_faith || "İslam'da kader inancı", icon: "🌟", cat: t.ai_q_faith_cat || "Akaid" },
-  { q: t.ai_q_compare || "İslam ve Hristiyanlık'ta dua", icon: "🌍", cat: t.ai_q_compare_cat || "Mukayese" },
+const getQuickQuestions = (t, tt) => [
+  { q: t.ai_q_prayer || tt("Namaz nasıl kılınır?"), icon: "🕌", cat: t.ai_q_prayer_cat || tt("İbadet") },
+  { q: t.ai_q_fasting || tt("Oruç kimlere farzdır?"), icon: "🌙", cat: t.ai_q_fasting_cat || tt("Ramazan") },
+  { q: t.ai_q_zakat || tt("Zekat nasıl hesaplanır?"), icon: "💰", cat: t.ai_q_zakat_cat || tt("Zekat") },
+  { q: t.ai_q_ablution || tt("Abdest nasıl alınır?"), icon: "💧", cat: t.ai_q_ablution_cat || tt("Temizlik") },
+  { q: t.ai_q_tafsir || tt("Bakara suresi 255. ayet tefsiri"), icon: "📖", cat: t.ai_q_tafsir_cat || tt("Tefsir") },
+  { q: t.ai_q_hadith || tt("Ameller niyetlere göredir hadisi"), icon: "📜", cat: t.ai_q_hadith_cat || tt("Hadis") },
+  { q: t.ai_q_faith || tt("İslam'da kader inancı"), icon: "🌟", cat: t.ai_q_faith_cat || tt("Akaid") },
+  { q: t.ai_q_compare || tt("İslam ve Hristiyanlık'ta dua"), icon: "🌍", cat: t.ai_q_compare_cat || tt("Mukayese") },
 ];
 
-const getLevels = (t) => [
-  { id: 'baslangic', label: t.ai_beginner || 'Başlangıç', icon: '🌱' },
-  { id: 'orta', label: t.ai_intermediate || 'Orta', icon: '📘' },
-  { id: 'ileri', label: t.ai_advanced || 'İleri', icon: '🎓' },
+const getLevels = (t, tt) => [
+  { id: 'baslangic', label: t.ai_beginner || tt('Başlangıç'), icon: '🌱' },
+  { id: 'orta', label: t.ai_intermediate || tt('Orta'), icon: '📘' },
+  { id: 'ileri', label: t.ai_advanced || tt('İleri'), icon: '🎓' },
 ];
 
-const getModes = (t) => [
-  { id: 'auto', label: t.ai_auto || 'Otomatik', icon: '🤖', desc: t.ai_auto_desc || 'AI soruyu analiz eder, doğru uzmana yönlendirir' },
-  { id: 'expert', label: t.ai_expert_select || 'Uzman Seç', icon: '🎯', desc: t.ai_expert_desc || 'Belirli bir uzmana doğrudan sorun' },
+const getModes = (t, tt) => [
+  { id: 'auto', label: t.ai_auto || tt('Otomatik'), icon: '🤖', desc: t.ai_auto_desc || tt('AI soruyu analiz eder, doğru uzmana yönlendirir') },
+  { id: 'expert', label: t.ai_expert_select || tt('Uzman Seç'), icon: '🎯', desc: t.ai_expert_desc || tt('Belirli bir uzmana doğrudan sorun') },
 ];
 
 function escapeHtml(str) {
@@ -46,6 +47,7 @@ function formatAIResponse(text) {
 }
 
 const ChatBubble = memo(function ChatBubble({ msg, theme, index, t, onRetry }) {
+  const tt = useTx();
   const isUser = msg.role === 'user';
   const isError = !isUser && msg.isError;
   return (
@@ -80,7 +82,7 @@ const ChatBubble = memo(function ChatBubble({ msg, theme, index, t, onRetry }) {
         {!isUser && !msg.bots_used && (
           <div className="flex items-center gap-1.5 mb-1.5">
             <Sparkles size={10} style={{ color: theme.gold }} />
-            <span className="text-[9px] font-medium" style={{ color: theme.gold }}>{t.ai_mufti || 'AI Müftü'}</span>
+            <span className="text-[9px] font-medium" style={{ color: theme.gold }}>{t.ai_mufti || tt('AI Müftü')}</span>
           </div>
         )}
         {!isUser ? (
@@ -93,8 +95,8 @@ const ChatBubble = memo(function ChatBubble({ msg, theme, index, t, onRetry }) {
           <div className="flex items-center gap-1 mt-2 pt-1.5" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
             <Shield size={9} style={{ color: msg.confidence.confidence === 'high' ? '#10B981' : msg.confidence.confidence === 'medium' ? '#F59E0B' : '#EF4444' }} />
             <span className="text-[8px]" style={{ color: theme.textSecondary }}>
-              {t.ai_confidence || 'Güven'}: {msg.confidence.confidence === 'high' ? (t.ai_confidence_high || 'Yüksek') : msg.confidence.confidence === 'medium' ? (t.ai_confidence_medium || 'Orta') : (t.ai_confidence_low || 'Düşük')}
-              {msg.confidence.has_source_refs && ` · ${t.ai_source_available || 'Kaynak mevcut'}`}
+              {t.ai_confidence || tt('Güven')}: {msg.confidence.confidence === 'high' ? (t.ai_confidence_high || tt('Yüksek')) : msg.confidence.confidence === 'medium' ? (t.ai_confidence_medium || tt('Orta')) : (t.ai_confidence_low || tt('Düşük'))}
+              {msg.confidence.has_source_refs && ` · ${t.ai_source_available || tt('Kaynak mevcut')}`}
             </span>
           </div>
         )}
@@ -102,14 +104,14 @@ const ChatBubble = memo(function ChatBubble({ msg, theme, index, t, onRetry }) {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="mt-2 p-2 rounded-lg flex items-center gap-2" style={{ background: `${theme.gold}20` }}>
             <Crown size={12} style={{ color: theme.gold }} />
-            <span className="text-[10px]" style={{ color: theme.gold }}>{t.ai_premium_upgrade || "Premium'a geçerek sınırsız soru sorun"}</span>
+            <span className="text-[10px]" style={{ color: theme.gold }}>{t.ai_premium_upgrade || tt("Premium'a geçerek sınırsız soru sorun")}</span>
           </motion.div>
         )}
         {isError && onRetry && (
           <motion.button whileTap={{ scale: 0.95 }} onClick={onRetry}
             className="mt-2 flex items-center gap-1.5 text-[10px] font-medium px-3 py-1.5 rounded-lg transition-all"
             style={{ background: `${theme.gold}15`, color: theme.gold, border: `1px solid ${theme.gold}25` }}>
-            <Zap size={10} /> {t.ai_retry || 'Tekrar Dene'}
+            <Zap size={10} /> {t.ai_retry || tt('Tekrar Dene')}
           </motion.button>
         )}
       </div>
@@ -118,6 +120,7 @@ const ChatBubble = memo(function ChatBubble({ msg, theme, index, t, onRetry }) {
 });
 
 export default function AiChat() {
+  const tt = useTx();
   const { user } = useAuth();
   const { theme } = useTheme();
   const { t, lang } = useLang();
@@ -135,9 +138,9 @@ export default function AiChat() {
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
-  const QUICK_QUESTIONS = useMemo(() => getQuickQuestions(t), [t]);
-  const LEVELS = useMemo(() => getLevels(t), [t]);
-  const MODES = useMemo(() => getModes(t), [t]);
+  const QUICK_QUESTIONS = useMemo(() => getQuickQuestions(t, tt), [t, tt]);
+  const LEVELS = useMemo(() => getLevels(t, tt), [t, tt]);
+  const MODES = useMemo(() => getModes(t, tt), [t, tt]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
@@ -197,7 +200,7 @@ export default function AiChat() {
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: t.ai_connection_error || 'Bağlantı hatası oluştu. Lütfen tekrar deneyin.',
+        content: t.ai_connection_error || tt('Bağlantı hatası oluştu. Lütfen tekrar deneyin.'),
         isError: true,
         _retryText: text,
       }]);
@@ -239,10 +242,10 @@ export default function AiChat() {
             </motion.div>
             <div>
               <h1 className="text-base font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
-                {mode === 'expert' && selectedBot ? bots.find(b => b.id === selectedBot)?.name || (t.ai_select_expert || 'AI Uzman') : (t.ai_mufti || 'AI Müftü')}
+                {mode === 'expert' && selectedBot ? bots.find(b => b.id === selectedBot)?.name || (t.ai_select_expert || tt('AI Uzman')) : (t.ai_mufti || tt('AI Müftü'))}
               </h1>
               <p className="text-[10px]" style={{ color: theme.textSecondary }}>
-                {mode === 'auto' ? (t.ai_5experts || '5 uzman bot · Otomatik yönlendirme') : (t.ai_direct_expert || 'Doğrudan uzmana sorun')}
+                {mode === 'auto' ? (t.ai_5experts || '5 uzman bot · Otomatik yönlendirme') : (t.ai_direct_expert || tt('Doğrudan uzmana sorun'))}
                 {!premium && usage.limit > 0 && <span> · {usage.used}/{usage.limit}</span>}
                 {premium && <span className="ml-1" style={{ color: theme.gold }}>★ Premium</span>}
               </p>
@@ -270,7 +273,7 @@ export default function AiChat() {
               <div className="pt-3 space-y-3">
                 {/* Mode Selection */}
                 <div>
-                  <p className="text-[10px] font-medium mb-1.5" style={{ color: theme.textSecondary }}>{t.ai_mode || 'Mod'}</p>
+                  <p className="text-[10px] font-medium mb-1.5" style={{ color: theme.textSecondary }}>{t.ai_mode || tt('Mod')}</p>
                   <div className="flex gap-2">
                     {MODES.map(m => (
                       <button key={m.id} onClick={() => { setMode(m.id); if (m.id === 'auto') setSelectedBot(null); }}
@@ -285,7 +288,7 @@ export default function AiChat() {
                 {/* Expert Bot Selection */}
                 {mode === 'expert' && bots.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-medium mb-1.5" style={{ color: theme.textSecondary }}>{t.ai_select_expert || 'Uzman Seçin'}</p>
+                    <p className="text-[10px] font-medium mb-1.5" style={{ color: theme.textSecondary }}>{t.ai_select_expert || tt('Uzman Seçin')}</p>
                     <div className="grid grid-cols-3 gap-1.5">
                       {bots.map(bot => (
                         <button key={bot.id} onClick={() => setSelectedBot(bot.id)}
@@ -303,7 +306,7 @@ export default function AiChat() {
 
                 {/* Level */}
                 <div>
-                  <p className="text-[10px] font-medium mb-1.5" style={{ color: theme.textSecondary }}>{t.ai_knowledge_level || 'Bilgi Seviyesi'}</p>
+                  <p className="text-[10px] font-medium mb-1.5" style={{ color: theme.textSecondary }}>{t.ai_knowledge_level || tt('Bilgi Seviyesi')}</p>
                   <div className="flex gap-2">
                     {LEVELS.map(l => (
                       <button key={l.id} onClick={() => setLevel(l.id)}
@@ -330,7 +333,7 @@ export default function AiChat() {
               <MessageCircle size={28} style={{ color: theme.gold }} />
             </motion.div>
             <h2 className="text-base font-bold mb-1" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
-              {t.ai_welcome || 'Selam'}, {user?.name?.split(' ')[0] || (t.ai_welcome === 'السلام عليكم' ? '' : 'Kardeşim')}
+              {t.ai_welcome || tt('Selam')}, {user?.name?.split(' ')[0] || (t.ai_welcome === 'السلام عليكم' ? '' : 'Kardeşim')}
             </h2>
             <p className="text-xs mb-2" style={{ color: theme.textSecondary }}>
               5 Uzman Bot: Fıkıh · Tefsir · Hadis · Akaid · Mukayese
@@ -381,7 +384,7 @@ export default function AiChat() {
               <div className="flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin" style={{ color: theme.gold }} />
                 <span className="text-xs" style={{ color: theme.textSecondary }}>
-                  {mode === 'auto' ? (t.ai_experts_analyzing || 'Uzmanlar analiz ediyor...') : (t.thinking || 'Düşünüyorum...')}
+                  {mode === 'auto' ? (t.ai_experts_analyzing || tt('Uzmanlar analiz ediyor...')) : (t.thinking || tt('Düşünüyorum...'))}
                 </span>
               </div>
             </div>
@@ -396,7 +399,7 @@ export default function AiChat() {
           <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-2 mb-2 p-2.5 rounded-xl" style={{ background: `${theme.gold}15`, border: `1px solid ${theme.gold}30` }}>
             <Lock size={14} style={{ color: theme.gold }} />
-            <span className="text-[11px] flex-1" style={{ color: theme.gold }}>{t.ai_premium_limit || 'Günlük limit doldu. Premium ile sınırsız sorun!'}</span>
+            <span className="text-[11px] flex-1" style={{ color: theme.gold }}>{t.ai_premium_limit || tt('Günlük limit doldu. Premium ile sınırsız sorun!')}</span>
             <Crown size={14} style={{ color: theme.gold }} />
           </motion.div>
         )}
@@ -408,7 +411,7 @@ export default function AiChat() {
               {bots.find(b => b.id === selectedBot)?.name}
             </span>
             <button onClick={() => { setMode('auto'); setSelectedBot(null); }} className="text-[9px] ml-auto" style={{ color: theme.textSecondary }}>
-              {t.ai_switch_auto || 'Otomatiğe geç'}
+              {t.ai_switch_auto || tt('Otomatiğe geç')}
             </button>
           </div>
         )}
@@ -416,7 +419,7 @@ export default function AiChat() {
           style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}` }}>
           <input ref={inputRef} type="text" value={input}
             onChange={e => { if (e.target.value.length <= 2000) setInput(e.target.value); }}
-            placeholder={limitReached ? (t.ai_premium_unlock || "Premium'a geçin...") : (t.ask_question || "Sorunuzu yazın...")}
+            placeholder={limitReached ? (t.ai_premium_unlock || tt("Premium'a geçin...")) : (t.ask_question || tt("Sorunuzu yazın..."))}
             disabled={limitReached}
             data-testid="chat-input"
             className="flex-1 bg-transparent text-sm focus:outline-none disabled:opacity-50"

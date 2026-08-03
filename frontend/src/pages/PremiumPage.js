@@ -4,6 +4,8 @@ import { Crown, Check, Lock, Sparkles, Star, BookOpen, Shield, Zap, ChevronRight
 import { useAuth } from '../contexts/AuthContext';
 import { usePremium } from '../contexts/PremiumContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLang } from '../contexts/LangContext';
+import { useTx } from '../i18n';
 import api from '../api';
 
 const FEATURES = [
@@ -19,6 +21,9 @@ export default function PremiumPage() {
   const { user } = useAuth();
   const { premium, checkPremium } = usePremium();
   const { theme } = useTheme();
+  const { lang } = useLang();
+  const tt = useTx();
+  const curr = lang === 'tr' ? '₺' : '$';
   const [plans, setPlans] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [processing, setProcessing] = useState(false);
@@ -50,8 +55,8 @@ export default function PremiumPage() {
             style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight})` }}>
             <Crown size={36} className="text-white" />
           </motion.div>
-          <h1 className="text-2xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>Premium Üye</h1>
-          <p className="text-sm mt-2" style={{ color: theme.textSecondary }}>Tüm özelliklerin kilidi açık</p>
+          <h1 className="text-2xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{tt('Premium Üye')}</h1>
+          <p className="text-sm mt-2" style={{ color: theme.textSecondary }}>{tt('Tüm özelliklerin kilidi açık')}</p>
         </div>
         <div className="px-4 space-y-3 mt-4">
           {FEATURES.map((f, i) => (
@@ -61,8 +66,8 @@ export default function PremiumPage() {
                 <f.icon size={18} style={{ color: theme.gold }} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{f.title}</p>
-                <p className="text-[10px]" style={{ color: theme.textSecondary }}>{f.desc}</p>
+                <p className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{tt(f.title)}</p>
+                <p className="text-[10px]" style={{ color: theme.textSecondary }}>{tt(f.desc)}</p>
               </div>
               <Check size={16} style={{ color: theme.gold }} />
             </motion.div>
@@ -83,8 +88,8 @@ export default function PremiumPage() {
           style={{ background: `linear-gradient(135deg, ${theme.gold}40, ${theme.gold}20)` }}>
           <Crown size={28} style={{ color: theme.gold }} />
         </motion.div>
-        <h1 className="text-xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>Premium'a Geç</h1>
-        <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>İslami yolculuğunuzu üst seviyeye taşıyın</p>
+        <h1 className="text-xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{tt("Premium'a Geç")}</h1>
+        <p className="text-xs mt-1" style={{ color: theme.textSecondary }}>{tt('İslami yolculuğunuzu üst seviyeye taşıyın')}</p>
       </div>
 
       {/* Plan Toggle */}
@@ -93,7 +98,7 @@ export default function PremiumPage() {
           <button key={p} onClick={() => setSelectedPlan(p)}
             className="flex-1 py-2 rounded-lg text-xs font-medium transition-all relative"
             style={selectedPlan === p ? { background: theme.gold, color: '#fff' } : { color: theme.textSecondary }}>
-            {p === 'monthly' ? 'Aylık' : 'Yıllık'}
+            {p === 'monthly' ? tt('Aylık') : tt('Yıllık')}
             {p === 'yearly' && <span className="absolute -top-2 right-1 text-[8px] px-1.5 py-0.5 rounded-full bg-red-500 text-white">-33%</span>}
           </button>
         ))}
@@ -103,12 +108,12 @@ export default function PremiumPage() {
       <div className="text-center mt-5">
         <motion.div key={selectedPlan} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
           <span className="text-3xl font-bold" style={{ color: theme.gold }}>
-            ₺{selectedPlan === 'monthly' ? premiumPlan?.price_monthly || '49.99' : premiumPlan?.price_yearly || '399.99'}
+            {curr}{selectedPlan === 'monthly' ? premiumPlan?.price_monthly || '49.99' : premiumPlan?.price_yearly || '399.99'}
           </span>
-          <span className="text-xs ml-1" style={{ color: theme.textSecondary }}>/{selectedPlan === 'monthly' ? 'ay' : 'yıl'}</span>
+          <span className="text-xs ml-1" style={{ color: theme.textSecondary }}>/{selectedPlan === 'monthly' ? tt('ay') : tt('yıl')}</span>
         </motion.div>
         {selectedPlan === 'yearly' && (
-          <p className="text-[10px] mt-1" style={{ color: theme.gold }}>Aylık ₺33.33 — %33 tasarruf</p>
+          <p className="text-[10px] mt-1" style={{ color: theme.gold }}>{tt('%33 tasarruf')}</p>
         )}
       </div>
 
@@ -121,12 +126,12 @@ export default function PremiumPage() {
               <f.icon size={16} style={{ color: theme.gold }} />
             </div>
             <div className="flex-1">
-              <p className="text-xs font-semibold" style={{ color: theme.textPrimary }}>{f.title}</p>
-              <p className="text-[9px]" style={{ color: theme.textSecondary }}>{f.desc}</p>
+              <p className="text-xs font-semibold" style={{ color: theme.textPrimary }}>{tt(f.title)}</p>
+              <p className="text-[9px]" style={{ color: theme.textSecondary }}>{tt(f.desc)}</p>
             </div>
             <div className="text-right">
-              <p className="text-[9px] line-through" style={{ color: theme.textSecondary }}>{f.free}</p>
-              <p className="text-[10px] font-semibold" style={{ color: theme.gold }}>{f.premium}</p>
+              <p className="text-[9px] line-through" style={{ color: theme.textSecondary }}>{tt(f.free)}</p>
+              <p className="text-[10px] font-semibold" style={{ color: theme.gold }}>{tt(f.premium)}</p>
             </div>
           </motion.div>
         ))}
@@ -142,12 +147,12 @@ export default function PremiumPage() {
           ) : (
             <>
               <Crown size={18} />
-              Premium'a Geç
+              {tt("Premium'a Geç")}
             </>
           )}
         </motion.button>
         <p className="text-center text-[9px] mt-2" style={{ color: theme.textSecondary }}>
-          İstediğiniz zaman iptal edebilirsiniz
+          {tt('İstediğiniz zaman iptal edebilirsiniz')}
         </p>
       </div>
     </div>

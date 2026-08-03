@@ -5,6 +5,7 @@ import { Search, ChevronRight, BookOpen, Youtube, X, BookMarked, Star, Filter } 
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import PreReadingDua from '../components/PreReadingDua';
+import { useTx } from '../i18n';
 import api from '../api';
 
 const quranI18n = {
@@ -36,6 +37,7 @@ export default function QuranList() {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { theme } = useTheme();
+  const tt = useTx();
   const txt = quranI18n[lang] || quranI18n.tr;
   const isRTL = lang === 'ar';
   const [surahs, setSurahs] = useState([]);
@@ -46,6 +48,10 @@ export default function QuranList() {
   const [showDua, setShowDua] = useState(false);
   const [duaTarget, setDuaTarget] = useState(null);
   const [filterType, setFilterType] = useState('all'); // all, meccan, medinan
+  // Kaldığın yer (SurahDetail/Mushaf kaydeder)
+  const [lastRead] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('quran_last')) || null; } catch { return null; }
+  });
 
   useEffect(() => {
     api.get('/quran/surahs').then(r => { if (Array.isArray(r.data)) setSurahs(r.data); setLoading(false); }).catch(() => setLoading(false));
@@ -111,7 +117,7 @@ export default function QuranList() {
               {txt.title}
             </h1>
             <p className="text-[11px] mt-0.5" style={{ color: theme.textSecondary }}>
-              {surahs.length > 0 ? `${surahs.length} ${t.surahs || 'Sure'}` : ''}
+              {surahs.length > 0 ? `${surahs.length} ${t.surahs || tt('Sure')}` : ''}
             </p>
           </div>
           {/* Dua button */}
@@ -186,6 +192,35 @@ export default function QuranList() {
           <ChevronRight size={14} style={{ color: theme.textSecondary }} />
         </button>
       </div>
+
+      {/* Kaldığın yer — Devam Et kartı */}
+      {lastRead && lastRead.surah && (
+        <div className="px-4 pt-3">
+          <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            onClick={() => navigate(`/quran/${lastRead.surah}?ayet=${lastRead.ayah || 1}`)}
+            data-testid="continue-reading"
+            className="w-full text-left rounded-2xl p-4 relative overflow-hidden active:scale-[0.98] transition-transform"
+            style={{ background: `linear-gradient(120deg, ${theme.gold}16, ${theme.surface})`, border: `1.5px solid ${theme.gold}30` }}>
+            <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full opacity-20 pointer-events-none"
+              style={{ background: `radial-gradient(circle, ${theme.gold}, transparent 65%)` }} />
+            <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-1 flex items-center gap-1.5" style={{ color: theme.gold }}>
+              🕐 {tt('Kaldığınız yer')}
+            </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-base font-black truncate" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
+                  {lastRead.name || `${lastRead.surah}. Sure`}
+                </p>
+                <p className="text-[11px]" style={{ color: theme.textSecondary }}>{lastRead.ayah || 1}. ayet</p>
+              </div>
+              <span className="shrink-0 px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1"
+                style={{ background: theme.gold, color: '#0A1F14' }}>
+                {tt('Devam et')} <ChevronRight size={13} />
+              </span>
+            </div>
+          </motion.button>
+        </div>
+      )}
 
       {/* Content */}
       <div className="px-4 pb-6 pt-2">

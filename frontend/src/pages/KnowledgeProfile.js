@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, Footprints, Book, MessageCircle, Heart, Clock, User, Flame, Star, CheckCircle } from 'lucide-react';
+import { useTx } from '../i18n';
 
 export default function KnowledgeProfile() {
+  const tt = useTx();
   const stats = [
     { name: "Kuran", score: 85, icon: <BookOpen size={18} /> },
     { name: "Siyer", score: 70, icon: <Footprints size={18} /> },
@@ -26,7 +28,7 @@ export default function KnowledgeProfile() {
           <div className="bg-[#1a3a2a]/40 p-4 rounded-2xl border border-[#ffd369]/20 flex flex-col items-center justify-center">
             <Flame size={24} className="text-[#ffd369] mb-2" />
             <div className="text-xl font-bold text-[#f7e6ae]">6</div>
-            <div className="text-[10px] opacity-70 mt-1">Gün Serisi</div>
+            <div className="text-[10px] opacity-70 mt-1">{tt('Gün Serisi')}</div>
           </div>
           <div className="bg-[#1a3a2a]/40 p-4 rounded-2xl border border-[#ffd369]/20 flex flex-col items-center justify-center">
             <CheckCircle size={24} className="text-[#ffd369] mb-2" />
@@ -37,7 +39,7 @@ export default function KnowledgeProfile() {
 
         {/* Kategori Dökümü */}
         <div className="bg-[#1a3a2a]/30 p-6 rounded-[30px] border border-[#ffd369]/20 shadow-lg">
-          <h2 className="text-xl font-extrabold mb-8 text-[#f7e6ae]">Kategori Dökümü</h2>
+          <h2 className="text-xl font-extrabold mb-8 text-[#f7e6ae]">{tt('Kategori Dökümü')}</h2>
           <div className="flex flex-col gap-6">
             {stats.map((stat, idx) => (
               <div key={idx} className="flex items-center justify-between">

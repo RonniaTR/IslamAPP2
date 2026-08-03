@@ -4,19 +4,36 @@ import { Trophy, Crown, Medal, TrendingUp, Sparkles, Target, BookOpen, Footprint
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { fetchStats, subscribeStats, getCachedStats, getUserId } from '../services/gamification';
+import { useTx } from '../i18n';
+
+const LEVEL_TITLES = ['Çaylak', 'Talebe', 'Meraklı', 'Bilge Adayı', 'Âlim Yolcusu', 'Hafız Ruhlu', 'İlim Eri', 'Üstat', 'Ârif', 'Ulu Bilge'];
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const tt = useTx();
   
   const [activeTab, setActiveTab] = useState('stats'); // 'stats' veya 'leaderboard'
   const [leaderboard, setLeaderboard] = useState([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+  const [liveStats, setLiveStats] = useState(() => getCachedStats() || { total_points: 0, level: 1, current_streak: 0 });
+
+  // Canlı XP/seviye/streak — oyun/okuma/görevlerle anında güncellenir
+  useEffect(() => {
+    fetchStats(user).then(s => { if (s) setLiveStats(s); });
+    const unsub = subscribeStats(s => { if (s) setLiveStats(prev => ({ ...prev, ...s })); });
+    return unsub;
+  }, [user]);
+
+  const totalXP = liveStats.total_points || 0;
+  const level = liveStats.level || 1;
+  const levelTitle = tt(LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)] || 'Çaylak');
 
   // MİSAFİR İSMİNİ OTOMATİK BULAN SİSTEM
   const displayName = user?.name && user.name !== "Misafir" && user.name !== "Kardeşim" 
     ? user.name 
-    : (localStorage.getItem('islamapp_guest_name') || "İsimsiz Kahraman");
+    : (localStorage.getItem('islamapp_guest_name') || tt("İsimsiz Kahraman"));
 
   // RADAR GRAFİĞİ İÇİN ÖRNEK VERİLER
   const stats = [
@@ -59,14 +76,34 @@ export default function ProfilePage() {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#ffd369] to-[#d4af37] flex items-center justify-center shadow-lg transform rotate-3">
             <span className="text-2xl font-black text-[#032212] uppercase">{displayName.charAt(0)}</span>
           </div>
-          <div>
-            <h1 className="text-2xl font-black text-[#ffd369] tracking-tight">{displayName}</h1>
-            <div className="flex items-center gap-2 mt-1">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-black text-[#ffd369] tracking-tight truncate">{displayName}</h1>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-xs bg-[#ffd369]/10 text-[#ffd369] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-[#ffd369]/20">
-                <Flame size={12} /> Çaylak Seviyesi
+                <Crown size={12} /> Seviye {level} · {levelTitle}
               </span>
+              {liveStats.current_streak > 0 && (
+                <span className="text-xs bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-orange-500/20">
+                  <Flame size={12} /> {liveStats.current_streak} gün
+                </span>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* ─── CANLI XP ÖZETİ ─── */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[
+            { label: 'Toplam XP', value: totalXP.toLocaleString('tr-TR'), icon: <Sparkles size={16} /> },
+            { label: 'Seviye', value: level, icon: <TrendingUp size={16} /> },
+            { label: 'Seri', value: `${liveStats.current_streak || 0}g`, icon: <Flame size={16} /> },
+          ].map((s, i) => (
+            <div key={i} className="bg-[#1a3a2a]/40 rounded-2xl p-3 border border-[#ffd369]/15 text-center">
+              <div className="flex justify-center text-[#ffd369] mb-1">{s.icon}</div>
+              <p className="text-lg font-black text-[#f7e6ae] tabular-nums leading-none">{s.value}</p>
+              <p className="text-[9px] text-[#A8B5A0] mt-1 uppercase tracking-wide">{s.label}</p>
+            </div>
+          ))}
         </div>
 
         {/* ─── SEKME BUTONLARI (TABS) ─── */}
@@ -96,7 +133,7 @@ export default function ProfilePage() {
                 <h2 className="text-xl font-extrabold mb-1 text-[#f7e6ae] flex items-center gap-2">
                   <Target className="text-[#ffd369]" size={20}/> Mevcut Durum Analizi
                 </h2>
-                <p className="text-xs text-[#A8B5A0] mb-6">İlim dallarındaki dengenizi inceleyin.</p>
+                <p className="text-xs text-[#A8B5A0] mb-6">{tt('İlim dallarındaki dengenizi inceleyin.')}</p>
                 
                 {/* RADAR GRAFİĞİ */}
                 <div className="relative w-full aspect-square flex items-center justify-center max-w-[260px] mx-auto my-6">
@@ -159,10 +196,10 @@ export default function ProfilePage() {
               {loadingLeaderboard ? (
                 <div className="flex flex-col items-center justify-center py-20 text-[#ffd369]">
                   <Loader2 size={32} className="animate-spin mb-4" />
-                  <p className="text-sm font-bold animate-pulse">Liderler Yükleniyor...</p>
+                  <p className="text-sm font-bold animate-pulse">{tt('Liderler Yükleniyor...')}</p>
                 </div>
               ) : (
-                <LeaderboardTab leaderboard={leaderboard} currentUserId={user?.user_id || user?.id || localStorage.getItem('islamapp_guest_id')} />
+                <LeaderboardTab leaderboard={leaderboard} currentUserId={getUserId(user)} />
               )}
             </motion.div>
           )}
@@ -177,12 +214,17 @@ export default function ProfilePage() {
    ALT BİLEŞEN: LİDERLİK TABLOSU & PODYUM
    ========================================= */
 function LeaderboardTab({ leaderboard, currentUserId }) {
+  // Eski backend user_id'yi kısaltıp "..." ekleyebiliyor; her iki formatı da eşle
+  const short = currentUserId ? `${String(currentUserId).slice(0, 8)}...` : null;
+  const isMe = (entry) => entry.user_id === currentUserId || (short && entry.user_id === short);
+  const xpOf = (entry) => entry.total_points ?? entry.points ?? 0;
+
   if (!leaderboard || leaderboard.length === 0) {
     return (
       <div className="text-center py-12 rounded-3xl border border-[#ffd369]/20 bg-[#1a3a2a]/30 shadow-lg mt-4">
         <Trophy size={48} className="mx-auto mb-4 text-[#A8B5A0]/30" />
         <p className="text-lg font-bold text-[#f7e6ae] mb-1">Meydan Okuma Bekliyor</p>
-        <p className="text-sm text-[#A8B5A0]">İlk quiz'i tamamla ve kürsüdeki yerini al!</p>
+        <p className="text-sm text-[#A8B5A0]">{tt("İlk quiz'i tamamla ve kürsüdeki yerini al!")}</p>
       </div>
     );
   }
@@ -202,7 +244,7 @@ function LeaderboardTab({ leaderboard, currentUserId }) {
       {/* ─── PODYUM (İLK 3) ─── */}
       <div className="flex justify-center items-end gap-2 md:gap-4 h-56 mt-12 mb-4 px-2">
         {podiumOrder.map((entry, index) => {
-          const isMe = entry.user_id === currentUserId;
+          const me = isMe(entry);
           const isFirst = entry.podiumRank === 1;
           const isSecond = entry.podiumRank === 2;
           
@@ -220,13 +262,13 @@ function LeaderboardTab({ leaderboard, currentUserId }) {
               {isFirst ? <Crown size={32} className="text-[#ffd369] mb-2 drop-shadow-md animate-bounce" /> : <Medal size={24} className={`mb-2 ${isSecond ? 'text-gray-300' : 'text-orange-400'}`} />}
               
               <div className="text-center w-full absolute -top-12">
-                <p className={`text-xs font-black truncate px-1 ${isMe ? 'text-white' : 'text-[#f7e6ae]'}`}>{entry.username || 'Anonim'}</p>
-                <p className="text-[10px] font-bold text-[#A8B5A0]">{entry.total_points} XP</p>
+                <p className={`text-xs font-black truncate px-1 ${me ? 'text-white' : 'text-[#f7e6ae]'}`}>{entry.username || 'Anonim'}</p>
+                <p className="text-[10px] font-bold text-[#A8B5A0]">{xpOf(entry)} XP</p>
               </div>
 
               <div className={`w-full ${height} bg-gradient-to-t ${colors} rounded-t-2xl border-t-2 border-l border-r opacity-90 relative flex justify-center pt-3 ${shadow}`}>
                 <span className="text-2xl font-black text-[#032212]/80">{entry.podiumRank}</span>
-                {isMe && <div className="absolute -bottom-2 bg-white text-[#032212] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-md">Sen</div>}
+                {me && <div className="absolute -bottom-2 bg-white text-[#032212] text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-md">Sen</div>}
               </div>
             </motion.div>
           );
@@ -237,24 +279,24 @@ function LeaderboardTab({ leaderboard, currentUserId }) {
       <div className="bg-[#1a3a2a]/40 rounded-3xl p-4 md:p-6 border border-[#ffd369]/10 shadow-xl">
         <div className="flex items-center gap-2 mb-4 px-2">
           <TrendingUp size={18} className="text-[#ffd369]" />
-          <h3 className="text-sm font-bold text-[#f7e6ae] uppercase tracking-wider">Lig Sıralaması</h3>
+          <h3 className="text-sm font-bold text-[#f7e6ae] uppercase tracking-wider">{tt('Lig Sıralaması')}</h3>
         </div>
 
         <div className="space-y-3">
           {restOfLeaderboard.map((entry, i) => {
             const actualRank = i + 4;
-            const isMe = entry.user_id === currentUserId;
+            const me = isMe(entry);
 
             return (
               <motion.div key={entry.user_id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + (i * 0.05) }}
-                className={`flex items-center gap-4 p-3 md:p-4 rounded-2xl transition-all duration-300 ${isMe ? 'bg-gradient-to-r from-[#ffd369]/20 to-transparent border border-[#ffd369]/50 shadow-[0_0_15px_rgba(255,211,105,0.15)]' : 'bg-[#032212]/50 border border-white/5 hover:bg-[#032212]'}`}
+                className={`flex items-center gap-4 p-3 md:p-4 rounded-2xl transition-all duration-300 ${me ? 'bg-gradient-to-r from-[#ffd369]/20 to-transparent border border-[#ffd369]/50 shadow-[0_0_15px_rgba(255,211,105,0.15)]' : 'bg-[#032212]/50 border border-white/5 hover:bg-[#032212]'}`}
               >
                 <div className="w-8 h-8 shrink-0 rounded-full bg-[#1a3a2a] border border-[#ffd369]/20 flex items-center justify-center font-black text-[#A8B5A0] text-sm">
                   {actualRank}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-bold truncate ${isMe ? 'text-[#ffd369]' : 'text-[#f7e6ae]'}`}>
-                    {entry.username || 'Anonim'} {isMe && <span className="text-[9px] bg-[#ffd369] text-[#032212] px-1.5 py-0.5 rounded ml-2 uppercase">Sen</span>}
+                  <p className={`text-sm font-bold truncate ${me ? 'text-[#ffd369]' : 'text-[#f7e6ae]'}`}>
+                    {entry.username || 'Anonim'} {me && <span className="text-[9px] bg-[#ffd369] text-[#032212] px-1.5 py-0.5 rounded ml-2 uppercase">Sen</span>}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-[10px] text-[#A8B5A0] flex items-center gap-1">
@@ -263,7 +305,7 @@ function LeaderboardTab({ leaderboard, currentUserId }) {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className={`text-base md:text-lg font-black ${isMe ? 'text-white' : 'text-[#ffd369]'}`}>{entry.total_points}</p>
+                  <p className={`text-base md:text-lg font-black ${me ? 'text-white' : 'text-[#ffd369]'}`}>{xpOf(entry)}</p>
                   <p className="text-[9px] text-[#A8B5A0] uppercase tracking-widest mt-[-2px]">XP</p>
                 </div>
               </motion.div>

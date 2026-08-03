@@ -514,6 +514,8 @@ class ActivityCreate(BaseModel):
     user_id: str
     activity_type: str
     details: str = ""
+    username: Optional[str] = None
+    points: Optional[int] = None  # opsiyonel puan override (oyunlarda skora göre)
 
 # ===================== ALL CITIES DATA (81 Turkish Provinces + International) =====================
 
@@ -1142,6 +1144,12 @@ POINTS_CONFIG = {
     "chat": 3,
     "daily_login": 5,
     "knowledge_quiz": 50,
+    "worship_task": 5,
+    # Oyun modları (temel puan; istemci skora göre 'points' override gönderebilir)
+    "game_quiz": 10,
+    "game_wheel": 15,
+    "game_word": 20,
+    "game_match": 15,
 }
 
 def calculate_level(points: int) -> int:
@@ -2433,21 +2441,32 @@ async def get_user_stats(user_id: str):
 @api_router.post("/gamification/activity")
 async def log_activity(activity: ActivityCreate):
     """Log an activity and award points"""
-    points = POINTS_CONFIG.get(activity.activity_type, 0)
-    
+    # Temel puan tipe göre; oyunlarda istemci skora göre override gönderebilir (0..1000 aralığında sınırlanır)
+    base_points = POINTS_CONFIG.get(activity.activity_type, 0)
+    if activity.points is not None:
+        try:
+            points = max(0, min(int(activity.points), 1000))
+        except (TypeError, ValueError):
+            points = base_points
+    else:
+        points = base_points
+
     # Get or create user stats
     stats = await db.user_stats.find_one({"user_id": activity.user_id})
-    
+
     if not stats:
         stats = UserStats(user_id=activity.user_id).dict()
         await db.user_stats.insert_one(stats)
-    
+
     # Update stats
     today = date.today().isoformat()
     update_data = {
         "total_points": stats.get("total_points", 0) + points,
         "updated_at": datetime.utcnow()
     }
+    # Kullanıcı adını sabitle (liderlik tablosunda görünmesi için)
+    if activity.username:
+        update_data["username"] = activity.username[:40]
     
     # Update streak
     last_activity = stats.get("last_activity_date", "")
@@ -2501,23 +2520,27 @@ async def get_all_badges():
     return BADGES
 
 @api_router.get("/gamification/leaderboard")
-async def get_leaderboard():
-    """Get top users leaderboard"""
+async def get_leaderboard(limit: int = 20):
+    """Get top users leaderboard (kullanıcı kendini görebilsin diye tam user_id + username döner)"""
+    limit = max(1, min(int(limit or 20), 100))
     try:
-        users = await db.user_stats.find().sort("total_points", -1).limit(20).to_list(20)
+        users = await db.user_stats.find().sort("total_points", -1).limit(limit).to_list(limit)
     except Exception:
         return []
-    
+
     leaderboard = []
     for i, user in enumerate(users):
+        pts = user.get("total_points", 0)
         leaderboard.append({
             "rank": i + 1,
-            "user_id": user["user_id"][:8] + "...",  # Anonymize
-            "points": user.get("total_points", 0),
-            "level": calculate_level(user.get("total_points", 0)),
-            "streak": user.get("current_streak", 0)
+            "user_id": user.get("user_id", ""),
+            "username": user.get("username") or "İsimsiz Kahraman",
+            "points": pts,
+            "total_points": pts,
+            "level": calculate_level(pts),
+            "streak": user.get("current_streak", 0),
         })
-    
+
     return leaderboard
 
 # ===================== AI CHAT (İSLAMİ DANIŞMAN) =====================

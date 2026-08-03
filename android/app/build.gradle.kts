@@ -1,18 +1,44 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
 
+// ── İMZALAMA ──────────────────────────────────────────────────
+// Yayın imzası android/keystore.properties dosyasından okunur.
+// Bu dosya .gitignore'dadır; ASLA depoya eklenmez.
+// Şablon için keystore.properties.example dosyasına bakın.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) load(FileInputStream(keystorePropertiesFile))
+}
+val hasSigning = keystoreProperties.getProperty("storeFile") != null
+
 android {
     namespace = "com.islamapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.islamapp"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
+        // Her Play yüklemesinde versionCode ARTMALIDIR.
         versionCode = 1
         versionName = "1.0.0"
+        resourceConfigurations += listOf("tr", "en", "ar")
+    }
+
+    signingConfigs {
+        if (hasSigning) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -27,6 +53,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // keystore.properties varsa yayın imzasıyla, yoksa imzasız derlenir
+            if (hasSigning) signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -41,6 +69,14 @@ android {
 
     buildFeatures {
         viewBinding = true
+    }
+
+    // AAB dil bölmesi kapalı: dil seçimi uygulama içinde (app_lang) yapılır,
+    // Play'in cihaz diline göre kaynak budaması istenmez.
+    bundle {
+        language {
+            enableSplit = false
+        }
     }
 }
 

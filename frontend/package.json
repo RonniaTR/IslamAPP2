@@ -5,7 +5,8 @@
   "scripts": {
     "start": "PORT=3000 BROWSER=none react-scripts start",
     "build": "react-scripts build",
-    "expo": "node scripts/start.js"
+    "expo": "node scripts/start.js",
+    "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "ajv": "^8.18.0",

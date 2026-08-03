@@ -4,8 +4,10 @@ import { Heart, Trash2, Copy, Share2, Sparkles, BookOpen, Loader2, Check, Scroll
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
 export default function NotesPage() {
+  const tt = useTx();
   const navigate = useNavigate();
   const { t } = useLang();
   const { theme } = useTheme();
@@ -38,7 +40,7 @@ export default function NotesPage() {
   };
 
   const copyNote = (note) => {
-    const appName = t.login_title || 'İslami Yaşam Asistanı';
+    const appName = t.login_title || tt('İslami Yaşam Asistanı');
     const text = `${note.title}\n\n${note.content}${note.scholar_name ? `\n\n— ${note.scholar_name}` : ''}\n\n— ${appName}`;
     navigator.clipboard.writeText(text).catch(() => {});
     setCopied(note.created_at);
@@ -46,7 +48,7 @@ export default function NotesPage() {
   };
 
   const shareNote = (note) => {
-    const appName = t.login_title || 'İslami Yaşam Asistanı';
+    const appName = t.login_title || tt('İslami Yaşam Asistanı');
     const text = `${note.title}\n\n${note.content}${note.scholar_name ? `\n\n— ${note.scholar_name}` : ''}\n\n— ${appName}`;
     if (navigator.share) navigator.share({ title: note.title, text }).catch(() => {});
     else copyNote(note);
@@ -59,16 +61,16 @@ export default function NotesPage() {
       <div className="px-5 pt-6 pb-4" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
         <div className="flex items-center gap-2 mb-1">
           <Heart size={20} style={{ color: theme.gold }} />
-          <h1 className="text-xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{t.my_notes_title || 'Notlarım'}</h1>
+          <h1 className="text-xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{t.my_notes_title || tt('Notlarım')}</h1>
         </div>
-        <p className="text-xs" style={{ color: theme.textSecondary }}>{t.notes_desc || 'Kaydettiğiniz ayetler, kıssalar ve hadisler'}</p>
+        <p className="text-xs" style={{ color: theme.textSecondary }}>{t.notes_desc || tt('Kaydettiğiniz ayetler, kıssalar ve hadisler')}</p>
 
         <div className="flex gap-2 mt-3">
           {[
-            { id: 'all', label: t.all || 'Tümü' },
-            { id: 'ayah', label: t.filter_verses || 'Ayetler' },
-            { id: 'kissa', label: t.filter_stories || 'Kıssalar' },
-            { id: 'hadith', label: t.filter_hadiths || 'Hadisler' },
+            { id: 'all', label: t.all || tt('Tümü') },
+            { id: 'ayah', label: t.filter_verses || tt('Ayetler') },
+            { id: 'kissa', label: t.filter_stories || tt('Kıssalar') },
+            { id: 'hadith', label: t.filter_hadiths || tt('Hadisler') },
           ].map(f => (
             <button key={f.id} onClick={() => setFilter(f.id)} data-testid={`filter-${f.id}`}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors`}
@@ -87,17 +89,17 @@ export default function NotesPage() {
         {loading ? (
           <div className="text-center py-12">
             <Loader2 size={24} className="animate-spin mx-auto" style={{ color: theme.gold }} />
-            <p className="text-xs mt-2" style={{ color: theme.textSecondary }}>{t.loading || 'Yükleniyor...'}</p>
+            <p className="text-xs mt-2" style={{ color: theme.textSecondary }}>{t.loading || tt('Yükleniyor...')}</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12">
             <Heart size={40} className="mx-auto mb-3" style={{ color: `${theme.textSecondary}50` }} />
-            <p className="text-sm" style={{ color: theme.textSecondary }}>{t.no_notes || 'Henüz kayıtlı notunuz yok'}</p>
-            <p className="text-xs mt-1" style={{ color: `${theme.textSecondary}90` }}>{t.no_notes_desc || "Kur'an ve hadis bölümlerinden beğendiğin içerikleri kaydet"}</p>
+            <p className="text-sm" style={{ color: theme.textSecondary }}>{t.no_notes || tt('Henüz kayıtlı notunuz yok')}</p>
+            <p className="text-xs mt-1" style={{ color: `${theme.textSecondary}90` }}>{t.no_notes_desc || tt("Kur'an ve hadis bölümlerinden beğendiğin içerikleri kaydet")}</p>
             <button onClick={() => navigate('/quran')} data-testid="go-to-quran"
               className="mt-4 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
               style={{ background: `${theme.gold}15`, color: theme.gold }}>
-              <BookOpen size={14} className="inline mr-1" /> {t.go_to_quran || "Kur'an'a Git"}
+              <BookOpen size={14} className="inline mr-1" /> {t.go_to_quran || tt("Kur'an'a Git")}
             </button>
           </div>
         ) : (
@@ -128,7 +130,7 @@ export default function NotesPage() {
                         ? 'bg-sky-400/15 text-sky-300'
                         : 'bg-emerald-500/15 text-emerald-400'
                   }`}>
-                    {note.type === 'kissa' ? (t.note_type_story || 'Kıssa') : note.type === 'hadith' ? (t.note_type_hadith || 'Hadis') : (t.note_type_verse || 'Ayet')}
+                    {note.type === 'kissa' ? (t.note_type_story || tt('Kıssa')) : note.type === 'hadith' ? (t.note_type_hadith || tt('Hadis')) : (t.note_type_verse || tt('Ayet'))}
                   </span>
                 </div>
 
@@ -145,18 +147,18 @@ export default function NotesPage() {
                   <button onClick={() => copyNote(note)} data-testid={`copy-note-${i}`}
                     className="flex items-center gap-1 text-[10px] text-[#D4AF37] px-2 py-1 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 transition-colors">
                     {copied === note.created_at ? <Check size={10} /> : <Copy size={10} />}
-                    {copied === note.created_at ? (t.copied || 'Kopyalandı') : (t.copy || 'Kopyala')}
+                    {copied === note.created_at ? (t.copied || tt('Kopyalandı')) : (t.copy || tt('Kopyala'))}
                   </button>
                   <button onClick={() => shareNote(note)} data-testid={`share-note-${i}`}
                     className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg transition-colors"
                     style={{ background: `${theme.gold}10`, color: theme.gold }}>
-                    <Share2 size={10} /> {t.share || 'Paylaş'}
+                    <Share2 size={10} /> {t.share || tt('Paylaş')}
                   </button>
                   <button onClick={() => deleteNote(note.created_at)} data-testid={`delete-note-${i}`}
                     className="flex items-center gap-1 text-[10px] text-red-400 px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors ml-auto"
                     disabled={deleting === note.created_at}>
                     {deleting === note.created_at ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />}
-                    {t.delete || 'Sil'}
+                    {t.delete || tt('Sil')}
                   </button>
                 </div>
               </div>

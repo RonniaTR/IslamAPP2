@@ -4,8 +4,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Play, Pause, Volume2, ChevronDown, Youtube, BookMarked, Loader2, Sparkles, Heart, Copy, Share2, Check, BookOpen, Shield, Languages, GitCompare, Star, Bookmark, Download, CheckCircle } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { awardXPOnce } from '../services/gamification';
 import PreReadingDua from '../components/PreReadingDua';
+import MushafReader from '../components/MushafReader';
+import { useTx } from '../i18n';
+import { getWordMeal, hasWordMeal } from '../data/kelimeMeal';
 import api from '../api';
+
+// "Kaldığın yer" kaydı — QuranList'teki Devam Et kartı bunu okur
+function saveLastRead(surahNo, surahName, ayah) {
+  try {
+    localStorage.setItem('quran_last', JSON.stringify({ surah: Number(surahNo), name: surahName || '', ayah: ayah || 1, ts: Date.now() }));
+  } catch { /* quota */ }
+}
 import { openDB } from 'idb';
 
 const TAFSIR_DB_NAME = 'tafsir-offline';
@@ -30,9 +42,9 @@ async function isSurahDownloaded(surah, scholar, detail, lang) {
 }
 
 const surahI18n = {
-  tr: { back: 'Sureler', verses: 'ayet', playing: 'Oynatılıyor...', fullPlay: 'Tüm sureyi dinle', listenMeal: 'Türkçe Meal Dinle', juz: 'Cüz', meal: 'Meal', tafsir: 'Tefsir', kissa: 'Kıssa', scholars: 'Alimler', compare: 'Karşılaştır', linguistic: 'Dilbilim', detail: 'Detay', summary: 'Özet', simplified: 'Sadeleştirilmiş', academic: 'Akademik', selectScholar: 'Bir müfessir seçerek başlayın', aiOff: 'AI aktif değil.', generating: 'Kıssa oluşturuluyor...', saved: 'Kaydedildi', save: 'Kaydet', copy: 'Kopyala', noData: 'Veri bulunamadı.', preparing: 'Hazırlanıyor...', noTafsir: 'Tefsir verisi bulunamadı.', loading: 'Yükleniyor...', surahNotFound: 'Sure bulunamadı', tMeal: 'Türkçe Meal', english: 'English', confidence: 'Güven', high: 'Yüksek', medium: 'Orta', low: 'Düşük', kissaTitle: 'Kıssa & Hikaye', kissaAiOff: 'AI aktif değil. Kıssa için Gemini API key gereklidir.', nahiv: 'Nahiv (Sentaks)', sarf: 'Sarf (Morfoloji)', belagat: 'Belagat (Retorik)', semantik: 'Semantik', lingLoading: 'Dilbilim analizi...', compLoading: 'Karşılaştırma hazırlanıyor...', noLing: 'Dilbilim analizi yüklenmedi.', noComp: 'Karşılaştırma verisi yüklenmedi.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'Çevrimdışı İndir', downloading: 'İndiriliyor...', downloaded: 'İndirildi ✓', downloadFail: 'İndirme başarısız' },
-  en: { back: 'Surahs', verses: 'verses', playing: 'Playing...', fullPlay: 'Listen full surah', listenMeal: 'Listen Translation', juz: 'Juz', meal: 'Translation', tafsir: 'Tafsir', kissa: 'Story', scholars: 'Scholars', compare: 'Compare', linguistic: 'Linguistic', detail: 'Detail', summary: 'Summary', simplified: 'Simplified', academic: 'Academic', selectScholar: 'Select a scholar to begin', aiOff: 'AI is not active.', generating: 'Generating story...', saved: 'Saved', save: 'Save', copy: 'Copy', noData: 'No data found.', preparing: 'Preparing...', noTafsir: 'No tafsir data found.', loading: 'Loading...', surahNotFound: 'Surah not found', tMeal: 'Translation', english: 'English', confidence: 'Confidence', high: 'High', medium: 'Medium', low: 'Low', kissaTitle: 'Story & Narrative', kissaAiOff: 'AI not active. Gemini API key required.', nahiv: 'Nahw (Syntax)', sarf: 'Sarf (Morphology)', belagat: 'Balagha (Rhetoric)', semantik: 'Semantics', lingLoading: 'Linguistic analysis...', compLoading: 'Preparing comparison...', noLing: 'Linguistic data not loaded.', noComp: 'Comparison data not loaded.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'Download Offline', downloading: 'Downloading...', downloaded: 'Downloaded ✓', downloadFail: 'Download failed' },
-  ar: { back: 'السور', verses: 'آيات', playing: 'قيد التشغيل...', fullPlay: 'استمع للسورة كاملة', listenMeal: 'استمع للترجمة', juz: 'جزء', meal: 'الترجمة', tafsir: 'التفسير', kissa: 'القصة', scholars: 'العلماء', compare: 'مقارنة', linguistic: 'لغوي', detail: 'التفصيل', summary: 'ملخص', simplified: 'مبسط', academic: 'أكاديمي', selectScholar: 'اختر مفسرًا للبدء', aiOff: 'الذكاء الاصطناعي غير نشط.', generating: 'جاري إنشاء القصة...', saved: 'تم الحفظ', save: 'حفظ', copy: 'نسخ', noData: 'لا توجد بيانات.', preparing: 'جاري التحضير...', noTafsir: 'لا توجد بيانات تفسير.', loading: 'جاري التحميل...', surahNotFound: 'لم يتم العثور على السورة', tMeal: 'الترجمة', english: 'English', confidence: 'الثقة', high: 'عالية', medium: 'متوسطة', low: 'منخفضة', kissaTitle: 'القصة والرواية', kissaAiOff: 'الذكاء الاصطناعي غير نشط.', nahiv: 'النحو', sarf: 'الصرف', belagat: 'البلاغة', semantik: 'الدلالة', lingLoading: 'تحليل لغوي...', compLoading: 'جاري تحضير المقارنة...', noLing: 'لم يتم تحميل التحليل اللغوي.', noComp: 'لم يتم تحميل بيانات المقارنة.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'تحميل بلا إنترنت', downloading: 'جاري التحميل...', downloaded: 'تم التحميل ✓', downloadFail: 'فشل التحميل' },
+  tr: { back: 'Sureler', verses: 'ayet', playing: 'Oynatılıyor...', fullPlay: 'Tüm sureyi dinle', listenMeal: 'Türkçe Meal Dinle', juz: 'Cüz', meal: 'Meal', tafsir: 'Tefsir', kissa: 'Kıssa', scholars: 'Alimler', compare: 'Karşılaştır', linguistic: 'Dilbilim', detail: 'Detay', summary: 'Özet', simplified: 'Sadeleştirilmiş', academic: 'Akademik', selectScholar: 'Bir müfessir seçerek başlayın', aiOff: 'AI aktif değil.', generating: 'Kıssa oluşturuluyor...', saved: 'Kaydedildi', save: 'Kaydet', copy: 'Kopyala', noData: 'Veri bulunamadı.', preparing: 'Hazırlanıyor...', noTafsir: 'Tefsir verisi bulunamadı.', loading: 'Yükleniyor...', surahNotFound: 'Sure bulunamadı', tMeal: 'Türkçe Meal', english: 'English', confidence: 'Güven', high: 'Yüksek', medium: 'Orta', low: 'Düşük', kissaTitle: 'Kıssa & Hikaye', kissaAiOff: 'AI aktif değil. Kıssa için Gemini API key gereklidir.', nahiv: 'Nahiv (Sentaks)', sarf: 'Sarf (Morfoloji)', belagat: 'Belagat (Retorik)', semantik: 'Semantik', lingLoading: 'Dilbilim analizi...', compLoading: 'Karşılaştırma hazırlanıyor...', noLing: 'Dilbilim analizi yüklenmedi.', noComp: 'Karşılaştırma verisi yüklenmedi.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'Çevrimdışı İndir', downloading: 'İndiriliyor...', downloaded: 'İndirildi ✓', downloadFail: 'İndirme başarısız', aiTafsir: 'AI Tefsir', kelimeMeal: 'Kelime Meal', kelimeHeader: 'Kelime Kelime Açıklamalı Meal', kelimeNote: 'İbare ibare karşılıklar anlama ve ezber desteği içindir; bütünlüklü anlam için Meal sekmesine bakınız.', originalMeal: 'Türkçe Meal', aiTafsirLoading: 'AI tefsir hazırlanıyor...', aiUnavailable: 'AI şu an kullanılamıyor', selectStyle: 'Bir tefsir stili seçin' },
+  en: { back: 'Surahs', verses: 'verses', playing: 'Playing...', fullPlay: 'Listen full surah', listenMeal: 'Listen Translation', juz: 'Juz', meal: 'Translation', tafsir: 'Tafsir', kissa: 'Story', scholars: 'Scholars', compare: 'Compare', linguistic: 'Linguistic', detail: 'Detail', summary: 'Summary', simplified: 'Simplified', academic: 'Academic', selectScholar: 'Select a scholar to begin', aiOff: 'AI is not active.', generating: 'Generating story...', saved: 'Saved', save: 'Save', copy: 'Copy', noData: 'No data found.', preparing: 'Preparing...', noTafsir: 'No tafsir data found.', loading: 'Loading...', surahNotFound: 'Surah not found', tMeal: 'Translation', english: 'Turkish', confidence: 'Confidence', high: 'High', medium: 'Medium', low: 'Low', kissaTitle: 'Story & Narrative', kissaAiOff: 'AI not active. Gemini API key required.', nahiv: 'Nahw (Syntax)', sarf: 'Sarf (Morphology)', belagat: 'Balagha (Rhetoric)', semantik: 'Semantics', lingLoading: 'Linguistic analysis...', compLoading: 'Preparing comparison...', noLing: 'Linguistic data not loaded.', noComp: 'Comparison data not loaded.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'Download Offline', downloading: 'Downloading...', downloaded: 'Downloaded ✓', downloadFail: 'Download failed', aiTafsir: 'AI Tafsir', kelimeMeal: 'Word by Word', kelimeHeader: 'Word-by-Word Annotated Translation', kelimeNote: 'Word-for-word equivalents aid comprehension and memorization; for the full meaning, see the Translation tab.', originalMeal: 'English Translation', aiTafsirLoading: 'Preparing AI tafsir...', aiUnavailable: 'AI is currently unavailable', selectStyle: 'Select a tafsir style' },
+  ar: { back: 'السور', verses: 'آيات', playing: 'قيد التشغيل...', fullPlay: 'استمع للسورة كاملة', listenMeal: 'استمع للترجمة', juz: 'جزء', meal: 'الترجمة', tafsir: 'التفسير', kissa: 'القصة', scholars: 'العلماء', compare: 'مقارنة', linguistic: 'لغوي', detail: 'التفصيل', summary: 'ملخص', simplified: 'مبسط', academic: 'أكاديمي', selectScholar: 'اختر مفسرًا للبدء', aiOff: 'الذكاء الاصطناعي غير نشط.', generating: 'جاري إنشاء القصة...', saved: 'تم الحفظ', save: 'حفظ', copy: 'نسخ', noData: 'لا توجد بيانات.', preparing: 'جاري التحضير...', noTafsir: 'لا توجد بيانات تفسير.', loading: 'جاري التحميل...', surahNotFound: 'لم يتم العثور على السورة', tMeal: 'الترجمة', english: 'English', confidence: 'الثقة', high: 'عالية', medium: 'متوسطة', low: 'منخفضة', kissaTitle: 'القصة والرواية', kissaAiOff: 'الذكاء الاصطناعي غير نشط.', nahiv: 'النحو', sarf: 'الصرف', belagat: 'البلاغة', semantik: 'الدلالة', lingLoading: 'تحليل لغوي...', compLoading: 'جاري تحضير المقارنة...', noLing: 'لم يتم تحميل التحليل اللغوي.', noComp: 'لم يتم تحميل بيانات المقارنة.', bismillah: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', downloadOffline: 'تحميل بلا إنترنت', downloading: 'جاري التحميل...', downloaded: 'تم التحميل ✓', downloadFail: 'فشل التحميل', aiTafsir: 'تفسير AI', kelimeMeal: 'كلمة بكلمة', kelimeHeader: 'ترجمة كلمة بكلمة', kelimeNote: 'المقابلات كلمة بكلمة تساعد على الفهم والحفظ؛ للمعنى الكامل انظر تبويب الترجمة.', originalMeal: 'الترجمة', aiTafsirLoading: 'جاري تحضير تفسير AI...', aiUnavailable: 'الذكاء الاصطناعي غير متاح حاليا', selectStyle: 'اختر نمط التفسير' },
 };
 
 export default function SurahDetail() {
@@ -40,8 +52,13 @@ export default function SurahDetail() {
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const tt = useTx();
   const txt = surahI18n[lang] || surahI18n.tr;
   const isRTL = lang === 'ar';
+  // Ayet meali: seçili dile göre birincil çeviri (eksikse diğerine düşer)
+  const verseMeal = useCallback((v) => (lang === 'tr' ? (v.turkish || v.english) : (v.english || v.turkish)), [lang]);
+  const verseAlt = useCallback((v) => (lang === 'tr' ? v.english : v.turkish), [lang]);
   const [surah, setSurah] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reciter, setReciter] = useState('alafasy');
@@ -82,15 +99,19 @@ export default function SurahDetail() {
   const [aiTafsirData, setAiTafsirData] = useState({});
   const [aiTafsirLoading, setAiTafsirLoading] = useState(null);
   const [aiTafsirStyle, setAiTafsirStyle] = useState('simple');
+  // 🕌 Mushaf Görünümü (tam ekran akan Arapça okuma)
+  const [showMushaf, setShowMushaf] = useState(false);
+  const targetAyah = useRef(parseInt(new URLSearchParams(window.location.search).get('ayet'), 10) || null);
 
   const AI_TAFSIR_STYLES = [
-    { id: 'simple', name: 'Basit', icon: '📖', color: '#3b82f6' },
-    { id: 'classical', name: 'Klasik', icon: '📜', color: '#f59e0b' },
-    { id: 'deep', name: 'Derin Analiz', icon: '🔬', color: '#8b5cf6' },
-    { id: 'modern', name: 'Modern', icon: '🌍', color: '#10b981' },
-    { id: 'psychological', name: 'Psikolojik', icon: '🧠', color: '#ec4899' },
-    { id: 'wisdom', name: 'Hikmet', icon: '💎', color: '#C8A55A' },
+    { id: 'simple', name: 'Basit', en: 'Simple', ar: 'بسيط', icon: '📖', color: '#3b82f6' },
+    { id: 'classical', name: 'Klasik', en: 'Classical', ar: 'كلاسيكي', icon: '📜', color: '#f59e0b' },
+    { id: 'deep', name: 'Derin Analiz', en: 'Deep Analysis', ar: 'تحليل عميق', icon: '🔬', color: '#8b5cf6' },
+    { id: 'modern', name: 'Modern', en: 'Modern', ar: 'حديث', icon: '🌍', color: '#10b981' },
+    { id: 'psychological', name: 'Psikolojik', en: 'Psychological', ar: 'نفسي', icon: '🧠', color: '#ec4899' },
+    { id: 'wisdom', name: 'Hikmet', en: 'Wisdom', ar: 'حكمة', icon: '💎', color: '#C8A55A' },
   ];
+  const styleName = (s) => (lang === 'en' ? (s.en || s.name) : lang === 'ar' ? (s.ar || s.name) : s.name);
 
   const loadAiTafsir = async (verseNum, style) => {
     const key = `${verseNum}-${style}`;
@@ -135,6 +156,14 @@ export default function SurahDetail() {
       api.get(`/quran/surah/${surahNumber}/meal-video`),
     ]).then(([surahRes, mealRes]) => {
       setSurah(surahRes.data); setMealVideo(mealRes.data); setLoading(false);
+      // Kur'an okuma XP'si (aynı sure için günde bir kez)
+      awardXPOnce(user, `surah_${surahNumber}`, 'quran_read', { details: `Sure ${surahNumber}` });
+      // Kaldığın yeri kaydet + ?ayet=N ile gelindiyse o ayete kaydır
+      saveLastRead(surahNumber, surahRes.data?.name, targetAyah.current || 1);
+      if (targetAyah.current) {
+        const n = targetAyah.current;
+        setTimeout(() => document.querySelector(`[data-testid="verse-${n}"]`)?.scrollIntoView({ block: 'center' }), 350);
+      }
     }).catch(() => setLoading(false));
   }, [surahNumber, reciter]);
 
@@ -152,13 +181,14 @@ export default function SurahDetail() {
   }, []);
 
   const playVerse = useCallback((verse) => {
+    saveLastRead(surahNumber, surah?.name, verse.number);
     if (playingVerse === verse.number) { audioRef.current.pause(); setPlayingVerse(null); return; }
     audioRef.current.pause(); fullAudioRef.current.pause(); setPlayingFull(false);
     audioRef.current.src = verse.audio_url;
     audioRef.current.play().catch(() => {});
     setPlayingVerse(verse.number);
     audioRef.current.onended = () => setPlayingVerse(null);
-  }, [playingVerse]);
+  }, [playingVerse, surahNumber, surah]);
 
   const playFullSurah = () => {
     if (playingFull) { fullAudioRef.current.pause(); setPlayingFull(false); return; }
@@ -293,21 +323,21 @@ export default function SurahDetail() {
       await api.post('/notes', {
         type: kissa ? 'kissa' : 'ayah', surah_number: parseInt(surahNumber), verse_number: verse.number,
         title: `${surah?.name || ''} - ${txt.verses} ${verse.number}`,
-        content: kissa ? kissa.kissa : (verse.turkish || verse.arabic), scholar_name: kissa?.scholar_name || '',
+        content: kissa ? kissa.kissa : (verseMeal(verse) || verse.arabic), scholar_name: kissa?.scholar_name || '',
       });
       setSavedNotes(prev => ({ ...prev, [key]: true }));
     } catch {}
   };
 
   const copyVerse = (verse) => {
-    const text = `${verse.arabic}\n\n${verse.turkish || ''}\n\n— ${surah?.name || ''} ${verse.number}`;
+    const text = `${verse.arabic}\n\n${verseMeal(verse) || ''}\n\n— ${surah?.name || ''} ${verse.number}`;
     navigator.clipboard.writeText(text).catch(() => {});
     setCopiedVerse(verse.number);
     setTimeout(() => setCopiedVerse(null), 2000);
   };
 
   const shareVerse = (verse) => {
-    const text = `${verse.arabic}\n\n${verse.turkish || ''}\n\n— ${surah?.name || ''} ${verse.number}`;
+    const text = `${verse.arabic}\n\n${verseMeal(verse) || ''}\n\n— ${surah?.name || ''} ${verse.number}`;
     if (navigator.share) navigator.share({ title: `${surah?.name} ${verse.number}`, text }).catch(() => {});
     else copyVerse(verse);
   };
@@ -336,6 +366,16 @@ export default function SurahDetail() {
   return (
     <div className="animate-fade-in pb-4" style={{ direction: isRTL ? 'rtl' : 'ltr' }} data-testid="surah-detail">
       <PreReadingDua show={showDua} onClose={() => { setShowDua(false); sessionStorage.setItem('quran_dua_seen', '1'); }} />
+
+      {/* 🕌 Mushaf Görünümü (tam ekran) */}
+      {showMushaf && (
+        <MushafReader surah={surah} initialVerse={targetAyah.current || 1}
+          onClose={() => setShowMushaf(false)}
+          onPosition={(sNo, sName, ayah) => {
+            if (Number(sNo) === Number(surahNumber)) targetAyah.current = ayah;
+            saveLastRead(sNo, sName, ayah);
+          }} />
+      )}
 
       {/* Premium Header */}
       <div className="quran-header-bg px-4 pt-5 pb-3">
@@ -370,6 +410,24 @@ export default function SurahDetail() {
               <span className="text-xs" style={{ color: theme.textSecondary }}>{surah.revelation}</span>
             </div>
           </motion.div>
+
+          {/* Görünüm seçici: Meal (dinamik) / Mushaf (tam ekran akış) */}
+          <motion.div className="flex gap-2 mb-3" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <div className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl text-xs font-black"
+              style={{ background: `${theme.gold}18`, border: `1px solid ${theme.gold}35`, color: theme.gold }}>
+              <BookOpen size={14} /> {tt('Meal Görünümü')}
+            </div>
+            <button onClick={() => setShowMushaf(true)} data-testid="open-mushaf"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl text-xs font-black active:scale-97 transition-transform"
+              style={{ background: `${theme.surface}90`, border: `1px solid ${theme.cardBorder}`, color: theme.textSecondary }}>
+              🕌 {tt('Mushaf Görünümü')}
+            </button>
+          </motion.div>
+          {hasWordMeal(surahNumber) && (
+            <p className="text-[10px] text-center mb-3 -mt-1" style={{ color: '#ec4899' }}>
+              {tt('🔤 Bu surede Kelime Meal sekmesi var')}
+            </p>
+          )}
 
           {/* Audio Player Card */}
           <motion.div
@@ -544,9 +602,9 @@ export default function SurahDetail() {
               <p className="arabic-text text-[1.35rem] mb-4 leading-[2.5] px-1" style={{ color: `${theme.textPrimary}ee` }}>{verse.arabic}</p>
 
               {/* Translation */}
-              {verse.turkish && (
+              {verseMeal(verse) && (
                 <p className="text-sm leading-relaxed pt-3 px-1" style={{ color: theme.textSecondary, borderTop: `1px solid ${theme.cardBorder}` }}>
-                  <span className="font-semibold" style={{ color: theme.gold }}>{verse.number}.</span> {verse.turkish}
+                  <span className="font-semibold" style={{ color: theme.gold }}>{verse.number}.</span> {verseMeal(verse)}
                 </p>
               )}
 
@@ -554,8 +612,9 @@ export default function SurahDetail() {
               <div className="flex gap-1.5 mt-4 pt-3 overflow-x-auto scrollbar-hide" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
                 {[
                   { id: 'meal', label: txt.meal, icon: BookOpen, color: '#3b82f6' },
+                  ...(getWordMeal(surahNumber, verse.number) ? [{ id: 'kelime', label: txt.kelimeMeal, icon: Languages, color: '#ec4899' }] : []),
                   { id: 'tafsir', label: txt.tafsir, icon: BookMarked, color: '#f59e0b' },
-                  { id: 'ai-tafsir', label: 'AI Tefsir', icon: Sparkles, color: '#8b5cf6' },
+                  { id: 'ai-tafsir', label: txt.aiTafsir, icon: Sparkles, color: '#8b5cf6' },
                   { id: 'kissa', label: txt.kissa, icon: Sparkles, color: theme.gold },
                 ].map(tab => (
                   <button key={tab.id}
@@ -583,15 +642,57 @@ export default function SurahDetail() {
                       <span className="text-xs font-semibold" style={{ color: '#3b82f6' }}>{txt.tMeal}</span>
                       <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
                     </div>
-                    <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{verse.turkish || txt.noData}</p>
-                    {verse.english && (
+                    <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{verseMeal(verse) || txt.noData}</p>
+                    {verseAlt(verse) && (
                       <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
                         <p className="text-[10px] font-semibold mb-1" style={{ color: '#3b82f6' }}>{txt.english}</p>
-                        <p className="text-xs leading-relaxed" style={{ color: theme.textSecondary }}>{verse.english}</p>
+                        <p className="text-xs leading-relaxed" style={{ color: theme.textSecondary }}>{verseAlt(verse)}</p>
                       </div>
                     )}
                   </motion.div>
                 )}
+              </AnimatePresence>
+
+              {/* Kelime Meal Tab — ibare ibare açıklamalı meal */}
+              <AnimatePresence>
+                {currentTab === 'kelime' && (() => {
+                  const segments = getWordMeal(surahNumber, verse.number);
+                  if (!segments) return null;
+                  return (
+                    <motion.div className="mt-3 rounded-xl p-4" style={{ background: '#ec489908', border: '1px solid #ec489915' }}
+                      initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25 }}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Languages size={14} style={{ color: '#ec4899' }} />
+                        <span className="text-xs font-semibold" style={{ color: '#ec4899' }}>{txt.kelimeHeader}</span>
+                        <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
+                      </div>
+                      <div dir="rtl" className="flex flex-wrap gap-x-1 gap-y-3 justify-start">
+                        {segments.map((seg, si) => (
+                          <div key={si} className="text-center px-2.5 py-2 rounded-xl min-w-[72px] max-w-full"
+                            style={{ background: si % 2 === 0 ? '#ec48990a' : `${theme.gold}06` }}>
+                            <p className="text-[1.45rem] leading-[1.9] mb-1"
+                              style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", color: si % 2 === 0 ? '#f472b6' : `${theme.textPrimary}f0` }}>
+                              {seg.ar}
+                            </p>
+                            <p dir="ltr" className="text-[11.5px] font-semibold leading-snug"
+                              style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>
+                              {seg.tr}
+                            </p>
+                            {seg.q && (
+                              <p dir="ltr" className="text-[9.5px] italic mt-0.5" style={{ color: si % 2 === 0 ? '#f472b6aa' : theme.textSecondary }}>
+                                {seg.q}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[9px] mt-3 pt-2 text-center" style={{ color: theme.textSecondary, borderTop: `1px solid ${theme.cardBorder}` }}>
+                        {txt.kelimeNote}
+                      </p>
+                    </motion.div>
+                  );
+                })()}
               </AnimatePresence>
 
               {/* Tafsir Tab */}
@@ -758,7 +859,7 @@ export default function SurahDetail() {
                                 <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: `${theme.gold}08`, color: theme.textSecondary }}>{c.scholar?.school || ''}</span>
                               </div>
                               {c.premium_required ? (
-                                <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>Premium üyelik gerektirir</p>
+                                <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>{tt('Premium üyelik gerektirir')}</p>
                               ) : c.error ? (
                                 <p className="text-[11px] leading-relaxed italic" style={{ color: theme.textSecondary }}>{txt.noData}</p>
                               ) : (
@@ -860,7 +961,7 @@ export default function SurahDetail() {
                     transition={{ duration: 0.25 }}>
                     <div className="flex items-center gap-2 mb-3">
                       <Sparkles size={14} style={{ color: '#8b5cf6' }} />
-                      <span className="text-xs font-semibold" style={{ color: '#8b5cf6' }}>AI Tefsir</span>
+                      <span className="text-xs font-semibold" style={{ color: '#8b5cf6' }}>{txt.aiTafsir}</span>
                       <button onClick={() => setVerseTab(verse.number, null)} className="ml-auto text-[10px]" style={{ color: theme.textSecondary }}>✕</button>
                     </div>
                     {/* Style selector */}
@@ -873,18 +974,18 @@ export default function SurahDetail() {
                             color: aiTafsirStyle === s.id ? s.color : theme.textSecondary,
                             border: `1px solid ${aiTafsirStyle === s.id ? `${s.color}40` : 'transparent'}`,
                           }}>
-                          <span>{s.icon}</span> {s.name}
+                          <span>{s.icon}</span> {styleName(s)}
                         </button>
                       ))}
                     </div>
                     {aiTafsirLoading ? (
                       <div className="flex items-center gap-2 py-6 justify-center">
                         <Loader2 size={16} className="animate-spin" style={{ color: '#8b5cf6' }} />
-                        <span className="text-xs" style={{ color: theme.textSecondary }}>AI tefsir hazırlanıyor...</span>
+                        <span className="text-xs" style={{ color: theme.textSecondary }}>{txt.aiTafsirLoading}</span>
                       </div>
                     ) : aiTafsirData[verse.number] ? (
                       aiTafsirData[verse.number].error ? (
-                        <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>AI şu an kullanılamıyor</p>
+                        <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>{txt.aiUnavailable}</p>
                       ) : (
                         <div className="space-y-2">
                           <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: theme.textPrimary }}>
@@ -900,7 +1001,7 @@ export default function SurahDetail() {
                         </div>
                       )
                     ) : (
-                      <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>Bir tefsir stili seçin</p>
+                      <p className="text-xs py-3 text-center" style={{ color: theme.textSecondary }}>{txt.selectStyle}</p>
                     )}
                   </motion.div>
                 )}

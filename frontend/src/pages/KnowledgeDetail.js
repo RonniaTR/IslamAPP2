@@ -6,9 +6,11 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useLang } from '../contexts/LangContext';
 import api from '../api';
+import { useTx } from '../i18n';
 
 /* ─── AI Quiz Modal ─── */
 function QuizModal({ quiz, onAnswer, onClose, theme, answered, selectedIdx, earnedPoints, t }) {
+  const tt = useTx();
   if (!quiz) return null;
   const isCorrect = answered && selectedIdx === quiz.correct;
 
@@ -23,7 +25,7 @@ function QuizModal({ quiz, onAnswer, onClose, theme, answered, selectedIdx, earn
         <div className="px-5 pt-5 pb-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${theme.cardBorder}` }}>
           <div className="flex items-center gap-2">
             <Brain size={20} style={{ color: theme.gold }} />
-            <span className="font-bold text-base" style={{ color: theme.textPrimary }}>{t.knowledge_test || 'Bilgi Testi'}</span>
+            <span className="font-bold text-base" style={{ color: theme.textPrimary }}>{t.knowledge_test || tt('Bilgi Testi')}</span>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full" style={{ background: `${theme.gold}15` }}>
             <X size={16} style={{ color: theme.gold }} />
@@ -67,7 +69,7 @@ function QuizModal({ quiz, onAnswer, onClose, theme, answered, selectedIdx, earn
               <div className="flex items-center gap-2 mb-1.5">
                 {isCorrect ? <Trophy size={16} className="text-yellow-500" /> : <X size={16} className="text-red-400" />}
                 <span className="text-sm font-bold" style={{ color: isCorrect ? '#22c55e' : '#ef4444' }}>
-                  {isCorrect ? `${t.correct || 'Doğru'}! +${earnedPoints} ${t.points || 'Puan'} 🎉` : t.wrong_answer || 'Yanlış Cevap'}
+                  {isCorrect ? `${t.correct || tt('Doğru')}! +${earnedPoints} ${t.points || tt('Puan')} 🎉` : t.wrong_answer || tt('Yanlış Cevap')}
                 </span>
               </div>
               <p className="text-xs leading-relaxed" style={{ color: theme.textSecondary }}>{quiz.explanation}</p>
@@ -80,7 +82,7 @@ function QuizModal({ quiz, onAnswer, onClose, theme, answered, selectedIdx, earn
           <div className="px-5 pb-5">
             <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-medium transition-all"
               style={{ background: `${theme.gold}20`, color: theme.gold }}>
-              {t.close || 'Kapat'}
+              {t.close || tt('Kapat')}
             </button>
           </div>
         )}
@@ -91,6 +93,7 @@ function QuizModal({ quiz, onAnswer, onClose, theme, answered, selectedIdx, earn
 
 /* ─── Expandable Knowledge Card ─── */
 function KnowledgeCard({ item, index, theme, tts, onQuiz, t }) {
+  const tt = useTx();
   const [expanded, setExpanded] = useState(false);
   const isDeep = item.level === 'deep';
 
@@ -105,7 +108,7 @@ function KnowledgeCard({ item, index, theme, tts, onQuiz, t }) {
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="text-xs px-2 py-0.5 rounded-full font-medium"
               style={{ background: isDeep ? 'rgba(139,92,246,0.15)' : `${theme.gold}15`, color: isDeep ? '#a78bfa' : theme.gold }}>
-              {isDeep ? `🔬 ${t.level_deep || 'Derin'}` : `📗 ${t.level_basic || 'Temel'}`}
+              {isDeep ? `🔬 ${t.level_deep || tt('Derin')}` : `📗 ${t.level_basic || tt('Temel')}`}
             </span>
           </div>
           <h3 className="text-[15px] font-semibold leading-snug" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>
@@ -129,17 +132,17 @@ function KnowledgeCard({ item, index, theme, tts, onQuiz, t }) {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
               style={{ background: `${theme.gold}12`, color: theme.gold }}>
               {tts.loading ? <Loader size={12} className="animate-spin" /> : tts.playing ? <Pause size={12} /> : <Volume2 size={12} />}
-              {t.listen || 'Dinle'}
+              {t.listen || tt('Dinle')}
             </button>
             <button onClick={() => shareOrCopy(item.title, item.content)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
               style={{ background: `${theme.gold}12`, color: theme.gold }}>
-              <Share2 size={12} /> {t.share || 'Paylaş'}
+              <Share2 size={12} /> {t.share || tt('Paylaş')}
             </button>
             <button onClick={() => onQuiz(item)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ml-auto"
               style={{ background: 'rgba(139,92,246,0.12)', color: '#a78bfa' }}>
-              <Brain size={12} /> {t.test_yourself || 'Kendini Test Et'}
+              <Brain size={12} /> {t.test_yourself || tt('Kendini Test Et')}
             </button>
           </div>
         </div>
@@ -150,6 +153,7 @@ function KnowledgeCard({ item, index, theme, tts, onQuiz, t }) {
 
 /* ─── Main Component ─── */
 export default function KnowledgeDetail() {
+  const tt = useTx();
   const { cardId } = useParams();
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -242,9 +246,9 @@ export default function KnowledgeDetail() {
         <div className="absolute -bottom-5 -left-5 w-24 h-24 rounded-full opacity-5" style={{ background: theme.gold }} />
 
         <div className="flex items-center justify-between mb-4 relative z-10">
-          <button onClick={() => navigate(-1)} className="flex items-center gap-2 transition-colors" style={{ color: theme.gold }} aria-label={t.back || 'Geri'}>
+          <button onClick={() => navigate(-1)} className="flex items-center gap-2 transition-colors" style={{ color: theme.gold }} aria-label={t.back || tt('Geri')}>
             <ArrowLeft size={18} />
-            <span className="text-sm font-medium">{t.back || 'Geri'}</span>
+            <span className="text-sm font-medium">{t.back || tt('Geri')}</span>
           </button>
           <div className="flex items-center gap-2">
             {totalQuizPoints > 0 && (
@@ -253,7 +257,7 @@ export default function KnowledgeDetail() {
               </span>
             )}
             <button onClick={reshuffle} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium" style={{ background: `${theme.gold}12`, color: theme.gold }} data-testid="shuffle-btn">
-              <RefreshCw size={14} /> {t.shuffle || 'Karıştır'}
+              <RefreshCw size={14} /> {t.shuffle || tt('Karıştır')}
             </button>
           </div>
         </div>
@@ -265,7 +269,7 @@ export default function KnowledgeDetail() {
           <div>
             <h1 className="text-xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{card.title}</h1>
             <p className="text-xs mt-0.5" style={{ color: theme.textSecondary }}>
-              {card.items.length} {t.topic || 'konu'} · {basicCount} {t.level_basic || 'temel'} · {deepCount} {t.level_deep || 'derin'}
+              {card.items.length} {t.topic || tt('konu')} · {basicCount} {t.level_basic || tt('temel')} · {deepCount} {t.level_deep || tt('derin')}
             </p>
           </div>
         </div>
@@ -274,9 +278,9 @@ export default function KnowledgeDetail() {
       {/* ─── Level Filter Tabs ─── */}
       <div className="px-4 py-3 flex gap-2">
         {[
-          { key: 'all', label: t.all || 'Tümü', count: card.items.length },
-          { key: 'basic', label: `📗 ${t.level_basic || 'Temel'}`, count: basicCount },
-          { key: 'deep', label: `🔬 ${t.level_deep || 'Derin'}`, count: deepCount },
+          { key: 'all', label: t.all || tt('Tümü'), count: card.items.length },
+          { key: 'basic', label: `📗 ${t.level_basic || tt('Temel')}`, count: basicCount },
+          { key: 'deep', label: `🔬 ${t.level_deep || tt('Derin')}`, count: deepCount },
         ].map(tab => (
           <button key={tab.key} onClick={() => setLevelFilter(tab.key)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
@@ -295,8 +299,8 @@ export default function KnowledgeDetail() {
         <div className="rounded-xl p-3.5 flex items-center gap-3" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}>
           <Sparkles size={20} className="text-purple-400 flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium" style={{ color: theme.textPrimary }}>{t.ai_quiz_title || 'Yapay Zeka Bilgi Testi'}</p>
-            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{t.ai_quiz_desc || 'Her konuda "Kendini Test Et" ile soru çöz, doğru cevap = +50 puan!'}</p>
+            <p className="text-xs font-medium" style={{ color: theme.textPrimary }}>{t.ai_quiz_title || tt('Yapay Zeka Bilgi Testi')}</p>
+            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{t.ai_quiz_desc || tt('Her konuda "Kendini Test Et" ile soru çöz, doğru cevap = +50 puan!')}</p>
           </div>
           <Trophy size={18} className="text-yellow-500 flex-shrink-0" />
         </div>
@@ -305,7 +309,7 @@ export default function KnowledgeDetail() {
       {/* ─── Cards ─── */}
       <div className="px-4 space-y-3 pb-6">
         {filtered.length === 0 ? (
-          <p className="text-center py-8 text-sm" style={{ color: theme.textSecondary }}>{t.no_topics || 'Bu kategoride henüz konu yok.'}</p>
+          <p className="text-center py-8 text-sm" style={{ color: theme.textSecondary }}>{t.no_topics || tt('Bu kategoride henüz konu yok.')}</p>
         ) : (
           filtered.map((item, i) => (
             <KnowledgeCard key={`${item.title}-${i}`} item={item} index={i} theme={theme} tts={tts} onQuiz={startQuiz} t={t} />
@@ -318,7 +322,7 @@ export default function KnowledgeDetail() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-3 p-6 rounded-2xl" style={{ background: theme.bg }}>
             <Loader size={28} className="animate-spin" style={{ color: theme.gold }} />
-            <p className="text-sm font-medium" style={{ color: theme.textPrimary }}>{t.preparing_question || 'Soru hazırlanıyor...'}</p>
+            <p className="text-sm font-medium" style={{ color: theme.textPrimary }}>{t.preparing_question || tt('Soru hazırlanıyor...')}</p>
           </div>
         </div>
       )}

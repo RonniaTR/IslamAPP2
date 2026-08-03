@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
+import { useTx } from '../i18n';
 
 export default function InstallPrompt() {
+  const tt = useTx();
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [show, setShow] = useState(false);
 
@@ -38,8 +40,8 @@ export default function InstallPrompt() {
             <Download size={18} className="text-[#D4AF37]" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-bold text-[#F5F5DC]">Uygulamayı Yükle</p>
-            <p className="text-[10px] text-[#A8B5A0]">Ana ekranına ekle, uygulama gibi kullan</p>
+            <p className="text-sm font-bold text-[#F5F5DC]">{tt('Uygulamayı Yükle')}</p>
+            <p className="text-[10px] text-[#A8B5A0]">{tt('Ana ekranına ekle, uygulama gibi kullan')}</p>
           </div>
           <button onClick={install} data-testid="install-btn"
             className="px-3 py-1.5 rounded-lg text-xs font-bold text-[#0A1F14]"

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api';
+import { setQuizLang } from '../data/questionBank';
 
 const LangContext = createContext(null);
 
@@ -47,6 +48,15 @@ export function LangProvider({ children }) {
   }, []);
 
   useEffect(() => { loadTranslations(lang); }, [lang, loadTranslations]);
+
+  // HTML lang/dir'i dile göre ayarla — büyük harf (uppercase) kuralları
+  // ve ekran okuyucular doğru dili kullansın (ör. TR'nin "İ" sorunu).
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    // Soru bankası veri modülüne aktif dili bildir (hook kullanamaz)
+    setQuizLang(lang);
+  }, [lang]);
 
   const setLang = (newLang) => {
     setLangState(newLang);

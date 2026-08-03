@@ -1,0 +1,3302 @@
+{
+"q1": {
+"q": "How many surahs does the Noble Qur'an consist of?",
+"o": [
+"104",
+"110",
+"114",
+"120"
+],
+"exp": "The Noble Qur'an consists of 114 surahs.",
+"src": "Qur'an"
+},
+"q2": {
+"q": "Which is the longest surah of the Qur'an?",
+"o": [
+"Al 'Imran",
+"Al-Baqara",
+"An-Nisa",
+"Al-Ma'ida"
+],
+"exp": "Surah Al-Baqara is the longest with 286 verses.",
+"src": "Qur'an"
+},
+"q3": {
+"q": "Which is the shortest surah of the Qur'an?",
+"o": [
+"An-Nas",
+"Al-Falaq",
+"Al-Kawthar",
+"Al-Ikhlas"
+],
+"exp": "Surah Al-Kawthar is the shortest with 3 verses.",
+"src": "Qur'an"
+},
+"q4": {
+"q": "How many juz does the Qur'an consist of?",
+"o": [
+"20",
+"25",
+"30",
+"35"
+],
+"exp": "The Noble Qur'an consists of 30 juz.",
+"src": "Qur'an"
+},
+"q5": {
+"q": "In which surah are the first revealed verses of the Qur'an?",
+"o": [
+"Al-Fatiha",
+"Al-'Alaq",
+"Al-Muddaththir",
+"Al-Qalam"
+],
+"exp": "The first revealed verses are the first 5 verses of Surah Al-'Alaq.",
+"src": "Al-'Alaq 1-5"
+},
+"q6": {
+"q": "How many verses does Surah Al-Fatiha consist of?",
+"o": [
+"5",
+"6",
+"7",
+"8"
+],
+"exp": "Surah Al-Fatiha consists of 7 verses and is also known as 'Sabʿ al-Mathani'.",
+"src": "Al-Hijr 87"
+},
+"q7": {
+"q": "Surah Ya-Sin is which number in the Qur'an?",
+"o": [
+"34",
+"35",
+"36",
+"37"
+],
+"exp": "Surah Ya-Sin is the 36th surah of the Qur'an.",
+"src": "Qur'an"
+},
+"q8": {
+"q": "How many verses are there in the Qur'an?",
+"o": [
+"5114",
+"6236",
+"6666",
+"7000"
+],
+"exp": "According to the generally accepted count, there are 6236 verses in the Noble Qur'an.",
+"src": "Qur'anic Sciences"
+},
+"q9": {
+"q": "Who is the only woman mentioned by name in the Qur'an?",
+"o": [
+"Khadija",
+"Aisha",
+"Maryam",
+"Hajar"
+],
+"exp": "The only woman mentioned by name in the Qur'an is Maryam (Mary).",
+"src": "Surah Maryam"
+},
+"q10": {
+"q": "In which surah is 'Ayat al-Kursi' found?",
+"o": [
+"Al 'Imran",
+"Al-Baqara",
+"An-Nisa",
+"Al-Ma'ida"
+],
+"exp": "Ayat al-Kursi is verse 255 of Surah Al-Baqara.",
+"src": "Al-Baqara 255"
+},
+"q11": {
+"q": "'Ar-Rahman' is the name of which surah number?",
+"o": [
+"Surah 54",
+"Surah 55",
+"Surah 56",
+"Surah 57"
+],
+"exp": "Surah Ar-Rahman is the 55th surah of the Qur'an.",
+"src": "Qur'an"
+},
+"q12": {
+"q": "Which is the last revealed surah of the Qur'an?",
+"o": [
+"An-Nas",
+"Al-Falaq",
+"An-Nasr",
+"Al-Ma'ida"
+],
+"exp": "Although scholars differ, Surah Al-Ma'ida is among the last revealed surahs.",
+"src": "Tafsir"
+},
+"q13": {
+"q": "In which month did the revelation of the Qur'an begin?",
+"o": [
+"Shaʿban",
+"Rajab",
+"Ramadan",
+"Muharram"
+],
+"exp": "The Qur'an began to be revealed in the month of Ramadan, on the Night of Power.",
+"src": "Al-Baqara 185"
+},
+"q14": {
+"q": "Whose story is repeated most often in the Qur'an?",
+"o": [
+"Prophet Ibrahim",
+"Prophet Musa",
+"Prophet 'Isa",
+"Prophet Nuh"
+],
+"exp": "The story of Prophet Musa is the most frequently repeated prophetic narrative in the Qur'an.",
+"src": "Qur'an"
+},
+"q15": {
+"q": "What subject does Surah Al-Ikhlas address?",
+"o": [
+"The Hereafter",
+"Divine Oneness (Tawhid)",
+"Prayer",
+"Zakat"
+],
+"exp": "Surah Al-Ikhlas describes the oneness of Allah (tawhid).",
+"src": "Surah Al-Ikhlas"
+},
+"q16": {
+"q": "How many prophets are mentioned by name in the Qur'an?",
+"o": [
+"20",
+"25",
+"28",
+"33"
+],
+"exp": "The names of 25 prophets are mentioned in the Qur'an.",
+"src": "Qur'an"
+},
+"q17": {
+"q": "About whom was Surah Al-Masad (Tabbat) revealed?",
+"o": [
+"Abu Jahl",
+"Abu Lahab",
+"Abu Sufyan",
+"Walid ibn al-Mughira"
+],
+"exp": "Surah Al-Masad was revealed about Abu Lahab and his wife.",
+"src": "Surah Al-Masad"
+},
+"q18": {
+"q": "Which event is called the 'Great Victory' in the Qur'an?",
+"o": [
+"The Conquest of Mecca",
+"The Battle of Badr",
+"The Treaty of Hudaybiyya",
+"The Battle of the Trench"
+],
+"exp": "Surah Al-Fath describes the Treaty of Hudaybiyya as 'a clear victory'.",
+"src": "Al-Fath 1"
+},
+"q19": {
+"q": "Surah An-Nas teaches seeking refuge from what?",
+"o": [
+"The evil of Satan",
+"The evil of the envious",
+"The evil of those who whisper",
+"All of these"
+],
+"exp": "Surah An-Nas teaches seeking refuge in Allah from the evil of those who whisper.",
+"src": "Surah An-Nas"
+},
+"q20": {
+"q": "What does 'Al-Furqan', another name of the Qur'an, mean?",
+"o": [
+"The Recited",
+"The Criterion between truth and falsehood",
+"The Preserved",
+"The Gathered"
+],
+"exp": "Al-Furqan means the criterion that distinguishes truth from falsehood.",
+"src": "Surah Al-Furqan"
+},
+"q21": {
+"q": "Which animal spoke in the presence of Prophet Sulayman in the Qur'an?",
+"o": [
+"An ant",
+"A bird",
+"A fish",
+"A horse"
+],
+"exp": "Surah An-Naml relates how an ant called out concerning Prophet Sulayman.",
+"src": "An-Naml 18"
+},
+"q22": {
+"q": "What does Surah Al-'Asr swear by?",
+"o": [
+"The sun",
+"The moon",
+"Time (al-'asr)",
+"The night"
+],
+"exp": "Surah Al-'Asr opens with an oath by time.",
+"src": "Surah Al-'Asr"
+},
+"q23": {
+"q": "Who produced the first comprehensive Turkish translation and commentary of the Qur'an?",
+"o": [
+"Mehmet Akif Ersoy",
+"Elmalili Hamdi Yazir",
+"Omer Nasuhi Bilmen",
+"Ismail Hakki Izmirli"
+],
+"exp": "The first comprehensive Turkish translation and commentary was produced by Elmalili Hamdi Yazir.",
+"src": "History of Tafsir"
+},
+"q24": {
+"q": "Which event does Surah Al-Fil describe?",
+"o": [
+"The Conquest of Mecca",
+"The Incident of the Elephant",
+"The Battle of the Trench",
+"The Hijra"
+],
+"exp": "Surah Al-Fil describes Abraha's attempt to destroy the Kaʿba.",
+"src": "Surah Al-Fil"
+},
+"q25": {
+"q": "Which name of Allah appears most often in the Qur'an?",
+"o": [
+"Ar-Rahman",
+"Ar-Raheem",
+"Allah",
+"Ar-Rabb"
+],
+"exp": "The name 'Allah' is the most frequently occurring name in the Qur'an.",
+"src": "Qur'an"
+},
+"q26": {
+"q": "What subject does Surah An-Naba' address?",
+"o": [
+"The Resurrection",
+"Paradise",
+"Hellfire",
+"The Great News (the Day of Judgment)"
+],
+"exp": "Surah An-Naba' speaks of 'the great news', that is, the Day of Judgment.",
+"src": "Surah An-Naba'"
+},
+"q27": {
+"q": "How many prostration verses are there in the Qur'an?",
+"o": [
+"10",
+"12",
+"14",
+"15"
+],
+"exp": "There are 14 verses of prostration (sajdat al-tilawa) in the Qur'an.",
+"src": "Fiqh"
+},
+"q28": {
+"q": "By what other name is Surah Al-Mulk known?",
+"o": [
+"Tabarak",
+"Ya-Sin",
+"An-Naba'",
+"Al-Waqi'a"
+],
+"exp": "Surah Al-Mulk is also known as 'Tabarak' and has 30 verses.",
+"src": "Surah Al-Mulk"
+},
+"q29": {
+"q": "In which surah is the story of Prophet Yusuf told?",
+"o": [
+"Hud",
+"Yusuf",
+"Ibrahim",
+"Maryam"
+],
+"exp": "The story of Prophet Yusuf is told in detail in Surah Yusuf.",
+"src": "Surah Yusuf"
+},
+"q30": {
+"q": "Which juz of the Qur'an contains the most surahs?",
+"o": [
+"Juz 1",
+"Juz 2",
+"Juz 30",
+"Juz 28"
+],
+"exp": "Juz 30 (the 'Amma juz) contains the greatest number of surahs.",
+"src": "Qur'an"
+},
+"q31": {
+"q": "Who is 'Dhul-Qarnayn' in the Qur'an?",
+"o": [
+"Alexander the Great",
+"Prophet Sulayman",
+"A just ruler",
+"Prophet Dawud"
+],
+"exp": "Dhul-Qarnayn, described in Surah Al-Kahf, is portrayed as a just ruler.",
+"src": "Al-Kahf 83-98"
+},
+"q32": {
+"q": "Which caliph first ordered the compilation of the Qur'an?",
+"o": [
+"Umar",
+"Abu Bakr",
+"Uthman",
+"Ali"
+],
+"exp": "The Qur'an was first compiled into a mushaf during the caliphate of Abu Bakr.",
+"src": "History of the Qur'an"
+},
+"q33": {
+"q": "During which caliph's era was the Qur'an reproduced in copies?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Uthman",
+"Ali"
+],
+"exp": "The Qur'an was copied and sent to different regions during the era of Uthman.",
+"src": "History of the Qur'an"
+},
+"q34": {
+"q": "By which other title is Prophet 'Isa mentioned in the Qur'an?",
+"o": [
+"Ruhullah",
+"Khalilullah",
+"Kalimullah",
+"Safiyyullah"
+],
+"exp": "Prophet 'Isa is also called 'Ruhullah' (a spirit from Allah) in the Qur'an.",
+"src": "An-Nisa 171"
+},
+"q35": {
+"q": "On which day is it recommended to recite Surah Al-Kahf?",
+"o": [
+"Monday",
+"Wednesday",
+"Friday",
+"Sunday"
+],
+"exp": "The merit of reciting Surah Al-Kahf on Friday is established by hadith.",
+"src": "Muslim"
+},
+"q36": {
+"q": "How many were the People of the Cave (Ashab al-Kahf) in the Qur'an?",
+"o": [
+"3 or 5",
+"5 or 7",
+"7, and perhaps 8",
+"Unspecified"
+],
+"exp": "Al-Kahf 22 says 'seven, and the eighth of them was their dog'.",
+"src": "Al-Kahf 22"
+},
+"q37": {
+"q": "Which Companion was the scribe of revelation?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Zayd ibn Thabit",
+"Ali"
+],
+"exp": "Zayd ibn Thabit is the most renowned scribe of revelation.",
+"src": "Sira"
+},
+"q38": {
+"q": "Which surah is called 'Umm al-Kitab' in the Qur'an?",
+"o": [
+"Al-Baqara",
+"Al-Fatiha",
+"Ya-Sin",
+"Al-Ikhlas"
+],
+"exp": "Surah Al-Fatiha is named 'Umm al-Kitab', the mother of the Book.",
+"src": "Al-Hijr 87"
+},
+"q39": {
+"q": "Which two surahs are known as 'Al-Muʿawwidhatayn'?",
+"o": [
+"Al-Fatiha and Al-Baqara",
+"Al-Falaq and An-Nas",
+"Al-Ikhlas and Al-Kawthar",
+"Al-Fil and Quraysh"
+],
+"exp": "Surahs Al-Falaq and An-Nas are known as 'Al-Muʿawwidhatayn', the surahs of seeking refuge.",
+"src": "Hadith"
+},
+"q40": {
+"q": "Which command is repeated most often in the Qur'an?",
+"o": [
+"Establish prayer",
+"Give zakat",
+"Reflect and reason",
+"Fast"
+],
+"exp": "The call to reflect and use reason is among the most frequently repeated commands in the Qur'an.",
+"src": "Qur'an"
+},
+"q41": {
+"q": "Surah Ta-Ha mainly recounts the story of which prophet?",
+"o": [
+"Prophet Ibrahim",
+"Prophet Musa",
+"Prophet Nuh",
+"Prophet 'Isa"
+],
+"exp": "Surah Ta-Ha largely recounts the story of Prophet Musa.",
+"src": "Surah Ta-Ha"
+},
+"q42": {
+"q": "Which surah does 'Sabʿ al-Mathani' refer to?",
+"o": [
+"Al-Baqara",
+"Ya-Sin",
+"Al-Fatiha",
+"Al-Ikhlas"
+],
+"exp": "'Sabʿ al-Mathani' (the seven oft-repeated verses) is a name given to Surah Al-Fatiha.",
+"src": "Al-Hijr 87"
+},
+"q43": {
+"q": "Into how many groups does Surah Al-Waqi'a divide people?",
+"o": [
+"2",
+"3",
+"4",
+"5"
+],
+"exp": "Surah Al-Waqi'a divides people into 3 groups: the Foremost, the Companions of the Right, and the Companions of the Left.",
+"src": "Surah Al-Waqi'a"
+},
+"q44": {
+"q": "Which metal is mentioned in the Qur'an as a material of great might?",
+"o": [
+"Gold",
+"Silver",
+"Iron",
+"Copper"
+],
+"exp": "In Surah Al-Hadid, iron is described as a material of great might.",
+"src": "Al-Hadid 25"
+},
+"q45": {
+"q": "What are the surahs revealed in Mecca called?",
+"o": [
+"Medinan",
+"Meccan",
+"Hijri",
+"Ansari"
+],
+"exp": "Surahs revealed during the Meccan period are called 'Meccan surahs'.",
+"src": "'Ulum al-Qur'an"
+},
+"q46": {
+"q": "What are the last two verses of Surah Al-Baqara known as?",
+"o": [
+"Amana'r-Rasul",
+"Ayat al-Kursi",
+"Al-Muʿawwidhatayn",
+"The Basmala"
+],
+"exp": "Al-Baqara 285-286 are known as 'Amana'r-Rasul'.",
+"src": "Al-Baqara 285-286"
+},
+"q47": {
+"q": "What is the officially compiled mushaf of the Qur'an called?",
+"o": [
+"Mushaf al-Sharif",
+"The Uthmanic Mushaf",
+"The Imam Mushaf",
+"The Zayd Mushaf"
+],
+"exp": "The mushaf reproduced under Uthman is called the 'Uthmanic Mushaf'.",
+"src": "History of the Qur'an"
+},
+"q48": {
+"q": "In which period was Surah Ad-Duha revealed to the Prophet?",
+"o": [
+"When revelation had paused",
+"During the Hijra",
+"At the Conquest of Mecca",
+"At the Farewell Pilgrimage"
+],
+"exp": "Surah Ad-Duha was revealed as consolation during a period when revelation had paused for a while.",
+"src": "Surah Ad-Duha"
+},
+"q49": {
+"q": "What is 'Al-Bayt al-Maʿmur' in the Qur'an?",
+"o": [
+"The Kaʿba",
+"Al-Aqsa Mosque",
+"A house of worship in the heavens",
+"The Mosque of Medina"
+],
+"exp": "Al-Bayt al-Maʿmur is the house of worship in the seventh heaven circumambulated by the angels.",
+"src": "At-Tur 4"
+},
+"q50": {
+"q": "Who is Luqman in the Qur'an?",
+"o": [
+"A prophet",
+"A righteous man granted wisdom",
+"An angel",
+"A Companion"
+],
+"exp": "Luqman was not a prophet but a righteous servant granted wisdom.",
+"src": "Surah Luqman"
+},
+"q51": {
+"q": "Who is the first prophet?",
+"o": [
+"Prophet Nuh",
+"Prophet Ibrahim",
+"Prophet Adam",
+"Prophet Idris"
+],
+"exp": "Prophet Adam is both the first human being and the first prophet.",
+"src": "Qur'an"
+},
+"q52": {
+"q": "Who is the final prophet?",
+"o": [
+"Prophet 'Isa",
+"Prophet Muhammad",
+"Prophet Sulayman",
+"Prophet Musa"
+],
+"exp": "Prophet Muhammad (pbuh) is the final prophet, the Seal of the Prophets.",
+"src": "Al-Ahzab 40"
+},
+"q53": {
+"q": "On which mountain did Prophet Nuh's ark come to rest?",
+"o": [
+"Hira",
+"Judi",
+"Uhud",
+"Arafat"
+],
+"exp": "According to the Qur'an, the ark came to rest upon Mount Judi.",
+"src": "Hud 44"
+},
+"q54": {
+"q": "What is the epithet of Prophet Ibrahim?",
+"o": [
+"Kalimullah",
+"Khalilullah",
+"Ruhullah",
+"Safiyyullah"
+],
+"exp": "Prophet Ibrahim is called 'Khalilullah', the friend of Allah.",
+"src": "An-Nisa 125"
+},
+"q55": {
+"q": "Which pharaoh did Prophet Musa confront?",
+"o": [
+"Ramesses I",
+"Ramesses II",
+"Tutankhamun",
+"King Nimrod"
+],
+"exp": "According to the prevailing view, Prophet Musa lived during the era of Ramesses II.",
+"src": "History"
+},
+"q56": {
+"q": "In which land did Prophet Yusuf become a ruler?",
+"o": [
+"Iraq",
+"Syria",
+"Egypt",
+"Palestine"
+],
+"exp": "Prophet Yusuf became an administrator in Egypt, serving as minister of the treasury.",
+"src": "Surah Yusuf"
+},
+"q57": {
+"q": "In the belly of which creature did Prophet Yunus remain?",
+"o": [
+"A fish",
+"A whale",
+"A crocodile",
+"A shark"
+],
+"exp": "Prophet Yunus remained in the belly of a great fish and was delivered after calling upon Allah.",
+"src": "As-Saffat 142-144"
+},
+"q58": {
+"q": "With which beings could Prophet Sulayman speak?",
+"o": [
+"Angels",
+"Animals",
+"Jinn",
+"Animals and jinn"
+],
+"exp": "Prophet Sulayman was taught the speech of animals and of the jinn.",
+"src": "An-Naml 16-17"
+},
+"q59": {
+"q": "Who was the mother of Prophet 'Isa?",
+"o": [
+"Hajar",
+"Maryam",
+"Asiya",
+"Khadija"
+],
+"exp": "The mother of Prophet 'Isa was Maryam.",
+"src": "Surah Maryam"
+},
+"q60": {
+"q": "Which scripture was revealed to Prophet Dawud?",
+"o": [
+"The Torah",
+"The Zabur (Psalms)",
+"The Gospel",
+"The Scrolls"
+],
+"exp": "The Zabur was revealed to Prophet Dawud.",
+"src": "An-Nisa 163"
+},
+"q61": {
+"q": "Which scripture was revealed to Prophet Musa?",
+"o": [
+"The Zabur",
+"The Gospel",
+"The Torah",
+"The Scrolls"
+],
+"exp": "The Torah was revealed to Prophet Musa.",
+"src": "Qur'an"
+},
+"q62": {
+"q": "Who was the father of Prophet Isma'il?",
+"o": [
+"Prophet Ishaq",
+"Prophet Yaʿqub",
+"Prophet Ibrahim",
+"Prophet Nuh"
+],
+"exp": "Prophet Isma'il was the son of Prophet Ibrahim.",
+"src": "As-Saffat 100-102"
+},
+"q63": {
+"q": "For which quality is Prophet Ayyub known?",
+"o": [
+"Powerful oratory",
+"Patience",
+"Wealth",
+"Valour in battle"
+],
+"exp": "Prophet Ayyub is renowned for the patience he showed through his illness and trials.",
+"src": "Sad 41-44"
+},
+"q64": {
+"q": "At what age did Prophet Muhammad receive prophethood?",
+"o": [
+"25",
+"33",
+"40",
+"45"
+],
+"exp": "Prophet Muhammad (pbuh) received the mission of prophethood at the age of 40.",
+"src": "Sira"
+},
+"q65": {
+"q": "For what is Prophet Idris known?",
+"o": [
+"The first to write",
+"The first to practise tailoring",
+"Both of these",
+"Discovering seafaring"
+],
+"exp": "It is related that Prophet Idris was the first to write and the first to practise tailoring.",
+"src": "Maryam 56-57"
+},
+"q66": {
+"q": "What is the other name of Prophet Yaʿqub?",
+"o": [
+"Israel",
+"Isma'il",
+"Ishaq",
+"Ilyas"
+],
+"exp": "The other name of Prophet Yaʿqub is Israel; the Children of Israel descend from him.",
+"src": "Al 'Imran 93"
+},
+"q67": {
+"q": "Who was the first wife of the Prophet?",
+"o": [
+"Aisha",
+"Khadija",
+"Hafsa",
+"Zaynab"
+],
+"exp": "Khadija was the Prophet's first wife and the first person to believe.",
+"src": "Sira"
+},
+"q68": {
+"q": "Into whose fire was Prophet Ibrahim cast?",
+"o": [
+"The fire of Nimrod",
+"The fire of Pharaoh",
+"The fire of Abu Lahab",
+"The fire of Abraha"
+],
+"exp": "Prophet Ibrahim was cast into the fire by Nimrod, but Allah made the fire cool for him.",
+"src": "Al-Anbiya 68-69"
+},
+"q69": {
+"q": "To which people was Prophet Lut sent?",
+"o": [
+"The people of 'Ad",
+"The people of Thamud",
+"The people of Sodom",
+"The people of Madyan"
+],
+"exp": "Prophet Lut was sent to the people of Sodom and Gomorrah.",
+"src": "Hud 77-83"
+},
+"q70": {
+"q": "To which people was Prophet Salih sent?",
+"o": [
+"'Ad",
+"Thamud",
+"Madyan",
+"The people of ar-Rass"
+],
+"exp": "Prophet Salih was sent to the people of Thamud.",
+"src": "Al-A'raf 73"
+},
+"q71": {
+"q": "To which people was Prophet Hud sent?",
+"o": [
+"Thamud",
+"'Ad",
+"Madyan",
+"The people of Lut"
+],
+"exp": "Prophet Hud was sent to the people of 'Ad.",
+"src": "Hud 50"
+},
+"q72": {
+"q": "To which people was Prophet Shuʿayb sent?",
+"o": [
+"'Ad",
+"Thamud",
+"Madyan",
+"The people of Nuh"
+],
+"exp": "Prophet Shuʿayb was sent to the people of Madyan.",
+"src": "Hud 84"
+},
+"q73": {
+"q": "By which miracle was Prophet 'Isa born?",
+"o": [
+"Protection from fire",
+"Birth without a father",
+"Parting the sea",
+"Reviving the dead"
+],
+"exp": "Prophet 'Isa was born to Maryam without a father.",
+"src": "Maryam 20-22"
+},
+"q74": {
+"q": "What was the name of the Prophet's uncle?",
+"o": [
+"Abu Talib",
+"Hamza",
+"Abbas",
+"Both Hamza and Abbas"
+],
+"exp": "The Prophet had several uncles; Hamza and Abbas were among those who accepted Islam.",
+"src": "Sira"
+},
+"q75": {
+"q": "What was built first when the Prophet migrated to Medina?",
+"o": [
+"A house",
+"A mosque",
+"A marketplace",
+"A school"
+],
+"exp": "On reaching Medina, the Prophet first built the Quba Mosque.",
+"src": "Sira"
+},
+"q76": {
+"q": "Who was the first man to accept Islam?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Ali",
+"Uthman"
+],
+"exp": "Abu Bakr was the first among adult men to accept Islam.",
+"src": "Sira"
+},
+"q77": {
+"q": "Who was the first woman to accept Islam?",
+"o": [
+"Aisha",
+"Khadija",
+"Fatima",
+"Hafsa"
+],
+"exp": "Khadija was the first person to accept Islam.",
+"src": "Sira"
+},
+"q78": {
+"q": "To whom was the title 'As-Siddiq' given?",
+"o": [
+"Umar",
+"Uthman",
+"Abu Bakr",
+"Ali"
+],
+"exp": "Abu Bakr was given the title 'As-Siddiq', the utterly truthful.",
+"src": "Sira"
+},
+"q79": {
+"q": "To whom does the title 'Al-Faruq' belong?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Uthman",
+"Ali"
+],
+"exp": "Umar was given the title 'Al-Faruq' for distinguishing truth from falsehood.",
+"src": "Sira"
+},
+"q80": {
+"q": "To which caliph does the title 'Dhun-Nurayn' belong?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Uthman",
+"Ali"
+],
+"exp": "Uthman is called 'Dhun-Nurayn' (possessor of two lights); he married two daughters of the Prophet.",
+"src": "Sira"
+},
+"q81": {
+"q": "Whose wife was Fatima, the daughter of the Prophet?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Uthman",
+"Ali"
+],
+"exp": "Fatima was the wife of Ali.",
+"src": "Sira"
+},
+"q82": {
+"q": "Who was the first muezzin?",
+"o": [
+"Bilal",
+"Salman",
+"Ammar",
+"Suhayb"
+],
+"exp": "Bilal al-Habashi was the first muezzin of Islam.",
+"src": "Sira"
+},
+"q83": {
+"q": "To whom does the title 'The Sword of Allah' belong?",
+"o": [
+"Ali",
+"Hamza",
+"Khalid ibn al-Walid",
+"Saʿd ibn Abi Waqqas"
+],
+"exp": "Khalid ibn al-Walid was given the title 'Sayfullah', the Sword of Allah.",
+"src": "Sira"
+},
+"q84": {
+"q": "What was the epithet of Hamza?",
+"o": [
+"The Lion of Allah",
+"The Sword of Allah",
+"As-Siddiq",
+"Al-Faruq"
+],
+"exp": "Hamza was given the epithet 'Asadullah', the Lion of Allah.",
+"src": "Sira"
+},
+"q85": {
+"q": "Who was the first caliph?",
+"o": [
+"Umar",
+"Ali",
+"Abu Bakr",
+"Uthman"
+],
+"exp": "Abu Bakr was chosen as the first caliph after the Prophet.",
+"src": "Sira"
+},
+"q86": {
+"q": "Who headed the first committee that compiled the Qur'an?",
+"o": [
+"Ali",
+"Zayd ibn Thabit",
+"Umar",
+"Abdullah ibn Masʿud"
+],
+"exp": "Zayd ibn Thabit headed the committee that compiled the Qur'an.",
+"src": "History of the Qur'an"
+},
+"q87": {
+"q": "Which Companion narrated the most hadiths?",
+"o": [
+"Aisha",
+"Abu Bakr",
+"Abu Hurayra",
+"Abdullah ibn Umar"
+],
+"exp": "Abu Hurayra narrated the most hadiths, some 5374.",
+"src": "Hadith Sciences"
+},
+"q88": {
+"q": "Which of these was an uncle of the Prophet?",
+"o": [
+"Abbas",
+"Hamza",
+"Abu Talib",
+"All of them"
+],
+"exp": "Abu Talib, Abbas and Hamza were all uncles of the Prophet.",
+"src": "Sira"
+},
+"q89": {
+"q": "Who led the first group that migrated to Abyssinia?",
+"o": [
+"Uthman",
+"Jaʿfar",
+"Ali",
+"Hamza"
+],
+"exp": "Jaʿfar ibn Abi Talib was prominent in the first migration to Abyssinia.",
+"src": "Sira"
+},
+"q90": {
+"q": "Where was Husayn, the grandson of the Prophet, martyred?",
+"o": [
+"Mecca",
+"Medina",
+"Karbala",
+"Damascus"
+],
+"exp": "Husayn was martyred at Karbala.",
+"src": "Islamic History"
+},
+"q91": {
+"q": "In whose house did the Prophet stay as a guest in Medina?",
+"o": [
+"Abu Ayyub al-Ansari",
+"Saʿd ibn Muʿadh",
+"Anas ibn Malik",
+"Abu Dharr"
+],
+"exp": "On arriving in Medina, the Prophet stayed in the house of Abu Ayyub al-Ansari.",
+"src": "Sira"
+},
+"q92": {
+"q": "How long was Umar's caliphate?",
+"o": [
+"2 years",
+"5 years",
+"10 years",
+"12 years"
+],
+"exp": "Umar served as caliph for 10 years (634-644).",
+"src": "Islamic History"
+},
+"q93": {
+"q": "How many Muslims fought at the Battle of Badr?",
+"o": [
+"213",
+"313",
+"413",
+"513"
+],
+"exp": "The Muslims at the Battle of Badr numbered roughly 313.",
+"src": "Sira"
+},
+"q94": {
+"q": "How many Companions were martyred at the Battle of Uhud?",
+"o": [
+"50",
+"70",
+"90",
+"100"
+],
+"exp": "Roughly 70 Companions were martyred at the Battle of Uhud.",
+"src": "Sira"
+},
+"q95": {
+"q": "Who was the wet nurse of the Prophet?",
+"o": [
+"Amina",
+"Halima",
+"Suwayba",
+"Umm Ayman"
+],
+"exp": "Halima was the wet nurse of the Prophet.",
+"src": "Sira"
+},
+"q96": {
+"q": "Who was the Prophet's companion during the Hijra?",
+"o": [
+"Umar",
+"Ali",
+"Abu Bakr",
+"Uthman"
+],
+"exp": "Abu Bakr migrated with the Prophet from Mecca to Medina.",
+"src": "At-Tawba 40"
+},
+"q97": {
+"q": "Who proposed digging the trench at the Battle of the Trench?",
+"o": [
+"Ali",
+"Umar",
+"Salman al-Farisi",
+"Abu Bakr"
+],
+"exp": "The idea of digging a trench came from the Persian Companion Salman al-Farisi.",
+"src": "Sira"
+},
+"q98": {
+"q": "What were the names of Ali's sons?",
+"o": [
+"Hasan and Husayn",
+"Muhammad and Ahmad",
+"Ali and Umar",
+"Zayd and Ammar"
+],
+"exp": "The sons of Ali were Hasan and Husayn.",
+"src": "Sira"
+},
+"q99": {
+"q": "Which of the Prophet's daughters passed away last?",
+"o": [
+"Zaynab",
+"Ruqayya",
+"Umm Kulthum",
+"Fatima"
+],
+"exp": "Fatima passed away six months after the Prophet.",
+"src": "Sira"
+},
+"q100": {
+"q": "Who was the first child to enter Islam?",
+"o": [
+"Ali",
+"Hasan",
+"Anas",
+"Zubayr"
+],
+"exp": "Ali was the first among children to accept Islam.",
+"src": "Sira"
+},
+"q101": {
+"q": "In which year did the Hijra take place?",
+"o": [
+"610 CE",
+"620 CE",
+"622 CE",
+"632 CE"
+],
+"exp": "The Hijra from Mecca to Medina took place in 622.",
+"src": "Islamic History"
+},
+"q102": {
+"q": "In which year was Istanbul conquered?",
+"o": [
+"1453",
+"1461",
+"1444",
+"1481"
+],
+"exp": "Istanbul was conquered in 1453 by Sultan Mehmed the Conqueror.",
+"src": "Ottoman History"
+},
+"q103": {
+"q": "In which year was the Battle of Badr fought?",
+"o": [
+"1 AH",
+"2 AH",
+"3 AH",
+"4 AH"
+],
+"exp": "The Battle of Badr was fought in the 2nd year after the Hijra.",
+"src": "Sira"
+},
+"q104": {
+"q": "In which country was the Umayyad State of Andalusia founded?",
+"o": [
+"Morocco",
+"Tunisia",
+"Spain",
+"Egypt"
+],
+"exp": "The Umayyad State of Andalusia was founded in Spain in 756.",
+"src": "Islamic History"
+},
+"q105": {
+"q": "Who founded the Ottoman State?",
+"o": [
+"Ertugrul Gazi",
+"Osman Gazi",
+"Orhan Gazi",
+"Murad I"
+],
+"exp": "The Ottoman State was founded in 1299 by Osman Gazi.",
+"src": "Ottoman History"
+},
+"q106": {
+"q": "In which year was Mecca conquered?",
+"o": [
+"6 AH",
+"7 AH",
+"8 AH",
+"9 AH"
+],
+"exp": "Mecca was conquered in the 8th year after the Hijra.",
+"src": "Sira"
+},
+"q107": {
+"q": "Where was the first Islamic state established?",
+"o": [
+"Mecca",
+"Medina",
+"Damascus",
+"Baghdad"
+],
+"exp": "The first Islamic state was established in Medina.",
+"src": "Islamic History"
+},
+"q108": {
+"q": "What was the capital of the Umayyad State?",
+"o": [
+"Mecca",
+"Medina",
+"Damascus",
+"Baghdad"
+],
+"exp": "The capital of the Umayyad State was Damascus.",
+"src": "Islamic History"
+},
+"q109": {
+"q": "What was the capital of the Abbasid State?",
+"o": [
+"Damascus",
+"Cairo",
+"Baghdad",
+"Cordoba"
+],
+"exp": "The capital of the Abbasid State was Baghdad.",
+"src": "Islamic History"
+},
+"q110": {
+"q": "When did Baghdad fall during the Mongol invasion?",
+"o": [
+"1258",
+"1187",
+"1299",
+"1453"
+],
+"exp": "Baghdad was taken by Hulagu Khan in 1258.",
+"src": "Islamic History"
+},
+"q111": {
+"q": "Which commander retook Jerusalem from the Crusaders?",
+"o": [
+"Nur ad-Din Zengi",
+"Saladin",
+"Baybars",
+"Alp Arslan"
+],
+"exp": "Saladin retook Jerusalem in 1187 after the Battle of Hattin.",
+"src": "Islamic History"
+},
+"q112": {
+"q": "In which year was the Battle of Manzikert fought?",
+"o": [
+"1071",
+"1099",
+"1187",
+"1258"
+],
+"exp": "The Battle of Manzikert was won in 1071 under the command of Alp Arslan.",
+"src": "Islamic History"
+},
+"q113": {
+"q": "Which is the first Muslim university?",
+"o": [
+"Al-Azhar",
+"Al-Qarawiyyin",
+"Nizamiyya",
+"The Sorbonne"
+],
+"exp": "Al-Qarawiyyin University in Morocco, founded in 859, is the world's oldest university.",
+"src": "Islamic Civilization"
+},
+"q114": {
+"q": "In which year was the Treaty of Hudaybiyya concluded?",
+"o": [
+"4 AH",
+"5 AH",
+"6 AH",
+"7 AH"
+],
+"exp": "The Treaty of Hudaybiyya was concluded in the 6th year after the Hijra.",
+"src": "Sira"
+},
+"q115": {
+"q": "In which year was the Farewell Sermon delivered?",
+"o": [
+"8 AH",
+"9 AH",
+"10 AH",
+"11 AH"
+],
+"exp": "The Farewell Sermon was delivered at Arafat in the 10th year after the Hijra.",
+"src": "Sira"
+},
+"q116": {
+"q": "At what age did the Prophet pass away?",
+"o": [
+"60",
+"63",
+"65",
+"70"
+],
+"exp": "The Prophet passed away at the age of 63.",
+"src": "Sira"
+},
+"q117": {
+"q": "In which era was the first Islamic coin minted?",
+"o": [
+"Abu Bakr",
+"Umar",
+"The Umayyads",
+"The Abbasids"
+],
+"exp": "The first Islamic coin was minted during the reign of the Umayyad caliph Abd al-Malik ibn Marwan.",
+"src": "Islamic History"
+},
+"q118": {
+"q": "In which year was the Battle of Gallipoli fought?",
+"o": [
+"1914",
+"1915",
+"1916",
+"1917"
+],
+"exp": "The Battle of Gallipoli was fought in 1915.",
+"src": "History"
+},
+"q119": {
+"q": "Who founded the Seljuk State?",
+"o": [
+"Tughril Beg",
+"Alp Arslan",
+"Malik Shah",
+"Chaghri Beg"
+],
+"exp": "The Great Seljuk State was founded in 1040 by Tughril and Chaghri Beg.",
+"src": "Islamic History"
+},
+"q120": {
+"q": "Which is the famous palace of Andalusia?",
+"o": [
+"Topkapi",
+"The Alhambra",
+"Dolmabahce",
+"Versailles"
+],
+"exp": "The Alhambra Palace in Granada is a masterpiece of Islamic architecture.",
+"src": "Islamic Civilization"
+},
+"q121": {
+"q": "Who was the last Ottoman sultan?",
+"o": [
+"Abdulhamid II",
+"Mehmed V",
+"Mehmed VI",
+"Abdulmecid II"
+],
+"exp": "The last Ottoman sultan was Mehmed VI Vahideddin.",
+"src": "Ottoman History"
+},
+"q122": {
+"q": "During which caliph's era did Muslims first conquer Jerusalem?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Uthman",
+"Ali"
+],
+"exp": "Jerusalem was conquered in 638 during the era of Umar.",
+"src": "Islamic History"
+},
+"q123": {
+"q": "In which year did the First Crusade begin?",
+"o": [
+"1071",
+"1096",
+"1187",
+"1204"
+],
+"exp": "The First Crusade began in the year 1096.",
+"src": "World History"
+},
+"q124": {
+"q": "Where did the Prophet build the Prophet's Mosque?",
+"o": [
+"Mecca",
+"Medina",
+"Taif",
+"Jerusalem"
+],
+"exp": "The Prophet's Mosque was built in Medina.",
+"src": "Sira"
+},
+"q125": {
+"q": "Where was the first hospital in the Muslim world established?",
+"o": [
+"Medina",
+"Damascus",
+"Baghdad",
+"Cairo"
+],
+"exp": "The first great hospital in the Muslim world was established in Baghdad during the Abbasid era.",
+"src": "Islamic Civilization"
+},
+"q126": {
+"q": "How many books make up the 'Kutub al-Sitta' in hadith scholarship?",
+"o": [
+"4",
+"5",
+"6",
+"7"
+],
+"exp": "The Kutub al-Sitta refers to the six principal books of hadith.",
+"src": "Hadith Sciences"
+},
+"q127": {
+"q": "Who is the author of Sahih al-Bukhari?",
+"o": [
+"Muslim",
+"Imam al-Bukhari",
+"At-Tirmidhi",
+"An-Nasa'i"
+],
+"exp": "Sahih al-Bukhari was compiled by Imam al-Bukhari (810-870).",
+"src": "Hadith Sciences"
+},
+"q128": {
+"q": "In which book is the hadith 'deeds are by intentions' found?",
+"o": [
+"Sahih Muslim",
+"Sahih al-Bukhari",
+"At-Tirmidhi",
+"In all three"
+],
+"exp": "This hadith appears in many collections of hadith.",
+"src": "Bukhari, Muslim, Tirmidhi"
+},
+"q129": {
+"q": "Which caliph first encouraged the writing down of hadith?",
+"o": [
+"Umar ibn al-Khattab",
+"Umar ibn Abd al-Aziz",
+"Harun al-Rashid",
+"Abd al-Malik"
+],
+"exp": "Umar ibn Abd al-Aziz ordered the official recording of hadith.",
+"src": "History of Hadith"
+},
+"q130": {
+"q": "What does 'mawduʿ hadith' mean?",
+"o": [
+"An authentic hadith",
+"A weak hadith",
+"A fabricated hadith",
+"A good (hasan) hadith"
+],
+"exp": "A mawduʿ hadith is a fabricated hadith.",
+"src": "Hadith Sciences"
+},
+"q131": {
+"q": "What does 'isnad' mean in hadith scholarship?",
+"o": [
+"The text of the hadith",
+"The chain of narrators",
+"The topic of the hadith",
+"The ruling of the hadith"
+],
+"exp": "The isnad is the chain of narrators who transmitted the hadith.",
+"src": "Hadith Sciences"
+},
+"q132": {
+"q": "What does 'mutawatir hadith' mean?",
+"o": [
+"A hadith with a single narrator",
+"A fabricated hadith",
+"A hadith transmitted by many narrators",
+"A weak hadith"
+],
+"exp": "A mutawatir hadith is one transmitted by a great many narrators at every level.",
+"src": "Hadith Sciences"
+},
+"q133": {
+"q": "In the hadith 'Islam is built upon five', what is the first pillar?",
+"o": [
+"Prayer",
+"The testimony of faith",
+"Fasting",
+"Zakat"
+],
+"exp": "The first of the pillars of Islam is the testimony of faith (shahada).",
+"src": "Bukhari, Iman"
+},
+"q134": {
+"q": "What is the source of the hadith 'Paradise lies beneath the feet of mothers'?",
+"o": [
+"Bukhari",
+"Muslim",
+"An-Nasa'i",
+"Ahmad ibn Hanbal"
+],
+"exp": "This hadith is narrated in An-Nasa'i.",
+"src": "An-Nasa'i"
+},
+"q135": {
+"q": "What is the Prophet's final sermon called?",
+"o": [
+"The Friday sermon",
+"The Farewell Sermon",
+"The Medina Sermon",
+"The Mecca Sermon"
+],
+"exp": "The Prophet's final sermon at Arafat is called the 'Farewell Sermon'.",
+"src": "Sira"
+},
+"q136": {
+"q": "Who is the author of Sahih Muslim?",
+"o": [
+"Imam al-Bukhari",
+"Imam Muslim",
+"Imam Malik",
+"Imam ash-Shafi'i"
+],
+"exp": "Sahih Muslim was compiled by Imam Muslim (821-875).",
+"src": "Hadith Sciences"
+},
+"q137": {
+"q": "Which book is NOT part of the Kutub al-Sitta?",
+"o": [
+"Sunan at-Tirmidhi",
+"Sunan an-Nasa'i",
+"Al-Muwatta",
+"Sunan Ibn Maja"
+],
+"exp": "Imam Malik's Al-Muwatta is not part of the Kutub al-Sitta.",
+"src": "Hadith Sciences"
+},
+"q138": {
+"q": "What is the meaning of the hadith 'Make things easy, do not make them difficult'?",
+"o": [
+"Be idle",
+"Make matters easy for people",
+"Loosen the rules",
+"Water down the religion"
+],
+"exp": "The Prophet commanded that ease be shown to people in matters of religion.",
+"src": "Bukhari"
+},
+"q139": {
+"q": "What does 'matn' mean in hadith scholarship?",
+"o": [
+"The chain of narrators",
+"The wording of the hadith",
+"The source of the hadith",
+"The grade of the hadith"
+],
+"exp": "The matn is the content or wording of the hadith; the isnad is the chain of narrators.",
+"src": "Hadith Sciences"
+},
+"q140": {
+"q": "What does 'hadith qudsi' mean?",
+"o": [
+"A saying of the Prophet",
+"A verse of the Qur'an",
+"A word from Allah not found in the Qur'an",
+"A saying of a Companion"
+],
+"exp": "A hadith qudsi is one whose meaning is from Allah and whose wording is from the Prophet.",
+"src": "Hadith Sciences"
+},
+"q141": {
+"q": "What is the source of the hadith 'A smile is charity'?",
+"o": [
+"Bukhari",
+"Muslim",
+"At-Tirmidhi",
+"In all three"
+],
+"exp": "This hadith is narrated in At-Tirmidhi.",
+"src": "At-Tirmidhi"
+},
+"q142": {
+"q": "What does 'sahih' mean in hadith scholarship?",
+"o": [
+"Weak",
+"Sound and reliable",
+"Fabricated",
+"Doubtful"
+],
+"exp": "A sahih hadith is a reliable hadith meeting all the required conditions.",
+"src": "Hadith Sciences"
+},
+"q143": {
+"q": "How does the hadith 'A Muslim is the brother of a Muslim' continue?",
+"o": [
+"He does not wrong him",
+"He does not abandon him",
+"He does not despise him",
+"All of these"
+],
+"exp": "It continues: he does not wrong him, abandon him, or despise him.",
+"src": "Muslim"
+},
+"q144": {
+"q": "What kind of report is the saying 'Seek knowledge even in China'?",
+"o": [
+"An authentic hadith",
+"A weak hadith",
+"A well-known saying",
+"A hadith qudsi"
+],
+"exp": "This saying has been graded weak by hadith scholars.",
+"src": "Hadith Sciences"
+},
+"q145": {
+"q": "Which food did the Prophet love most?",
+"o": [
+"Meat",
+"Dates",
+"Honey",
+"Gourd dishes"
+],
+"exp": "It is narrated in hadith that the Prophet greatly loved dishes made with gourd.",
+"src": "Bukhari, Muslim"
+},
+"q146": {
+"q": "What does 'hasan hadith' mean?",
+"o": [
+"An authentic hadith",
+"A weak hadith",
+"A hadith of middling grade",
+"A fabricated hadith"
+],
+"exp": "A hasan hadith is of middling grade, between sahih and weak.",
+"src": "Hadith Sciences"
+},
+"q147": {
+"q": "What are the hadiths describing the Prophet's daily life called?",
+"o": [
+"Hadith qudsi",
+"Marfuʿ hadith",
+"Shamail",
+"Mawquf hadith"
+],
+"exp": "Hadiths describing the Prophet's physical and moral qualities are called 'Shamail'.",
+"src": "Hadith Sciences"
+},
+"q148": {
+"q": "How does the hadith 'Whoever sees an evil, let him change it with his hand' continue?",
+"o": [
+"If he cannot, with his tongue",
+"If he cannot, with his heart",
+"Both of these",
+"Let him stay silent"
+],
+"exp": "Let him change it with his hand; if he cannot, with his tongue; if he cannot, let him detest it in his heart.",
+"src": "Muslim"
+},
+"q149": {
+"q": "Which colour did the Prophet love?",
+"o": [
+"Red",
+"Green",
+"White",
+"Black"
+],
+"exp": "The Prophet loved the colour white and wore white garments.",
+"src": "At-Tirmidhi"
+},
+"q150": {
+"q": "Who narrated the hadith 'Convey from me, even a single verse'?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Abdullah ibn Amr",
+"Abu Hurayra"
+],
+"exp": "This hadith was narrated by Abdullah ibn Amr.",
+"src": "Bukhari"
+},
+"q151": {
+"q": "How many obligatory prayers are there each day?",
+"o": [
+"3",
+"4",
+"5",
+"6"
+],
+"exp": "In Islam, five daily prayers are obligatory.",
+"src": "Qur'an and Sunna"
+},
+"q152": {
+"q": "How many rakʿas is the Fajr prayer?",
+"o": [
+"2",
+"3",
+"4",
+"5"
+],
+"exp": "The obligatory part of the Fajr prayer is 2 rakʿas.",
+"src": "Fiqh"
+},
+"q153": {
+"q": "How many obligatory rakʿas is the Dhuhr prayer?",
+"o": [
+"2",
+"3",
+"4",
+"5"
+],
+"exp": "The obligatory part of the Dhuhr prayer is 4 rakʿas.",
+"src": "Fiqh"
+},
+"q154": {
+"q": "Which of these does NOT invalidate wudu?",
+"o": [
+"Bleeding",
+"Weeping",
+"Sleeping",
+"Passing wind"
+],
+"exp": "Weeping does not invalidate wudu.",
+"src": "Fiqh"
+},
+"q155": {
+"q": "How many rakʿas is the Friday prayer?",
+"o": [
+"2",
+"4",
+"6",
+"8"
+],
+"exp": "The obligatory part of the Friday prayer is 2 rakʿas.",
+"src": "Fiqh"
+},
+"q156": {
+"q": "At which event was the prayer made obligatory?",
+"o": [
+"The Hijra",
+"The Miʿraj",
+"Badr",
+"Al-Isra"
+],
+"exp": "The prayer was made obligatory on the night of the Miʿraj.",
+"src": "Al-Isra 1"
+},
+"q157": {
+"q": "Which surah is recited first in the prayer?",
+"o": [
+"Al-Ikhlas",
+"Al-Baqara",
+"Al-Fatiha",
+"Ya-Sin"
+],
+"exp": "Reciting Surah Al-Fatiha in every rakʿa is obligatory.",
+"src": "Fiqh"
+},
+"q158": {
+"q": "Which glorification is said in prostration?",
+"o": [
+"Subhanallah",
+"Subhana Rabbiya'l-'Azim",
+"Subhana Rabbiya'l-A'la",
+"Allahu Akbar"
+],
+"exp": "In prostration one says 'Subhana Rabbiya'l-A'la'.",
+"src": "Fiqh"
+},
+"q159": {
+"q": "Which glorification is said in bowing (rukuʿ)?",
+"o": [
+"Subhana Rabbiya'l-A'la",
+"Subhana Rabbiya'l-'Azim",
+"Samiʿ Allahu liman hamidah",
+"Rabbana laka'l-hamd"
+],
+"exp": "In bowing one says 'Subhana Rabbiya'l-'Azim'.",
+"src": "Fiqh"
+},
+"q160": {
+"q": "Which of these is NOT a pillar of the prayer?",
+"o": [
+"Standing (qiyam)",
+"Bowing (rukuʿ)",
+"The tashahhud",
+"The qunut supplication"
+],
+"exp": "The qunut supplication is not a pillar of the prayer but a recommended supplication in certain prayers.",
+"src": "Fiqh"
+},
+"q161": {
+"q": "At which time is the Witr prayer performed?",
+"o": [
+"Fajr",
+"Dhuhr",
+"Maghrib",
+"Isha"
+],
+"exp": "The Witr prayer is performed after the Isha prayer.",
+"src": "Fiqh"
+},
+"q162": {
+"q": "While travelling, how many rakʿas are the four-rakʿa obligatory prayers prayed?",
+"o": [
+"1",
+"2",
+"3",
+"4"
+],
+"exp": "While travelling, four-rakʿa obligatory prayers are shortened to 2 rakʿas.",
+"src": "Fiqh"
+},
+"q163": {
+"q": "How many takbirs are said in the funeral prayer?",
+"o": [
+"3",
+"4",
+"5",
+"6"
+],
+"exp": "Four takbirs are said in the funeral prayer.",
+"src": "Fiqh"
+},
+"q164": {
+"q": "In which part of the prayer is the tashahhud recited?",
+"o": [
+"While standing",
+"While bowing",
+"While prostrating",
+"While sitting"
+],
+"exp": "The tashahhud (at-tahiyyat) is recited in the final sitting.",
+"src": "Fiqh"
+},
+"q165": {
+"q": "What is the juristic term for facing the qibla in prayer?",
+"o": [
+"Istiqbal al-qibla",
+"Iftitah",
+"Qawma",
+"Taʿdil al-arkan"
+],
+"exp": "Facing the qibla is called 'istiqbal al-qibla'.",
+"src": "Fiqh"
+},
+"q166": {
+"q": "How many extra takbirs are said in the Eid prayer?",
+"o": [
+"3",
+"4",
+"6",
+"8"
+],
+"exp": "A total of 6 extra takbirs are said across the two rakʿas of the Eid prayer.",
+"src": "Fiqh"
+},
+"q167": {
+"q": "When is tayammum performed?",
+"o": [
+"At any time",
+"When no water is available",
+"At night",
+"For the Friday prayer"
+],
+"exp": "Tayammum is performed when water is unavailable or cannot be used.",
+"src": "An-Nisa 43"
+},
+"q168": {
+"q": "Which of these invalidates the prayer?",
+"o": [
+"Yawning",
+"Sneezing",
+"Speaking",
+"Coughing"
+],
+"exp": "Speaking deliberately during the prayer invalidates it.",
+"src": "Fiqh"
+},
+"q169": {
+"q": "How many obligatory rakʿas is the Asr prayer?",
+"o": [
+"2",
+"3",
+"4",
+"5"
+],
+"exp": "The obligatory part of the Asr prayer is 4 rakʿas.",
+"src": "Fiqh"
+},
+"q170": {
+"q": "How many obligatory rakʿas is the Maghrib prayer?",
+"o": [
+"2",
+"3",
+"4",
+"5"
+],
+"exp": "The obligatory part of the Maghrib prayer is 3 rakʿas.",
+"src": "Fiqh"
+},
+"q171": {
+"q": "What is the first sitting in the prayer called?",
+"o": [
+"Qaʿda al-akhira",
+"Qaʿda al-ula",
+"At-tahiyyat",
+"Salli-Barik"
+],
+"exp": "The first sitting is called 'qaʿda al-ula'.",
+"src": "Fiqh"
+},
+"q172": {
+"q": "When is the 'prostration of forgetfulness' performed in prayer?",
+"o": [
+"In every prayer",
+"When a mistake occurs",
+"In obligatory prayers",
+"In sunna prayers"
+],
+"exp": "The prostration of forgetfulness is performed when a mistake occurs in the prayer.",
+"src": "Fiqh"
+},
+"q173": {
+"q": "Which of these is a recommended (mustahabb) prayer?",
+"o": [
+"The Duha prayer",
+"The Fajr prayer",
+"The Dhuhr prayer",
+"The Friday prayer"
+],
+"exp": "The Duha (forenoon) prayer is among the recommended prayers.",
+"src": "Fiqh"
+},
+"q174": {
+"q": "Before the Kaʿba, in which direction was the prayer offered?",
+"o": [
+"Toward the Kaʿba",
+"Toward Al-Aqsa Mosque",
+"Toward the east",
+"Toward the west"
+],
+"exp": "The first qibla was Al-Aqsa Mosque in Jerusalem.",
+"src": "Al-Baqara 144"
+},
+"q175": {
+"q": "When was the qibla changed from Al-Aqsa to the Kaʿba?",
+"o": [
+"1st year of the Hijra",
+"2nd year of the Hijra",
+"3rd year of the Hijra",
+"10th year of the mission"
+],
+"exp": "The qibla was turned toward the Kaʿba in the 2nd year of the Hijra.",
+"src": "Al-Baqara 144"
+},
+"q176": {
+"q": "In which Hijri year was fasting in Ramadan made obligatory?",
+"o": [
+"1st year of the Hijra",
+"2nd year of the Hijra",
+"3rd year of the Hijra",
+"4th year of the Hijra"
+],
+"exp": "Fasting in Ramadan was made obligatory in the 2nd year of the Hijra.",
+"src": "Al-Baqara 183"
+},
+"q177": {
+"q": "In which surah is the Night of Power mentioned?",
+"o": [
+"Al-Baqara",
+"Ad-Dukhan",
+"Al-Qadr",
+"Al-Muzzammil"
+],
+"exp": "The Night of Power is described in Surah Al-Qadr.",
+"src": "Surah Al-Qadr"
+},
+"q178": {
+"q": "How many days does Eid al-Fitr last?",
+"o": [
+"1",
+"2",
+"3",
+"4"
+],
+"exp": "Eid al-Fitr lasts 3 days.",
+"src": "Fiqh"
+},
+"q179": {
+"q": "In which month is the Tarawih prayer performed?",
+"o": [
+"Shaʿban",
+"Ramadan",
+"Shawwal",
+"Every month"
+],
+"exp": "Tarawih is a sunna prayer performed during the month of Ramadan.",
+"src": "Fiqh"
+},
+"q180": {
+"q": "When should the fitra charity be given?",
+"o": [
+"At the start of Ramadan",
+"Before the Eid prayer",
+"After Eid",
+"At any time"
+],
+"exp": "The fitra should be given before the Eid prayer.",
+"src": "Hadith"
+},
+"q181": {
+"q": "Which act that breaks the fast requires making it up?",
+"o": [
+"Eating forgetfully",
+"Drinking water deliberately",
+"Brushing one's teeth",
+"Applying eye drops"
+],
+"exp": "Eating or drinking deliberately breaks the fast and requires making it up.",
+"src": "Fiqh"
+},
+"q182": {
+"q": "What is iʿtikaf?",
+"o": [
+"Fasting",
+"Staying in the mosque for worship",
+"Praying",
+"Reciting the Qur'an"
+],
+"exp": "Iʿtikaf is staying in the mosque with the intention of worship.",
+"src": "Al-Baqara 187"
+},
+"q183": {
+"q": "Until when may the pre-dawn meal be eaten?",
+"o": [
+"Midnight",
+"The time of imsak (dawn)",
+"Sunrise",
+"The Fajr prayer"
+],
+"exp": "The pre-dawn meal may be eaten until the time of imsak (true dawn).",
+"src": "Al-Baqara 187"
+},
+"q184": {
+"q": "What is required of those unable to fast?",
+"o": [
+"Nothing is required",
+"Fidya (compensation)",
+"Kaffara (expiation)",
+"Charity"
+],
+"exp": "Those unable to fast due to chronic illness and similar reasons give fidya.",
+"src": "Al-Baqara 184"
+},
+"q185": {
+"q": "The Night of Power is equivalent to how much?",
+"o": [
+"100 nights",
+"500 nights",
+"1000 months",
+"10000 nights"
+],
+"exp": "Surah Al-Qadr says it is 'better than a thousand months'. A thousand months is about 83 years.",
+"src": "Al-Qadr 3"
+},
+"q186": {
+"q": "Ramadan is which month of the Hijri calendar?",
+"o": [
+"7th",
+"8th",
+"9th",
+"10th"
+],
+"exp": "Ramadan is the 9th month of the Hijri calendar.",
+"src": "Islamic Calendar"
+},
+"q187": {
+"q": "Is it permissible to use the miswak while fasting?",
+"o": [
+"No",
+"Yes",
+"Only in the morning",
+"Only before noon"
+],
+"exp": "Using the miswak is permissible while fasting.",
+"src": "Hadith"
+},
+"q188": {
+"q": "Performing umra in Ramadan is equal in reward to what?",
+"o": [
+"A prayer",
+"A Hajj",
+"Ten fasts",
+"A hundred charities"
+],
+"exp": "The Prophet said that umra performed in Ramadan equals a Hajj.",
+"src": "Bukhari, Muslim"
+},
+"q189": {
+"q": "What is the expiation (kaffara) for breaking a fast?",
+"o": [
+"30 days of fasting",
+"60 days of fasting",
+"90 days of fasting",
+"120 days of fasting"
+],
+"exp": "The expiation is fasting 60 consecutive days or feeding 60 poor people.",
+"src": "Fiqh"
+},
+"q190": {
+"q": "Which act of worship is especially performed in the last ten days of Ramadan?",
+"o": [
+"Zakat",
+"Iʿtikaf",
+"Sacrifice",
+"Charity"
+],
+"exp": "Entering iʿtikaf during the last ten days of Ramadan is a sunna.",
+"src": "Bukhari"
+},
+"q191": {
+"q": "With which supplication is the fast broken?",
+"o": [
+"The Basmala",
+"Allahumma laka sumtu...",
+"Alhamdulillah",
+"Subhanallah"
+],
+"exp": "'Allahumma laka sumtu wa bika amantu wa alayka tawakkaltu wa ala rizqika aftartu'",
+"src": "Hadith"
+},
+"q192": {
+"q": "May pregnant and nursing women fast?",
+"o": [
+"They must certainly fast",
+"They may abstain and make it up later",
+"They must never fast",
+"Only half a day"
+],
+"exp": "If there is concern for health, they may abstain and make the fast up later.",
+"src": "Fiqh"
+},
+"q193": {
+"q": "Which are the three sacred months?",
+"o": [
+"Rajab, Shaʿban, Ramadan",
+"Muharram, Safar, Rabiʿ al-Awwal",
+"Shawwal, Dhul-Qaʿda, Dhul-Hijja",
+"Jumada al-Ula, Jumada al-Akhira, Rajab"
+],
+"exp": "The three blessed months are Rajab, Shaʿban and Ramadan.",
+"src": "Islamic Calendar"
+},
+"q194": {
+"q": "In which month is the Night of Baraʾa observed?",
+"o": [
+"Rajab",
+"Shaʿban",
+"Ramadan",
+"Muharram"
+],
+"exp": "The Night of Baraʾa is the 15th night of the month of Shaʿban.",
+"src": "Islamic Calendar"
+},
+"q195": {
+"q": "When is the time of iftar?",
+"o": [
+"The time of the Maghrib prayer",
+"The Asr time",
+"The Isha time",
+"When the sun sets"
+],
+"exp": "Iftar is taken at sunset, with the Maghrib call to prayer.",
+"src": "Hadith"
+},
+"q196": {
+"q": "How many are the pillars of Islam?",
+"o": [
+"3",
+"4",
+"5",
+"6"
+],
+"exp": "The pillars of Islam are 5: the testimony of faith, prayer, fasting, zakat and Hajj.",
+"src": "Bukhari"
+},
+"q197": {
+"q": "How many are the articles of faith?",
+"o": [
+"4",
+"5",
+"6",
+"7"
+],
+"exp": "The articles of faith are 6.",
+"src": "Bukhari, Iman"
+},
+"q198": {
+"q": "What is the zakat threshold (nisab) for gold?",
+"o": [
+"20 mithqal (80.18 g)",
+"40 mithqal",
+"10 mithqal",
+"50 mithqal"
+],
+"exp": "The zakat threshold for gold is 20 mithqal (about 80.18 grams).",
+"src": "Fiqh"
+},
+"q199": {
+"q": "In which month is the Hajj performed?",
+"o": [
+"Shawwal",
+"Dhul-Qaʿda",
+"Dhul-Hijja",
+"Muharram"
+],
+"exp": "The Hajj is performed in the month of Dhul-Hijja.",
+"src": "Al-Baqara 197"
+},
+"q200": {
+"q": "How many days does Eid al-Adha last?",
+"o": [
+"2",
+"3",
+"4",
+"5"
+],
+"exp": "Eid al-Adha lasts 4 days.",
+"src": "Fiqh"
+},
+"q201": {
+"q": "Which of these is one of the four great school founders?",
+"o": [
+"Imam al-Ghazali",
+"Imam al-Bukhari",
+"Imam ash-Shafi'i",
+"Imam as-Suyuti"
+],
+"exp": "The four great schools are Hanafi, Shafi'i, Maliki and Hanbali.",
+"src": "Fiqh"
+},
+"q202": {
+"q": "Who founded the Hanafi school?",
+"o": [
+"Imam Malik",
+"Imam ash-Shafi'i",
+"Imam Ahmad",
+"Imam Abu Hanifa"
+],
+"exp": "The Hanafi school was founded by Imam al-Aʿzam Abu Hanifa.",
+"src": "Fiqh"
+},
+"q203": {
+"q": "What percentage of wealth is zakat?",
+"o": [
+"1%",
+"2.5%",
+"5%",
+"10%"
+],
+"exp": "Zakat is one-fortieth of wealth, that is 2.5%.",
+"src": "Fiqh"
+},
+"q204": {
+"q": "How many times in a lifetime is Hajj obligatory?",
+"o": [
+"Every year",
+"Twice",
+"Once",
+"Three times"
+],
+"exp": "Hajj is obligatory once in a lifetime for every Muslim who is able.",
+"src": "Al 'Imran 97"
+},
+"q205": {
+"q": "How many circuits around the Kaʿba make up the tawaf?",
+"o": [
+"3",
+"5",
+"7",
+"9"
+],
+"exp": "The tawaf consists of circling the Kaʿba 7 times.",
+"src": "Fiqh"
+},
+"q206": {
+"q": "What is saʿy?",
+"o": [
+"Circling the Kaʿba",
+"Walking between Safa and Marwa",
+"Standing at Arafat",
+"Spending the night at Muzdalifa"
+],
+"exp": "Saʿy is walking 7 times between the hills of Safa and Marwa.",
+"src": "Al-Baqara 158"
+},
+"q207": {
+"q": "When is the ʿaqiqa sacrifice offered?",
+"o": [
+"In Ramadan",
+"When a child is born",
+"On marriage",
+"At Eid"
+],
+"exp": "The ʿaqiqa is a sacrifice offered when a child is born, on the 7th day.",
+"src": "Hadith"
+},
+"q208": {
+"q": "How many are the obligatory acts of the ritual bath (ghusl)?",
+"o": [
+"2",
+"3",
+"4",
+"5"
+],
+"exp": "The obligatory acts of ghusl are 3: rinsing the mouth, rinsing the nose, and washing the whole body.",
+"src": "Fiqh"
+},
+"q209": {
+"q": "What is ihram?",
+"o": [
+"Prayer clothing",
+"The garment worn for Hajj",
+"A funeral shroud",
+"Festival clothing"
+],
+"exp": "Ihram is the seamless garment worn for Hajj or umra.",
+"src": "Fiqh"
+},
+"q210": {
+"q": "In inheritance law, a woman's share is how much of a man's?",
+"o": [
+"Equal",
+"Half",
+"One third",
+"One quarter"
+],
+"exp": "As a general rule a woman's share is half that of a man, though there are exceptions.",
+"src": "An-Nisa 11"
+},
+"q211": {
+"q": "Which is a condition of the marriage contract?",
+"o": [
+"The dower (mahr)",
+"Witnesses",
+"Offer and acceptance",
+"All of these"
+],
+"exp": "The conditions of marriage are offer and acceptance, witnesses, the dower, and the guardian's consent.",
+"src": "Fiqh"
+},
+"q212": {
+"q": "To whom may zakat NOT be given?",
+"o": [
+"The poor",
+"One's parents",
+"Orphans",
+"Stranded travellers"
+],
+"exp": "Zakat may not be given to one's ascendants (parents) or descendants (children).",
+"src": "Fiqh"
+},
+"q213": {
+"q": "For what purpose is the istikhara prayer performed?",
+"o": [
+"For sins",
+"To seek guidance toward what is best",
+"For gratitude",
+"For a funeral"
+],
+"exp": "The istikhara prayer is performed to ask Allah for what is best in a matter.",
+"src": "Bukhari"
+},
+"q214": {
+"q": "At minimum, how much of the Qur'an must be recited in the prayer?",
+"o": [
+"1 verse",
+"3 short verses",
+"Al-Fatiha + 3 verses",
+"Al-Fatiha only"
+],
+"exp": "According to the Hanafi school, at least 3 short verses or 1 long verse should be recited after Al-Fatiha.",
+"src": "Fiqh"
+},
+"q215": {
+"q": "Which act of worship is prohibited for women during menstruation?",
+"o": [
+"Supplication",
+"Remembrance of Allah",
+"Performing the prayer",
+"Listening to the Qur'an"
+],
+"exp": "Performing the prayer and fasting are prohibited during menstruation.",
+"src": "Fiqh"
+},
+"q216": {
+"q": "Which Muslim scholar is considered the founder of algebra?",
+"o": [
+"Ibn Sina",
+"Al-Khwarizmi",
+"Al-Biruni",
+"Al-Farabi"
+],
+"exp": "Al-Khwarizmi (780-850) is considered the founder of algebra.",
+"src": "History of Islamic Science"
+},
+"q217": {
+"q": "In which field is Ibn Sina renowned?",
+"o": [
+"Astronomy",
+"Medicine",
+"Mathematics",
+"History"
+],
+"exp": "Ibn Sina (980-1037) is renowned in medicine for his work 'The Canon of Medicine'.",
+"src": "History of Islamic Science"
+},
+"q218": {
+"q": "Which Muslim scholar pioneered the science of optics?",
+"o": [
+"Al-Biruni",
+"Ibn al-Haytham",
+"Al-Farabi",
+"Jabir ibn Hayyan"
+],
+"exp": "Ibn al-Haytham (965-1040) is regarded as the pioneer of optics.",
+"src": "History of Islamic Science"
+},
+"q219": {
+"q": "Who is regarded as the first Muslim chemist?",
+"o": [
+"Al-Khwarizmi",
+"Al-Biruni",
+"Jabir ibn Hayyan",
+"Ibn Sina"
+],
+"exp": "Jabir ibn Hayyan (721-815) is regarded as the father of modern chemistry.",
+"src": "History of Islamic Science"
+},
+"q220": {
+"q": "Who built the Selimiye Mosque?",
+"o": [
+"Sinan",
+"Davud Agha",
+"Mehmed Agha",
+"Kasim Agha"
+],
+"exp": "The architect Sinan built the Selimiye Mosque as his masterwork.",
+"src": "Ottoman Architecture"
+},
+"q221": {
+"q": "In which city is the Suleymaniye Mosque?",
+"o": [
+"Edirne",
+"Ankara",
+"Istanbul",
+"Bursa"
+],
+"exp": "The Suleymaniye Mosque in Istanbul is a work of the architect Sinan.",
+"src": "Ottoman Architecture"
+},
+"q222": {
+"q": "What was the 'House of Wisdom' in Islamic civilization?",
+"o": [
+"A mosque",
+"A library and academy",
+"A hospital",
+"A palace"
+],
+"exp": "The House of Wisdom was the great centre of learning and translation in Baghdad.",
+"src": "Islamic Civilization"
+},
+"q223": {
+"q": "Ibn Khaldun is considered the founder of which discipline?",
+"o": [
+"Philosophy",
+"Sociology",
+"Chemistry",
+"Medicine"
+],
+"exp": "Ibn Khaldun (1332-1406) is the founder of sociology and the philosophy of history.",
+"src": "History of Islamic Thought"
+},
+"q224": {
+"q": "What is the 'Muʿallaqat al-Sabʿ'?",
+"o": [
+"7 books of hadith",
+"7 famous Arabic poems",
+"7 Islamic states",
+"7 scholars"
+],
+"exp": "The Muʿallaqat al-Sabʿ are 7 celebrated Arabic odes from the pre-Islamic period.",
+"src": "Arabic Literature"
+},
+"q225": {
+"q": "What does 'kulliye' mean in Turkish-Islamic architecture?",
+"o": [
+"A single mosque",
+"A complex of buildings centred on a mosque",
+"A palace",
+"A fortress"
+],
+"exp": "A kulliye includes a madrasa, bathhouse, soup kitchen and other buildings around a mosque.",
+"src": "Islamic Architecture"
+},
+"q226": {
+"q": "Who established the first Islamic hospital?",
+"o": [
+"Harun al-Rashid",
+"Walid ibn Abd al-Malik",
+"Abu Bakr al-Razi",
+"Ibn Sina"
+],
+"exp": "The first Islamic hospital was established during the reign of the Umayyad caliph Walid ibn Abd al-Malik.",
+"src": "Islamic Civilization"
+},
+"q227": {
+"q": "By which epithet is Al-Farabi known?",
+"o": [
+"The Second Teacher",
+"The Great Physician",
+"The Sage of Sages",
+"The Sultan of Scholars"
+],
+"exp": "Al-Farabi was given the epithet 'al-Muʿallim al-Thani', the Second Teacher.",
+"src": "Islamic Philosophy"
+},
+"q228": {
+"q": "Which script is most widely used in the art of calligraphy?",
+"o": [
+"Kufic",
+"Naskh",
+"Thuluth",
+"Taʿliq"
+],
+"exp": "The Naskh script is the most widely used style for writing the Qur'an.",
+"src": "Islamic Art"
+},
+"q229": {
+"q": "For what is Ibn Battuta renowned?",
+"o": [
+"Medicine",
+"Travel",
+"Philosophy",
+"Mathematics"
+],
+"exp": "Ibn Battuta (1304-1369) is the famed traveller who journeyed some 75,000 miles.",
+"src": "Islamic Civilization"
+},
+"q230": {
+"q": "Which is Al-Ghazali's most famous work?",
+"o": [
+"The Canon of Medicine",
+"Ihya 'Ulum al-Din",
+"The Muqaddima",
+"Kitab al-Shifa"
+],
+"exp": "Imam al-Ghazali's most famous work is 'Ihya 'Ulum al-Din'.",
+"src": "History of Islamic Thought"
+},
+"q231": {
+"q": "In which city did Mawlana Jalal ad-Din Rumi live?",
+"o": [
+"Istanbul",
+"Baghdad",
+"Konya",
+"Damascus"
+],
+"exp": "Rumi lived in Konya and wrote the Mathnawi there.",
+"src": "Sufism"
+},
+"q232": {
+"q": "Which is the architect Sinan's apprentice work?",
+"o": [
+"Suleymaniye",
+"Selimiye",
+"The Sehzade Mosque",
+"Sultan Ahmed"
+],
+"exp": "The Sehzade Mosque is the apprentice work of the architect Sinan.",
+"src": "Ottoman Architecture"
+},
+"q233": {
+"q": "For roughly how many centuries did Muslims remain in Andalusia?",
+"o": [
+"3",
+"5",
+"8",
+"10"
+],
+"exp": "Muslims remained in Andalusia for roughly 800 years (711-1492).",
+"src": "Islamic History"
+},
+"q234": {
+"q": "In which field is Al-Biruni considered a pioneer?",
+"o": [
+"Medicine",
+"Geography and geodesy",
+"Philosophy",
+"Literature"
+],
+"exp": "Al-Biruni (973-1048) was a pioneer in geography, astronomy and geodesy.",
+"src": "History of Islamic Science"
+},
+"q235": {
+"q": "Where was the first paper mill in the Muslim world established?",
+"o": [
+"Damascus",
+"Baghdad",
+"Samarkand",
+"Cairo"
+],
+"exp": "The first Islamic paper mill was established in Samarkand in the 8th century.",
+"src": "Islamic Civilization"
+},
+"q236": {
+"q": "What is the qibla of the Muslims?",
+"o": [
+"Al-Aqsa Mosque",
+"The Prophet's Mosque",
+"The Kaʿba",
+"Medina"
+],
+"exp": "The qibla of the Muslims is the Kaʿba in Mecca.",
+"src": "Al-Baqara 144"
+},
+"q237": {
+"q": "In which year was Prophet Muhammad born?",
+"o": [
+"570 CE",
+"571 CE",
+"572 CE",
+"573 CE"
+],
+"exp": "Prophet Muhammad (pbuh) was born in Mecca in 571 (the Year of the Elephant).",
+"src": "Sira"
+},
+"q238": {
+"q": "What is the holiest place in Islam?",
+"o": [
+"Al-Aqsa Mosque",
+"The Prophet's Mosque",
+"The Kaʿba",
+"Arafat"
+],
+"exp": "The Kaʿba is the holiest place in Islam.",
+"src": "Qur'an"
+},
+"q239": {
+"q": "Which country has the largest Muslim population?",
+"o": [
+"Saudi Arabia",
+"Türkiye",
+"Egypt",
+"Indonesia"
+],
+"exp": "Indonesia is the most populous Muslim country with over 230 million Muslims.",
+"src": "Statistics"
+},
+"q240": {
+"q": "With which event does the Hijri calendar begin?",
+"o": [
+"The birth of the Prophet",
+"The Hijra",
+"The Conquest of Mecca",
+"The first revelation"
+],
+"exp": "The Hijri calendar begins with the Prophet's migration to Medina.",
+"src": "Islamic History"
+},
+"q241": {
+"q": "What is the Kalima at-Tawhid?",
+"o": [
+"Allahu Akbar",
+"Subhanallah",
+"La ilaha illallah Muhammadur Rasulullah",
+"Alhamdulillah"
+],
+"exp": "'La ilaha illallah Muhammadur Rasulullah' is the fundamental statement of Islamic belief.",
+"src": "Hadith"
+},
+"q242": {
+"q": "Which drink is forbidden in Islam?",
+"o": [
+"Tea",
+"Coffee",
+"Alcohol",
+"Milk"
+],
+"exp": "Alcohol is strictly forbidden in Islam.",
+"src": "Al-Ma'ida 90"
+},
+"q243": {
+"q": "On which day is the standing at Arafat performed?",
+"o": [
+"8 Dhul-Hijja",
+"9 Dhul-Hijja",
+"10 Dhul-Hijja",
+"11 Dhul-Hijja"
+],
+"exp": "The standing at Arafat takes place on the 9th of Dhul-Hijja, the Day of Arafa.",
+"src": "Fiqh"
+},
+"q244": {
+"q": "In which city was Prophet Muhammad born?",
+"o": [
+"Medina",
+"Taif",
+"Mecca",
+"Jerusalem"
+],
+"exp": "Prophet Muhammad was born in Mecca.",
+"src": "Sira"
+},
+"q245": {
+"q": "Where was the first call to prayer given in Islam?",
+"o": [
+"Mecca",
+"Medina",
+"Jerusalem",
+"Taif"
+],
+"exp": "The first adhan was given in Medina by Bilal.",
+"src": "Sira"
+},
+"q246": {
+"q": "Where in the prayer is the Subhanaka supplication recited?",
+"o": [
+"While bowing",
+"While prostrating",
+"After the opening takbir",
+"In the final sitting"
+],
+"exp": "Subhanaka is recited after the opening takbir.",
+"src": "Fiqh"
+},
+"q247": {
+"q": "What does 'as-Sirat' mean in Islam?",
+"o": [
+"The path to Paradise",
+"The bridge over Hellfire",
+"Arafat",
+"The plain of gathering"
+],
+"exp": "As-Sirat is the bridge over Hellfire.",
+"src": "Creed"
+},
+"q248": {
+"q": "What does belief in the angels require in Islam?",
+"o": [
+"Seeing them",
+"Believing in their existence",
+"Hearing them",
+"Seeing them in dreams"
+],
+"exp": "Belief in angels means believing in their existence.",
+"src": "Al-Baqara 285"
+},
+"q249": {
+"q": "Who are the four great angels?",
+"o": [
+"Jibril, Mikail, Israfil, Azrail",
+"Jibril, Mikail, Munkar, Nakir",
+"Jibril, Ridwan, Malik, Azrail",
+"Jibril, Mikail, Israfil, Kiraman"
+],
+"exp": "The four great angels are Jibril, Mikail, Israfil and Azrail.",
+"src": "Creed"
+},
+"q250": {
+"q": "What is the duty of Israfil?",
+"o": [
+"Bringing revelation",
+"Distributing provision",
+"Blowing the Trumpet",
+"Taking souls"
+],
+"exp": "Israfil is the angel who will blow the Trumpet on the Day of Judgment.",
+"src": "Creed"
+},
+"q251": {
+"q": "How many Meccan surahs are there in the Qur'an?",
+"o": [
+"76",
+"86",
+"92",
+"100"
+],
+"exp": "86 surahs were revealed in Mecca and 28 in Medina.",
+"src": "'Ulum al-Qur'an"
+},
+"q252": {
+"q": "Which was the first complete surah revealed?",
+"o": [
+"Al-Fatiha",
+"Al-'Alaq",
+"Al-Muddaththir",
+"Al-Qalam"
+],
+"exp": "Surah Al-Fatiha is the first complete surah revealed, according to some views.",
+"src": "Tafsir"
+},
+"q253": {
+"q": "Who was the foster sister of Prophet Muhammad?",
+"o": [
+"Hamza",
+"Abdullah ibn Abi Bakr",
+"Shayma",
+"Ali"
+],
+"exp": "Shayma, the daughter of Halima, was the Prophet's foster sister.",
+"src": "Sira"
+},
+"q254": {
+"q": "Which caliph was a son-in-law of the Prophet?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Uthman and Ali",
+"Only Ali"
+],
+"exp": "Uthman (Ruqayya and Umm Kulthum) and Ali (Fatima) were sons-in-law of the Prophet.",
+"src": "Sira"
+},
+"q255": {
+"q": "Which Muslim commander fought the first naval battle?",
+"o": [
+"Khalid",
+"Muʿawiya ibn Abi Sufyan",
+"Tariq ibn Ziyad",
+"Saʿd ibn Abi Waqqas"
+],
+"exp": "The first Islamic naval battle was fought by Muʿawiya during the era of Uthman.",
+"src": "Islamic History"
+},
+"q256": {
+"q": "In which book does the hadith 'Purity is half of faith' appear?",
+"o": [
+"Bukhari",
+"Muslim",
+"At-Tirmidhi",
+"An-Nasa'i"
+],
+"exp": "This hadith appears in Sahih Muslim.",
+"src": "Muslim"
+},
+"q257": {
+"q": "How many distinct phrases does the adhan contain?",
+"o": [
+"5",
+"7",
+"9",
+"15"
+],
+"exp": "The adhan contains 7 distinct phrases, some of which are repeated.",
+"src": "Fiqh"
+},
+"q258": {
+"q": "What does 'fatwa' mean in Islamic law?",
+"o": [
+"A statute",
+"Issuing a religious ruling",
+"Adjudication",
+"A penalty"
+],
+"exp": "A fatwa is a scholar's considered opinion on a religious matter.",
+"src": "Fiqh"
+},
+"q259": {
+"q": "In which field is Ibn Rushd renowned?",
+"o": [
+"Medicine",
+"Philosophy and law",
+"Astronomy",
+"Literature"
+],
+"exp": "Ibn Rushd (1126-1198) is renowned in philosophy and Islamic law.",
+"src": "Islamic Philosophy"
+},
+"q260": {
+"q": "What does 'Miʿraj' mean in Islam?",
+"o": [
+"The migration",
+"The ascension to the heavens",
+"A battle",
+"Revelation"
+],
+"exp": "The Miʿraj is the Prophet's ascension to the heavens.",
+"src": "Al-Isra 1"
+},
+"q261": {
+"q": "What does 'Al-Baqara' mean?",
+"o": [
+"Camel",
+"Cow",
+"Horse",
+"Sheep"
+],
+"exp": "Al-Baqara means the cow.",
+"src": "Surah Al-Baqara"
+},
+"q262": {
+"q": "Which fruit is mentioned as a fruit of Paradise in the Qur'an?",
+"o": [
+"Apple",
+"Grapes",
+"Dates",
+"All of these"
+],
+"exp": "The Qur'an mentions grapes, dates, pomegranates and olives among the blessings of Paradise.",
+"src": "Surah Ar-Rahman"
+},
+"q263": {
+"q": "Why was Prophet Adam removed from the Garden?",
+"o": [
+"For not praying",
+"For approaching the forbidden tree",
+"For arrogance",
+"For lying"
+],
+"exp": "Prophet Adam and his wife were removed from the Garden for approaching the forbidden tree.",
+"src": "Al-Baqara 35-36"
+},
+"q264": {
+"q": "Who was the first martyr of Islam?",
+"o": [
+"Hamza",
+"Sumayya",
+"Yasir",
+"Bilal"
+],
+"exp": "Sumayya was the first woman martyr of Islam.",
+"src": "Sira"
+},
+"q265": {
+"q": "When did Andalusia fall?",
+"o": [
+"1453",
+"1492",
+"1517",
+"1299"
+],
+"exp": "Granada, the last Islamic state in Andalusia, fell in 1492.",
+"src": "Islamic History"
+},
+"q266": {
+"q": "How many meals a day did the Prophet eat?",
+"o": [
+"1",
+"2",
+"3",
+"Irregularly"
+],
+"exp": "The Prophet generally ate two meals a day, morning and evening.",
+"src": "Hadith"
+},
+"q267": {
+"q": "When is the Tahajjud prayer performed?",
+"o": [
+"In the morning",
+"After the middle of the night",
+"At Asr",
+"At Dhuhr"
+],
+"exp": "Tahajjud is a voluntary prayer performed after waking during the night.",
+"src": "Al-Isra 79"
+},
+"q268": {
+"q": "What is the tradition of reciting the whole Qur'an together in Ramadan called?",
+"o": [
+"Mukabala",
+"Khatm",
+"Tajwid",
+"Tilawa"
+],
+"exp": "Mukabala is the tradition of reciting the Qur'an together in Ramadan.",
+"src": "Tradition"
+},
+"q269": {
+"q": "What does 'sadaqa jariya' mean?",
+"o": [
+"Obligatory charity",
+"Charity that brings continuous reward",
+"Secret charity",
+"Festival charity"
+],
+"exp": "Sadaqa jariya is charity of lasting benefit, such as a fountain or a mosque.",
+"src": "Muslim"
+},
+"q270": {
+"q": "What is the name of Ibn Sina's book on medicine?",
+"o": [
+"Ihya",
+"The Canon of Medicine (al-Qanun fi't-Tibb)",
+"The Muqaddima",
+"Kitab al-Shifa"
+],
+"exp": "The Canon of Medicine was used as a medical textbook in Europe for centuries.",
+"src": "History of Islamic Science"
+},
+"q271": {
+"q": "What does 'Bismillah' mean?",
+"o": [
+"Allah is greatest",
+"In the name of Allah",
+"Praise be to Allah",
+"There is no god but Allah"
+],
+"exp": "Bismillah means 'in the name of Allah'.",
+"src": "Qur'an"
+},
+"q272": {
+"q": "What does 'shirk' mean in Islam?",
+"o": [
+"Committing a sin",
+"Associating partners with Allah",
+"Lying",
+"Theft"
+],
+"exp": "Shirk is associating partners with Allah and is the gravest sin.",
+"src": "An-Nisa 48"
+},
+"q273": {
+"q": "What is the covering of the Kaʿba called?",
+"o": [
+"Ihram",
+"Kiswa",
+"Kiswah",
+"Sitara"
+],
+"exp": "The black covering of the Kaʿba is called the 'Kiswa'.",
+"src": "Islamic Culture"
+},
+"q274": {
+"q": "How many people were saved aboard Prophet Nuh's ark according to the Qur'an?",
+"o": [
+"10",
+"40",
+"80",
+"No exact number is given"
+],
+"exp": "The Qur'an does not state an exact number of those aboard Prophet Nuh's ark.",
+"src": "Hud 40"
+},
+"q275": {
+"q": "Where did Prophet Isma'il live?",
+"o": [
+"Jerusalem",
+"Mecca",
+"Medina",
+"Damascus"
+],
+"exp": "Prophet Isma'il and his mother Hajar lived in Mecca.",
+"src": "Ibrahim 37"
+},
+"q276": {
+"q": "Where is the Mosque of the Two Qiblas?",
+"o": [
+"Mecca",
+"Medina",
+"Jerusalem",
+"Taif"
+],
+"exp": "Masjid al-Qiblatayn (the mosque of the two qiblas) is in Medina.",
+"src": "Sira"
+},
+"q277": {
+"q": "In which year was the Abbasid State founded?",
+"o": [
+"632",
+"661",
+"750",
+"1258"
+],
+"exp": "The Abbasid State was founded in the year 750.",
+"src": "Islamic History"
+},
+"q278": {
+"q": "What does the hadith 'None of you should sleep full while his neighbour is hungry' emphasise?",
+"o": [
+"Fasting",
+"Social justice",
+"Prayer",
+"Zakat"
+],
+"exp": "This hadith emphasises Islam's principle of social solidarity and justice.",
+"src": "Hadith"
+},
+"q279": {
+"q": "What does 'qawma' mean in the prayer?",
+"o": [
+"Sitting",
+"Rising from the bowing",
+"Going into prostration",
+"Standing upright"
+],
+"exp": "Qawma is rising from the bowing and standing upright.",
+"src": "Fiqh"
+},
+"q280": {
+"q": "When must the intention to fast be made?",
+"o": [
+"At iftar time",
+"Before midnight",
+"Before the time of imsak",
+"At the Fajr prayer"
+],
+"exp": "The intention to fast must be made during the night, before the time of imsak.",
+"src": "Fiqh"
+},
+"q281": {
+"q": "What is the ruling on riba (interest) in Islam?",
+"o": [
+"Disliked",
+"Forbidden",
+"Permissible",
+"Recommended"
+],
+"exp": "Interest is strictly forbidden in Islam.",
+"src": "Al-Baqara 275"
+},
+"q282": {
+"q": "During which sultan's reign was Topkapi Palace built?",
+"o": [
+"Suleiman the Magnificent",
+"Sultan Mehmed the Conqueror",
+"Selim I",
+"Mehmed II"
+],
+"exp": "Topkapi Palace was built by Sultan Mehmed the Conqueror.",
+"src": "Ottoman History"
+},
+"q283": {
+"q": "What does 'tawba' mean in Islam?",
+"o": [
+"Committing a sin",
+"Turning back from sin toward Allah",
+"Praying",
+"Supplicating"
+],
+"exp": "Tawba is regretting sin and turning back to Allah.",
+"src": "Surah At-Tawba"
+},
+"q284": {
+"q": "Which Companion is mentioned by name in the Qur'an?",
+"o": [
+"Abu Bakr",
+"Umar",
+"Zayd ibn Haritha",
+"Ali"
+],
+"exp": "The only Companion mentioned by name in the Qur'an is Zayd ibn Haritha.",
+"src": "Al-Ahzab 37"
+},
+"q285": {
+"q": "Which miracle did the staff of Prophet Musa display?",
+"o": [
+"Turning into a serpent",
+"Parting the sea",
+"Bringing water from a rock",
+"All of these"
+],
+"exp": "The staff of Prophet Musa displayed miracles such as turning into a serpent, parting the sea and bringing water from a rock.",
+"src": "Qur'an"
+},
+"q286": {
+"q": "Who delivered the first Friday sermon?",
+"o": [
+"Prophet Muhammad",
+"Abu Bakr",
+"Asʿad ibn Zurara",
+"Umar"
+],
+"exp": "According to one report, the first Friday sermon in Medina was delivered by Asʿad ibn Zurara.",
+"src": "Sira"
+},
+"q287": {
+"q": "In which year did the Ottoman State come to an end?",
+"o": [
+"1918",
+"1920",
+"1922",
+"1924"
+],
+"exp": "The Ottoman sultanate was abolished in 1922.",
+"src": "History"
+},
+"q288": {
+"q": "What does 'Alhamdulillah' mean?",
+"o": [
+"Allah is greatest",
+"In the name of Allah",
+"All praise belongs to Allah",
+"There is no god but Allah"
+],
+"exp": "Alhamdulillah means 'all praise belongs to Allah'.",
+"src": "Al-Fatiha 1"
+},
+"q289": {
+"q": "Upon whom is the funeral prayer obligatory in Islam?",
+"o": [
+"Upon everyone",
+"It is a communal obligation",
+"Only upon the family",
+"Only upon men"
+],
+"exp": "The funeral prayer is a communal obligation; if a group performs it, the rest are absolved.",
+"src": "Fiqh"
+},
+"q290": {
+"q": "What is the Prophet's mosque in Medina called?",
+"o": [
+"Al-Masjid al-Haram",
+"Al-Masjid an-Nabawi",
+"Al-Masjid al-Aqsa",
+"The Quba Mosque"
+],
+"exp": "The Prophet's mosque in Medina is called Al-Masjid an-Nabawi.",
+"src": "Sira"
+},
+"q291": {
+"q": "What does 'al-ʿArsh' mean in the Qur'an?",
+"o": [
+"The sky",
+"The Throne of Allah",
+"Paradise",
+"The world"
+],
+"exp": "Al-ʿArsh is described as the exalted Throne of Allah.",
+"src": "Qur'an"
+},
+"q292": {
+"q": "For how many years did Prophet Nuh call his people?",
+"o": [
+"120",
+"500",
+"950",
+"1000"
+],
+"exp": "According to the Qur'an, Prophet Nuh called his people for 950 years.",
+"src": "Al-'Ankabut 14"
+},
+"q293": {
+"q": "How long was Abu Bakr's caliphate?",
+"o": [
+"1 year",
+"2 years",
+"5 years",
+"10 years"
+],
+"exp": "Abu Bakr served as caliph for roughly 2 years (632-634).",
+"src": "Islamic History"
+},
+"q294": {
+"q": "Which commander conquered Andalusia?",
+"o": [
+"Khalid ibn al-Walid",
+"Tariq ibn Ziyad",
+"Amr ibn al-As",
+"Saʿd ibn Abi Waqqas"
+],
+"exp": "Tariq ibn Ziyad crossed at Gibraltar and conquered Spain in 711.",
+"src": "Islamic History"
+},
+"q295": {
+"q": "What does 'taʿdil al-arkan' mean in the prayer?",
+"o": [
+"Praying quickly",
+"Performing each pillar properly",
+"Reciting silently",
+"Reciting aloud"
+],
+"exp": "Taʿdil al-arkan is performing every pillar of the prayer calmly and properly.",
+"src": "Fiqh"
+},
+"q296": {
+"q": "From which metals were the first Islamic coins made?",
+"o": [
+"Gold and silver",
+"Copper",
+"Iron",
+"Bronze"
+],
+"exp": "The first Islamic coins were minted in gold (dinar) and silver (dirham).",
+"src": "Islamic Civilization"
+},
+"q297": {
+"q": "Which Companion did the Prophet love most?",
+"o": [
+"Umar",
+"Ali",
+"Abu Bakr",
+"Uthman"
+],
+"exp": "The Prophet described Abu Bakr as the friend he loved most.",
+"src": "Bukhari"
+},
+"q298": {
+"q": "What is a person who has memorised the whole Qur'an called?",
+"o": [
+"ʿAlim",
+"Hafiz",
+"Mufassir",
+"Muhaddith"
+],
+"exp": "A person who has memorised the Qur'an from beginning to end is called a 'Hafiz'.",
+"src": "Qur'anic Sciences"
+},
+"q299": {
+"q": "What does 'Allahu Akbar' mean?",
+"o": [
+"Allah is one",
+"Allah is the greatest",
+"Allah is merciful",
+"Allah is everywhere"
+],
+"exp": "Allahu Akbar means 'Allah is the greatest'.",
+"src": "Qur'an"
+},
+"q300": {
+"q": "What does 'Mahshar' mean in Islam?",
+"o": [
+"Paradise",
+"Hellfire",
+"The place of gathering on the Day of Judgment",
+"The Sirat bridge"
+],
+"exp": "Mahshar is the place where all people will be gathered on the Day of Judgment.",
+"src": "Creed"
+}
+}
