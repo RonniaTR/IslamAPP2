@@ -9,11 +9,15 @@ import { fetchWithCache } from '../services/cache';
 import api from '../api';
 import { SADE_TEMALAR, getSadeTema, setSadeTema, sa } from '../sade/themes';
 import SadeKapi from '../components/sade/SadeKapi';
+import MuhurIsareti from '../components/sade/MuhurIsareti';
 import nabiz, {
   VAKITLER, kilinanlar, namazIsaretle, acilisKaydet,
   gununEksenleri, nabizPuani, gununCumlesi, haftaninOkumasi,
 } from '../services/nabiz';
 import { getTodayPlan, isTaskDone, toggleTask, TASK_POOL, getProfile } from '../services/pathEngine';
+import { muhurVaktiGeldi, bugunMuhurlu, muhurSerisi } from '../services/gunMuhru';
+import { bugununHatirasi } from '../services/hatira';
+import { gununAni } from '../services/ritim';
 
 // 🌗 SADE — uygulamanın ön yüzü
 //
@@ -58,6 +62,88 @@ function kalanMetin(dk) {
   if (dk == null) return '';
   const s = Math.floor(dk / 60), m = dk % 60;
   return s ? `${s} sa ${m} dk` : `${m} dk`;
+}
+
+/* ══════════════ Gün Mührü çağrısı ══════════════ */
+// Üç durumu vardır ve üçü de görünür:
+//   kapalı  — yatsı gelmedi, mühür kilitli ama VARLIĞI bilinir (keşif)
+//   açık    — vakti geldi, tek düğme
+//   basılı  — gün mühürlendi, sessiz bir iz ve seri
+function MuhurKarti({ r, tema, tt, navigate, isha, hat }) {
+  const basildi = bugunMuhurlu();
+  const acik = muhurVaktiGeldi(isha || '21:00');
+  const seri = muhurSerisi();
+  const kutu = hat
+    ? { border: `1px solid ${acik ? r.cizgiKoyu : r.cizgi}`, borderRadius: 14, background: acik ? sa(r.vurgu, 0.07) : 'transparent' }
+    : { border: `1.5px solid ${acik ? r.vurgu : r.cizgi}`, borderRadius: 22, background: acik ? sa(r.vurgu, 0.1) : sa(r.vurgu, 0.04) };
+
+  if (basildi) {
+    return (
+      <div className="flex items-center gap-3 p-3.5" style={kutu}>
+        <span className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+          style={{ background: r.vurgu }}>
+          <MuhurIsareti renk={r.uzeri} boyut={19} kalinlik={1.5} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[12.5px] font-black" style={{ color: r.metin }}>{tt('Gün mühürlendi')}</span>
+          <span className="block text-[10px] mt-0.5" style={{ color: r.soluk }}>
+            {seri} {tt('gün kesintisiz')}
+          </span>
+        </span>
+        <button onClick={() => navigate('/muhur')} className="text-[10.5px] font-black px-3 py-1.5 rounded-full"
+          style={{ color: r.vurgu, background: sa(r.vurgu, 0.12) }}>{tt('Gör')}</button>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={() => acik && navigate('/muhur')} disabled={!acik}
+      className="w-full flex items-center gap-3 p-3.5 text-left active:scale-98 transition-transform disabled:active:scale-100"
+      style={{ ...kutu, opacity: acik ? 1 : 0.55 }}>
+      <motion.span className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+        animate={acik ? { scale: [1, 1.09, 1] } : {}}
+        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ background: acik ? r.vurgu : sa(r.vurgu, 0.14) }}>
+        <MuhurIsareti renk={acik ? r.uzeri : r.vurgu} boyut={19} kalinlik={1.5} />
+      </motion.span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-[12.5px] font-black" style={{ fontFamily: tema.yaziBaslik, color: r.metin }}>
+          {tt('Günü mühürle')}
+        </span>
+        <span className="block text-[10px] mt-0.5 leading-snug" style={{ color: r.soluk }}>
+          {acik ? tt('Tek soru, tek işaret — yirmi saniye') : `${tt('Yatsıdan sonra açılır')} · ${isha || '21:00'}`}
+        </span>
+      </span>
+      {acik && <ChevronRight size={15} style={{ color: r.vurgu }} />}
+    </button>
+  );
+}
+
+/* ══════════════ Hatıra ══════════════ */
+// Kişinin kendi cümlesi, kendi geçmişinden. Uydurma yoktur; hatıra
+// bulunamazsa kart hiç çizilmez.
+function HatiraKarti({ r, tema, tt, hatira, hat }) {
+  if (!hatira) return null;
+  return (
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5, duration: 0.7 }}
+      className="p-4"
+      style={hat
+        ? { border: `1px solid ${r.cizgi}`, borderRadius: 14 }
+        : { border: `1px solid ${r.cizgi}`, borderRadius: 22, background: sa(r.vurgu, 0.045) }}>
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="text-[13px]">{hatira.simge}</span>
+        <p className="text-[9.5px] font-black uppercase tracking-[0.24em]" style={{ color: r.vurgu }}>
+          {tt(hatira.baslik)}
+        </p>
+      </div>
+      <p className="text-[14px] leading-relaxed"
+        style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: r.metin }}>
+        “{hatira.metin}”
+      </p>
+      <p className="text-[10px] mt-2.5" style={{ color: r.soluk }}>{tt(hatira.altMetin)}</p>
+    </motion.div>
+  );
 }
 
 /* ══════════════ Ana ekran ══════════════ */
@@ -107,6 +193,13 @@ export default function SadeHome() {
   const cumle = gununCumlesi();
   const hafta = haftaninOkumasi();
 
+  const an = useMemo(() => gununAni(), []);
+  const hatira = useMemo(() => bugununHatirasi(), []);
+  const ishaSaat = times?.isha || VARSAYILAN_VAKIT.isha;
+  // Yatsıdan sonra günü kapatmak, yeni bir işe başlamaktan önce gelir:
+  // mühür kartı o saatte adımların ÜSTÜNE çıkar.
+  const muhurOnce = muhurVaktiGeldi(ishaSaat) && !bugunMuhurlu();
+
   const plan = getProfile() ? getTodayPlan() : null;
   const adimlar = useMemo(() => {
     if (!plan) return [];
@@ -148,11 +241,13 @@ export default function SadeHome() {
       <div className="flex items-center gap-2 px-5 pt-5 pb-1 relative z-10">
         <div className="flex-1 min-w-0">
           <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: r.vurgu }}>
-            {tema.simge} {tema.ad}
+            {tema.simge} {tema.ad} <span style={{ opacity: 0.55 }}>· {an.an.simge} {tt(an.an.ad)}</span>
           </p>
           <p className="text-[13px] font-black truncate" style={{ color: r.metin }}>
             {tt('Selamün Aleyküm')}{ad ? `, ${ad}` : ''}
           </p>
+          {/* Ritim — ekran kişinin saatini tanır (services/ritim.js) */}
+          <p className="text-[10.5px] leading-snug mt-0.5" style={{ color: r.soluk }}>{tt(an.cumle)}</p>
         </div>
         <button onClick={() => setTemaAcik(true)}
           className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 transition-transform"
@@ -208,6 +303,12 @@ export default function SadeHome() {
             </motion.div>
           )}
 
+          {muhurOnce && (
+            <motion.div {...gir(2)} className="mb-10">
+              <MuhurKarti r={r} tema={tema} tt={tt} navigate={navigate} isha={ishaSaat} />
+            </motion.div>
+          )}
+
           {/* Üç adım — tek sütun, geniş */}
           <motion.p {...gir(2)} className="text-[10px] font-black uppercase tracking-[0.3em] mb-5 text-center"
             style={{ color: r.soluk }}>
@@ -235,14 +336,22 @@ export default function SadeHome() {
             ))}
           </div>
 
+          {!muhurOnce && (
+            <motion.div {...gir(6)} className="mt-8">
+              <MuhurKarti r={r} tema={tema} tt={tt} navigate={navigate} isha={ishaSaat} />
+            </motion.div>
+          )}
+
           {/* Nabız — tek halka, tek cümle */}
-          <motion.div {...gir(7)} className="mt-14 text-center">
+          <motion.div {...gir(7)} className="mt-12 text-center">
             <NabizHalka r={r} puan={puan} boyut={128} />
             <p className="text-[14px] leading-relaxed mt-6 px-2"
               style={{ fontFamily: tema.yaziBaslik, color: r.metin, opacity: 0.9 }}>
               {cumle.metin}
             </p>
           </motion.div>
+
+          <div className="mt-8"><HatiraKarti r={r} tema={tema} tt={tt} hatira={hatira} /></div>
         </div>
       )}
 
@@ -287,6 +396,12 @@ export default function SadeHome() {
             </motion.div>
           )}
 
+          {muhurOnce && (
+            <motion.div {...gir(1)} className="px-5 mt-4">
+              <MuhurKarti r={r} tema={tema} tt={tt} navigate={navigate} isha={ishaSaat} />
+            </motion.div>
+          )}
+
           {/* Adımlar — yatay kaydırmalı büyük kartlar */}
           <motion.p {...gir(1)} className="text-[10px] font-black uppercase tracking-[0.26em] px-5 mt-7 mb-3"
             style={{ color: r.soluk }}>
@@ -317,8 +432,14 @@ export default function SadeHome() {
             ))}
           </div>
 
+          {!muhurOnce && (
+            <motion.div {...gir(5)} className="px-5 mt-5">
+              <MuhurKarti r={r} tema={tema} tt={tt} navigate={navigate} isha={ishaSaat} />
+            </motion.div>
+          )}
+
           {/* Nabız — yatay bar dizisi */}
-          <motion.div {...gir(6)} className="px-5 mt-7">
+          <motion.div {...gir(6)} className="px-5 mt-4">
             <div className="rounded-3xl p-4" style={{ background: r.kart, border: `1px solid ${r.cizgi}` }}>
               <div className="flex items-center gap-4 mb-4">
                 <NabizHalka r={r} puan={puan} boyut={62} ince />
@@ -344,6 +465,8 @@ export default function SadeHome() {
               )}
             </div>
           </motion.div>
+
+          <div className="px-5 mt-4"><HatiraKarti r={r} tema={tema} tt={tt} hatira={hatira} /></div>
         </div>
       )}
 
@@ -396,6 +519,12 @@ export default function SadeHome() {
             </motion.div>
           )}
 
+          {muhurOnce && (
+            <motion.div {...gir(2)} className="mt-4">
+              <MuhurKarti r={r} tema={tema} tt={tt} navigate={navigate} isha={ishaSaat} hat />
+            </motion.div>
+          )}
+
           {/* Adımlar — numaralı sütun, hatlı */}
           <motion.p {...gir(2)} className="text-[9px] font-black uppercase tracking-[0.3em] mt-7 mb-2"
             style={{ color: r.soluk }}>
@@ -430,8 +559,14 @@ export default function SadeHome() {
             ))}
           </div>
 
+          {!muhurOnce && (
+            <motion.div {...gir(6)} className="mt-4">
+              <MuhurKarti r={r} tema={tema} tt={tt} navigate={navigate} isha={ishaSaat} hat />
+            </motion.div>
+          )}
+
           {/* Nabız — dört sütunlu ızgara */}
-          <motion.div {...gir(7)} className="mt-6"
+          <motion.div {...gir(7)} className="mt-4"
             style={{ border: `1px solid ${r.cizgi}`, borderRadius: 14, overflow: 'hidden' }}>
             <div className="p-4 flex items-center gap-3.5" style={{ background: sa(r.vurgu, 0.05) }}>
               <NabizHalka r={r} puan={puan} boyut={56} ince />
@@ -456,6 +591,8 @@ export default function SadeHome() {
                 style={{ borderTop: `1px solid ${r.cizgi}`, color: r.soluk }}>{hafta.metin}</p>
             )}
           </motion.div>
+
+          <div className="mt-4"><HatiraKarti r={r} tema={tema} tt={tt} hatira={hatira} hat /></div>
         </div>
       )}
 

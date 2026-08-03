@@ -58,6 +58,7 @@ const DonusTemel = lazy(() => import('./pages/donus/DonusTemel'));
 const DonusMektup = lazy(() => import('./pages/donus/DonusMektup'));
 const DonusPerde = lazy(() => import('./pages/donus/DonusPerde'));
 const SadeHome = lazy(() => import('./pages/SadeHome'));
+const GunMuhru = lazy(() => import('./pages/GunMuhru'));
 const HifzPage = lazy(() => import('./pages/HifzPage'));
 const HazinePage = lazy(() => import('./pages/HazinePage'));
 
@@ -143,6 +144,9 @@ function AppRouter() {
               tek soruya cevap veren tek ekran. Derinlik ana uygulamaya döner. */}
           <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
             <Route path="/sade" element={<SadeHome />} />
+            {/* 🔏 Gün Mührü — günün kapanış töreni. Sade ile aynı kabuk,
+                aynı tema, alt menü yok. */}
+            <Route path="/muhur" element={<GunMuhru />} />
           </Route>
 
           {/* 🕯️ Dönüş Odası — uygulamanın içinde ayrı bir mod (kendi kabuğu,
