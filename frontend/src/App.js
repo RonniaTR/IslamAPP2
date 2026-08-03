@@ -1,5 +1,5 @@
 import React, { useState, useCallback, Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LangProvider } from './contexts/LangContext';
@@ -57,6 +57,7 @@ const DonusPhase = lazy(() => import('./pages/donus/DonusPhase'));
 const DonusTemel = lazy(() => import('./pages/donus/DonusTemel'));
 const DonusMektup = lazy(() => import('./pages/donus/DonusMektup'));
 const DonusPerde = lazy(() => import('./pages/donus/DonusPerde'));
+const SadeHome = lazy(() => import('./pages/SadeHome'));
 const HifzPage = lazy(() => import('./pages/HifzPage'));
 const HazinePage = lazy(() => import('./pages/HazinePage'));
 
@@ -97,6 +98,7 @@ function AppRouter() {
           <Route path="/login" element={<LoginRoute />} />
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
+            <Route path="/derinlik" element={<Navigate to="/" replace />} />
             <Route path="/quran" element={<PageTransition><QuranList /></PageTransition>} />
             <Route path="/quran/:surahNumber" element={<PageTransition><SurahDetail /></PageTransition>} />
             <Route path="/hadith" element={<PageTransition><HadithPage /></PageTransition>} />
@@ -137,6 +139,12 @@ function AppRouter() {
             <Route path="/achievements" element={<PageTransition><GamificationPage /></PageTransition>} />
             <Route path="/offline-packs" element={<PageTransition><OfflinePacksPage /></PageTransition>} />
           </Route>
+          {/* 🌗 Sade — uygulamanın sade ön yüzü. Layout DIŞINDA: alt menü yok,
+              tek soruya cevap veren tek ekran. Derinlik ana uygulamaya döner. */}
+          <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+            <Route path="/sade" element={<SadeHome />} />
+          </Route>
+
           {/* 🕯️ Dönüş Odası — uygulamanın içinde ayrı bir mod (kendi kabuğu,
               kendi sesi, alt menüsü yok). Tema ayarı burada da geçerlidir. */}
           <Route element={<ProtectedRoute><DonusShell /></ProtectedRoute>}>

@@ -1296,6 +1296,19 @@ const EN = {
   'Perdeyi kapat ve günü tamamla': 'Close the veil and complete the day',
   'Bu perde aralandı': 'This veil has been lifted',
   'Günün dersini de oku': 'Read the day’s lesson too',
+  // ── 🌗 Sade · üç dünya ──
+  'Açılış sesi': 'Opening sound',
+  'Dokun': 'Touch',
+  'Selamün aleyküm': 'Peace be upon you',
+  'Dünya seç': 'Choose a world',
+  'Sonraki vakit': 'Next prayer',
+  'Vakit': 'Prayer time',
+  'Bugünün üç adımı': 'Today\'s three steps',
+  'Bitti': 'Done',
+  'Derinlik': 'Depth',
+  'Bunlar renk değil, üç ayrı düzen. Seçtiğinde ekranın duruşu da değişir.': 'These are not colours but three different layouts. Choosing one changes how the screen stands.',
+  'Kur\'an, Hazine, Oyun, Kütüphane': 'Qur’an, Treasury, Games, Library',
+  'Kalp': 'Heart',
 };
 
 export default EN;

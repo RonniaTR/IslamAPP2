@@ -759,6 +759,17 @@ const AR = {
   'Seslendirme': 'السرد',
   'Bu perde aralandı': 'انكشف هذا الحجاب',
   'Günün dersini de oku': 'اقرأ درس اليوم أيضًا',
+  // ── 🌗 البسيط ──
+  'Açılış sesi': 'صوت الافتتاح',
+  'Dokun': 'المس',
+  'Selamün aleyküm': 'السلام عليكم',
+  'Dünya seç': 'اختر عالمًا',
+  'Sonraki vakit': 'الوقت التالي',
+  'Vakit': 'الوقت',
+  'Bugünün üç adımı': 'خطوات اليوم الثلاث',
+  'Bitti': 'تم',
+  'Derinlik': 'العمق',
+  'Kalp': 'القلب',
 };
 
 export default AR;
