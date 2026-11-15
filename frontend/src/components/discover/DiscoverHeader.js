@@ -3,7 +3,7 @@ import { Search, Mic, Sparkles } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export function DiscoverHeader({ streak = 12, level = 12 }) {
+export function DiscoverHeader({ streak = 0, level = 1 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -15,7 +15,7 @@ export function DiscoverHeader({ streak = 12, level = 12 }) {
         <div>
           <div className="text-gray-300 text-sm mb-1">Esselamu Aleyküm</div>
           <div className="text-white text-3xl font-bold flex items-center gap-2 mb-1">
-            {user?.name?.split(' ')[0] || 'Samet'} <span>👋</span>
+            {user?.name?.split(' ')[0] || 'Hoş geldin'} <span>👋</span>
           </div>
           <div className="text-[#f59e0b] text-sm">
             Bugün ne <span className="font-bold">öğrenmek</span> istersin?
@@ -28,7 +28,7 @@ export function DiscoverHeader({ streak = 12, level = 12 }) {
             <span className="text-orange-500 text-xl">🔥</span>
             <div className="flex flex-col">
               <span className="text-white font-bold text-sm leading-none">{streak}</span>
-              <span className="text-gray-400 text-[10px]">Günlük Seri</span>
+              <span className="text-gray-400 text-[10px]">Yolda gün</span>
             </div>
           </div>
           
@@ -36,7 +36,7 @@ export function DiscoverHeader({ streak = 12, level = 12 }) {
           <div className="relative flex flex-col items-center cursor-pointer" onClick={() => navigate('/profile')}>
             <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#10b981] to-[#f59e0b] p-0.5">
               <img 
-                src={user?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=Samet&backgroundColor=2D8A4E"} 
+                src={user?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=misafir&backgroundColor=2D8A4E"} 
                 alt="Profile" 
                 className="w-full h-full rounded-full border-2 border-[#052A1E] object-cover bg-[#2D8A4E]"
               />

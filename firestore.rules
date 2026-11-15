@@ -34,8 +34,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    // Önceden herkese açık yazılabiliyordu (if true): giriş yapmamış biri bütün odaları silebilir ya da
+    // bozabilirdi. Okuma açık (bekleme odası listesi), yazma yalnız giriş yapmış kullanıcıya.
+    // NOT: Misafir kullanıcılar Firebase'de oturum açmadığı için oda kuramaz/katılamaz. Misafire de açmak
+    // için Firebase Anonymous Auth gerekir (Antigravity: konsolda etkinleştir + loginAsGuest'e ekle).
     match /quiz_rooms/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if signedIn();
     }
 
     // User-Specific Collections

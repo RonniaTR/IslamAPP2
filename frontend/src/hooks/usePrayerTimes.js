@@ -1,44 +1,58 @@
 import { useState, useEffect } from 'react';
 
+export const TURKISH_CITIES = [
+  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin", "Aydın", "Balıkesir",
+  "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli",
+  "Diyarbakır", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari",
+  "Hatay", "Isparta", "Mersin", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir",
+  "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş", "Nevşehir",
+  "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Tekirdağ", "Tokat",
+  "Trabzon", "Tunceli", "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
+  "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce"
+];
+
 export function usePrayerTimes() {
   const [timings, setTimings] = useState(null);
-  const [city, setCity] = useState('İstanbul');
+  const [city, setCityState] = useState(() => localStorage.getItem('islamapp_city') || 'İstanbul');
   const [nextPrayer, setNextPrayer] = useState(null);
   const [countdown, setCountdown] = useState('00:00:00');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPrayerTimes = async (lat, lon) => {
-      try {
-        const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=13`);
-        const data = await res.json();
-        if (data && data.data) {
-          setTimings(data.data.timings);
-          calculateNextPrayer(data.data.timings);
-        }
-      } catch (err) {
-        console.error("Ezan vakitleri alınamadı", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Interval ID ref (simulated with a let variable for hooks)
+  const [timerInterval, setTimerInterval] = useState(null);
 
-    // Attempt geolocation
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCity('Konumunuz'); // Geocoding could be added here
-          fetchPrayerTimes(pos.coords.latitude, pos.coords.longitude);
-        },
-        () => {
-          // Fallback to Istanbul
-          fetchPrayerTimes(41.0082, 28.9784);
-        }
-      );
-    } else {
-      fetchPrayerTimes(41.0082, 28.9784);
+  const fetchPrayerTimesByCity = async (cityName) => {
+    setLoading(true);
+    try {
+      // Format city name for URL (e.g. İstanbul -> istanbul)
+      const encodedCity = encodeURIComponent(cityName);
+      const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodedCity}&country=Turkey&method=13`);
+      const data = await res.json();
+      if (data && data.data) {
+        setTimings(data.data.timings);
+        calculateNextPrayer(data.data.timings);
+      }
+    } catch (err) {
+      console.error("Ezan vakitleri alınamadı", err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchPrayerTimesByCity(city);
+    // Cleanup interval on unmount
+    return () => {
+      if (timerInterval) clearInterval(timerInterval);
+    };
   }, []);
+
+  const changeCity = (newCity) => {
+    setCityState(newCity);
+    localStorage.setItem('islamapp_city', newCity);
+    if (timerInterval) clearInterval(timerInterval);
+    fetchPrayerTimesByCity(newCity);
+  };
 
   const calculateNextPrayer = (times) => {
     if (!times) return;
@@ -67,7 +81,6 @@ export function usePrayerTimes() {
       }
     }
 
-    // If no next prayer today, it's Fajr tomorrow
     if (!next) {
       const [h, m] = prayers[0].time.split(':');
       next = { name: 'İmsak (Yarın)', time: prayers[0].time };
@@ -83,8 +96,7 @@ export function usePrayerTimes() {
 
     const tick = () => {
       if (diff <= 0) {
-        // Refresh when time is up
-        window.location.reload();
+        fetchPrayerTimesByCity(city); // Refetch if time is up
         return;
       }
       const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
@@ -95,8 +107,9 @@ export function usePrayerTimes() {
     };
 
     tick();
-    setInterval(tick, 1000);
+    const id = setInterval(tick, 1000);
+    setTimerInterval(id);
   };
 
-  return { timings, city, nextPrayer, countdown, loading };
+  return { timings, city, changeCity, nextPrayer, countdown, loading };
 }

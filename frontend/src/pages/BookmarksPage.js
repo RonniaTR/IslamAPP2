@@ -7,44 +7,67 @@ import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
 import api from '../api';
 import { fetchWithCache } from '../services/cache';
 
+import { BookmarkService } from '../services/BookmarkService';
+import { useAuth } from '../contexts/AuthContext';
+
 export default function BookmarksPage() {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Fetch default/mock bookmarks
-    const mockBookmarks = [
-      { id: 'b1', title: 'Bakara Suresi 286. Ayet', type: 'Ayet', icon: '📖' },
-      { id: 'b2', title: 'Rabbim! İlmimi artır.', type: 'Dua', icon: '🤲' },
-      { id: 'b3', title: 'Tevekkül Nedir? Nasıl Gerçekleşir?', type: 'Makale', icon: '📄' },
-      { id: 'b4', title: "Hz. Yusuf'un Sabır Örneği", type: 'Hikaye', icon: '🕌' },
-    ];
+    const fetchBookmarks = async () => {
+      setLoading(true);
+      try {
+        const uid = user?.uid || user?.id || 'anonymous';
+        const fetchedBookmarks = await BookmarkService.getBookmarks(uid);
+        
+        // Also get legacy saved surahs if any
+        let localSaved = [];
+        try {
+          const saved = localStorage.getItem('saved_surahs');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            localSaved = parsed.map(s => ({
+              id: `surah_${s.number}`,
+              title: `${s.name} Suresi`,
+              subtitle: s.arabicName,
+              type: 'Kuran',
+              path: `/quran/${s.number}`,
+              icon: '✨'
+            }));
+          }
+        } catch (e) {
+          console.log('Error reading saved surahs', e);
+        }
 
-    // 2. Fetch saved surahs from localStorage
-    let localSaved = [];
-    try {
-      const saved = localStorage.getItem('saved_surahs');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        localSaved = parsed.map(s => ({
-          id: `surah_${s.number}`,
-          title: `${s.name} Suresi`,
-          subtitle: s.arabicName,
-          type: 'Kuran',
-          path: `/quran/${s.number}`,
-          icon: '✨'
+        // Map BookmarkService items to UI format
+        const mappedBookmarks = fetchedBookmarks.map(b => ({
+          id: b.id,
+          title: b.title || 'İçerik',
+          subtitle: b.desc || '',
+          type: b.type === 'verse' ? 'Ayet' : 
+                b.type === 'hadith' ? 'Hadis' : 
+                b.type === 'dua' ? 'Dua' : 
+                b.type === 'story' ? 'Hikaye' : 'Makale',
+          path: b.slug,
+          icon: b.type === 'verse' ? '📖' : 
+                b.type === 'dua' ? '🤲' : 
+                b.type === 'hadith' ? '📜' : '📄'
         }));
-      }
-    } catch (e) {
-      console.log('Error reading saved surahs', e);
-    }
 
-    setBookmarks([...localSaved, ...mockBookmarks]);
-    setLoading(false);
-  }, []);
+        setBookmarks([...localSaved, ...mappedBookmarks]);
+      } catch (error) {
+        console.error('Error fetching bookmarks:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookmarks();
+  }, [user]);
 
   const tabs = [
     { id: 'all', label: 'Tümü' },

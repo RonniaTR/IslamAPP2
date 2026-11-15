@@ -169,6 +169,16 @@ export function ThemeProvider({ children }) {
     root.style.setProperty('--glass-bg', theme.glassBg);
     document.body.style.background = theme.bg;
     document.body.style.color = theme.textPrimary;
+
+    // Dinamik Status Bar Rengi
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.name = "theme-color";
+      document.getElementsByTagName('head')[0].appendChild(metaThemeColor);
+    }
+    metaThemeColor.setAttribute('content', theme.bg);
+
   }, [themeId, theme]);
 
   const setTheme = (id) => {

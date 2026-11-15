@@ -135,10 +135,7 @@ function AdminPage() {
               </div>
             </div>
 
-            <label className="flex items-center space-x-3 text-gray-300">
-              <input type="checkbox" name="isPremium" checked={formData.isPremium} onChange={handleChange} className="w-5 h-5 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900" />
-              <span>Premium İçerik</span>
-            </label>
+            {/* "Premium İçerik" seçeneği kaldırıldı: uygulamada ücretli içerik yok (docs/YENI_OZELLIKLER.md 0.5). */}
 
             <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-colors mt-6">
               Kaydet ve Yayınla
@@ -162,7 +159,6 @@ function AdminPage() {
                     <p className="text-sm text-gray-400">/{item.slug} • {item.status}</p>
                   </div>
                   <div className="flex space-x-2">
-                    {item.isPremium && <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded">PRO</span>}
                   </div>
                 </div>
               ))}

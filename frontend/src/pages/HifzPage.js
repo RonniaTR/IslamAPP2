@@ -5,7 +5,6 @@ import { ArrowLeft, Play, Pause, Eye, EyeOff, Repeat, ChevronRight, Award, Loade
 import { useTheme } from '../contexts/ThemeContext';
 import { useTx } from '../i18n';
 import { useAuth } from '../contexts/AuthContext';
-import { awardXPOnce } from '../services/gamification';
 import { HIFZ_TRACKS, gradeCard, cardStatus, surahProgress, dueList, totals, logSession } from '../services/hifzEngine';
 import { getWordMeal } from '../data/kelimeMeal';
 import Confetti from './games/Confetti';
@@ -86,7 +85,7 @@ export default function HifzPage() {
     if (graded > 0) {
       logSession(graded);
       const dk = new Date().toISOString().slice(0, 10);
-      awardXPOnce(user, `hifz_${dk}`, 'quran_read', { points: 20, details: `Ezber: ${graded} ayet` });
+      // Ezber Kur'an okumadır; XP verilmez (docs/YENI_OZELLIKLER.md §0 kural 7).
       setCelebrate(true);
       setTimeout(() => setCelebrate(false), 1800);
     }

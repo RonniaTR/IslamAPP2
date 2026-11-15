@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Flame, Trophy, Star, CheckCircle2, Circle, Play, Bookmark, Award, ChevronRight, Target, Sparkles, Calendar, BookOpen, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { HistoryService } from '../services/HistoryService';
 import { BookmarkService } from '../services/BookmarkService';
-import { DiscoverService } from '../services/DiscoverService';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppMode } from '../contexts/AppModeContext';
 import { LogOut } from 'lucide-react';
+import { getUpcomingDays, CALENDAR_NOTE } from '../services/islamicCalendar';
+import { getHistory, getBadges, localKey } from '../services/pathEngine';
 
 export default function ProfilePage() {
   const { theme } = useTheme();
@@ -25,7 +26,6 @@ export default function ProfilePage() {
 
   const [recentAudio, setRecentAudio] = React.useState([]);
   const [savedItems, setSavedItems] = React.useState([]);
-  const [aiRecs, setAiRecs] = React.useState([]);
 
   React.useEffect(() => {
     // Fetch external connected data
@@ -36,8 +36,6 @@ export default function ProfilePage() {
       const bookmarks = await BookmarkService.getBookmarks(currentUid);
       setSavedItems(bookmarks);
 
-      const feed = await DiscoverService.getDiscoverFeed(currentUid);
-      setAiRecs(feed.forYou || []);
     };
     fetchConnectedData();
   }, [currentUid]);
@@ -75,18 +73,15 @@ export default function ProfilePage() {
 
       <main className="px-4 py-6 space-y-8 max-w-4xl mx-auto">
         <ProfileHero profile={profile} />
-        <DailyStatus navigate={navigate} />
+        {/* Sabit/sahte veriyle çizilen bölümler kaldırıldı (Bugünkü Durum, Rozet Galerisi, Kişisel Hedefler,
+            AI Analizi, Bilgi Haritası, 2025 tarihli Yaklaşan Günler). Gerçek veri kaynakları bağlandıkça
+            geri eklenecek — bkz. docs/YENI_OZELLIKLER.md 0.3. */}
         <UpcomingSpecialDays />
         <LearningJourney journey={learningJourney} navigate={navigate} />
         <WorshipStats stats={worshipStats} />
-        <StreakCalendar streak={profile.streak} />
+        <StreakCalendar />
         <RecentAudio audios={recentAudio} navigate={navigate} />
         <SavedItems saved={savedItems} navigate={navigate} />
-        <BadgeGallery total={profile.totalBadges} />
-        <PersonalGoals />
-        <AIAssistantCard recommendation={aiRecs[0]} navigate={navigate} />
-        <KnowledgeMap />
-        <UpcomingEvents />
       </main>
     </div>
   );
@@ -135,8 +130,8 @@ function ProfileHero({ profile }) {
       </div>
 
       <div className="flex md:flex-col gap-4 w-full md:w-auto mt-4 md:mt-0 justify-between md:justify-start">
-        <StatBadge icon={<Flame className="text-orange-500" />} value={profile.streak} label="Günlük Seri" />
-        <StatBadge icon={<Trophy className="text-yellow-500" />} value={profile.totalBadges || 12} label="Rozet" />
+        <StatBadge icon={<Flame className="text-orange-500" />} value={Object.values(getHistory()).filter(h => h.done > 0).length} label="Yolda gün" />
+        <StatBadge icon={<Trophy className="text-yellow-500" />} value={getBadges().filter(b => b.earned).length} label="Rozet" />
         <StatBadge icon={<Star className="text-yellow-400" />} value={profile.xp} label="Toplam XP" />
       </div>
     </motion.div>
@@ -157,80 +152,11 @@ function StatBadge({ icon, value, label }) {
   );
 }
 
-// 2. Bugünkü Durum
-function DailyStatus() {
-  // Canlı Tarih Hesaplama
-  const today = new Date();
-  const dateString = today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
-
-  return (
-    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
-      {/* Decorative BG element */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500 opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-      
-      <div className="flex-1 w-full">
-        <div className="flex items-center gap-2 mb-2">
-          <Calendar size={20} className="text-emerald-500" />
-          <h3 className="text-lg font-bold">Bugünkü Durum</h3>
-        </div>
-        <div className="text-sm text-gray-400 mb-6 font-medium">{dateString}</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <DailyTaskItem title="Günün Ayeti" status="Okundu" completed={true} />
-          <DailyTaskItem title="2 Dua" status="Okundu" completed={true} />
-          <DailyTaskItem title="1 Hadis" status="Tamamlandı" completed={true} />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-6 bg-transparent p-5 rounded-2xl border border-black/5 dark:border-white/10 z-10 w-full md:w-auto">
-        <div>
-          <div className="text-sm text-gray-400 mb-1">Günlük Hedef</div>
-          <div className="text-3xl font-bold">%70</div>
-          <button className="mt-4 w-full bg-emerald-500 hover:bg-[#059669]  font-bold py-2 px-6 rounded-xl transition-colors">
-            Devam Et
-          </button>
-        </div>
-        {/* Simple CSS Circle Progress */}
-        <div className="relative w-24 h-24">
-          <svg className="w-full h-full transform -rotate-90">
-            <circle cx="48" cy="48" r="40" stroke="#1A3826" strokeWidth="8" fill="transparent" />
-            <circle cx="48" cy="48" r="40" stroke="#10b981" strokeWidth="8" fill="transparent" strokeDasharray="251" strokeDashoffset="75" className="transition-all duration-1000 ease-out" />
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DailyTaskItem({ title, status, completed }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className={`p-1.5 rounded-full ${completed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-[#1A3826] text-gray-500'}`}>
-        <CheckCircle2 size={18} />
-      </div>
-      <div>
-        <div className="font-bold text-sm ">{title}</div>
-        <div className="text-xs text-emerald-500">{status}</div>
-      </div>
-    </div>
-  );
-}
 
 // Yaklaşan İslami Özel Günler Takvimi
 function UpcomingSpecialDays() {
-  const specialDays = [
-    { name: "Ramazan Başlangıcı", date: "2026-02-18", icon: "🌙", color: "#10b981" },
-    { name: "Kadir Gecesi", date: "2026-03-15", icon: "✨", color: "#f59e0b" },
-    { name: "Ramazan Bayramı", date: "2026-03-20", icon: "🎉", color: "#3b82f6" },
-    { name: "Kurban Bayramı", date: "2026-05-26", icon: "🐑", color: "#8b5cf6" },
-    { name: "Mevlid Kandili", date: "2026-08-27", icon: "🕌", color: "#ec4899" },
-    { name: "Ramazan Başlangıcı", date: "2027-02-08", icon: "🌙", color: "#10b981" },
-  ];
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  
-  const upcoming = specialDays.filter(d => new Date(d.date) >= today).sort((a,b) => new Date(a.date) - new Date(b.date));
-  const nextDays = upcoming.slice(0, 2);
+  // Tek takvim kaynağı: services/islamicCalendar.js
+  const nextDays = getUpcomingDays(2);
 
   if (nextDays.length === 0) return null;
 
@@ -243,9 +169,8 @@ function UpcomingSpecialDays() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {nextDays.map((day, idx) => {
-          const diffTime = Math.abs(new Date(day.date) - today);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          const dateStr = new Date(day.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+          const diffDays = day.daysLeft;
+          const dateStr = day.dateLabel;
           return (
             <div key={idx} className="flex items-center justify-between bg-transparent p-4 rounded-2xl border border-black/5 dark:border-white/10">
               <div className="flex items-center gap-3">
@@ -257,27 +182,22 @@ function UpcomingSpecialDays() {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-black" style={{ color: day.color }}>{diffDays}</div>
-                <div className="text-[10px] text-gray-500 font-bold uppercase">Gün Kaldı</div>
+                <div className="text-[10px] text-gray-500 font-bold uppercase">{diffDays === 0 ? 'Bugün' : 'Gün Kaldı'}</div>
               </div>
             </div>
           );
         })}
       </div>
+      <p className="text-[11px] text-gray-500 mt-3">{CALENDAR_NOTE}</p>
     </div>
   );
 }
 
 // 3. Öğrenme Yolculuğum
 function LearningJourney({ journey = [], navigate }) {
-  // If no journey data, show default
-  const defaultJourney = [
-    { title: "İlmihal", percent: 100, color: "bg-emerald-500" },
-    { title: "Namaz Rehberi", percent: 80, color: "bg-[#f59e0b]" },
-    { title: "40 Hadis", percent: 35, color: "bg-purple-500" },
-    { title: "Siyer", percent: 12, color: "bg-orange-500" },
-    { title: "Kur'an Yolculuğu", percent: 8, color: "bg-teal-500" }
-  ];
-  const data = journey.length > 0 ? journey : defaultJourney;
+  // Gerçek ilerleme verisi yoksa bölüm hiç gösterilmez (sahte yüzde yok).
+  if (!journey.length) return null;
+  const data = journey;
 
   return (
     <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
@@ -363,11 +283,12 @@ function WorshipStats({ stats = [] }) {
 }
 
 // 5. Günlük Seri (Heatmap Placeholder)
-function StreakCalendar({ streak = 0 }) {
+function StreakCalendar() {
+  const hist = getHistory(); // { 'YYYY-MM-DD': { done, total } } — cihazdaki gerçek kayıt
+  const activeCount = Object.values(hist).filter(h => h.done > 0).length;
   // Canlı tarih hesabı: Heatmap her zaman BUGÜN ile biter
   const today = new Date();
   const currentYear = today.getFullYear();
-  const currentDayOfWeek = today.getDay(); // 0: Sunday, 1: Monday vb.
   
   // 20 sütun * 7 satır = 140 günlük bir tablo çizeceğiz.
   const columns = 20;
@@ -382,22 +303,17 @@ function StreakCalendar({ streak = 0 }) {
     days.push(d);
   }
 
-  // Seri (Streak) miktarı kadar son günleri yeşil yap (Bugün dahil geriye doğru)
-  const isDayInStreak = (dateStr) => {
-    const d = new Date(dateStr);
-    const diffTime = Math.abs(today - d);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-    return diffDays <= streak; // Seri sayısı kadar günü aktif yap
-  };
+  // Bir gün, o gün en az bir adım tamamlandıysa aktiftir.
+  const isDayInStreak = (d) => (hist[localKey(d)]?.done || 0) > 0;
 
   return (
     <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <Flame size={20} className="text-orange-500" /> Günlük Seri
+          <Flame size={20} className="text-orange-500" /> Yolda Geçen Günler
         </h3>
       </div>
-      <p className="text-sm text-gray-400 mb-6">{currentYear} Yılı • {streak} Günlük Aktif Yolculuk</p>
+      <p className="text-sm text-gray-400 mb-6">{currentYear} • {activeCount} gün yoldaydın</p>
       
       {/* Dynamic Contribution Graph ending on TODAY */}
       <div className="overflow-x-auto no-scrollbar">
@@ -420,7 +336,7 @@ function StreakCalendar({ streak = 0 }) {
                 // Stil belirleme
                 let bgClass = "bg-[#1A3826]"; // pasif gün
                 if (isActive) bgClass = "bg-emerald-500 shadow-sm shadow-[#10b981]/40";
-                if (isToday && !isActive) bgClass = "bg-[#f59e0b]"; // Bugün sisteme girmemişse turuncu
+                if (isToday && !isActive) bgClass = "bg-[#1A3826] ring-1 ring-white/40"; // bugün: yalnız ince çerçeve, uyarı rengi yok
                 if (isToday && isActive) bgClass = "bg-emerald-500 ring-2 ring-white ring-offset-1 ring-offset-[#132A1D]"; // Bugün sisteme girdiyse beyaz çerçeve
                 
                 return (
@@ -502,184 +418,3 @@ function SavedItems({ saved = [], navigate }) {
   );
 }
 
-// 8. Rozet Galerisi
-function BadgeGallery() {
-  const badges = [
-    { title: "Kur'an Ustası", icon: "📖", color: "from-yellow-400 to-amber-600" },
-    { title: "Ramazan Kahramanı", icon: "🌙", color: "from-blue-400 to-indigo-600" },
-    { title: "100 Dua", icon: "📿", color: "from-emerald-400 to-teal-600" },
-    { title: "Hadis Alimi", icon: "📜", color: "from-purple-400 to-fuchsia-600" }
-  ];
-
-  return (
-    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6 overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-40 h-40 bg-[#f59e0b] opacity-5 rounded-full blur-3xl"></div>
-      
-      <div className="flex justify-between items-center mb-6 relative z-10">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-          <Award size={20} className="text-[#f59e0b]" /> Rozet Galerisi
-        </h3>
-        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
-      </div>
-
-      <div className="flex justify-between relative z-10 px-2">
-        {badges.map((b, i) => (
-          <div key={i} className="flex flex-col items-center gap-2">
-            <div className={`w-16 h-16 rounded-2xl rotate-45 flex items-center justify-center bg-gradient-to-br ${b.color} p-[2px] shadow-lg shadow-amber-500/10`}>
-              <div className="w-full h-full bg-transparent rounded-2xl flex items-center justify-center">
-                <div className="-rotate-45 text-2xl">{b.icon}</div>
-              </div>
-            </div>
-            <div className="text-[10px] font-bold mt-2 text-center w-16 leading-tight">{b.title}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// 9. Kişisel Hedefler
-function PersonalGoals() {
-  return (
-    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-          <Target size={20} className="text-emerald-500" /> Kişisel Hedeflerim
-        </h3>
-        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
-      </div>
-      <div className="space-y-3">
-        <GoalItem text="5 Hadis ezberle" progress="3/5" done={false} />
-        <GoalItem text="20 Dua oku" progress="20/20" done={true} />
-        <GoalItem text="Rahman Suresi'ni tamamla" progress="1/1" done={true} />
-        <GoalItem text="3 Makale oku" progress="1/3" done={false} />
-      </div>
-    </div>
-  );
-}
-
-function GoalItem({ text, progress, done }) {
-  return (
-    <div className="flex items-center gap-3 bg-transparent p-3 rounded-xl border border-black/5 dark:border-white/10">
-      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${done ? 'bg-emerald-500' : 'border-2 border-black/5 dark:border-white/10'}`}>
-        {done && <CheckCircle2 size={16} className="" />}
-      </div>
-      <div className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : ' font-medium'}`}>{text}</div>
-      <div className="text-xs text-gray-500 font-mono">{progress}</div>
-    </div>
-  );
-}
-
-// 10. AI Analizi
-function AIAssistantCard() {
-  return (
-    <div className="relative bg-gradient-to-br from-[#0A2A1E] to-[#0A1A12] border border-[#10b981]/30 rounded-3xl p-6 overflow-hidden">
-      {/* Glow */}
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#10b981]/20 via-transparent to-transparent"></div>
-      
-      <div className="relative z-10">
-        <div className="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-500 px-3 py-1 rounded-full text-xs font-bold mb-4">
-          <Sparkles size={14} /> AI Asistan Analizi
-        </div>
-        <p className="text-gray-300 text-sm leading-relaxed mb-4">
-          "Son 15 gündür <span className=" font-bold">dua</span> içeriklerine ilgi gösteriyorsun. 
-          Sana <span className="text-[#f59e0b] font-bold">Esmâü'l Hüsna</span> serisini öneriyorum."
-        </p>
-        <button className="bg-emerald-500 hover:bg-[#059669]  text-sm font-bold py-2 px-5 rounded-xl transition-colors">
-          Seriyi Keşfet
-        </button>
-      </div>
-
-      <div className="absolute right-0 bottom-0 opacity-50 w-32 h-32 pointer-events-none">
-        {/* Placeholder for Robot/AI visual. */}
-        <div className="w-full h-full bg-gradient-to-br from-[#10b981] to-transparent rounded-tl-full blur-2xl"></div>
-      </div>
-    </div>
-  );
-}
-
-// 11. İlim Haritası
-function KnowledgeMap() {
-  return (
-    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-          <BookOpen size={20} className="text-emerald-500" /> İlim Haritası
-        </h3>
-        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
-      </div>
-      
-      <div className="relative h-64 flex items-center justify-center">
-        {/* Central Node */}
-        <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.4)] z-20 relative">
-          <BookOpen size={30} className="" />
-        </div>
-
-        {/* Connecting Lines (Simulated with absolute positioning) */}
-        <svg className="absolute inset-0 w-full h-full z-0 pointer-events-none">
-          <line x1="50%" y1="50%" x2="25%" y2="25%" stroke="#1A3826" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="75%" y2="25%" stroke="#1A3826" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="25%" y2="75%" stroke="#10b981" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="75%" y2="75%" stroke="#1A3826" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="15%" y2="50%" stroke="#10b981" strokeWidth="2" />
-          <line x1="50%" y1="50%" x2="85%" y2="50%" stroke="#1A3826" strokeWidth="2" />
-        </svg>
-
-        {/* Outer Nodes */}
-        <MapNode top="20%" left="25%" label="Kur'an" icon={<BookOpen size={14}/>} completed={false} />
-        <MapNode top="20%" left="75%" label="Siyer" icon={<Star size={14}/>} completed={false} />
-        <MapNode top="80%" left="25%" label="Fıkıh" icon={<BookOpen size={14}/>} completed={true} />
-        <MapNode top="80%" left="75%" label="Ahlak" icon={<BookOpen size={14}/>} completed={false} />
-        <MapNode top="50%" left="15%" label="Dua & Zikir" icon={<BookOpen size={14}/>} completed={true} />
-        <MapNode top="50%" left="85%" label="Tasavvuf" icon={<BookOpen size={14}/>} completed={false} />
-      </div>
-    </div>
-  );
-}
-
-function MapNode({ top, left, label, icon, completed }) {
-  return (
-    <div className="absolute flex flex-col items-center gap-2 transform -translate-x-1/2 -translate-y-1/2 z-10" style={{ top, left }}>
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${completed ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] ' : 'bg-[#1A3826] border border-gray-600 text-gray-500'}`}>
-        {completed ? icon : <div className="w-2 h-2 rounded-full bg-gray-500"></div>}
-      </div>
-      <div className="text-[10px] font-bold bg-transparent/80 px-2 py-0.5 rounded backdrop-blur-sm whitespace-nowrap">{label}</div>
-    </div>
-  );
-}
-
-// 12. Yaklaşan Günler
-function UpcomingEvents() {
-  return (
-    <div className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-3xl p-6 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold flex items-center gap-2">
-          <Calendar size={20} className="text-emerald-500" /> Yaklaşan Günler
-        </h3>
-        <button className="text-sm text-gray-400 hover: flex items-center gap-1">Tümünü Gör <ChevronRight size={16} /></button>
-      </div>
-      <div className="space-y-3">
-        <EventItem name="Kadir Gecesi" days="12 gün kaldı" date="27 Mar 2025" />
-        <EventItem name="Ramazan Bayramı" days="83 gün kaldı" date="30 Mar 2025" />
-        <EventItem name="Arefe Günü" days="96 gün kaldı" date="14 Haz 2025" />
-      </div>
-    </div>
-  );
-}
-
-function EventItem({ name, days, date }) {
-  return (
-    <div className="flex justify-between items-center bg-transparent p-4 rounded-xl border border-black/5 dark:border-white/10">
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-[#1A3826] rounded-lg text-emerald-500">
-          <Calendar size={18} />
-        </div>
-        <div>
-          <div className="font-bold text-sm">{name}</div>
-          <div className="text-xs text-emerald-500 mt-0.5">{days}</div>
-        </div>
-      </div>
-      <div className="text-xs text-gray-500">{date}</div>
-    </div>
-  );
-}

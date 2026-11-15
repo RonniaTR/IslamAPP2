@@ -4,6 +4,7 @@ import { Home, Compass, Gamepad2, Calendar, User, BookOpen, Route } from 'lucide
 import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS, ADULT_NAV_TABS } from '../styles/designTokens';
+import OfflineIndicator from './OfflineIndicator';
 
 const iconMap = { Home, Compass, Gamepad2, Calendar, User, BookOpen, Route };
 
@@ -159,12 +160,12 @@ const NavTab = memo(function NavTab({ icon: Icon, label, active, isCenter, theme
   );
 });
 
-export default memo(function Layout() {
+export default memo(function Layout({ children }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { theme } = useTheme();
-  const hideNav = pathname.match(/\/quran\/\d+/);
+  const hideNav = pathname.match(/\/quran\/\d+/) || pathname.startsWith('/mushaf');
   const isRtl = lang === 'ar';
 
   const safeT = t || {};
@@ -176,11 +177,13 @@ export default memo(function Layout() {
 
   return (
     <div
-      className={`min-h-screen flex w-full relative ${isRtl ? 'rtl' : 'ltr'}`}
+      className={`h-full flex-1 w-full flex overflow-hidden relative ${isRtl ? 'rtl' : 'ltr'}`}
       style={{ background: theme.bg }}
       data-testid="app-layout"
       dir={isRtl ? 'rtl' : 'ltr'}
     >
+      <OfflineIndicator />
+      
       {/* DESKTOP SIDEBAR */}
       {!hideNav && (
         <aside className="hidden md:flex flex-col fixed top-0 bottom-0 left-0 w-[260px] z-50 p-6"
@@ -217,9 +220,9 @@ export default memo(function Layout() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 overflow-y-auto scrollbar-hide pb-24 md:pb-0 ${!hideNav ? 'md:ml-[260px]' : ''}`}>
+      <main className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-0 ${!hideNav ? 'md:ml-[260px]' : ''}`}>
         <div className="w-full h-full max-w-[1400px] mx-auto relative">
-          <Outlet />
+          {children || <Outlet />}
         </div>
       </main>
 

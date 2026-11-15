@@ -20,6 +20,10 @@ import re
 
 logger = logging.getLogger(__name__)
 
+# Tamamen ücretsiz model (docs/YENI_OZELLIKLER.md 0.5): ödeme ile kaldırılan sınır yok;
+# yapay zekâ servisinin ücretsiz kotasını korumak için herkese eşit günlük sınır.
+AI_DAILY_FAIR_USE = 20
+
 # ===================== MODELS =====================
 
 class MultiBotRequest(BaseModel):
@@ -423,12 +427,11 @@ Cevabını {lang_full} dilinde ver."""
         """Get AI usage stats for a user"""
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         usage = await db.ai_usage.find_one({"user_id": user_id, "date": today})
-        sub = await db.subscriptions.find_one({"user_id": user_id, "status": "active"})
-        is_premium = sub is not None and sub.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) > datetime.now(timezone.utc)
+        # Tamamen ücretsiz model: abonelik yok. Herkese eşit günlük adil kullanım sınırı uygulanır.
         return {
             "used": usage.get("count", 0) if usage else 0,
-            "limit": 0 if is_premium else 10,
-            "premium": is_premium,
+            "limit": AI_DAILY_FAIR_USE,
+            "premium": False,
             "date": today,
         }
 
@@ -515,12 +518,10 @@ Cevabını {lang_full} dilinde ver."""
         if req.user_id:
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             usage = await db.ai_usage.find_one({"user_id": req.user_id, "date": today})
-            sub = await db.subscriptions.find_one({"user_id": req.user_id, "status": "active"})
-            is_premium = sub is not None and sub.get("expires_at", datetime.min.replace(tzinfo=timezone.utc)) > datetime.now(timezone.utc)
-            daily_limit = 0 if is_premium else 10
+            daily_limit = AI_DAILY_FAIR_USE
             if daily_limit > 0 and usage and usage.get("count", 0) >= daily_limit:
                 return {
-                    "response": "Günlük AI kullanım limitinize ulaştınız. Premium'a geçerek sınırsız soru sorabilirsiniz.",
+                    "response": "Bugünkü yapay zekâ soru sınırına ulaştınız. Yarın yeniden sorabilirsiniz.",
                     "limit_reached": True, "bots_used": [], "confidence": {}
                 }
 

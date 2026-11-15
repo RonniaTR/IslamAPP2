@@ -74,8 +74,10 @@ export default function QuranList() {
             </Typography>
             <Typography variant="h2" style={{ color: '#FFF', fontSize: '28px' }}>Kur'an-ı Kerim</Typography>
           </div>
-          <button style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF' }}>
-            <MoreVertical size={20} />
+          {/* Tam sayfa Mushaf: kaldığı sayfadan açılır */}
+          <button onClick={() => navigate('/mushaf')}
+            style={{ height: '40px', padding: '0 14px', borderRadius: '12px', background: 'rgba(205,164,52,0.15)', border: '1px solid rgba(205,164,52,0.4)', display: 'flex', alignItems: 'center', gap: '8px', color: '#CDA434', fontWeight: 700, fontSize: '13px' }}>
+            Mushaf
           </button>
         </div>
 

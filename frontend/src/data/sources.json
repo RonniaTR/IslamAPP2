@@ -1,0 +1,134 @@
+{
+  "_not": "Uygulamada kullanılan bütün dış içeriğin kaynağı ve lisansı. LicensesPage.js ve docs/kurul/icerik-envanteri.md bu dosyadan beslenir. Bir kaynak değişirse önce burası güncellenir.",
+  "guncelleme": "2026-11-15",
+  "quranText": {
+    "ad": "Kur'an-ı Kerim metni (Osmanî resm-i hat)",
+    "saglayici": "Tanzil Project",
+    "lisans": "Creative Commons Attribution 3.0 (CC BY 3.0)",
+    "url": "https://tanzil.net",
+    "erisim": "api.alquran.cloud (quran-uthmani baskısı)",
+    "not": "Metin değiştirilmeden gösterilir."
+  },
+  "translations": {
+    "tr": {
+      "key": "turkish_rwwad",
+      "ad": "Türkçe Tercüme — Rowad Tercüme Merkezi",
+      "yayinci": "Rowad Tercüme Merkezi (Rabwa Davet Derneği ve İslami İçerik Hizmet Derneği iş birliğiyle)",
+      "kaynak": "QuranEnc.com",
+      "url": "https://quranenc.com/tr/browse/turkish_rwwad",
+      "surum": "1.0.4",
+      "surumNotu": "Sürüm uygulama içinde QuranEnc listesinden canlı okunur; buradaki değer yedektir."
+    },
+    "en": {
+      "key": "english_rwwad",
+      "ad": "English Translation — Rowwad Translation Center",
+      "yayinci": "Rowwad Translation Center (in cooperation with the Islamic Propagation Office in Rabwah and the Association for Serving Islamic Content in Languages)",
+      "kaynak": "QuranEnc.com",
+      "url": "https://quranenc.com/en/browse/english_rwwad",
+      "surum": "1.0.19",
+      "surumNotu": "Version is read live from the QuranEnc list in the app; this value is a fallback."
+    }
+  },
+  "quranEncSartlari": [
+    "İçerik değiştirilmez, eklenmez, silinmez.",
+    "Yayıncı ve kaynak (QuranEnc.com) açıkça belirtilir.",
+    "Yeniden yayımlarken sürüm numarası belirtilir.",
+    "Künye bilgisi korunur.",
+    "Çeviriyle ilgili notlar kaynağa (QuranEnc.com) bildirilir.",
+    "Kaynağın yayımladığı son sürüme güncellenir.",
+    "Meal gösterilirken uygunsuz reklam bulunmaz."
+  ],
+  "audio": [
+    {
+      "ad": "Kur'an tilaveti (ayet ayet)",
+      "kari": "Mishary Rashid Alafasy ve seçilebilir diğer kâriler",
+      "saglayici": "Islamic Network CDN (cdn.islamic.network)",
+      "url": "https://alquran.cloud/cdn",
+      "not": "Akış olarak dinletilir; uygulama içine gömülmez, ücretli pakete konmaz."
+    },
+    {
+      "ad": "Kur'an tilaveti (sure bütünü)",
+      "kari": "Mishary Rashid Alafasy",
+      "saglayici": "MP3Quran (mp3quran.net)",
+      "url": "https://mp3quran.net",
+      "not": "Akış olarak dinletilir; uygulama içine gömülmez, ücretli pakete konmaz."
+    },
+    {
+      "ad": "Sesli meal",
+      "kari": "Mazlum Kiper",
+      "saglayici": "YouTube (gömülü oynatıcı)",
+      "url": "https://www.youtube.com",
+      "not": "Yalnız YouTube'un kendi oynatıcısıyla gösterilir; indirilemez, çevrimdışı sunulmaz."
+    }
+  ],
+  "generatedAudio": {
+    "ad": "Ney, şadırvan, tını ve eşik sesleri",
+    "not": "Cihazda Web Audio ile üretilir; hiçbir ses kaydı içermez."
+  },
+  "fonts": [
+    {
+      "ad": "Inter",
+      "lisans": "SIL Open Font License 1.1",
+      "url": "https://rsms.me/inter/"
+    },
+    {
+      "ad": "Amiri",
+      "lisans": "SIL Open Font License 1.1",
+      "url": "https://www.amirifont.org"
+    },
+    {
+      "ad": "Playfair Display",
+      "lisans": "SIL Open Font License 1.1",
+      "url": "https://fonts.google.com/specimen/Playfair+Display"
+    }
+  ],
+  "hadith": {
+    "ad": "Hadis metinleri",
+    "not": "Arapça asıllar klasik hadis kaynaklarındandır (kamu malı). Türkçe çevirilerin kaynağı doğrulanma aşamasındadır; doğrulanana kadar her hadiste kitap ve numara gösterilir."
+  },
+  "siyer": {
+    "ad": "Siyer anlatımı",
+    "not": "Konu sıralamasında Osman Keskioğlu'nun Siyer-i Nebî'sinden (Diyanet İşleri Başkanlığı Yayınları) yararlanılmıştır. Anlatım uygulamaya özgüdür."
+  },
+  "ai": {
+    "ad": "Yapay zekâ açıklamaları",
+    "not": "Yapay zekâ ile üretilir, hata içerebilir. Hiçbir âlimin sözü ya da fetva değildir."
+  },
+  "diyanetOnayi": {
+    "durum": "basvuru-oncesi",
+    "tarih": null,
+    "sayi": null,
+    "not": "Kur'an bölümü, Diyanet İşleri Başkanlığı Mushafları İnceleme ve Kıraat Kurulu onay sürecindedir."
+  },
+  "images": [
+    {
+      "ad": "Fotoğraflar",
+      "saglayici": "Unsplash",
+      "lisans": "Unsplash Lisansı (ücretsiz kullanım)",
+      "url": "https://unsplash.com/license",
+      "not": "Kapak görselleri Unsplash sunucusundan gösterilir."
+    },
+    {
+      "ad": "Varsayılan profil resimleri",
+      "saglayici": "DiceBear (Avataaars stili)",
+      "lisans": "Ücretsiz kullanım",
+      "url": "https://www.dicebear.com/licenses",
+      "not": "Fotoğrafı olmayan hesaplar için üretilir."
+    }
+  ],
+  "tafsir": {
+    "tr": {
+      "key": "turkish_mokhtasar",
+      "ad": "Muhtasar Kur'an-ı Kerim Tefsiri — Türkçe Tercüme",
+      "yayinci": "Kur'an Araştırmaları Tefsir Merkezi",
+      "kaynak": "QuranEnc.com",
+      "url": "https://quranenc.com/tr/browse/turkish_mokhtasar",
+      "surum": "1.1.0",
+      "surumNotu": "Sürüm uygulama içinde QuranEnc listesinden canlı okunur; buradaki değer yedektir."
+    }
+  },
+  "mushaf": {
+    "ad": "Mushaf sayfa düzeni",
+    "not": "Sayfa bölümleri 604 sayfalık Medine tertibine göredir; sayfa verisi alquran.cloud üzerinden Tanzil metniyle gelir. Satır satır hat görünümü için yazı tipi Kurul kararına bağlıdır."
+  }
+}

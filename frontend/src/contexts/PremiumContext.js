@@ -1,49 +1,24 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
-import api from '../api';
+import React, { createContext, useContext } from 'react';
 
-const PremiumContext = createContext(null);
+// 🎁 TAMAMEN ÜCRETSİZ MODEL (docs/YENI_OZELLIKLER.md 0.5)
+//
+// Karar: her özellik herkese ücretsiz, reklam yok, giriş zorunlu değil.
+// Bu bağlam yalnız eski çağrılar bozulmasın diye duruyor: `canUseFeature` her zaman true döner,
+// sunucuya `/premium/status` isteği atılmaz. Yeni kodda usePremium KULLANILMAZ; hiçbir özellik
+// bir ödeme koşuluna bağlanmaz.
+const FREE = {
+  premium: true,          // "kilitli mi?" diye bakan eski kod için: hiçbir şey kilitli değil
+  plan: 'free',
+  features: {},
+  loading: false,
+  checkPremium: async () => {},
+  canUseFeature: () => true,
+};
+
+const PremiumContext = createContext(FREE);
 
 export function PremiumProvider({ children }) {
-  const { user } = useAuth();
-  const [premium, setPremium] = useState(false);
-  const [plan, setPlan] = useState('free');
-  const [features, setFeatures] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  const checkPremium = useCallback(async () => {
-    if (!user?.user_id) {
-      setPremium(false);
-      setPlan('free');
-      setLoading(false);
-      return;
-    }
-    try {
-      const { data } = await api.get(`/premium/status/${user.user_id}`);
-      setPremium(data.premium);
-      setPlan(data.plan);
-      setFeatures(data.features || {});
-    } catch {
-      setPremium(false);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => { checkPremium(); }, [checkPremium]);
-
-  const canUseFeature = (featureKey) => {
-    if (premium) return true;
-    const limit = features[featureKey];
-    if (limit === undefined) return true;
-    return limit === -1 || limit > 0;
-  };
-
-  return (
-    <PremiumContext.Provider value={{ premium, plan, features, loading, checkPremium, canUseFeature }}>
-      {children}
-    </PremiumContext.Provider>
-  );
+  return <PremiumContext.Provider value={FREE}>{children}</PremiumContext.Provider>;
 }
 
 export const usePremium = () => useContext(PremiumContext);

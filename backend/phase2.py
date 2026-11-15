@@ -94,43 +94,43 @@ PREMIUM_PLANS = {
 TAFSIR_SCHOLARS = [
     {
         "id": "elmalili",
-        "name": "Elmalılı Hamdi Yazır",
-        "era": "1878-1942",
-        "style": "Klasik Osmanlı tefsir geleneği, derin dil analizi, Hanefi fıkıh perspektifi",
-        "icon": "📜",
+        "name": "Dil ve belagat yaklaşımı",
+        "era": "",
+        "style": "Yapay zekâ açıklaması. Bu yaklaşımın klasik örneği: Hak Dini Kur'an Dili (Elmalılı M. Hamdi Yazır)",
+        "icon": "📗",
         "premium": False,
     },
     {
         "id": "ibn_kesir",
-        "name": "İbn Kesîr",
-        "era": "1300-1373",
-        "style": "Rivayet tefsiri, hadis merkezli, Şâfiî mezhebinden",
-        "icon": "📚",
-        "premium": True,
+        "name": "Rivayet yaklaşımı",
+        "era": "",
+        "style": "Yapay zekâ açıklaması. Bu yaklaşımın klasik örneği: Tefsîru'l-Kur'âni'l-Azîm (İbn Kesîr)",
+        "icon": "📕",
+        "premium": False,
     },
     {
         "id": "taberi",
-        "name": "İmam Taberî",
-        "era": "839-923",
-        "style": "En kapsamlı rivayet tefsiri, tüm rivayetleri toplar, dilbilimsel analiz",
-        "icon": "🏛️",
-        "premium": True,
+        "name": "Rivayetleri karşılaştırma yaklaşımı",
+        "era": "",
+        "style": "Yapay zekâ açıklaması. Bu yaklaşımın klasik örneği: Câmiu'l-Beyân (Taberî)",
+        "icon": "📙",
+        "premium": False,
     },
     {
         "id": "razi",
-        "name": "Fahreddin Râzî",
-        "era": "1149-1209",
-        "style": "Felsefi ve kelami tefsir, akli deliller, derin analiz",
-        "icon": "🔬",
-        "premium": True,
+        "name": "Aklî ve kelamî yaklaşım",
+        "era": "",
+        "style": "Yapay zekâ açıklaması. Bu yaklaşımın klasik örneği: Mefâtîhu'l-Gayb (Fahreddin Râzî)",
+        "icon": "📘",
+        "premium": False,
     },
     {
         "id": "kurtubi",
-        "name": "İmam Kurtubî",
-        "era": "1214-1273",
-        "style": "Ahkâm tefsiri, fıkhi hükümler, Maliki perspektif",
-        "icon": "⚖️",
-        "premium": True,
+        "name": "Ahkâm (hüküm) yaklaşımı",
+        "era": "",
+        "style": "Yapay zekâ açıklaması. Bu yaklaşımın klasik örneği: el-Câmi' li-Ahkâmi'l-Kur'ân (Kurtubî)",
+        "icon": "📓",
+        "premium": False,
     },
 ]
 
@@ -165,7 +165,7 @@ ENHANCED_BADGES = [
 
 # ===================== AI MÜFTÜ SYSTEM PROMPT =====================
 
-AI_MUFTI_SYSTEM_BASE = """Sen gelişmiş bir İslami müftü AI'sın. Adın "İslam Danışmanı".
+AI_MUFTI_SYSTEM_BASE = """Sen İslami konularda bilgi veren bir yapay zekâ rehbersin. Adın "İslam Rehberi". Müftü değilsin.
 
 ## KİMLİĞİN:
 - Hanefi mezhebine göre cevap verirsin (kullanıcı değiştirmedikçe)
@@ -191,7 +191,7 @@ Detaylı açıklama (kullanıcı seviyesine göre ayarla).
 ## KURALLAR:
 1. Her zaman Türkçe yanıt ver (kullanıcı dili değiştirmedikçe)
 2. Ayet ve hadis numaralarını doğru ver
-3. Fetva verme, "Bu konuda bir müftüye danışmanızı tavsiye ederim" de
+3. Fetva verme. Kişiye özel dini sorularda "Bu konuda Diyanet'in fetva hattına (ALO 190) ya da bir müftülüğe danışmanızı tavsiye ederim" de
 4. Emin olmadığın konularda açıkça belirt: "⚠️ Bu konuda kesin bir hüküm vermek güçtür. Bir ilim ehline danışmanızı tavsiye ederim."
 5. Kaynakları HER ZAMAN belirt
 6. Mezhep farklılıklarını belirt ama Hanefi görüşünü öncelikle sun
@@ -212,27 +212,29 @@ UNCERTAINTY_PATTERNS = [
 
 # ===================== TAFSIR COMPARISON PROMPTS =====================
 
+# Âlim ağzından konuşan istemler kaldırıldı (docs/YENI_OZELLIKLER.md 0.1). Her kimlik artık bir
+# tefsir YAKLAŞIMIDIR; model hiçbir âlimi canlandırmaz ve alıntı uydurmaz.
+_TAFSIR_COMMON = """Sen bir yapay zekâ asistanısın; Kur'an ayetlerini açıklamaya yardımcı olursun.
+
+KESİN KURALLAR:
+- Hiçbir âlimin ağzından konuşma, hiçbir âlim gibi davranma, "ben" diyerek bir müfessiri canlandırma.
+- Hiçbir kitaptan alıntı UYDURMA. Tırnak içinde alıntı yalnız Kur'an ayetinin mealinden olabilir.
+- Bir görüşü bir âlime ya da esere atfedeceksen yalnız yaygın olarak bilinen genel bilgiyi aktar ve "… olarak bilinir" gibi temkinli ifade kullan; cilt/sayfa numarası verme.
+- Emin olmadığın hadisi, rivayeti, nüzul sebebini yazma; "bu konuda kesin bilgim yok" de.
+- Fetva verme. Kişisel dini sorular için Diyanet'in fetva hattına (ALO 190) yönlendir.
+- Cevabın bir yapay zekâ açıklamasıdır; sonunda bunu tek cümleyle hatırlat.
+
+YAKLAŞIM: """
+
 TAFSIR_SCHOLAR_PROMPTS = {
-    "elmalili": """Sen Elmalılı Hamdi Yazır'sın. 'Hak Dini Kur'an Dili' tefsirinden yazıyorsun.
-Üslubun: Osmanlı Türkçesi tarzı, ağdalı ama derin. Dilbilimsel analiz yap. Hanefi fıkıh perspektifinden yaz.
-Arapça kelimelerin kök analizini yap. Türkçe tefsir geleneğinin en önemli eseri olan tefsirinden alıntı yap.""",
-
-    "ibn_kesir": """Sen İbn Kesîr'sin. 'Tefsîru'l-Kur'âni'l-Azîm' tefsirinden yazıyorsun.
-Üslubun: Hadis merkezli (rivayet tefsiri). Her ayeti hadislerle açıkla. Sahabe ve tâbiîn görüşlerini aktar.
-İsnad zincirlerini belirt. Sahih hadisleri öncelikle kullan.""",
-
-    "taberi": """Sen İmam Taberî'sin. 'Câmiu'l-Beyân' tefsirinden yazıyorsun.
-Üslubun: En kapsamlı rivayet tefsiri. TÜM rivayetleri topla ve değerlendir. Dilbilimsel analiz yap.
-Farklı kıraat vecihlerini belirt. Selef âlimlerinin tüm görüşlerini aktar.""",
-
-    "razi": """Sen Fahreddin Râzî'sin. 'Mefâtîhu'l-Gayb' (Tefsîr-i Kebîr) tefsirinden yazıyorsun.
-Üslubun: Felsefi ve kelami tefsir. Akli deliller sun. Mu'tezile ve Eş'arî tartışmalarına değin.
-Bilimsel işaretlere dikkat çek. Derin analitik düşünce.""",
-
-    "kurtubi": """Sen İmam Kurtubî'sin. 'el-Câmi' li-Ahkâmi'l-Kur'ân' tefsirinden yazıyorsun.
-Üslubun: Ahkâm tefsiri - ayetlerdeki fıkhi hükümlere odaklan. Dört mezhep görüşlerini karşılaştır.
-Her ayetten çıkarılacak hukuki hükümleri listele. Delillerle destekle.""",
+    "elmalili": _TAFSIR_COMMON + """Ayeti dil ve belagat açısından açıkla: Arapça kelimelerin kök anlamları, cümle yapısı ve anlatım incelikleri.""",
+    "ibn_kesir": _TAFSIR_COMMON + """Ayeti önce Kur'an'ın diğer ayetleriyle, sonra bilinen sahih hadislerle açıkla. Emin olmadığın rivayeti aktarma.""",
+    "taberi": _TAFSIR_COMMON + """Ayet hakkında tefsir geleneğinde bilinen farklı görüşleri sırala ve aralarındaki farkı açıkla. Senet uydurma.""",
+    "razi": _TAFSIR_COMMON + """Ayeti aklî deliller ve inanç esasları açısından açıkla; ayetin sorduğu ya da cevapladığı soruları belirt.""",
+    "kurtubi": _TAFSIR_COMMON + """Ayetle ilgili fıkhî konuları açıkla; mezhepler arasında bilinen görüş farkı varsa kısaca belirt. Fetva verme.""",
 }
+
+AI_TAFSIR_LABEL = "Yapay zekâ açıklaması · bir âlimin sözü ya da fetva değildir"
 
 # ===================== SMART NOTIFICATION TEMPLATES =====================
 
@@ -262,21 +264,17 @@ def setup_phase2_routes(api_router: APIRouter, db, gemini_generate):
 
     # ===================== HELPER: Premium Check =====================
     async def is_premium(user_id: str) -> bool:
-        sub = await db.subscriptions.find_one({"user_id": user_id, "status": "active"})
-        if not sub:
-            return False
-        if sub.get("expires_at") and sub["expires_at"] < datetime.now(timezone.utc):
-            await db.subscriptions.update_one({"_id": sub["_id"]}, {"$set": {"status": "expired"}})
-            return False
+        # Tamamen ücretsiz model (docs/YENI_OZELLIKLER.md 0.5): hiçbir özellik ödeme koşuluna bağlı değil.
+        # Abonelik tablosu okunmaz; eski "premium" kontrollerinin hepsi açık döner.
         return True
 
+    AI_DAILY_FAIR_USE = 20  # herkese eşit adil kullanım sınırı; ödeme ile kaldırılmaz
+
     async def check_ai_limit(user_id: str) -> bool:
-        """Check if free user exceeded daily AI limit"""
-        if await is_premium(user_id):
-            return True
+        """Günlük adil kullanım sınırı. Yapay zekâ servisinin ücretsiz kotası herkes için korunur."""
         today = date.today().isoformat()
         count = await db.ai_usage.count_documents({"user_id": user_id, "date": today})
-        return count < PREMIUM_PLANS["free"]["features"]["ai_mufti_daily"]
+        return count < AI_DAILY_FAIR_USE
 
     # ===================== AI MÜFTÜ ENDPOINTS =====================
 
@@ -401,7 +399,7 @@ def setup_phase2_routes(api_router: APIRouter, db, gemini_generate):
         today = date.today().isoformat()
         count = await db.ai_usage.count_documents({"user_id": user_id, "date": today})
         premium = await is_premium(user_id)
-        limit = -1 if premium else PREMIUM_PLANS["free"]["features"]["ai_mufti_daily"]
+        limit = AI_DAILY_FAIR_USE
         return {"used": count, "limit": limit, "premium": premium}
 
     # ===================== TAFSIR COMPARISON ENGINE =====================
@@ -429,12 +427,12 @@ def setup_phase2_routes(api_router: APIRouter, db, gemini_generate):
                     "era": scholar["era"],
                     "icon": scholar["icon"],
                     "locked": True,
-                    "content": "Bu alimin tefsirini görmek için Premium'a geçin.",
+                    "content": "",
                 })
                 continue
 
             # Check cache
-            cache_key = f"tafsir_{scholar['id']}_{surah}_{verse}"
+            cache_key = f"tafsir2_{scholar['id']}_{surah}_{verse}"
             cached = await db.tafsir_cache.find_one({"cache_key": cache_key})
             if cached:
                 results.append({

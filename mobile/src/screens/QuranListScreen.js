@@ -65,7 +65,7 @@ export default function QuranListScreen({ navigation }) {
     if (!query.trim()) return;
     setSearching(true);
     try {
-      const data = await searchQuran(query, 'tr.diyanet');
+      const data = await searchQuran(query);
       setResults(data.matches || []);
     } catch {
       setResults([]);

@@ -463,7 +463,7 @@ function TesbihatSection({ theme, user, onBack }) {
         const log = load(`tesbihat_log_${todayKey()}`, {});
         log[active.id] = Date.now();
         save(`tesbihat_log_${todayKey()}`, log);
-        awardXPOnce(user, `tesbihat_${active.id}_${todayKey()}`, 'worship_task', { points: 15, details: `Tesbihat: ${active.title}` });
+        // Tesbihat ibadettir: XP verilmez (docs/YENI_OZELLIKLER.md §0 kural 7).
       }
     } else setCount(next);
   }, [active, step, stepIdx, count, doneSet, user]);

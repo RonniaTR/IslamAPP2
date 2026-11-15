@@ -1,12 +1,10 @@
 import React from 'react';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { Typography } from '../ui/Typography';
+import { getUpcomingDays } from '../../services/islamicCalendar';
 
-const events = [
-  { id: 1, title: 'Ramazan', date: '10 Mart 2024', daysLeft: 14, color: '#2ECC71' },
-  { id: 2, title: 'Kadir Gecesi', date: '5 Nisan 2024', daysLeft: 40, color: '#CDA434' },
-  { id: 3, title: 'Kurban Bayramı', date: '16 Haziran 2024', daysLeft: 112, color: '#3498DB' }
-];
+// Tarihler tek takvim servisinden gelir (services/islamicCalendar.js); elle tarih yazılmaz.
+const events = getUpcomingDays(3).map((d) => ({ id: d.id, title: d.name, date: d.dateLabel, daysLeft: d.daysLeft, color: d.color }));
 
 export function UpcomingEventsRow({ items = events, title = "Yaklaşan Günler" }) {
   if (!items || items.length === 0) return null;
@@ -53,7 +51,7 @@ export function UpcomingEventsRow({ items = events, title = "Yaklaşan Günler" 
                 {item.title}
               </Typography>
               <Typography variant="caption" style={{ color: item.color, fontWeight: 700, fontSize: '11px' }}>
-                {item.daysLeft} gün kaldı
+                {item.daysLeft === 0 ? 'Bugün' : `yaklaşık ${item.daysLeft} gün kaldı`}
               </Typography>
             </div>
           </div>

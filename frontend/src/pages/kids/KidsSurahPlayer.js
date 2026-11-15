@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Play, Pause, SkipBack, SkipForward, RotateCcw } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TYPOGRAPHY, RADIUS, SHADOWS } from '../../styles/designTokens';
+import { fetchMeal, mealCredit } from '../../services/mealService';
 
 export default function KidsSurahPlayer() {
   const { id } = useParams();
@@ -16,25 +17,26 @@ export default function KidsSurahPlayer() {
   useEffect(() => {
     const fetchSurah = async () => {
       try {
-        const [arRes, trRes] = await Promise.all([
+        const [arRes, meal] = await Promise.all([
           fetch(`https://api.alquran.cloud/v1/surah/${id}`),
-          fetch(`https://api.alquran.cloud/v1/surah/${id}/tr.diyanet`)
+          fetchMeal(id, 'tr').catch(() => null)
         ]);
-        
-        const arData = await arRes.json();
-        const trData = await trRes.json();
 
-        if (arData.data && trData.data) {
+        const arData = await arRes.json();
+        const mealByAya = new Map((meal?.ayahs || []).map(a => [a.aya, a.text]));
+
+        if (arData.data) {
           const verses = arData.data.ayahs.map((ayah, i) => ({
             id: ayah.numberInSurah,
             arabic: ayah.text,
-            meaning: trData.data.ayahs[i].text,
+            meaning: mealByAya.get(ayah.numberInSurah) || '',
           }));
           
           setSurah({
             name: arData.data.englishName,
             turkishName: arData.data.englishName,
             verses,
+            mealCredit: meal ? mealCredit(meal.source, meal.version) : null,
             audioUrl: `https://server8.mp3quran.net/afs/${String(id).padStart(3, '0')}.mp3`
           });
           setLoading(false);
@@ -116,6 +118,11 @@ export default function KidsSurahPlayer() {
                 {i !== surah.verses.length - 1 && <div style={{ height: '1px', background: '#F3F4F6', margin: '8px 0 8px 36px' }} />}
               </div>
             ))}
+            {surah?.mealCredit && (
+              <p style={{ fontSize: '11px', color: '#9CA3AF', margin: 0, textAlign: 'center' }}>
+                Meal: {surah.mealCredit}
+              </p>
+            )}
           </motion.div>
         )}
       </div>

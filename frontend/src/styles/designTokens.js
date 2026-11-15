@@ -245,7 +245,7 @@ export const ONBOARDING_PAGES = [
   { icon: '🕌', title: 'Namaz', desc: 'Namaz vakitleri, kıble, cami bul, tesbihat.', color: '#0D5C2F' },
   { icon: '📚', title: 'İslami Hikayeler', desc: 'Peygamberler, sahabeler, kıssalar, sesli hikayeler.', color: '#2D8A4E' },
   { icon: '🧒', title: 'Çocuk Modu', desc: 'Güvenli, eğlenceli, yaşa uygun İslami öğrenme.', color: '#4A90D9' },
-  { icon: '🤖', title: 'AI Destekli Öğrenme', desc: 'Yapay zeka müftü, ezber koçu, günlük motivasyon.', color: '#6366F1' },
+  { icon: '🤖', title: 'AI Destekli Öğrenme', desc: 'Yapay zekâ rehber, ezber koçu, günlük motivasyon.', color: '#6366F1' },
   { icon: '👥', title: 'Topluluk', desc: 'Arkadaşlar, yarışmalar, liderlik tablosu.', color: '#F97316' },
   { icon: '🏆', title: 'Rozetler & XP', desc: 'Başarılar, seviyeler, ödüller ile motivasyonunu artır.', color: '#EAB308' },
   { icon: '🔔', title: 'Hatırlatıcılar', desc: 'Namaz, dua, görev hatırlatıcıları ile hiç kaçırma.', color: '#EF4444' },

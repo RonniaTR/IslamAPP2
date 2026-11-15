@@ -678,9 +678,9 @@ TRANSLATIONS_V2 = {
 
 OFFLINE_PACKS = {
     "quran_tr": {"id": "quran_tr", "name": "Kur'an (Türkçe)", "name_en": "Quran (Turkish)", "name_ar": "القرآن (تركي)",
-                 "lang": "tr", "type": "quran", "file": "quran_turkish.json", "size_mb": 2.1, "icon": "📖"},
+                 "lang": "tr", "type": "quran", "file": "translations/turkish_rwwad.json", "size_mb": 2.1, "icon": "📖"},
     "quran_en": {"id": "quran_en", "name": "Kur'an (İngilizce)", "name_en": "Quran (English)", "name_ar": "القرآن (إنجليزي)",
-                 "lang": "en", "type": "quran", "file": "quran_english.json", "size_mb": 1.8, "icon": "📖"},
+                 "lang": "en", "type": "quran", "file": "translations/english_rwwad.json", "size_mb": 1.8, "icon": "📖"},
     "quran_ar": {"id": "quran_ar", "name": "Kur'an (Arapça)", "name_en": "Quran (Arabic)", "name_ar": "القرآن (عربي)",
                  "lang": "ar", "type": "quran", "file": "quran_arabic.json", "size_mb": 3.2, "icon": "📖"},
     "hadith_all": {"id": "hadith_all", "name": "Hadis Koleksiyonu", "name_en": "Hadith Collection", "name_ar": "مجموعة الأحاديث",

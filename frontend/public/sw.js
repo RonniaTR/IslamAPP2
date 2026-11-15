@@ -5,7 +5,7 @@ const APP_SHELL = '/';
 
 // API endpoints that should be cached for offline use
 const CACHEABLE_API_PATHS = [
-  '/api/prayer-times/',
+  'api.aladhan.com/v1/timingsByCity',
   '/api/quran/surahs',
   '/api/hadith/all',
   '/api/hadith/random',

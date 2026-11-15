@@ -136,20 +136,6 @@ QURAN_RECITERS = {
     }
 }
 
-# English Translation Audio
-ENGLISH_RECITERS = {
-    "sahih_intl": {
-        "id": "en.sahih",
-        "name": "Sahih International",
-        "language": "en"
-    },
-    "ibrahim_walk": {
-        "id": "en.walk",
-        "name": "Ibrahim Walk",
-        "language": "en"
-    }
-}
-
 def get_audio_url(surah: int, ayah: int, reciter: str = "alafasy") -> str:
     """Get audio URL for a specific verse with selected reciter"""
     reciter_info = QURAN_RECITERS.get(reciter, QURAN_RECITERS["alafasy"])
@@ -175,28 +161,29 @@ QURAN_ARABIC = None
 QURAN_TURKISH = None
 QURAN_ENGLISH = None
 
+QURAN_TURKISH_EDITION = {}
+QURAN_ENGLISH_EDITION = {}
+
 def load_quran_data():
-    global QURAN_ARABIC, QURAN_TURKISH, QURAN_ENGLISH
+    """Arapça metin depodan; mealler QuranEnc önbelleğinden (bkz. quran_translations.py)."""
+    global QURAN_ARABIC, QURAN_TURKISH, QURAN_ENGLISH, QURAN_TURKISH_EDITION, QURAN_ENGLISH_EDITION
     try:
+        from quran_translations import load_translation
         arabic_path = ROOT_DIR / 'data' / 'quran_arabic.json'
-        turkish_path = ROOT_DIR / 'data' / 'quran_turkish.json'
-        english_path = ROOT_DIR / 'data' / 'quran_english.json'
-        
         if arabic_path.exists():
             with open(arabic_path, 'r', encoding='utf-8') as f:
                 QURAN_ARABIC = json_module.load(f)['data']['surahs']
-        
-        if turkish_path.exists():
-            with open(turkish_path, 'r', encoding='utf-8') as f:
-                QURAN_TURKISH = json_module.load(f)['data']['surahs']
-        
-        if english_path.exists():
-            with open(english_path, 'r', encoding='utf-8') as f:
-                QURAN_ENGLISH = json_module.load(f)['data']['surahs']
-        
+
+        QURAN_TURKISH, QURAN_TURKISH_EDITION = load_translation('tr')
+        QURAN_ENGLISH, QURAN_ENGLISH_EDITION = load_translation('en')
+
         print(f"Loaded Quran data: {len(QURAN_ARABIC) if QURAN_ARABIC else 0} surahs (AR), {len(QURAN_TURKISH) if QURAN_TURKISH else 0} (TR), {len(QURAN_ENGLISH) if QURAN_ENGLISH else 0} (EN)")
     except Exception as e:
         print(f"Error loading Quran data: {e}")
+
+def _meal_credit(edition):
+    from quran_translations import credit
+    return credit(edition or {})
 
 load_quran_data()
 
@@ -209,6 +196,13 @@ db = client[os.environ.get('DB_NAME', 'islamapp')]
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 COOKIE_SECURE = os.environ.get('COOKIE_SECURE', 'true').lower() in ('1', 'true', 'yes')
+# Web istemcisi (firebase hosting) ile backend (render) farkli sitelerde durdugu icin
+# oturum cerezinin SameSite=None olmasi gerekir; aksi halde tarayici cerezi
+# cross-site isteklere eklemez ve giris yapilmis kullanici 401 alir.
+# SameSite=None yalnizca Secure cerezle gecerlidir, bu yuzden COOKIE_SECURE'a bagli.
+COOKIE_SAMESITE = os.environ.get('COOKIE_SAMESITE', 'none' if COOKIE_SECURE else 'lax').lower()
+if COOKIE_SAMESITE == 'none' and not COOKIE_SECURE:
+    COOKIE_SAMESITE = 'lax'
 
 groq_client = OpenAI(
     api_key=GROQ_API_KEY,
@@ -668,115 +662,32 @@ LANG_DEFAULT_COUNTRY = {"tr": "TR", "en": "US", "ar": "SA", "es": "ES"}
 
 # ===================== SCHOLARS DATA (HOCALAR) =====================
 
+# KONU REHBERLERİ
+# Önceki sürümde burada yaşayan ve vefat etmiş gerçek kişilerin (ve Diyanet'in) adıyla "persona"lar
+# vardı; yapay zekâ onların ağzından cevap üretiyordu. Bu, kişilere söylemedikleri sözü atfetmekti
+# ve kaldırıldı (docs/YENI_OZELLIKLER.md 0.1). Artık yalnız KONU alanları var; kişi adı yok.
+AI_GUIDE_LABEL = "Yapay zekâ rehber · bir âlimin sözü ya da fetva değildir"
+
+AI_GUIDE_RULES = """KESİN KURALLAR:
+- Hiçbir gerçek kişinin (âlim, hoca, kurum) ağzından konuşma, onların üslubunu taklit etme.
+- Alıntı uydurma. Emin olmadığın ayet, hadis ya da rivayeti yazma; "bu konuda kesin bilgim yok" de.
+- Ayet için sure adı ve ayet numarası, hadis için kaynak kitabı belirt.
+- Fetva verme. Kişiye özel dini sorularda Diyanet'in fetva hattına (ALO 190) ya da müftülüğe yönlendir.
+- Cevabının bir yapay zekâ açıklaması olduğunu sonunda tek cümleyle hatırlat."""
+
 SCHOLARS = [
-    {
-        "id": "nihat_hatipoglu",
-        "name": "Prof. Dr. Nihat Hatipoğlu",
-        "title": "İlahiyatçı, TV Programcısı",
-        "style": "Halka yakın, duygusal, hikayeli anlatım, güncel örneklerle açıklama",
-        "specialty": "Siyer, Hadis, Güncel Meseleler",
-        "image": "nihat_hatipoglu.jpg",
-        "sources": ["Diyanet İşleri Başkanlığı", "Sahih Hadis Kaynakları", "Siyer Kitapları"]
-    },
-    {
-        "id": "hayrettin_karaman",
-        "name": "Prof. Dr. Hayrettin Karaman",
-        "title": "İslam Hukuku Profesörü",
-        "style": "Akademik, detaylı, mezhep karşılaştırmalı, fıkhi derinlik",
-        "specialty": "Fıkıh, İslam Hukuku, Güncel Fetvalar",
-        "image": "hayrettin_karaman.jpg",
-        "sources": ["hayrettinkaraman.net", "İslam Hukuku Kaynakları", "Klasik Fıkıh Kitapları"]
-    },
-    {
-        "id": "mustafa_islamoglu",
-        "name": "Mustafa İslamoğlu",
-        "title": "Tefsir Uzmanı, Yazar",
-        "style": "Analitik, Kur'an merkezli, linguistik yaklaşım, modern yorumlama",
-        "specialty": "Tefsir, Kur'an Dili, Meal",
-        "image": "mustafa_islamoglu.jpg",
-        "sources": ["Hayat Kitabı Kur'an", "Meal ve Tefsir Çalışmaları"]
-    },
-    {
-        "id": "diyanet",
-        "name": "Diyanet İşleri Başkanlığı",
-        "title": "Resmi Dini Kurum",
-        "style": "Resmi, dengeli, genel kabul görmüş görüşler, Hanefi ağırlıklı",
-        "specialty": "Fetvalar, İbadet, Günlük Dini Meseleler",
-        "image": "diyanet.jpg",
-        "sources": ["diyanet.gov.tr", "Din İşleri Yüksek Kurulu Kararları"]
-    },
-    {
-        "id": "omer_nasuhi",
-        "name": "Ömer Nasuhi Bilmen",
-        "title": "Eski Diyanet İşleri Başkanı",
-        "style": "Klasik, detaylı, Osmanlı ilim geleneği, kapsamlı",
-        "specialty": "Fıkıh, İlmihal, Tefsir",
-        "image": "omer_nasuhi.jpg",
-        "sources": ["Büyük İslam İlmihali", "Kur'an-ı Kerim'in Türkçe Meal-i Âlisi ve Tefsiri"]
-    },
-    {
-        "id": "elmalili",
-        "name": "Elmalılı Muhammed Hamdi Yazır",
-        "title": "Müfessir, Alim",
-        "style": "Derin tefsir, Arapça/Osmanlıca terminoloji, ilmi derinlik",
-        "specialty": "Tefsir, Felsefe, Kelam",
-        "image": "elmalili.jpg",
-        "sources": ["Hak Dini Kur'an Dili Tefsiri"]
-    },
-    {
-        "id": "said_nursi",
-        "name": "Bediüzzaman Said Nursi",
-        "title": "İslam Alimi, Müellif",
-        "style": "Felsefi, iman esaslı, modern sorulara cevap, derin tefekkür",
-        "specialty": "İman, Felsefe, Modern Çağ Sorunları",
-        "image": "said_nursi.jpg",
-        "sources": ["Risale-i Nur Külliyatı", "erisale.com"]
-    },
-    {
-        "id": "mehmet_okuyan",
-        "name": "Prof. Dr. Mehmet Okuyan",
-        "title": "İlahiyat Profesörü",
-        "style": "Kur'an merkezli, akademik, sorgulayıcı, anlaşılır dil",
-        "specialty": "Tefsir, Kur'an Bilimleri, Meal",
-        "image": "mehmet_okuyan.jpg",
-        "sources": ["Kur'an-ı Kerim Meali", "Akademik Tefsir Çalışmaları"]
-    },
-    {
-        "id": "suleyman_ates",
-        "name": "Prof. Dr. Süleyman Ateş",
-        "title": "Eski Diyanet İşleri Başkanı, Müfessir",
-        "style": "Kapsamlı tefsir, rasyonel yaklaşım, mukayeseli analiz",
-        "specialty": "Tefsir, Tasavvuf, İslam Düşüncesi",
-        "image": "suleyman_ates.jpg",
-        "sources": ["Yüce Kur'an'ın Çağdaş Tefsiri", "Tasavvuf Araştırmaları"]
-    },
-    {
-        "id": "yasar_nuri",
-        "name": "Prof. Dr. Yaşar Nuri Öztürk",
-        "title": "İlahiyatçı, Yazar",
-        "style": "Reformist, Kur'an odaklı, geleneksel yorumlara sorgulayıcı, cesur",
-        "specialty": "Kur'an Yorumu, İslam Reformu, Tasavvuf",
-        "image": "yasar_nuri.jpg",
-        "sources": ["Kur'an-ı Kerim Meali", "Din Anlayışımız Üzerine"]
-    },
-    {
-        "id": "cübbeli_ahmet",
-        "name": "Cübbeli Ahmet Hoca",
-        "title": "İlim Adamı, Vaiz",
-        "style": "Geleneksel, hadis odaklı, halk dili, samimi anlatım",
-        "specialty": "Hadis, İlmihal, Günlük İbadetler",
-        "image": "cubbeli.jpg",
-        "sources": ["Sahih Hadis Kaynakları", "Geleneksel İlmihal Kitapları"]
-    },
-    {
-        "id": "ali_erbas",
-        "name": "Prof. Dr. Ali Erbaş",
-        "title": "Diyanet İşleri Başkanı",
-        "style": "Resmi, hutbe tarzı, birleştirici, toplumsal mesajlar",
-        "specialty": "Hutbe, Toplumsal Meseleler, İslami Birlik",
-        "image": "ali_erbas.jpg",
-        "sources": ["Diyanet Hutbeleri", "Cuma Vaazları"]
-    }
+    {"id": "genel", "name": "Genel rehber", "title": "Yapay zekâ rehber", "specialty": "İslam'la ilgili genel sorular",
+     "style": "Sade, dengeli ve kaynak gösteren anlatım.", "image": "", "sources": ["Kur'an-ı Kerim", "Sahih hadis kaynakları"]},
+    {"id": "ibadet", "name": "İbadet rehberi", "title": "Yapay zekâ rehber", "specialty": "Abdest, namaz, oruç, zekât, hac",
+     "style": "Adım adım, uygulamaya dönük anlatım. Hanefî görüşü esas al, Şâfiî farkını kısaca belirt.", "image": "", "sources": ["Kur'an-ı Kerim", "Sahih hadis kaynakları", "İlmihal bilgisi"]},
+    {"id": "kuran", "name": "Kur'an rehberi", "title": "Yapay zekâ rehber", "specialty": "Ayetlerin anlamı, sureler, nüzul",
+     "style": "Ayeti önce diğer ayetlerle, sonra bilinen sahih hadislerle açıkla.", "image": "", "sources": ["Kur'an-ı Kerim", "Sahih hadis kaynakları"]},
+    {"id": "hadis", "name": "Hadis ve sünnet rehberi", "title": "Yapay zekâ rehber", "specialty": "Hadisler ve Peygamber Efendimizin sünneti",
+     "style": "Hadisin kaynağını ve bilinen sıhhat durumunu belirt; emin değilsen söyle.", "image": "", "sources": ["Kütüb-i Sitte"]},
+    {"id": "siyer", "name": "Siyer rehberi", "title": "Yapay zekâ rehber", "specialty": "Peygamber Efendimizin hayatı ve peygamberler tarihi",
+     "style": "Kronolojik ve sade anlatım; tarih ve rakamlarda temkinli ol.", "image": "", "sources": ["Kur'an-ı Kerim", "Siyer kaynakları"]},
+    {"id": "ahlak", "name": "Ahlak ve gündelik hayat rehberi", "title": "Yapay zekâ rehber", "specialty": "Güzel ahlak, aile, kul hakkı, iş hayatı",
+     "style": "Şefkatli, yargılamayan, somut öneriler veren anlatım.", "image": "", "sources": ["Kur'an-ı Kerim", "Sahih hadis kaynakları"]},
 ]
 
 # ===================== MOOD BASED CONTENT =====================
@@ -1135,8 +1046,9 @@ def calculate_prayer_times(latitude: float, longitude: float, date_obj: date, ma
 
 # ===================== GAMIFICATION HELPERS =====================
 
+# İbadet XP vermez (docs/YENI_OZELLIKLER.md §0 kural 7): Kur'an okuma 0 puan. XP yalnız ilim ve oyunda.
 POINTS_CONFIG = {
-    "quran_read": 10,
+    "quran_read": 0,
     "hadith_read": 5,
     "pomodoro": 15,
     "scholar_question": 8,
@@ -1303,7 +1215,7 @@ async def exchange_session(request: Request, session_id: str, response: Response
                 value=session_token,
                 httponly=True,
                 secure=COOKIE_SECURE,
-                samesite="lax",
+                samesite=COOKIE_SAMESITE,
                 path="/",
                 max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
             )
@@ -1360,7 +1272,7 @@ async def create_guest_user(request: Request, response: Response):
         value=session_token,
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
         path="/",
         max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
     )
@@ -1390,7 +1302,7 @@ async def get_current_user_info(request: Request, response: Response, session_to
         )
         response.set_cookie(
             key="session_token", value=token,
-            httponly=True, secure=COOKIE_SECURE, samesite="lax",
+            httponly=True, secure=COOKIE_SECURE, samesite=COOKIE_SAMESITE,
             path="/", max_age=SESSION_EXPIRY_DAYS * 24 * 60 * 60
         )
 
@@ -1411,7 +1323,10 @@ async def logout(request: Request, response: Response, session_token: Optional[s
     if token:
         await db.user_sessions.delete_one({"session_token": token})
     
-    response.delete_cookie(key="session_token", path="/")
+    response.delete_cookie(
+        key="session_token", path="/",
+        secure=COOKIE_SECURE, samesite=COOKIE_SAMESITE, httponly=True
+    )
     return {"message": "Logged out successfully"}
 
 @api_router.put("/auth/profile")
@@ -1506,15 +1421,16 @@ async def get_prayer_times(city_id: str, madhab: str = "hanafi"):
 
 # ===================== TAFSIR (TEFSİR) SYSTEM =====================
 
+# Âlim personaları kaldırıldı; her kimlik bir tefsir YAKLAŞIMIDIR (bkz. phase3_tafsir.py).
 TAFSIR_SCHOLARS = {
-    "ibn_kesir": {"id": "ibn_kesir", "name": "İbn Kesir", "name_ar": "ابن كثير", "name_en": "Ibn Kathir", "era": "1300-1373", "school": "Hanbeli"},
-    "taberi": {"id": "taberi", "name": "Taberi", "name_ar": "الطبري", "name_en": "Al-Tabari", "era": "839-923", "school": "Şafii"},
-    "elmalili": {"id": "elmalili", "name": "Elmalılı Hamdi Yazır", "name_ar": "الملالي حمدي يازر", "name_en": "Elmalılı Hamdi Yazır", "era": "1878-1942", "school": "Hanefi"},
-    "razi": {"id": "razi", "name": "Fahreddin Razi", "name_ar": "فخر الدين الرازي", "name_en": "Fakhr al-Din al-Razi", "era": "1149-1209", "school": "Şafii"},
-    "kurtubi": {"id": "kurtubi", "name": "İmam Kurtubi", "name_ar": "الإمام القرطبي", "name_en": "Al-Qurtubi", "era": "1214-1273", "school": "Maliki"},
-    "mevdudi": {"id": "mevdudi", "name": "Mevdudi", "name_ar": "المودودي", "name_en": "Maududi", "era": "1903-1979", "school": "Modern"},
-    "diyanet": {"id": "diyanet", "name": "Diyanet İşleri", "name_ar": "رئاسة الشؤون الدينية", "name_en": "Diyanet", "era": "Güncel", "school": "Hanefi"},
-    "suyuti": {"id": "suyuti", "name": "İmam Suyuti", "name_ar": "الإمام السيوطي", "name_en": "Al-Suyuti", "era": "1445-1505", "school": "Şafii"},
+    "ozet": {"id": "ozet", "name": "Kısa açıklama", "name_ar": "شرح موجز", "name_en": "Short explanation", "era": "", "school": "",
+             "approach": "Ayetin ana mesajını sade bir dille, 2-3 paragrafta açıkla."},
+    "rivayet": {"id": "rivayet", "name": "Rivayet yaklaşımı", "name_ar": "التفسير بالمأثور", "name_en": "Narration-based", "era": "", "school": "",
+                "approach": "Ayeti önce diğer ayetlerle, sonra bilinen sahih hadislerle açıkla."},
+    "dil": {"id": "dil", "name": "Dil ve belagat yaklaşımı", "name_ar": "المنهج اللغوي", "name_en": "Linguistic", "era": "", "school": "",
+            "approach": "Arapça kelimelerin kök anlamlarını ve anlatım inceliklerini açıkla."},
+    "ahkam": {"id": "ahkam", "name": "Ahkâm yaklaşımı", "name_ar": "أحكام القرآن", "name_en": "Legal rulings", "era": "", "school": "",
+              "approach": "Ayetle ilgili fıkhî konuları ve bilinen mezhep farklarını kısaca açıkla; fetva verme."},
 }
 
 @api_router.get("/tafsir/scholars")
@@ -1529,7 +1445,7 @@ async def get_tafsir(surah_number: int, verse_number: int, scholar: Optional[str
         query["scholar_name"] = scholar
     
     # Check cache in MongoDB
-    cached = await db.tafsir.find(query, {"_id": 0}).to_list(length=10)
+    cached = await db.tafsir_ai.find(query, {"_id": 0}).to_list(length=10)
     if cached:
         return cached
     
@@ -1571,16 +1487,16 @@ async def get_tafsir(surah_number: int, verse_number: int, scholar: Optional[str
             "es": "Escribe en español."
         }.get(lang, "Türkçe olarak yaz.")
         
-        prompt = f"""{s_info['name']} ({s_info['era']}) tefsir ekolünden, {tr_name} suresi {verse_number}. ayetinin tefsirini yaz.
+        prompt = f"""{tr_name} suresi {verse_number}. ayetini açıkla.
 Ayet (Arapça): {verse_text}
-Ayet (Türkçe): {turkish_text}
+Ayet (Türkçe meal): {turkish_text}
 
-Bu alimin bakış açısını, ilmi tarzını ve tefsir metodolojisini yansıt.
-Tefsiri 3-5 paragraf olarak, kapsamlı ve öğretici bir şekilde yaz.
+Yaklaşım: {s_info['approach']}
+3-5 paragraf, öğretici ve sade yaz.
 {lang_instruction}"""
         
         try:
-            response = await gemini_generate(prompt, system_message="Sen bir İslam alimi ve tefsir uzmanısın.")
+            response = await gemini_generate(prompt, system_message="Sen Kur'an ayetlerini açıklamaya yardımcı olan bir yapay zekâ asistanısın.\n\n" + AI_GUIDE_RULES)
             tafsir_text = response
             
             tafsir_doc = {
@@ -1589,10 +1505,11 @@ Tefsiri 3-5 paragraf olarak, kapsamlı ve öğretici bir şekilde yaz.
                 "scholar_name": s_id,
                 "scholar_display_name": s_info["name"],
                 "tafsir_text": tafsir_text,
+                "ai_label": AI_GUIDE_LABEL,
                 "language": lang,
             }
             # Cache in MongoDB
-            await db.tafsir.insert_one({**tafsir_doc, "created_at": datetime.now(timezone.utc)})
+            await db.tafsir_ai.insert_one({**tafsir_doc, "created_at": datetime.now(timezone.utc)})
             tafsir_doc.pop("_id", None)
             results.append(tafsir_doc)
         except Exception as e:
@@ -1614,7 +1531,7 @@ async def get_tafsir_kissa(request: Request):
         raise HTTPException(status_code=400, detail="surah_number and verse_number required")
 
     # Check cache
-    cached = await db.kissa.find_one(
+    cached = await db.kissa_ai.find_one(
         {"surah_number": surah_number, "verse_number": verse_number, "scholar_id": scholar_id},
         {"_id": 0}
     )
@@ -1638,32 +1555,25 @@ async def get_tafsir_kissa(request: Request):
 
     tr_name, _ = TURKISH_SURAH_NAMES.get(surah_number, ("", ""))
 
-    # Find scholar info
-    scholar_info = None
-    for s in SCHOLARS:
-        if s["id"] == scholar_id:
-            scholar_info = s
-            break
-    scholar_name = scholar_info["name"] if scholar_info else "Diyanet İşleri Başkanlığı"
-    scholar_style = scholar_info["style"] if scholar_info else "dengeli, genel kabul görmüş görüşler"
+    # Kişi personası yok (bkz. SCHOLARS üstündeki not). scholar_id yalnız önbellek anahtarı olarak kalır.
+    scholar_name = "Yapay zekâ rehber"
 
-    prompt = f"""{scholar_name} tarzında, {tr_name} suresi {verse_number}. ayeti hakkında kısa bir tefsir ve hayata dair bir kıssa anlat.
+    prompt = f"""{tr_name} suresi {verse_number}. ayeti hakkında kısa bir açıklama ve bir tefekkür yazısı yaz.
 
 Ayet (Arapça): {verse_text}
-Ayet (Türkçe): {turkish_text}
-
-{scholar_name}'nin anlatım tarzı: {scholar_style}
+Ayet (Türkçe meal): {turkish_text}
 
 Kurallar:
-1. Önce ayetin kısa bir tefsirini yap (2-3 cümle)
-2. Sonra bu ayetle ilgili hayattan bir kıssa/hikaye anlat (3-4 cümle)
-3. Son olarak bir ders/ibret cümlesi ekle
+1. Önce ayetin kısa bir açıklamasını yap (2-3 cümle)
+2. Sonra bu ayetin gündelik hayata nasıl dokunduğunu anlatan kısa bir tefekkür yaz (3-4 cümle).
+   Gerçekmiş gibi sunulan olay, kişi, sahabe kıssası ya da rivayet UYDURMA; temsili bir örnek veriyorsan "diyelim ki" diye başla.
+3. Son olarak bir ders cümlesi ekle
 4. Toplam 150 kelimeyi geçme
-5. Samimi ve etkileyici bir dil kullan
+5. Samimi ve sade bir dil kullan
 6. Türkçe yaz"""
 
     try:
-        response = await gemini_generate(prompt, system_message="Sen İslami hikayeler ve kıssalar anlatan bir hocasın.")
+        response = await gemini_generate(prompt, system_message="Sen Kur'an ayetleri üzerine kısa tefekkür yazıları yazan bir yapay zekâ asistanısın.\n\n" + AI_GUIDE_RULES)
 
         kissa_doc = {
             "surah_number": surah_number,
@@ -1674,8 +1584,9 @@ Kurallar:
             "verse_turkish": turkish_text,
             "verse_arabic": verse_text,
             "kissa": response,
+            "ai_label": AI_GUIDE_LABEL,
         }
-        await db.kissa.insert_one({**kissa_doc, "created_at": datetime.now(timezone.utc)})
+        await db.kissa_ai.insert_one({**kissa_doc, "created_at": datetime.now(timezone.utc)})
         kissa_doc.pop("_id", None)
         return kissa_doc
     except Exception as e:
@@ -1979,7 +1890,7 @@ async def get_scholar(scholar_id: str):
 
 @api_router.post("/scholars/ask", response_model=ScholarResponse)
 async def ask_scholar(request: ScholarRequest):
-    """Ask a question to a specific scholar (AI persona simulation)"""
+    """Bir konu rehberine soru sor (yapay zekâ; kişi personası yoktur)."""
     try:
         # Find the scholar
         scholar = None
@@ -1989,34 +1900,18 @@ async def ask_scholar(request: ScholarRequest):
                 break
         
         if not scholar:
-            raise HTTPException(status_code=404, detail="Scholar not found")
-        
-        # Build persona-based system message
-        system_message = f"""Sen {scholar['name']} ({scholar['title']}) olarak cevap vereceksin.
+            # Eski istemciler kişi kimliği gönderebilir; persona yerine genel rehber cevaplar.
+            scholar = SCHOLARS[0]
 
-KONUŞMA TARZI:
-{scholar['style']}
+        # Kişi personası yok: yalnız konu alanı ve ortak güven kuralları.
+        system_message = f"""Sen İslami konularda bilgi veren bir yapay zekâ rehbersin.
 
-UZMANLIK ALANLARI:
-{scholar['specialty']}
+KONU ALANI: {scholar['specialty']}
+ANLATIM: {scholar['style']}
 
-KAYNAKLARIN:
-{', '.join(scholar['sources'])}
+{AI_GUIDE_RULES}
 
-ÖNEMLİ KURALLAR:
-1. Her zaman {scholar['name']}'nin bilinen görüşleri ve tarzına uygun cevap ver
-2. Cevabını Türkçe olarak ver
-3. Kaynaklarını belirt (ayet, hadis numaraları)
-4. Tefsir odaklı açıklamalar yap
-5. Gerekirse farklı görüşlere de değin ama kendi bakış açını koru
-6. Fetva verme, sadece bilgi ve yorum paylaş
-7. Hallucination yapma, emin olmadığın konularda "Bu konuda detaylı araştırma yapmanızı tavsiye ederim" de
-
-CEVAP FORMATI:
-📖 GÖRÜŞ ÖZETİ: (Ana fikri 2-3 cümlede özetle)
-📚 KAYNAK ALINTI: (İlgili ayet/hadis varsa)
-🔍 TEFSİR DERİNLİĞİ: (Detaylı açıklama)
-💡 ÖNERİ: (Kitap/kaynak önerisi)
+Cevabını kullanıcının yazdığı dilde ver (varsayılan Türkçe). Kısa cevapla başla, sonra açıkla, sonda kaynakları sırala.
 """
 
         # Initialize Gemini chat
@@ -2157,7 +2052,12 @@ async def get_surah(surah_number: int, lang: str = "tr", reciter: str = "alafasy
         "total_verses": len(verses),
         "verses": verses,
         "reciter": reciter_info,
-        "full_audio_url": get_surah_audio_url(surah_number, reciter)
+        "full_audio_url": get_surah_audio_url(surah_number, reciter),
+        # QuranEnc şartı: yayıncı, kaynak ve sürüm her meal yanıtıyla birlikte verilir.
+        "translation_credits": {
+            "turkish": _meal_credit(QURAN_TURKISH_EDITION),
+            "english": _meal_credit(QURAN_ENGLISH_EDITION),
+        },
     }
 
 
@@ -2232,11 +2132,26 @@ async def get_verse(surah_number: int, verse_number: int):
         "juz": ayah.get('juz', 0)
     }
 
+@api_router.get("/quran/quranenc/{key}/{surah_number}")
+async def get_quranenc_cached(key: str, surah_number: int):
+    """QuranEnc içeriğinin (meal/tefsir) sunucu önbelleği. Web istemcisi QuranEnc'e doğrudan
+    erişemediğinde buraya düşer. Yanıt biçimi QuranEnc API'siyle aynıdır; metin değiştirilmez."""
+    from quran_translations import load_by_key
+    surahs, edition = load_by_key(key)
+    if not surahs or surah_number < 1 or surah_number > len(surahs):
+        raise HTTPException(status_code=404, detail="Not available")
+    rows = [
+        {"sura": str(surah_number), "aya": str(a["numberInSurah"]), "translation": a["text"], "footnotes": a.get("footnotes", "")}
+        for a in surahs[surah_number - 1]["ayahs"]
+    ]
+    return {"result": rows, "edition": edition}
+
 @api_router.get("/quran/search")
 async def search_quran(query: str = Query(..., min_length=2)):
     """Search in Quran verses (Turkish translation)"""
     if not QURAN_TURKISH:
-        raise HTTPException(status_code=500, detail="Quran data not loaded")
+        # Meal önbelleği henüz indirilmemiş (scripts/fetch_quranenc.py); hata değil, boş sonuç.
+        return {"query": query, "count": 0, "results": [], "unavailable": True}
     
     results = []
     query_lower = query.lower()

@@ -2,6 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Map, Users, Settings } from 'lucide-react';
 import { COLORS, TYPOGRAPHY, KIDS_NAV_TABS } from '../styles/designTokens';
+import OfflineIndicator from './OfflineIndicator';
 
 const KidsNavTab = memo(function KidsNavTab({ icon: Icon, label, active, isCenter, onClick }) {
   if (isCenter) {
@@ -97,7 +98,7 @@ const KidsNavTab = memo(function KidsNavTab({ icon: Icon, label, active, isCente
 
 const iconMap = { Home, BookOpen: Map, Award: Map, Users, Settings }; // BookOpen/Award yerine harita ikonunu eşledik
 
-export default memo(function KidsLayout() {
+export default memo(function KidsLayout({ children }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -109,7 +110,7 @@ export default memo(function KidsLayout() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
@@ -117,11 +118,13 @@ export default memo(function KidsLayout() {
         margin: '0 auto',
         position: 'relative',
         background: COLORS.kids.bg,
+        overflow: 'hidden',
       }}
     >
+      <OfflineIndicator />
       {/* İçerik */}
-      <main style={{ flex: 1, overflowY: 'auto', paddingBottom: '100px', position: 'relative', zIndex: 1 }}>
-        <Outlet />
+      <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: '100px', position: 'relative', zIndex: 1, WebkitOverflowScrolling: 'touch' }}>
+          {children || <Outlet />}
       </main>
 
       {/* Alt Navigasyon (Kapsül Tasarım) */}

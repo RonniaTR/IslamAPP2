@@ -45,19 +45,23 @@ export class DiscoverServiceClass {
 
   async getDiscoverFeed(userId = 'anonymous') {
     try {
-      let categories = await CategoryService.getPublished(20);
-      let recommended = await ArticleService.getPublished(5);
-      let series = await SeriesService.getPublished(5);
-      let audio = await AudioService.getPublished(10);
+      let [categories, recommended, series, audio] = await Promise.all([
+        CategoryService.getPublished(20),
+        ArticleService.getPublished(5),
+        SeriesService.getPublished(5),
+        AudioService.getPublished(10)
+      ]);
       
       // 🚀 DATA HARVESTING ENGINE TRIGGER
       // If our database is poor, harvest data from the web (simulated) and expand our DB.
       if (recommended.length === 0 || series.length === 0 || audio.length === 0) {
         await this._harvestMissingData();
         // Re-fetch after harvesting
-        recommended = await ArticleService.getPublished(5);
-        series = await SeriesService.getPublished(5);
-        audio = await AudioService.getPublished(10);
+        [recommended, series, audio] = await Promise.all([
+          ArticleService.getPublished(5),
+          SeriesService.getPublished(5),
+          AudioService.getPublished(10)
+        ]);
       }
 
       // Popular Today

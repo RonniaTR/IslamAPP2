@@ -1,6 +1,6 @@
 """
 Phase 3: Enhanced Tafsir Engine
-- 5 scholar deep tafsir with 3 detail levels (summary/simplified/academic)
+- 5 tafsir approaches (AI explanations, never in a scholar's voice) with 3 detail levels (summary/simplified/academic)
 - AI verification layer with confidence scoring
 - Verse-level deep analysis (linguistic, rhetorical, contextual)
 - Cross-reference with other verses (münasebet)
@@ -15,81 +15,85 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# ÖNEMLİ (docs/YENI_OZELLIKLER.md 0.1, madde 4):
+# Önceki sürüm modeli "Sen Elmalılı Hamdi Yazır'sın" gibi istemlerle gerçek âlimlerin ağzından
+# konuşturuyordu. Bu, âlime söylemediği sözü atfetmek demekti ve kaldırıldı. Kimlikler (id) API
+# uyumluluğu için aynı kaldı; artık her biri bir âlimi değil bir TEFSİR YAKLAŞIMINI temsil eder.
+# "work" alanı yalnız okuma önerisidir; model o eserden alıntı yapmaz.
+AI_LABEL = "Yapay zekâ açıklaması · bir âlimin sözü ya da fetva değildir"
+
+_COMMON_PROMPT = """Sen bir yapay zekâ asistanısın; Kur'an ayetlerini açıklamaya yardımcı olursun.
+
+KESİN KURALLAR:
+- Hiçbir âlimin ağzından konuşma, hiçbir âlim gibi davranma, "ben" diyerek bir müfessiri canlandırma.
+- Hiçbir kitaptan alıntı UYDURMA. Tırnak içinde alıntı yalnız Kur'an ayetinin mealinden olabilir.
+- Bir görüşü bir âlime ya da esere atfedeceksen yalnız yaygın olarak bilinen genel bilgiyi aktar ve "… olarak bilinir" gibi temkinli ifade kullan; cilt/sayfa numarası verme.
+- Emin olmadığın hadisi, rivayeti, nüzul sebebini yazma; "bu konuda kesin bilgim yok" de.
+- Fetva verme. Kişisel dini sorular için Diyanet'in fetva hattına (ALO 190) yönlendir.
+- Cevabın bir yapay zekâ açıklamasıdır; sonunda bunu tek cümleyle hatırlat.
+
+YAKLAŞIM: """
+
 TAFSIR_SCHOLARS_V2 = {
     "elmalili": {
         "id": "elmalili",
-        "name": "Elmalılı Hamdi Yazır",
-        "name_en": "Elmalılı Hamdi Yazır",
-        "name_ar": "الملالي حمدي يازير",
-        "era": "1878-1942",
-        "work": "Hak Dini Kur'an Dili",
-        "school": "Hanefi-Maturidi",
+        "name": "Dil ve belagat yaklaşımı",
+        "name_en": "Linguistic & rhetorical approach",
+        "name_ar": "المنهج اللغوي والبلاغي",
+        "era": "",
+        "work": "Bu yaklaşımın klasik örneği: Hak Dini Kur'an Dili (Elmalılı M. Hamdi Yazır)",
+        "school": "",
         "premium": False,
         "icon": "📗",
-        "style_prompt": """Sen Elmalılı Hamdi Yazır'sın. "Hak Dini Kur'an Dili" tefsirini yazıyorsun.
-Üslup: Osmanlı Türkçesi arka planıyla modern Türkçe, derin dil tahlili yaparsın.
-Yöntem: Dirayet tefsiri, Arapça kelime köklerinin analizini ön plana çıkarırsın, belagat incelikleri, felsefe ve kelam perspektifi sunarsın.
-Özellik: Batı felsefesini de bilir, modern sorunlara İslami çözümler üretirsin."""
+        "style_prompt": _COMMON_PROMPT + """Ayeti dil ve belagat açısından açıkla: Arapça kelimelerin kök anlamları, cümle yapısı ve anlatım incelikleri.""",
     },
     "ibn_kesir": {
         "id": "ibn_kesir",
-        "name": "İbn Kesîr",
-        "name_en": "Ibn Kathir",
-        "name_ar": "ابن كثير",
-        "era": "1300-1373",
-        "work": "Tefsîru'l-Kur'âni'l-Azîm",
-        "school": "Şafii",
+        "name": "Rivayet yaklaşımı",
+        "name_en": "Narration-based approach",
+        "name_ar": "منهج التفسير بالمأثور",
+        "era": "",
+        "work": "Bu yaklaşımın klasik örneği: Tefsîru'l-Kur'âni'l-Azîm (İbn Kesîr)",
+        "school": "",
         "premium": False,
         "icon": "📕",
-        "style_prompt": """Sen İbn Kesîr'sin. "Tefsîru'l-Kur'âni'l-Azîm" eserinin müellifisin.
-Üslup: Rivayet tefsiri ağırlıklı, hadis ve sahabe sözleriyle desteklersin.
-Yöntem: Kur'an'ı Kur'an ile tefsir edersin (Kur'an'ın Kur'an'la açıklanması), sonra sünnet, sonra sahabe ve tabiin kavillerini verirsin.
-Özellik: İsrailiyyat'a eleştirel yaklaşırsın, sened kritiği yaparsın."""
+        "style_prompt": _COMMON_PROMPT + """Ayeti önce Kur'an'ın diğer ayetleriyle, sonra bilinen sahih hadislerle açıkla. Emin olmadığın rivayeti aktarma.""",
     },
     "taberi": {
         "id": "taberi",
-        "name": "İmam Taberî",
-        "name_en": "Imam al-Tabari",
-        "name_ar": "الإمام الطبري",
-        "era": "839-923",
-        "work": "Câmiu'l-Beyân",
-        "school": "Müctehid",
+        "name": "Rivayetleri karşılaştırma yaklaşımı",
+        "name_en": "Comparative-narration approach",
+        "name_ar": "منهج جمع الروايات",
+        "era": "",
+        "work": "Bu yaklaşımın klasik örneği: Câmiu'l-Beyân (Taberî)",
+        "school": "",
         "premium": False,
         "icon": "📙",
-        "style_prompt": """Sen İmam Taberî'sin. "Câmiu'l-Beyân an Te'vîli Âyi'l-Kur'ân" eserinin müellifisin.
-Üslup: Ansiklopedik, tüm rivayetleri sened ile aktarırsın. Farklı görüşleri sıralarsın.
-Yöntem: Sahabe ve tâbiîn'den gelen tüm rivayetleri toplar, senedlerini verir, sonra tercih ettiğin görüşü belirtirsin.
-Özellik: Tarihçi kimliğinle olayları kronolojik bağlamda değerlendirirsin."""
+        "style_prompt": _COMMON_PROMPT + """Ayet hakkında tefsir geleneğinde bilinen farklı görüşleri sırala ve aralarındaki farkı açıkla. Senet uydurma.""",
     },
     "razi": {
         "id": "razi",
-        "name": "Fahreddin Râzî",
-        "name_en": "Fakhr al-Din al-Razi",
-        "name_ar": "فخر الدين الرازي",
-        "era": "1149-1209",
-        "work": "Mefâtîhu'l-Gayb (Tefsîr-i Kebîr)",
-        "school": "Şafii-Eşari",
+        "name": "Aklî ve kelamî yaklaşım",
+        "name_en": "Rational & theological approach",
+        "name_ar": "المنهج العقلي والكلامي",
+        "era": "",
+        "work": "Bu yaklaşımın klasik örneği: Mefâtîhu'l-Gayb (Fahreddin Râzî)",
+        "school": "",
         "premium": False,
         "icon": "📘",
-        "style_prompt": """Sen Fahreddin Râzî'sin. "Mefâtîhu'l-Gayb" (Tefsîr-i Kebîr) eserinin müellifisin.
-Üslup: Kelam ve felsefe ağırlıklı, aklî istidlaller yaparsın. Derin mantıksal analizler sunarsın.
-Yöntem: Aklî ve naklî delilleri birlikte kullanır, mu'tezile ve diğer mezheplerin görüşlerini zikredip eleştirirsin.
-Özellik: Bilimsel icaz perspektifi (ayetlerdeki bilimsel işaretler), astronomi ve tabiat bilimleriyle ilişki kurarsın."""
+        "style_prompt": _COMMON_PROMPT + """Ayeti aklî deliller ve inanç esasları açısından açıkla; ayetin sorduğu ya da cevapladığı soruları belirt.""",
     },
     "kurtubi": {
         "id": "kurtubi",
-        "name": "İmam Kurtubî",
-        "name_en": "Imam al-Qurtubi",
-        "name_ar": "الإمام القرطبي",
-        "era": "1214-1273",
-        "work": "el-Câmi' li Ahkâmi'l-Kur'ân",
-        "school": "Maliki",
+        "name": "Ahkâm (hüküm) yaklaşımı",
+        "name_en": "Legal-rulings approach",
+        "name_ar": "منهج أحكام القرآن",
+        "era": "",
+        "work": "Bu yaklaşımın klasik örneği: el-Câmi' li-Ahkâmi'l-Kur'ân (Kurtubî)",
+        "school": "",
         "premium": False,
         "icon": "📓",
-        "style_prompt": """Sen İmam Kurtubî'sin. "el-Câmi' li Ahkâmi'l-Kur'ân" eserinin müellifisin.
-Üslup: Ahkam (hukuk) ağırlıklı, ayetlerden fıkhi hükümler çıkarırsın.
-Yöntem: Dört mezhebin görüşlerini karşılaştırır, ayetten çıkan hükümleri tek tek sıralarsın.
-Özellik: Toplumsal ahlak, kadın hakları ve adalet konularında derinlemesine değerlendirme yaparsın."""
+        "style_prompt": _COMMON_PROMPT + """Ayetle ilgili fıkhî konuları açıkla; mezhepler arasında bilinen görüş farkı varsa kısaca belirt. Fetva verme.""",
     },
 }
 
@@ -150,7 +154,7 @@ def setup_phase3_tafsir_routes(router: APIRouter, db, gemini_generate):
         scholar_info = TAFSIR_SCHOLARS_V2[scholar]
 
         # Cache key
-        cache_key = hashlib.md5(f"tafsir_v2:{surah}:{verse}:{scholar}:{detail}:{lang}".encode()).hexdigest()
+        cache_key = hashlib.md5(f"tafsir_v3:{surah}:{verse}:{scholar}:{detail}:{lang}".encode()).hexdigest()
         cached = await db.tafsir_v2_cache.find_one({"key": cache_key})
         if cached and (datetime.now(timezone.utc) - cached.get("created_at", datetime.min.replace(tzinfo=timezone.utc))).days < 30:
             return cached["data"]
@@ -185,7 +189,7 @@ Sadece şu JSON formatında cevap ver:
 {{"score": 8, "note": "kısa açıklama"}}"""
 
             try:
-                verify_raw = await gemini_generate(confidence_prompt, "Sen bir akademik tefsir denetçisisin. Sadece JSON döndür.")
+                verify_raw = await gemini_generate(confidence_prompt, "Sen tefsir metinlerini denetleyen bir yapay zekâ asistanısın. Sadece JSON döndür.")
                 import re, json
                 json_match = re.search(r'\{[^}]+\}', verify_raw)
                 if json_match:
@@ -208,6 +212,7 @@ Sadece şu JSON formatında cevap ver:
                 },
                 "detail_level": detail,
                 "tafsir_text": response,
+                "ai_label": AI_LABEL,
                 "confidence": verify,
                 "language": lang,
             }
@@ -259,6 +264,7 @@ Sadece şu JSON formatında cevap ver:
                     "scholar": {"id": sid, "name": s_info["name"], "icon": s_info["icon"], "era": s_info["era"], "work": s_info["work"], "school": s_info["school"]},
                     "detail_level": detail,
                     "tafsir_text": response,
+                "ai_label": AI_LABEL,
                     "language": lang,
                 }
                 results.append(item)
@@ -340,7 +346,7 @@ Her alan için detaylı açıklama yap. {lang_map.get(lang, 'Türkçe')} dilinde
         results = []
 
         for verse in range(1, total_verses + 1):
-            cache_key = hashlib.md5(f"tafsir_v2:{surah}:{verse}:{scholar}:{detail}:{lang}".encode()).hexdigest()
+            cache_key = hashlib.md5(f"tafsir_v3:{surah}:{verse}:{scholar}:{detail}:{lang}".encode()).hexdigest()
             cached = await db.tafsir_v2_cache.find_one({"key": cache_key})
             if cached and (datetime.now(timezone.utc) - cached.get("created_at", datetime.min.replace(tzinfo=timezone.utc))).days < 30:
                 results.append(cached["data"])
@@ -372,6 +378,7 @@ Cevabını {lang_map.get(lang, 'Türkçe')} dilinde ver."""
                     },
                     "detail_level": detail,
                     "tafsir_text": response,
+                "ai_label": AI_LABEL,
                     "confidence": {"score": 7, "note": "Batch generated"},
                     "language": lang,
                 }

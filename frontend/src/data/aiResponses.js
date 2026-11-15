@@ -1,3 +1,4 @@
+import api from '../api';
 export const aiResponses = {
   greetings: [
     "Selamun Aleyküm! Sana nasıl yardımcı olabilirim?",
@@ -36,7 +37,6 @@ export const aiResponses = {
   fallback: "Maalesef bu sorunun cevabını henüz öğrenmedim. Kur'an ayetleri, hadisler, günlük dualar, namaz ve peygamber hayatı hakkında sorular sorabilirsin."
 };
 
-import api from '../api';
 
 // Basit bir kelime eşleştirme algoritması (Yedek Simülasyon)
 function getMockResponse(message) {

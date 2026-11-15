@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, User, Lock, Bell, Globe, LogOut, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { TYPOGRAPHY, RADIUS, SHADOWS } from '../../styles/designTokens';
-import { useAppMode } from '../../context/AppModeContext';
+import { useAppMode } from '../../contexts/AppModeContext';
 
 export default function ParentSettings() {
   const navigate = useNavigate();

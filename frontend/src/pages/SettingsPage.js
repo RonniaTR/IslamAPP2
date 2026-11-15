@@ -33,7 +33,7 @@ export default function SettingsPage() {
       items: [
         { id: 'privacy', label: 'Gizlilik', icon: Shield, value: '', action: 'noop' },
         { id: 'backup', label: 'Yedekleme', icon: Database, value: '', action: 'noop' },
-        { id: 'about', label: 'Hakkında', icon: Info, value: '', action: 'noop' },
+        { id: 'licenses', label: 'Kaynaklar ve lisanslar', icon: Info, value: '', path: isChild ? '/kids/licenses' : '/licenses' },
       ]
     }
   ];
@@ -69,7 +69,6 @@ export default function SettingsPage() {
                     const newMode = isChild ? 'adult' : 'child';
                     setAppMode(newMode);
                     navigate(newMode === 'child' ? '/kids' : '/');
-                    setTimeout(() => window.location.reload(), 100);
                   }
                   else if (item.action === 'openReadingSettings') {
                     setShowReadingSettings(true);

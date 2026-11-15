@@ -129,11 +129,9 @@ export class UserServiceClass {
   }
 
   async getLearningJourney(userId) {
-    return [
-      { id: 'ilmihal', title: "İlmihal", percent: 100, color: "bg-[#10b981]" },
-      { id: 'namaz', title: "Namaz Rehberi", percent: 80, color: "bg-[#f59e0b]" },
-      { id: 'hadis', title: "40 Hadis", percent: 35, color: "bg-purple-500" }
-    ];
+    // Önceki sürüm herkese aynı sabit yüzdeleri döndürüyordu (İlmihal %100, Namaz Rehberi %80…).
+    // Gerçek ilerleme kaynağı bağlanana kadar boş döner; ekran bölümü gizler.
+    return [];
   }
 }
 

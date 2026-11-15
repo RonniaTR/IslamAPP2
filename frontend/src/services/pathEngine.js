@@ -12,10 +12,24 @@
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* quota */ } };
 
-export const todayKey = () => new Date().toISOString().slice(0, 10);
+// YEREL takvim günü. toISOString() UTC verir: Türkiye'de (UTC+3) gece 00:00–03:00
+// arası "dün" sayılıyor, seri ve dönüş günleri kayıyordu.
+export const localKey = (d = new Date()) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+export const todayKey = () => localKey();
 
 // ─── Değerlendirme soruları ───
+// İlk soru YOLU BELİRLER: 'donus' seçildiğinde returnEngine devreye girer
+// (kademeli yük + şefkat serisi + dönüş mertebeleri).
 export const ASSESSMENT = [
+  {
+    id: 'mode', q: 'Bu yolda neredesin?', icon: '🧭',
+    options: [
+      { id: 'normal', label: 'Yolumda devam ediyorum' },
+      { id: 'yeni',   label: 'Yeni başlıyorum' },
+      { id: 'donus',  label: 'Uzun süredir ara verdim, dönmek istiyorum' },
+    ],
+  },
   {
     id: 'namaz', q: 'Namaz düzenin nasıl?', icon: '🕌',
     options: [
@@ -53,17 +67,20 @@ export const ASSESSMENT = [
 
 export function getProfile() { return load('nur_profile', null); }
 export function saveProfile(answers) {
-  const p = { ...answers, createdAt: Date.now() };
+  // 'yeni' ve 'normal' aynı motoru kullanır; yalnız 'donus' ayrışır.
+  const mode = answers.mode === 'donus' ? 'donus' : 'normal';
+  const p = { ...answers, mode, createdAt: Date.now() };
   save('nur_profile', p);
   return p;
 }
 export function resetProfile() { try { localStorage.removeItem('nur_profile'); } catch { /* ignore */ } }
 
 // ─── Görev havuzu ───
+// xp: 0 → ibadet görevi. Namaz, zikir, dua ve Kur'an okuma XP vermez (docs/YENI_OZELLIKLER.md §0 kural 7).
 // detect: plan anlık görüntüsüne (snap) göre otomatik tamamlama kontrolü
 const TASKS = {
   niyet: {
-    id: 'niyet', icon: '🕌', title: 'Namaz niyeti', minutes: 1, xp: 5, route: '/fiqh',
+    id: 'niyet', icon: '🕌', title: 'Namaz niyeti', minutes: 1, xp: 0, route: '/fiqh',
     desc: 'Bugünkü vakitleri kılmaya niyet et; rehber gerekirse İbadet bölümü yanında',
     detect: null, // elle işaretlenir
   },
@@ -73,7 +90,7 @@ const TASKS = {
     detect: (snap) => load('elifba_done', []).length > snap.elifba,
   },
   quran: {
-    id: 'quran', icon: '📖', title: "Kur'an oku", minutes: 7, xp: 15, route: '/quran',
+    id: 'quran', icon: '📖', title: "Kur'an oku", minutes: 7, xp: 0, route: '/quran',
     desc: 'Kaldığın yerden birkaç ayet — mushaf akışı seni bekliyor',
     detect: (snap) => (load('quran_last', {}).ts || 0) > snap.planTime,
   },
@@ -103,12 +120,12 @@ const TASKS = {
     detect: () => (load('journal_entries', []) || []).some(e => (e.date || '').slice(0, 10) === todayKey()),
   },
   zikir: {
-    id: 'zikir', icon: '📿', title: 'Zikir vakti', minutes: 3, xp: 10, route: '/dhikr',
+    id: 'zikir', icon: '📿', title: 'Zikir vakti', minutes: 3, xp: 0, route: '/dhikr',
     desc: 'Tesbihatını çek — kalbe cila',
     detect: null,
   },
   tesbihat: {
-    id: 'tesbihat', icon: '📿', title: 'Tesbihat çek', minutes: 4, xp: 15, route: '/hazine/tesbihat',
+    id: 'tesbihat', icon: '📿', title: 'Tesbihat çek', minutes: 4, xp: 0, route: '/hazine/tesbihat',
     desc: 'Sayaçlı tesbihattan bir seti tamamla (namaz tesbihatı, istiğfar, salavat...)',
     detect: () => Object.keys(load(`tesbihat_log_${todayKey()}`, {})).length > 0,
   },
@@ -118,7 +135,7 @@ const TASKS = {
     detect: (snap) => load('mucize_read', []).length > (snap.mucize ?? 0),
   },
   dua: {
-    id: 'dua', icon: '🤲', title: 'Bir hidayet duası öğren', minutes: 3, xp: 10, route: '/hazine/dualar',
+    id: 'dua', icon: '🤲', title: 'Bir hidayet duası öğren', minutes: 3, xp: 0, route: '/hazine/dualar',
     desc: 'Hidayet Duaları rafından bir duayı aç, oku, ezberlemeye niyet et',
     detect: (snap) => load('dua_read', []).length > (snap.dua ?? 0),
   },
@@ -128,7 +145,7 @@ const TASKS = {
     detect: (snap) => load('esma_read', []).length > (snap.esma ?? 0),
   },
   cuma: {
-    id: 'cuma', icon: '🕌', title: 'Cuma Bereketi', minutes: 8, xp: 20, route: '/quran/18',
+    id: 'cuma', icon: '🕌', title: 'Cuma Bereketi', minutes: 8, xp: 0, route: '/quran/18',
     desc: "Kehf Sûresi'nden bir bölüm oku, Efendimize (s.a.v.) çokça salavat getir",
     detect: (snap) => {
       const last = load('quran_last', {});
@@ -137,6 +154,13 @@ const TASKS = {
   },
 };
 export const TASK_POOL = TASKS;
+
+// Alternatif modlar havuza kendi görevlerini ekleyebilir (ör. Geri Dönüş'ün
+// "günün dersi" görevi). registerPlanFilter ile aynı gerekçe: pathEngine
+// diğer modülleri import etmez, onlar kendilerini tanıtır.
+export function registerTasks(extra) {
+  if (extra && typeof extra === 'object') Object.assign(TASKS, extra);
+}
 
 // ─── Haftalık tema müfredatı ───
 // Yol, haftalara bölünmüş temalarla ilerler; her temanın bir "yıldız
@@ -269,15 +293,18 @@ export function logEvent(type, title, emoji) {
 export function getEvents() { return load('nur_events', []); }
 
 // Yeni kazanımları algıla: yeni rozetler döner (bildirim için), günlüğe yazar
-export function detectNewEvents() {
+// badgeList/seenKey: geri dönüş modu kendi rozet setini verir; iki setin
+// "görüldü" kayıtları birbirine karışmaz.
+export function detectNewEvents(badgeList, seenKey = 'nur_badges_seen') {
   const fresh = [];
-  const earned = getBadges().filter(b => b.earned).map(b => b.id);
-  const seen = load('nur_badges_seen', []);
+  const list = Array.isArray(badgeList) && badgeList.length ? badgeList : getBadges();
+  const earned = list.filter(b => b.earned).map(b => b.id);
+  const seen = load(seenKey, []);
   const newOnes = earned.filter(id => !seen.includes(id));
   if (newOnes.length) {
-    save('nur_badges_seen', earned);
+    save(seenKey, earned);
     newOnes.forEach(id => {
-      const b = NUR_BADGES.find(x => x.id === id);
+      const b = list.find(x => x.id === id);
       if (b) { logEvent('badge', `"${b.name}" rozeti kazanıldı`, b.emoji); fresh.push(b); }
     });
   }
@@ -293,11 +320,13 @@ export function detectNewEvents() {
 }
 
 // ─── Mertebe atlama kutlaması (bir kez gösterilir) ───
-export function checkStageCelebration() {
-  const stage = getStage();
-  const seen = load('nur_stage_seen', 0);
+// stageArg/seenKey: geri dönüş modu kendi mertebe setini ve kendi "görüldü"
+// anahtarını verir; iki modun kutlamaları birbirini bastırmaz.
+export function checkStageCelebration(stageArg, seenKey = 'nur_stage_seen') {
+  const stage = stageArg || getStage();
+  const seen = load(seenKey, 0);
   if (stage.current.id > seen) {
-    save('nur_stage_seen', stage.current.id);
+    save(seenKey, stage.current.id);
     if (stage.current.id > 0) {
       logEvent('stage', `${stage.current.emoji} ${stage.current.name} mertebesine ulaşıldı`, '🏆');
       return stage.current;
@@ -339,6 +368,21 @@ export function generatePlan(profile) {
   return ids;
 }
 
+// Alternatif modlar (ör. Geri Dönüş) plan listesini daraltabilir.
+// returnEngine bu kancaya kendini kaydeder — böylece pathEngine
+// returnEngine'i import etmez ve döngüsel bağımlılık oluşmaz.
+let planFilter = null;
+export function registerPlanFilter(fn) { planFilter = typeof fn === 'function' ? fn : null; }
+
+function buildTasks(profile) {
+  const tasks = generatePlan(profile);
+  if (!planFilter) return tasks;
+  try {
+    const filtered = planFilter(tasks, profile);
+    return Array.isArray(filtered) && filtered.length ? filtered : tasks;
+  } catch { return tasks; }
+}
+
 export function getTodayPlan() {
   const profile = getProfile();
   if (!profile) return null;
@@ -347,7 +391,7 @@ export function getTodayPlan() {
   if (!plan) {
     plan = {
       date: todayKey(),
-      tasks: generatePlan(profile),
+      tasks: buildTasks(profile),
       done: [],
       planTime: Date.now(),
       snap: {
@@ -402,7 +446,7 @@ export function getStreak() {
   const today = todayKey();
   if (!hist[today] || hist[today].done === 0) d.setDate(d.getDate() - 1);
   for (;;) {
-    const k = d.toISOString().slice(0, 10);
+    const k = localKey(d);
     if (hist[k] && hist[k].done > 0) { streak += 1; d.setDate(d.getDate() - 1); }
     else break;
   }
@@ -438,6 +482,6 @@ const pathEngine = {
   getTodayPlan, isTaskDone, toggleTask,
   getHistory, getStreak, getFullDays, getStage, syncHistory, todayKey,
   getWeekTheme, getDailyQuote, getDailyDua, getBadges, checkStageCelebration,
-  logEvent, getEvents, detectNewEvents,
+  logEvent, getEvents, detectNewEvents, registerPlanFilter, registerTasks,
 };
 export default pathEngine;

@@ -3,6 +3,7 @@
  * Handles FCM registration, permission requests, and notification display.
  */
 import logger from './logger';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY || '';
 
@@ -19,6 +20,16 @@ class NotificationManager {
 
   /** Request notification permission */
   async requestPermission() {
+    try {
+      if (typeof LocalNotifications !== 'undefined') {
+        const perm = await LocalNotifications.requestPermissions();
+        this.permission = perm.display === 'granted' ? 'granted' : 'denied';
+        return perm.display === 'granted';
+      }
+    } catch (e) {
+      // Fallback to web
+    }
+
     if (!this.isSupported()) {
       logger.warn('Notifications', 'Push notifications not supported');
       return false;
@@ -67,6 +78,24 @@ class NotificationManager {
     if (this.permission !== 'granted') return;
 
     try {
+      if (typeof LocalNotifications !== 'undefined') {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title,
+              body,
+              id: new Date().getTime(),
+              schedule: { at: new Date(Date.now() + 1000) },
+              smallIcon: 'ic_stat_icon_config_sample',
+              iconColor: '#C8A55A',
+              ...options
+            }
+          ]
+        });
+        return;
+      }
+      
+      // Fallback to web
       const registration = await navigator.serviceWorker.ready;
       await registration.showNotification(title, {
         body,

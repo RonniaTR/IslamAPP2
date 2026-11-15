@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
 import { useLang } from '../contexts/LangContext';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 export default function QiblaPage() {
   const { theme } = useTheme();
@@ -30,8 +31,12 @@ export default function QiblaPage() {
       // Haptic feedback when aligned with Qibla (+- 5 degrees)
       const diff = Math.abs(alpha - qiblaAngle);
       const isAligned = diff < 5 || diff > 355;
-      if (isAligned && navigator.vibrate) {
-        navigator.vibrate(50);
+      if (isAligned) {
+        if (typeof Haptics !== 'undefined') {
+          Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
+        } else if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
       }
     }
   };

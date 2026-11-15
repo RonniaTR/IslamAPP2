@@ -34,7 +34,7 @@ export default function SurahDetailScreen({ route }) {
     let mounted = true;
     const run = async () => {
       try {
-        const res = await fetchSurah(surahNumber, 'tr.diyanet');
+        const res = await fetchSurah(surahNumber, 'tr');
         if (mounted) setData(res);
       } catch {
         if (mounted) Alert.alert(t('error'), t('surahError'));
@@ -64,6 +64,7 @@ export default function SurahDetailScreen({ route }) {
         scholarId: scholar.id,
         ayahArabic: ayah.arabic,
         ayahTranslation: ayah.translation,
+        ayahFootnotes: ayah.footnotes,
         baseTafsir: raw?.text || '',
       });
       setTafsirMap((prev) => ({ ...prev, [key]: built }));
@@ -72,6 +73,7 @@ export default function SurahDetailScreen({ route }) {
         scholarId: scholar.id,
         ayahArabic: ayah.arabic,
         ayahTranslation: ayah.translation,
+        ayahFootnotes: ayah.footnotes,
         baseTafsir: '',
       });
       setTafsirMap((prev) => ({ ...prev, [key]: fallback }));
@@ -172,6 +174,11 @@ export default function SurahDetailScreen({ route }) {
       data={data?.ayahs || []}
       keyExtractor={(i) => String(i.numberInSurah)}
       ListHeaderComponent={header}
+      ListFooterComponent={data?.meta?.mealCredit ? (
+        <Text style={{ color: theme.textSecondary, fontSize: 11, textAlign: 'center', marginTop: 16 }}>
+          Meal: {data.meta.mealCredit}
+        </Text>
+      ) : null}
       contentContainerStyle={{ padding: 16, paddingTop: 8, paddingBottom: 40 }}
       renderItem={({ item }) => {
         const key = `${scholar.id}-${item.numberInSurah}`;

@@ -121,7 +121,7 @@ export default function FiqhPage() {
             style={{ background: `linear-gradient(135deg, ${theme.gold}20, ${theme.gold}08)`, border: `1px solid ${theme.gold}30` }}>
             <MessageCircle size={20} style={{ color: theme.gold }} />
             <div className="flex-1 text-left">
-              <p className="font-semibold text-sm" style={{ color: theme.gold }}>Soru Sor (AI Müftü)</p>
+              <p className="font-semibold text-sm" style={{ color: theme.gold }}>Soru Sor (Yapay Zekâ Rehber)</p>
               <p className="text-xs" style={{ color: theme.textSecondary }}>Hanefi fıkhına göre cevap al</p>
             </div>
             <Sparkles size={16} style={{ color: theme.gold }} />
@@ -137,7 +137,7 @@ export default function FiqhPage() {
                 className="w-full max-w-[520px] rounded-t-3xl p-5 max-h-[80vh] overflow-y-auto"
                 style={{ background: theme.surface }}>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold" style={{ color: theme.gold }}>⚖️ AI Müftü</h3>
+                  <h3 className="font-bold" style={{ color: theme.gold }}>⚖️ Yapay Zekâ Rehber</h3>
                   <button onClick={() => { setAskMode(false); setAnswer(null); }} className="p-2 rounded-xl" style={{ background: theme.bg }}>
                     <X size={18} style={{ color: theme.textSecondary }} />
                   </button>
@@ -242,7 +242,7 @@ export default function FiqhPage() {
                 <Sparkles size={22} style={{ color: theme.gold }} />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-sm" style={{ color: theme.gold }}>AI Müftü'ye Sor</p>
+                <p className="font-bold text-sm" style={{ color: theme.gold }}>Yapay Zekâ Rehbere Sor</p>
                 <p className="text-xs mt-0.5" style={{ color: theme.textSecondary }}>Kur'an ve Hadis kaynaklı, Hanefi görüşüne göre cevap</p>
               </div>
               <MessageCircle size={20} style={{ color: theme.gold }} />

@@ -16,10 +16,10 @@
  */
 
 export const TRACKS = [
-  { id: 'ney', name: 'Ney Taksimi · Hicaz', icon: '🎋', type: 'gen' },
-  { id: 'gece', name: 'Gece Neyi · Nihavend', icon: '🌙', type: 'gen' },
-  { id: 'su', name: 'Şadırvan · Su Sesi', icon: '⛲', type: 'gen' },
-  { id: 'serenity', name: 'Sükûnet · Pad', icon: '✨', type: 'gen' },
+  { id: 'ney', name: 'Ney Taksimi · Hicaz', nameEn: 'Ney Taqsim · Hijaz', icon: '🎋', type: 'gen' },
+  { id: 'gece', name: 'Gece Neyi · Nihavend', nameEn: 'Night Ney · Nihavend', icon: '🌙', type: 'gen' },
+  { id: 'su', name: 'Şadırvan · Su Sesi', nameEn: 'Fountain · Water Sound', icon: '⛲', type: 'gen' },
+  { id: 'serenity', name: 'Sükûnet · Pad', nameEn: 'Serenity · Pad', icon: '✨', type: 'gen' },
   // { id: 'ilahi1', name: 'Benim İlahim', icon: '🎙️', type: 'file', url: '/audio/ilahi1.mp3' },
 ];
 

@@ -403,9 +403,9 @@ Türkçe yanıtla.""",
     "classical": {
         "name": "Klasik Tefsir",
         "icon": "📜",
-        "description": "Geleneksel İslam alimleri tarzında detaylı tefsir",
-        "prompt": """Bu ayeti klasik İslam tefsir geleneğine uygun şekilde açıkla.
-İbn Kesir, Taberi, Kurtubi gibi büyük müfessirlerin yaklaşımını benimse.
+        "description": "Klasik tefsir geleneğinin yöntemiyle detaylı yapay zekâ açıklaması",
+        "prompt": """Bu ayeti klasik tefsir geleneğinin yöntemiyle (ayeti ayetle, sonra hadisle açıklama) açıkla.
+Hiçbir âlimin ağzından konuşma ve hiçbir kitaptan alıntı uydurma; emin olmadığın rivayeti yazma.
 Sebeb-i nüzul (iniş sebebi) varsa belirt.
 Arapça kelime tahlili yap. Diğer ayetlerle bağlantı kur.
 Hadislerle destekle. Türkçe yanıtla.""",

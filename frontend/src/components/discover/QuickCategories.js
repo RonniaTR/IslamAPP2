@@ -6,21 +6,24 @@ export function QuickCategories() {
   const navigate = useNavigate();
 
   const categories = [
-    { id: 'quran', title: "Kur'an", icon: BookOpen, color: 'bg-[#10b981]' },
-    { id: 'dua', title: "Dua & Zikir", icon: Heart, color: 'bg-[#0d9488]' },
-    { id: 'hadith', title: "Hadisler", icon: Star, color: 'bg-[#d97706]' },
-    { id: 'siyer', title: "Siyer", icon: Moon, color: 'bg-[#f59e0b]' },
-    { id: 'ilmihal', title: "İlmihal", icon: Book, color: 'bg-[#3b82f6]' },
-    { id: 'fikih', title: "Fıkıh", icon: Scale, color: 'bg-[#8b5cf6]' },
-    { id: 'esma', title: "Esmaül Hüsna", icon: Sun, color: 'bg-[#0f766e]' },
-    { id: 'prophets', title: "Peygamberler", icon: Users, color: 'bg-[#ea580c]' },
+    { id: 'quran', title: "Kur'an", icon: BookOpen, color: 'bg-[#10b981]', path: '/quran' },
+    { id: 'dua', title: "Dua & Zikir", icon: Heart, color: 'bg-[#0d9488]', path: '/dhikr' },
+    { id: 'hadith', title: "Hadisler", icon: Star, color: 'bg-[#d97706]', path: '/hadith' },
+    { id: 'siyer', title: "Siyer-i Nebî", icon: Moon, color: 'bg-[#f59e0b]', path: '/siyer' },
+    { id: 'ilmihal', title: "İlmihal", icon: Book, color: 'bg-[#3b82f6]', path: '/fiqh' },
+    { id: 'fikih', title: "Fıkıh", icon: Scale, color: 'bg-[#8b5cf6]', path: '/fiqh' },
+    { id: 'esma', title: "Esmaül Hüsna", icon: Sun, color: 'bg-[#0f766e]', path: '/hazine' },
+    { id: 'prophets', title: "Peygamberler", icon: Users, color: 'bg-[#ea580c]', path: '/prophets' },
   ];
 
   return (
     <div className="flex flex-col font-sans">
       <div className="flex justify-between items-center px-4 mb-4">
         <h2 className="text-xl font-bold text-white tracking-wide">Hızlı Kategoriler</h2>
-        <button className="text-xs text-[#10b981] font-medium flex items-center gap-1 hover:text-[#059669] transition-colors">
+        <button 
+          onClick={() => navigate('/library')}
+          className="text-xs text-[#10b981] font-medium flex items-center gap-1 hover:text-[#059669] transition-colors"
+        >
           Tümü <ChevronRight size={14} />
         </button>
       </div>
@@ -31,7 +34,7 @@ export function QuickCategories() {
           return (
             <div 
               key={idx} 
-              onClick={() => navigate(`/category/${cat.id}`)}
+              onClick={() => navigate(cat.path)}
               className="flex flex-col items-center gap-2 cursor-pointer snap-start shrink-0 group"
             >
               <div className={`w-[72px] h-[72px] ${cat.color} rounded-[20px] flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3 relative overflow-hidden`}>

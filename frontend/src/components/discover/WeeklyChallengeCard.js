@@ -4,6 +4,7 @@ import { Typography } from '../ui/Typography';
 
 export function WeeklyChallengeCard({ stats }) {
   if (!stats?.challenges?.weekly) return null;
+  if (!stats?.challenges?.weekly) return null; // gerçek bir haftalık hedef yoksa kart gösterilmez
   const { title, desc, reward, current, target } = stats.challenges.weekly;
   const progressPercent = Math.min(100, Math.round((current / target) * 100));
 

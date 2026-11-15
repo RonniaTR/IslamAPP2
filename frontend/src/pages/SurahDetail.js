@@ -5,11 +5,15 @@ import { Typography } from '../components/ui/Typography';
 import { quranData } from '../data/quranContent';
 import { useAuth } from '../contexts/AuthContext';
 import { HistoryService } from '../services/HistoryService';
+import { fetchMeal, fetchTafsir, mealCredit } from '../services/mealService';
+import { useLang } from '../contexts/LangContext';
 
 export default function SurahDetail() {
   const { surahNumber } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { lang } = useLang() || {};
+  const mealLang = lang === 'en' ? 'en' : 'tr';
   const [surah, setSurah] = useState(null);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
@@ -23,24 +27,31 @@ export default function SurahDetail() {
       const localSurah = quranData.find(s => s.id === Number(surahNumber));
 
       try {
-        const [arRes, trRes, audioRes] = await Promise.all([
+        // Meal QuranEnc'ten gelir (bkz. services/mealService.js, data/sources.json).
+        // Meal alınamazsa sure yine açılır; meal satırı boş kalır, uydurma metin konmaz.
+        const [arRes, audioRes, meal, tafsir] = await Promise.all([
           fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}`),
-          fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/tr.diyanet`),
-          fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`)
+          fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`),
+          fetchMeal(surahNumber, mealLang).catch(() => null),
+          // Tefsir: QuranEnc'teki Muhtasar Tefsir (Türkçe). Yapay zekâ üretimi değildir.
+          fetchTafsir(surahNumber, 'tr').catch(() => null)
         ]);
-        
-        const arData = await arRes.json();
-        const trData = await trRes.json();
-        const audioData = await audioRes.json();
 
-        if (arData.data && trData.data && audioData.data) {
+        const arData = await arRes.json();
+        const audioData = await audioRes.json();
+        const mealByAya = new Map((meal?.ayahs || []).map(a => [a.aya, a]));
+        const tafsirByAya = new Map((tafsir?.ayahs || []).map(a => [a.aya, a.text]));
+
+        if (arData.data && audioData.data) {
           const verses = arData.data.ayahs.map((ayah, i) => {
-            const localVerse = localSurah?.verses?.find(v => v.verseNumber === ayah.numberInSurah);
             return {
               number: ayah.numberInSurah,
               arabic: ayah.text,
-              turkish: localVerse?.translation || trData.data.ayahs[i].text,
-              tafsir: localVerse?.tafsir || "Bu ayet için tefsir bulunmuyor.",
+              // QuranEnc şartı: çeviri metni değiştirilmez, yerel metinle karıştırılmaz.
+              turkish: mealByAya.get(ayah.numberInSurah)?.text || '',
+              footnotes: mealByAya.get(ayah.numberInSurah)?.footnotes || '',
+              // Yalnız kaynağı belli tefsir gösterilir; kaynak yoksa alan boş kalır ve düğme gizlenir.
+              tafsir: tafsirByAya.get(ayah.numberInSurah) || '',
               audio_url: audioData.data.ayahs[i].audio
             };
           });
@@ -54,6 +65,9 @@ export default function SurahDetail() {
             totalVerses: arData.data.numberOfAyahs,
             verses,
             reciter: 'Mishary Rashid Alafasy',
+            mealCredit: meal ? mealCredit(meal.source, meal.version) : null,
+            mealUrl: meal?.source?.url || null,
+            tafsirCredit: tafsir ? mealCredit(tafsir.source, tafsir.version) : null,
             full_audio_url: `https://server8.mp3quran.net/afs/${String(surahNumber).padStart(3, '0')}.mp3`
           });
           
@@ -79,11 +93,17 @@ export default function SurahDetail() {
     };
 
     fetchSurahDetail();
-  }, [surahNumber, user]);
+  }, [surahNumber, user, mealLang]);
 
   // Save progress whenever activeAyah changes
   useEffect(() => {
     if (surah && activeAyah) {
+      // Ana ekrandaki "Son okunan sure" kartı ve Nur Yolu'nun "Kur'an oku" algılaması bunu okur.
+      try {
+        localStorage.setItem('quran_last', JSON.stringify({
+          surah: surah.number, name: surah.name, ayah: activeAyah, total: surah.totalVerses, ts: Date.now(),
+        }));
+      } catch { /* kota */ }
       const userId = user?.uid || 'anonymous';
       const progressPercent = Math.round((activeAyah / surah.totalVerses) * 100);
       HistoryService.saveProgress(userId, {
@@ -236,22 +256,39 @@ export default function SurahDetail() {
               <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', lineHeight: 1.6 }}>
                 {ayah.turkish}
               </Typography>
+              {ayah.footnotes ? (
+                <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.55)', fontSize: '12px', lineHeight: 1.5, marginTop: '6px', whiteSpace: 'pre-line' }}>
+                  {ayah.footnotes}
+                </Typography>
+              ) : null}
             </div>
 
             {/* Tafsir Expandable */}
-            {showTafsir[ayah.number] && (
+            {showTafsir[ayah.number] && ayah.tafsir && (
               <div style={{
                 marginTop: '16px', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px',
                 borderLeft: '4px solid #CDA434'
               }}>
-                <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 700, marginBottom: '8px', display: 'block' }}>TEFSİR / AÇIKLAMA</Typography>
+                <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 700, marginBottom: '8px', display: 'block' }}>TEFSİR</Typography>
                 <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: 1.6 }}>
                   {ayah.tafsir}
                 </Typography>
+                {surah.tafsirCredit && (
+                  <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '10px', marginTop: '8px', display: 'block' }}>
+                    {surah.tafsirCredit}
+                  </Typography>
+                )}
               </div>
             )}
           </div>
         ))}
+        {/* QuranEnc yeniden yayın şartı: yayıncı, kaynak ve sürüm açıkça gösterilir. */}
+        {surah.mealCredit && (
+          <a href={surah.mealUrl} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'block', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '11px', padding: '8px 0 24px', textDecoration: 'none' }}>
+            Meal: {surah.mealCredit}
+          </a>
+        )}
       </div>
     </div>
   );

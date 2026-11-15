@@ -442,30 +442,12 @@ export const cmsContent = [
   }
 ];
 
+// Başlangıç değerleri. Burada örnek/sahte ilerleme TUTULMAZ: yeni kullanıcı bunları kendi
+// ilerlemesi sanıyordu (docs/YENI_OZELLIKLER.md 0.3). Gerçek değerler pathEngine ve gamification'dan gelir.
 export const userStats = {
-  streak: 7,
-  level: 15,
-  xp: 4250,
-  favoriteTags: ["siyer", "dua", "kuran", "hadis", "namaz"],
-  challenges: {
-    daily: [
-      { id: "d1", title: "Sabah duasını oku", completed: true },
-      { id: "d2", title: "1 Yeni Hadis öğren", completed: true },
-      { id: "d3", title: "Kur'an'dan 1 Sayfa Oku", completed: true },
-      { id: "d4", title: "İlmihal Testini Çöz", completed: false },
-      { id: "d5", title: "Yatsı Namazını Kıl", completed: false }
-    ],
-    weekly: {
-      title: "Haftanın Meydan Okuması",
-      desc: "Bu hafta 40 Hadis serisini tamamla",
-      reward: "1000 XP + Hadis Muhafızı Rozeti",
-      current: 30,
-      target: 40
-    }
-  },
-  badge: {
-    name: "İlim Yolcusu",
-    current: 15,
-    target: 20
-  }
+  streak: 0,
+  level: 1,
+  xp: 0,
+  favoriteTags: [],
+  challenges: { daily: [], weekly: null },
 };

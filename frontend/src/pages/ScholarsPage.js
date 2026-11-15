@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, BookOpen, Star, Send, Loader2, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, ChevronDown } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
+import { useTx } from '../i18n';
 import { useTheme } from '../contexts/ThemeContext';
 import api from '../api';
 
+// KONU REHBERLERİ — kişi değil konu.
+// Önceki sürüm burada gerçek kişilerin adlarını listeliyor ve yapay zekâya onların ağzından cevap
+// yazdırıyordu. Kaldırıldı (docs/YENI_OZELLIKLER.md 0.1). Kimlikler backend SCHOLARS ile aynıdır.
 const SCHOLARS = [
-  { id: "diyanet", name: "Diyanet İşleri", title: "Resmi Kurum", color: "#10b981", specialty: "Fetvalar & İlmihal", avatar: "D" },
-  { id: "nihat", name: "Nihat Hatipoğlu", title: "İlahiyat Profesörü", color: "#f59e0b", specialty: "Hadis & Siyer", avatar: "NH" },
-  { id: "hayrettin", name: "Hayrettin Karaman", title: "Fıkıh Uzmanı", color: "#8b5cf6", specialty: "İslam Hukuku", avatar: "HK" },
-  { id: "mustafa", name: "Mustafa İslamoğlu", title: "Tefsir Uzmanı", color: "#3b82f6", specialty: "Kur'an Tefsiri", avatar: "Mİ" },
-  { id: "omer_nasuhi", name: "Ömer Nasuhi Bilmen", title: "Klasik Alim", color: "#06b6d4", specialty: "İlmihal & Fıkıh", avatar: "ÖN" },
-  { id: "elmali", name: "Elmalılı Hamdi Yazır", title: "Müfessir", color: "#ec4899", specialty: "Hak Dini Kur'an Dili", avatar: "EH" },
-  { id: "said_nursi", name: "Said Nursi", title: "Müellif", color: "#14b8a6", specialty: "Risale-i Nur", avatar: "SN" },
-  { id: "mehmet_okuyan", name: "Mehmet Okuyan", title: "İlahiyat Profesörü", color: "#ef4444", specialty: "Meal & Tefsir", avatar: "MO" },
-  { id: "suleyman_ates", name: "Süleyman Ateş", title: "Tefsir Profesörü", color: "#a855f7", specialty: "Modern Tefsir", avatar: "SA" },
-  { id: "yasar_nuri", name: "Yaşar Nuri Öztürk", title: "İlahiyat Profesörü", color: "#f97316", specialty: "Kur'an Meali", avatar: "YN" },
-  { id: "cubbeli", name: "Cübbeli Ahmet", title: "Vaiz", color: "#84cc16", specialty: "Tasavvuf & Vaaz", avatar: "CA" },
-  { id: "ali_erbas", name: "Ali Erbaş", title: "Diyanet Başkanı", color: "#d946ef", specialty: "Hutbe & Rehberlik", avatar: "AE" },
+  { id: "genel", name: "Genel rehber", title: "Yapay zekâ", color: "#10b981", specialty: "İslam'la ilgili genel sorular", avatar: "☪" },
+  { id: "ibadet", name: "İbadet rehberi", title: "Yapay zekâ", color: "#f59e0b", specialty: "Abdest, namaz, oruç, zekât, hac", avatar: "🕌" },
+  { id: "kuran", name: "Kur'an rehberi", title: "Yapay zekâ", color: "#3b82f6", specialty: "Ayetlerin anlamı, sureler, nüzul", avatar: "📖" },
+  { id: "hadis", name: "Hadis ve sünnet rehberi", title: "Yapay zekâ", color: "#8b5cf6", specialty: "Hadisler ve sünnet", avatar: "📜" },
+  { id: "siyer", name: "Siyer rehberi", title: "Yapay zekâ", color: "#06b6d4", specialty: "Peygamber Efendimizin hayatı", avatar: "🌙" },
+  { id: "ahlak", name: "Ahlak ve gündelik hayat rehberi", title: "Yapay zekâ", color: "#ec4899", specialty: "Güzel ahlak, aile, kul hakkı", avatar: "🌿" },
 ];
 
 export default function ScholarsPage() {
   const navigate = useNavigate();
   const { t } = useLang();
+  const tt = useTx();
   const { theme } = useTheme();
   const [selectedScholar, setSelectedScholar] = useState(null);
   const [question, setQuestion] = useState('');
@@ -41,7 +40,6 @@ export default function ScholarsPage() {
     try {
       const { data } = await api.post('/scholars/ask', {
         scholar_id: selectedScholar.id,
-        scholar_name: selectedScholar.name,
         question: q,
         session_id: `scholar_${selectedScholar.id}_${Date.now()}`
       });
@@ -85,7 +83,7 @@ export default function ScholarsPage() {
               </div>
               <p className="text-sm text-[#F5F5DC] font-medium">{selectedScholar.name}</p>
               <p className="text-xs text-[#A8B5A0] mt-1">{selectedScholar.title} · {selectedScholar.specialty}</p>
-              <p className="text-xs text-[#A8B5A0]/60 mt-3 max-w-xs mx-auto">{t.scholar_desc || 'Bu hocaya İslami konularda sorular sorabilirsiniz. Cevaplar AI tarafından o hocanın tarzında üretilir.'}</p>
+              <p className="text-xs text-[#A8B5A0]/60 mt-3 max-w-xs mx-auto">{tt('Cevaplar yapay zekâ tarafından üretilir; hata içerebilir. Bir âlimin sözü ya da fetva değildir. Kişisel dini sorularınız için Diyanet fetva hattı: ALO 190.')}</p>
             </div>
           )}
           {history.map((msg, i) => (
@@ -116,7 +114,7 @@ export default function ScholarsPage() {
         <form onSubmit={e => { e.preventDefault(); askScholar(); }} className="px-4 pb-4 pt-2 shrink-0">
           <div className="flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2 focus-within:border-emerald-500/30">
             <input type="text" value={question} onChange={e => setQuestion(e.target.value)}
-              placeholder={`${selectedScholar.name}'a sorunuz...`}
+              placeholder={tt('Sorunuzu yazın…')}
               data-testid="scholar-input"
               className="flex-1 bg-transparent text-sm text-[#F5F5DC] placeholder:text-[#A8B5A0]/50 focus:outline-none" />
             <button type="submit" disabled={loading || !question.trim()} data-testid="scholar-send"
@@ -138,8 +136,8 @@ export default function ScholarsPage() {
             <ArrowLeft size={14} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{t.ask_scholars || 'Hocalara Sor'}</h1>
-            <p className="text-xs text-[#A8B5A0]">{SCHOLARS.length} {t.scholars_count || 'alimden birine soru sorun'}</p>
+            <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{tt('Rehbere Sor')}</h1>
+            <p className="text-xs text-[#A8B5A0]">{tt('Bir konu seçin · yapay zekâ rehber cevaplar')}</p>
           </div>
         </div>
       </div>
@@ -153,11 +151,11 @@ export default function ScholarsPage() {
               {s.avatar}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#F5F5DC]">{s.name}</p>
+              <p className="text-sm font-semibold text-[#F5F5DC]">{tt(s.name)}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-[10px] text-[#A8B5A0]">{s.title}</span>
                 <span className="text-[10px] text-[#A8B5A0]/40">·</span>
-                <span className="text-[10px]" style={{ color: s.color }}>{s.specialty}</span>
+                <span className="text-[10px]" style={{ color: s.color }}>{tt(s.specialty)}</span>
               </div>
             </div>
             <ChevronDown size={14} className="text-[#A8B5A0] -rotate-90" />
