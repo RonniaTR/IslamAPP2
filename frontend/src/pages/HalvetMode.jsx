@@ -88,7 +88,7 @@ export default function HalvetMode() {
       <motion.div 
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2 }}
         className="text-center absolute top-24">
-        <h1 className="text-2xl font-serif text-[#C8A55A] tracking-[0.2em] font-light">HALVET</h1>
+        <h1 className="text-2xl font-serif text-[color:var(--gold)] tracking-[0.2em] font-light">HALVET</h1>
         <p className="text-[#666] text-[11px] uppercase tracking-[0.3em] mt-2">Dijital Arınma</p>
       </motion.div>
 
@@ -100,13 +100,13 @@ export default function HalvetMode() {
         
         {/* Nefes alan aura */}
         <motion.div 
-          className="absolute inset-0 rounded-full bg-[#C8A55A]"
+          className="absolute inset-0 rounded-full bg-[var(--gold)]"
           animate={{ scale: [1, 1.2, 1], opacity: [0.05, 0.15, 0.05] }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
         />
         
         <div className="w-48 h-48 rounded-full border-[0.5px] border-[#C8A55A]/30 flex items-center justify-center relative backdrop-blur-sm bg-black/50">
-           <span className="text-4xl text-[#C8A55A] font-light font-serif">{count}</span>
+           <span className="text-4xl text-[color:var(--gold)] font-light font-serif">{count}</span>
         </div>
       </motion.div>
 

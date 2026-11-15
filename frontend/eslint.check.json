@@ -1,1 +1,10 @@
-{"root":true,"extends":["react-app"],"rules":{}}
+{
+  "root": true,
+  "extends": ["react-app"],
+  "settings": { "import/resolver": { "node": { "extensions": [".js", ".jsx", ".json"] } } },
+  "rules": {
+    "import/no-unresolved": ["error", { "ignore": ["^@capacitor/", "^firebase/"] }],
+    "import/named": "error",
+    "import/default": "error"
+  }
+}

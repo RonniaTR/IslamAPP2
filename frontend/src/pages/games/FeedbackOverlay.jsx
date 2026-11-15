@@ -34,7 +34,7 @@ export default function FeedbackOverlay({ mode, data = {}, onContinue, theme }) 
             {mode === 'correct' ? (
               <>
                 <h3 className="text-2xl font-black mb-1" style={{ color: '#10B981' }}>Harika!</h3>
-                <p className="text-xs mb-3" style={{ color: '#A8B5A0' }}>Doğru cevapladın.</p>
+                <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>Doğru cevapladın.</p>
                 <p className="text-3xl font-black mb-1" style={{ color: '#ffd369' }}>+{data.xp} XP</p>
                 {data.combo >= 2 && (
                   <motion.p initial={{ scale: 0.6 }} animate={{ scale: 1 }} className="text-sm font-black" style={{ color: '#F59E0B' }}>
@@ -45,7 +45,7 @@ export default function FeedbackOverlay({ mode, data = {}, onContinue, theme }) 
             ) : (
               <>
                 <h3 className="text-2xl font-black mb-1" style={{ color: '#EF4444' }}>Maalesef!</h3>
-                <p className="text-xs mb-3" style={{ color: '#A8B5A0' }}>
+                <p className="text-xs mb-3" style={{ color: 'var(--text-secondary)' }}>
                   Doğru cevap: <span className="font-black" style={{ color: '#ffd369' }}>{data.answer}</span>
                 </p>
                 {data.explanation && (
@@ -54,7 +54,7 @@ export default function FeedbackOverlay({ mode, data = {}, onContinue, theme }) 
                     <p className="text-xs leading-relaxed" style={{ color: '#e5ddd0' }}>{data.explanation}</p>
                   </div>
                 )}
-                {data.source && <p className="text-[9px]" style={{ color: '#A8B5A0' }}>Kaynak: {data.source}</p>}
+                {data.source && <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>Kaynak: {data.source}</p>}
               </>
             )}
 

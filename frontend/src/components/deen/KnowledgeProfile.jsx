@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import '../styles/DeenConnect.css';
+import '../../styles/DeenConnect.css';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 const data = [
@@ -20,7 +20,7 @@ export default function KnowledgeProfile() {
         </div>
         <div>
           <h2 style={{ color: '#f7e6ae', fontSize: 28, fontWeight: 900 }}>Leyla</h2>
-          <div style={{ color: '#a8b5a0' }}>Seviye 12 - İlim Talebesi</div>
+          <div style={{ color: 'var(--text-secondary)' }}>Seviye 12 - İlim Talebesi</div>
         </div>
       </div>
 

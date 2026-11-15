@@ -200,11 +200,11 @@ export default function MultiplayerQuiz() {
       <h2 className="text-2xl font-bold mb-2" style={{ color: theme.textPrimary }}>{roomData.name}</h2>
       <p className="mb-8" style={{ color: theme.textSecondary }}>Oda Kodu: <span className="font-mono font-bold text-white">{currentRoom}</span></p>
 
-      <div className="w-full max-w-sm bg-[#132A1D] rounded-2xl p-4 mb-8">
+      <div className="w-full max-w-sm bg-[var(--bg-surface)] rounded-2xl p-4 mb-8">
         <h3 className="font-bold text-sm mb-4" style={{ color: theme.gold }}>Katılan Oyuncular</h3>
         <div className="space-y-2">
           {Object.entries(roomData.players || {}).map(([id, p]) => (
-            <div key={id} className="flex justify-between p-2 rounded-lg bg-[#0A1A12] border border-[#1A3826]">
+            <div key={id} className="flex justify-between p-2 rounded-lg bg-[var(--bg-primary)] border border-[color:var(--bg-surface-light)]">
               <span className="font-semibold text-sm" style={{ color: theme.textPrimary }}>{p.name} {id === roomData.hostId && '(Kurucu)'}</span>
               {id === uid && <span className="text-xs bg-[#10b981] px-2 py-0.5 rounded-full text-black font-bold">Sen</span>}
             </div>
@@ -227,12 +227,12 @@ export default function MultiplayerQuiz() {
   if (view === 'game' && q) return (
     <div className="min-h-screen flex flex-col" style={{ background: theme.bg }}>
       {/* Top Bar */}
-      <div className="px-6 py-4 flex justify-between items-center bg-[#132A1D] border-b border-[#1A3826]">
+      <div className="px-6 py-4 flex justify-between items-center bg-[var(--bg-surface)] border-b border-[color:var(--bg-surface-light)]">
         <div className="flex gap-2">
           {Object.values(roomData.players || {}).map((p, i) => (
             <div key={i} className="flex flex-col items-center">
               <span className="text-[10px] text-gray-400">{p.name}</span>
-              <span className="text-xs font-bold text-[#CDA434]">{p.score}</span>
+              <span className="text-xs font-bold text-[color:var(--gold)]">{p.score}</span>
             </div>
           ))}
         </div>
@@ -287,9 +287,9 @@ export default function MultiplayerQuiz() {
         
         <div className="w-full max-w-sm space-y-4 mb-8">
           {sortedPlayers.map(([id, p], index) => (
-            <div key={id} className={`flex justify-between items-center p-4 rounded-2xl border ${index === 0 ? 'bg-gradient-to-r from-[#CDA434]/20 to-[#10b981]/20 border-[#CDA434]' : 'bg-[#132A1D] border-[#1A3826]'}`}>
+            <div key={id} className={`flex justify-between items-center p-4 rounded-2xl border ${index === 0 ? 'bg-gradient-to-r from-[#CDA434]/20 to-[#10b981]/20 border-[color:var(--gold)]' : 'bg-[var(--bg-surface)] border-[color:var(--bg-surface-light)]'}`}>
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${index === 0 ? 'bg-[#CDA434] text-black' : 'bg-[#0A1A12] text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${index === 0 ? 'bg-[var(--gold)] text-black' : 'bg-[var(--bg-primary)] text-gray-400'}`}>
                   {index + 1}
                 </div>
                 <span className="font-bold text-lg text-white">{p.name} {id === uid && '(Sen)'}</span>

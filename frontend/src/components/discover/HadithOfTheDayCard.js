@@ -59,7 +59,7 @@ export function HadithOfTheDayCard() {
   if (loading) {
     return (
       <div style={{ padding: '0 24px 24px', display: 'flex', justifyContent: 'center' }}>
-        <Loader2 className="animate-spin text-[#CDA434]" size={32} />
+        <Loader2 className="animate-spin text-[color:var(--gold)]" size={32} />
       </div>
     );
   }

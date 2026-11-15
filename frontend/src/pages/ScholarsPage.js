@@ -61,15 +61,15 @@ export default function ScholarsPage() {
         <div className="px-4 pt-10 pb-3 shrink-0" style={{ background: 'linear-gradient(180deg, rgba(15,61,46,0.5) 0%, transparent 100%)' }}>
           <div className="flex items-center gap-3">
             <button onClick={() => { setSelectedScholar(null); setHistory([]); setAnswer(''); }}
-              className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#F5F5DC]">
+              className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[color:var(--text-primary)]">
               <ArrowLeft size={14} />
             </button>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white" style={{ background: selectedScholar.color }}>
               {selectedScholar.avatar}
             </div>
             <div>
-              <p className="text-sm font-bold text-[#F5F5DC]">{selectedScholar.name}</p>
-              <p className="text-[10px] text-[#A8B5A0]">{selectedScholar.specialty}</p>
+              <p className="text-sm font-bold text-[color:var(--text-primary)]">{selectedScholar.name}</p>
+              <p className="text-[10px] text-[color:var(--text-secondary)]">{selectedScholar.specialty}</p>
             </div>
           </div>
         </div>
@@ -81,8 +81,8 @@ export default function ScholarsPage() {
               <div className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center text-lg font-bold text-white" style={{ background: selectedScholar.color }}>
                 {selectedScholar.avatar}
               </div>
-              <p className="text-sm text-[#F5F5DC] font-medium">{selectedScholar.name}</p>
-              <p className="text-xs text-[#A8B5A0] mt-1">{selectedScholar.title} · {selectedScholar.specialty}</p>
+              <p className="text-sm text-[color:var(--text-primary)] font-medium">{selectedScholar.name}</p>
+              <p className="text-xs text-[color:var(--text-secondary)] mt-1">{selectedScholar.title} · {selectedScholar.specialty}</p>
               <p className="text-xs text-[#A8B5A0]/60 mt-3 max-w-xs mx-auto">{tt('Cevaplar yapay zekâ tarafından üretilir; hata içerebilir. Bir âlimin sözü ya da fetva değildir. Kişisel dini sorularınız için Diyanet fetva hattı: ALO 190.')}</p>
             </div>
           )}
@@ -104,7 +104,7 @@ export default function ScholarsPage() {
             <div className="flex justify-start animate-fade-in">
               <div className="bg-white/[0.04] rounded-2xl rounded-bl-md px-4 py-3 border border-white/5 flex items-center gap-2">
                 <Loader2 size={14} className="animate-spin" style={{ color: selectedScholar.color }} />
-                <span className="text-xs text-[#A8B5A0]">{t.thinking || 'Yanıt hazırlanıyor...'}</span>
+                <span className="text-xs text-[color:var(--text-secondary)]">{t.thinking || 'Yanıt hazırlanıyor...'}</span>
               </div>
             </div>
           )}
@@ -116,7 +116,7 @@ export default function ScholarsPage() {
             <input type="text" value={question} onChange={e => setQuestion(e.target.value)}
               placeholder={tt('Sorunuzu yazın…')}
               data-testid="scholar-input"
-              className="flex-1 bg-transparent text-sm text-[#F5F5DC] placeholder:text-[#A8B5A0]/50 focus:outline-none" />
+              className="flex-1 bg-transparent text-sm text-[color:var(--text-primary)] placeholder:text-[#A8B5A0]/50 focus:outline-none" />
             <button type="submit" disabled={loading || !question.trim()} data-testid="scholar-send"
               className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-20"
               style={{ background: question.trim() ? selectedScholar.color : 'rgba(255,255,255,0.05)' }}>
@@ -132,12 +132,12 @@ export default function ScholarsPage() {
     <div className="animate-fade-in pb-24" data-testid="scholars-page">
       <div className="px-5 pt-10 pb-4" style={{ background: 'linear-gradient(180deg, rgba(15,61,46,0.5) 0%, transparent 100%)' }}>
         <div className="flex items-center gap-3 mb-1">
-          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#F5F5DC]">
+          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[color:var(--text-primary)]">
             <ArrowLeft size={14} />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[#F5F5DC]" style={{ fontFamily: 'Playfair Display, serif' }}>{tt('Rehbere Sor')}</h1>
-            <p className="text-xs text-[#A8B5A0]">{tt('Bir konu seçin · yapay zekâ rehber cevaplar')}</p>
+            <h1 className="text-xl font-bold text-[color:var(--text-primary)]" style={{ fontFamily: 'Playfair Display, serif' }}>{tt('Rehbere Sor')}</h1>
+            <p className="text-xs text-[color:var(--text-secondary)]">{tt('Bir konu seçin · yapay zekâ rehber cevaplar')}</p>
           </div>
         </div>
       </div>
@@ -151,14 +151,14 @@ export default function ScholarsPage() {
               {s.avatar}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#F5F5DC]">{tt(s.name)}</p>
+              <p className="text-sm font-semibold text-[color:var(--text-primary)]">{tt(s.name)}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] text-[#A8B5A0]">{s.title}</span>
+                <span className="text-[10px] text-[color:var(--text-secondary)]">{s.title}</span>
                 <span className="text-[10px] text-[#A8B5A0]/40">·</span>
                 <span className="text-[10px]" style={{ color: s.color }}>{tt(s.specialty)}</span>
               </div>
             </div>
-            <ChevronDown size={14} className="text-[#A8B5A0] -rotate-90" />
+            <ChevronDown size={14} className="text-[color:var(--text-secondary)] -rotate-90" />
           </button>
         ))}
       </div>

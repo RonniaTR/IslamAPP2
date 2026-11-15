@@ -154,14 +154,14 @@ export default function DiscoverPage() {
 
   if (!loaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#052A1E]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
         <Loader2 className="w-10 h-10 text-[#10b981] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pb-28 bg-[#0A1A12] text-white relative font-sans overflow-x-hidden">
+    <div className="min-h-screen pb-28 bg-[var(--bg-primary)] text-white relative font-sans overflow-x-hidden">
       {/* Background gradient */}
       <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#072F21] via-[#0A1F15] to-[#0A1A12] z-0 pointer-events-none" />
       
@@ -184,7 +184,7 @@ export default function DiscoverPage() {
 
         {/* ── Günün Hadis-i Şerifi (YENİ & SÜPER) ── */}
         <FadeIn delay={150} className="px-4 mt-6">
-          <div className="bg-gradient-to-br from-[#132A1D] to-[#0D2418] border border-[#1A3826] rounded-[28px] p-5 relative overflow-hidden shadow-xl">
+          <div className="bg-gradient-to-br from-[#132A1D] to-[#0D2418] border border-[color:var(--bg-surface-light)] rounded-[28px] p-5 relative overflow-hidden shadow-xl">
             <div className="flex justify-between items-center mb-3">
               <div className="flex items-center gap-2 bg-[#d97706]/10 text-[#d97706] border border-[#d97706]/20 px-3 py-1 rounded-full text-xs font-bold">
                 <Scroll size={14} />
@@ -196,7 +196,7 @@ export default function DiscoverPage() {
             </div>
 
             {/* Arabic Text */}
-            <div className="text-right text-2xl text-[#CDA434] font-arabic leading-relaxed mb-3 dir-rtl" style={{ textShadow: '0 2px 8px rgba(205,164,52,0.15)' }}>
+            <div className="text-right text-2xl text-[color:var(--gold)] font-arabic leading-relaxed mb-3 dir-rtl" style={{ textShadow: '0 2px 8px rgba(205,164,52,0.15)' }}>
               {dailyHadith.arabic}
             </div>
 
@@ -212,7 +212,7 @@ export default function DiscoverPage() {
               <div className="flex gap-2">
                 <button
                   onClick={toggleHadithAudio}
-                  className={`px-3 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1 ${isPlayingHadith ? 'bg-[#d97706] text-stone-950 border-[#d97706]' : 'bg-[#0A1A12] text-gray-300 border-[#1A3826] hover:border-[#d97706]'}`}
+                  className={`px-3 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1 ${isPlayingHadith ? 'bg-[#d97706] text-stone-950 border-[#d97706]' : 'bg-[var(--bg-primary)] text-gray-300 border-[color:var(--bg-surface-light)] hover:border-[#d97706]'}`}
                 >
                   {isPlayingHadith ? <Pause size={12} /> : <Volume2 size={12} className="text-[#d97706]" />}
                   <span>{isPlayingHadith ? 'Durdur' : 'Sesli Oku'}</span>
@@ -220,7 +220,7 @@ export default function DiscoverPage() {
 
                 <button
                   onClick={handleCopyHadith}
-                  className="px-3 py-1.5 rounded-full border bg-[#0A1A12] border-[#1A3826] text-gray-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-full border bg-[var(--bg-primary)] border-[color:var(--bg-surface-light)] text-gray-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1"
                 >
                   {copiedHadith ? <Check size={12} className="text-green-400" /> : <Share2 size={12} className="text-gray-400" />}
                   <span>{copiedHadith ? 'Kopyalandı' : 'Paylaş'}</span>

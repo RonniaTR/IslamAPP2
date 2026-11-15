@@ -27,7 +27,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
   background: var(--bg-primary);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
@@ -71,7 +71,7 @@ input, textarea, [contenteditable] {
   user-select: auto;
 }
 
-h1, h2, h3 { font-family: 'Playfair Display', serif; }
+h1, h2, h3 { font-family: var(--font-heading, 'Playfair Display', serif); }
 
 .arabic-text {
   font-family: 'Amiri', 'Arabic Typesetting', serif;
@@ -556,3 +556,8 @@ audio::-webkit-media-controls-panel { background: #1A2940; }
   color: rgba(212,175,55,0.6);
   animation: twinkle 2s ease-in-out infinite;
 }
+
+/* Açık temalar: sayfa zemini temaya bağlanmış ama yazısı sabit beyaz kalmış eski sayfalar okunabilsin.
+   Yalnız zemini tema değişkeni olan öğenin KENDİ beyaz yazısı çevrilir; renkli kartların içi etkilenmez. */
+html[data-light="1"] .bg-\[var\(--bg-primary\)\].text-white,
+html[data-light="1"] .bg-\[var\(--bg-surface\)\].text-white { color: var(--text-primary); }

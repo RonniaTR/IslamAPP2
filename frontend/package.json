@@ -5,7 +5,8 @@
   "scripts": {
     "start": "set PORT=3000 && set BROWSER=none && react-scripts start",
     "build": "react-scripts build",
-    "expo": "node scripts/start.js"
+    "expo": "node scripts/start.js",
+    "check": "eslint --no-eslintrc -c eslint.check.json --quiet --ext .js,.jsx src"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",

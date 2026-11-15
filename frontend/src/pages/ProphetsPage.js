@@ -16,7 +16,7 @@ export default function ProphetsPage() {
   );
 
   return (
-    <div className="min-h-screen pb-28 bg-[#0A1A12] text-white relative font-sans overflow-x-hidden">
+    <div className="min-h-screen pb-28 bg-[var(--bg-primary)] text-white relative font-sans overflow-x-hidden">
       
       {/* Background Gradient & Pattern */}
       <div className="absolute top-0 left-0 right-0 h-[450px] bg-gradient-to-b from-[#0F3523] via-[#0D291C] to-[#0A1A12] z-0 pointer-events-none" />
@@ -50,7 +50,7 @@ export default function ProphetsPage() {
         </div>
 
         {/* Search Bar */}
-        <div className="max-w-md mx-auto mb-8 bg-[#132A1D]/90 border border-[#1A3826] rounded-full flex items-center px-4 h-12 shadow-xl backdrop-blur-md">
+        <div className="max-w-md mx-auto mb-8 bg-[#132A1D]/90 border border-[color:var(--bg-surface-light)] rounded-full flex items-center px-4 h-12 shadow-xl backdrop-blur-md">
           <Search size={18} className="text-gray-400 mr-2" />
           <input 
             type="text" 
@@ -75,7 +75,7 @@ export default function ProphetsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.03 }}
               onClick={() => setSelectedProphet(prophet)}
-              className="bg-gradient-to-b from-[#132A1D]/90 to-[#0A1A12]/90 border border-[#1A3826] hover:border-[#10b981]/50 rounded-[28px] p-5 cursor-pointer group transition-all duration-300 hover:scale-[1.02] shadow-xl relative overflow-hidden flex flex-col justify-between"
+              className="bg-gradient-to-b from-[#132A1D]/90 to-[#0A1A12]/90 border border-[color:var(--bg-surface-light)] hover:border-[#10b981]/50 rounded-[28px] p-5 cursor-pointer group transition-all duration-300 hover:scale-[1.02] shadow-xl relative overflow-hidden flex flex-col justify-between"
             >
               {/* Background Glow */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform" />
@@ -126,7 +126,7 @@ export default function ProphetsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-gradient-to-br from-[#0F3523] to-[#0A1A12] border border-[#1A3826] rounded-[32px] max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl text-white"
+              className="bg-gradient-to-br from-[#0F3523] to-[#0A1A12] border border-[color:var(--bg-surface-light)] rounded-[32px] max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl text-white"
             >
               {/* Close Button */}
               <button 
@@ -149,7 +149,7 @@ export default function ProphetsPage() {
               </div>
 
               {/* Summary Section */}
-              <div className="bg-[#132A1D]/80 border border-[#1A3826] rounded-2xl p-4 mb-5">
+              <div className="bg-[#132A1D]/80 border border-[color:var(--bg-surface-light)] rounded-2xl p-4 mb-5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#10b981] mb-2 flex items-center gap-1.5">
                   <BookOpen size={14} /> Hayatı ve Daveti
                 </h4>
@@ -157,7 +157,7 @@ export default function ProphetsPage() {
               </div>
 
               {/* Miracles Section */}
-              <div className="bg-[#132A1D]/80 border border-[#1A3826] rounded-2xl p-4 mb-5">
+              <div className="bg-[#132A1D]/80 border border-[color:var(--bg-surface-light)] rounded-2xl p-4 mb-5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#f59e0b] mb-2 flex items-center gap-1.5">
                   <Sparkles size={14} /> Öne Çıkan Mucizeleri
                 </h4>
@@ -172,7 +172,7 @@ export default function ProphetsPage() {
               </div>
 
               {/* Key Lessons Section */}
-              <div className="bg-[#132A1D]/80 border border-[#1A3826] rounded-2xl p-4 mb-5">
+              <div className="bg-[#132A1D]/80 border border-[color:var(--bg-surface-light)] rounded-2xl p-4 mb-5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400 mb-2 flex items-center gap-1.5">
                   <Heart size={14} /> Bizlere İbretlik Dersler
                 </h4>

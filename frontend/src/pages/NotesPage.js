@@ -108,14 +108,14 @@ export default function NotesPage() {
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {note.type === 'kissa' ? (
-                      <Sparkles size={14} className="text-[#D4AF37] shrink-0" />
+                      <Sparkles size={14} className="text-[color:var(--gold)] shrink-0" />
                     ) : note.type === 'hadith' ? (
                       <ScrollText size={14} className="text-sky-300 shrink-0" />
                     ) : (
                       <BookOpen size={14} className="text-emerald-400 shrink-0" />
                     )}
                     <div>
-                      <p className="text-sm font-semibold text-[#F5F5DC]">{note.title}</p>
+                      <p className="text-sm font-semibold text-[color:var(--text-primary)]">{note.title}</p>
                       {note.scholar_name && (
                         <p className="text-[10px] text-[#D4AF37]/80 mt-0.5">{note.scholar_name}</p>
                       )}
@@ -123,7 +123,7 @@ export default function NotesPage() {
                   </div>
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
                     note.type === 'kissa'
-                      ? 'bg-[#D4AF37]/15 text-[#D4AF37]'
+                      ? 'bg-[#D4AF37]/15 text-[color:var(--gold)]'
                       : note.type === 'hadith'
                         ? 'bg-sky-400/15 text-sky-300'
                         : 'bg-emerald-500/15 text-emerald-400'
@@ -143,7 +143,7 @@ export default function NotesPage() {
 
                 <div className="flex items-center gap-2 mt-3 pt-2 border-t border-[#D4AF37]/10">
                   <button onClick={() => copyNote(note)} data-testid={`copy-note-${i}`}
-                    className="flex items-center gap-1 text-[10px] text-[#D4AF37] px-2 py-1 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 transition-colors">
+                    className="flex items-center gap-1 text-[10px] text-[color:var(--gold)] px-2 py-1 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 transition-colors">
                     {copied === note.created_at ? <Check size={10} /> : <Copy size={10} />}
                     {copied === note.created_at ? (t.copied || 'Kopyalandı') : (t.copy || 'Kopyala')}
                   </button>

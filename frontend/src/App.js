@@ -15,6 +15,7 @@ import ModeSelector from './components/ModeSelector';
 import PageTransition from './components/PageTransition';
 import CompanionAI from './components/CompanionAI';
 import QuranGate, { ReviewRedirect } from './components/QuranGate';
+import HusuPerdesi from './components/HusuPerdesi';
 import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { initOfflineSync } from './services/offlineSync';
@@ -34,6 +35,15 @@ const QiblaPage = lazy(() => import('./pages/QiblaPage'));
 const MealAudioPage = lazy(() => import('./pages/MealAudioPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const LicensesPage = lazy(() => import('./pages/LicensesPage'));
+const RehberPage = lazy(() => import('./pages/RehberPage'));
+const OzelliklerPage = lazy(() => import('./pages/OzelliklerPage'));
+const KelimePage = lazy(() => import('./pages/KelimePage'));
+const SofraPage = lazy(() => import('./pages/SofraPage'));
+const HatimPlanPage = lazy(() => import('./pages/HatimPlanPage'));
+const KazaPage = lazy(() => import('./pages/KazaPage'));
+const DefterPage = lazy(() => import('./pages/DefterPage'));
+const TesbihatPage = lazy(() => import('./pages/TesbihatPage'));
+const RahmetPage = lazy(() => import('./pages/RahmetPage'));
 const RamadanPage = lazy(() => import('./pages/RamadanPage'));
 const KnowledgeDetail = lazy(() => import('./pages/KnowledgeDetail'));
 const NotesPage = lazy(() => import('./pages/NotesPage'));
@@ -82,6 +92,7 @@ const DonusPhase = lazy(() => import('./pages/donus/DonusPhase'));
 const DonusTemel = lazy(() => import('./pages/donus/DonusTemel'));
 const DonusMektup = lazy(() => import('./pages/donus/DonusMektup'));
 const DonusPerde = lazy(() => import('./pages/donus/DonusPerde'));
+const DonusYoldas = lazy(() => import('./pages/donus/DonusYoldas'));
 
 // --- ÇOCUK SAYFALARI ---
 const KidsDashboard = lazy(() => import('./pages/kids/KidsDashboard'));
@@ -155,6 +166,15 @@ function AdultRoutes() {
               <Route path="/notes" element={<PageTransition><NotesPage /></PageTransition>} />
               <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
               <Route path="/licenses" element={<PageTransition><LicensesPage /></PageTransition>} />
+              <Route path="/rehber" element={<PageTransition><RehberPage /></PageTransition>} />
+              <Route path="/ozellikler" element={<PageTransition><OzelliklerPage /></PageTransition>} />
+              <Route path="/kelime" element={<PageTransition><KelimePage /></PageTransition>} />
+              <Route path="/sofra" element={<PageTransition><SofraPage /></PageTransition>} />
+              <Route path="/hatim-plani" element={<PageTransition><HatimPlanPage /></PageTransition>} />
+              <Route path="/kaza" element={<PageTransition><KazaPage /></PageTransition>} />
+              <Route path="/defter" element={<PageTransition><DefterPage /></PageTransition>} />
+              <Route path="/tesbihat" element={<TesbihatPage />} />
+              <Route path="/rahmet" element={<PageTransition><RahmetPage /></PageTransition>} />
               <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
               <Route path="/fiqh" element={<PageTransition><FiqhPage /></PageTransition>} />
               <Route path="/dhikr" element={<PageTransition><DhikrPage /></PageTransition>} />
@@ -267,6 +287,7 @@ function DonusRoutes() {
               <Route path="/donus/bolum/:id" element={<DonusPhase />} />
               <Route path="/donus/temeller/:id" element={<DonusTemel />} />
               <Route path="/donus/emanet" element={<DonusMektup />} />
+              <Route path="/donus/yoldas" element={<DonusYoldas />} />
               <Route path="/donus/perde" element={<DonusPerde />} />
               <Route path="/donus/perde/:day" element={<DonusPerde />} />
             </Route>
@@ -390,6 +411,7 @@ export default function App() {
                 <AppModeProvider>
                   <ReviewRedirect />
                   <AppFlow />
+                  <HusuPerdesi />
                   <CompanionAI />
                 </AppModeProvider>
               </PremiumProvider>

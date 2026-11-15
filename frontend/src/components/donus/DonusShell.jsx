@@ -9,6 +9,8 @@ import ambient from '../../services/ambient';
 import { donusPalette, PHASE_COLORS, alpha } from '../../donus/palette';
 import { getReturnDay, getTodayPhase, isReturnMode, enableReturnMode, LAST_DAY } from '../../services/returnEngine';
 import GateAnimation from './GateAnimation';
+import { useAuth } from '../../contexts/AuthContext';
+import { syncDonus } from '../../services/donusSync';
 import ReturnIntro from '../ReturnIntro';
 
 // 🕯️ DÖNÜŞ ODASI KABUĞU
@@ -122,6 +124,7 @@ export default function DonusShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [gate, setGate] = useState(false);
+  const { user } = useAuth();
 
   const day = Math.min(getReturnDay(), LAST_DAY);
   const phase = getTodayPhase(day);
@@ -132,7 +135,12 @@ export default function DonusShell() {
   useEffect(() => {
     let seen = true;
     try { seen = sessionStorage.getItem(GATE_KEY) === '1'; } catch { /* ignore */ }
-    if (!seen) setGate(true);
+    // Evre geçişi (Kapı → Temel → …): yeni evreye ilk girişte eşik yeni rengi ve makamıyla bir kez daha açılır.
+    let lastPhase = phase.id;
+    try { lastPhase = localStorage.getItem('donus_last_phase') || ''; localStorage.setItem('donus_last_phase', phase.id); } catch { /* ignore */ }
+    if (!seen || (lastPhase && lastPhase !== phase.id)) setGate(true);
+    // Bulut yedeği: giriş yapmış kullanıcıda yol başka cihaza taşınabilsin (mektup hariç).
+    syncDonus(user?.uid || user?.id).then((r) => { if (r === 'restored') window.location.reload(); });
   }, []);
 
   // Odaya girerken arka plan sesi — kullanıcı daha önce açtıysa hatırlanır.

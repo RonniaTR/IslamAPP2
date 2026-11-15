@@ -1,6 +1,6 @@
 import React from 'react';
 // Lottie optional - fallback to SVG if unavailable
-import '../styles/DeenConnect.css';
+import '../../styles/DeenConnect.css';
 
 export default function SuccessAnimation() {
   const params = new URLSearchParams(window.location.search);
@@ -15,7 +15,7 @@ export default function SuccessAnimation() {
           </svg>
         </div>
         <h2 style={{ color: '#f7e6ae', fontSize: 28, fontWeight: 900, marginTop: 12 }}>Elhamdülillah!</h2>
-        <p style={{ color: '#a8b5a0' }}>Puanlarınız toplandı.</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Puanlarınız toplandı.</p>
         <div style={{ marginTop: 18, padding: 18, borderRadius: 16, border: '1px solid rgba(255,211,105,0.2)', background: 'rgba(255,211,105,0.06)' }}>
           <div style={{ color: '#ffd369', fontWeight: 900, fontSize: 22 }}>Points Earned: {xp} XP</div>
         </div>

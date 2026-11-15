@@ -50,7 +50,7 @@ export default function QuranList() {
   });
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: '#052A1E', position: 'relative' }} data-testid="quran-page">
+    <div className="min-h-screen pb-24" style={{ background: 'var(--bg-primary)', position: 'relative' }} data-testid="quran-page">
       {/* Background Geometry */}
       <div style={{
         position: 'absolute',

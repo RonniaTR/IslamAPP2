@@ -153,7 +153,7 @@ export function VerseOfTheDayCard() {
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-[#0F3523] via-[#0D2D1E] to-[#0A1A12] rounded-[32px] p-6 overflow-hidden shadow-2xl border border-[#1A3826] font-sans">
+    <div className="relative bg-gradient-to-br from-[#0F3523] via-[#0D2D1E] to-[#0A1A12] rounded-[32px] p-6 overflow-hidden shadow-2xl border border-[color:var(--bg-surface-light)] font-sans">
       
       {/* Hidden Audio Element */}
       <audio ref={audioRef} />
@@ -192,7 +192,7 @@ export function VerseOfTheDayCard() {
 
         {/* Verse Content */}
         <div className="text-center py-3 mb-5">
-          <div className="text-3xl md:text-4xl text-[#CDA434] font-arabic leading-relaxed mb-4" dir="rtl" style={{ textShadow: '0 4px 12px rgba(205,164,52,0.2)' }}>
+          <div className="text-3xl md:text-4xl text-[color:var(--gold)] font-arabic leading-relaxed mb-4" dir="rtl" style={{ textShadow: '0 4px 12px rgba(205,164,52,0.2)' }}>
             {currentVerse.arabic}
           </div>
           <p className="text-gray-200 text-sm md:text-base leading-relaxed px-4 font-medium italic">
@@ -206,7 +206,7 @@ export function VerseOfTheDayCard() {
           {/* Arapça Dinle */}
           <button 
             onClick={toggleArabicAudio}
-            className={`py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold ${isPlayingArabic ? 'bg-[#10b981] text-white border-[#10b981] shadow-lg shadow-[#10b981]/30' : 'bg-[#132A1D]/80 text-white border-[#1A3826] hover:border-[#10b981]/40'}`}
+            className={`py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold ${isPlayingArabic ? 'bg-[#10b981] text-white border-[#10b981] shadow-lg shadow-[#10b981]/30' : 'bg-[#132A1D]/80 text-white border-[color:var(--bg-surface-light)] hover:border-[#10b981]/40'}`}
           >
             {isPlayingArabic ? <Pause size={14} /> : <Play size={14} className="text-[#10b981]" />}
             <span>{isPlayingArabic ? 'Durdur' : 'Arapça Oku'}</span>
@@ -215,7 +215,7 @@ export function VerseOfTheDayCard() {
           {/* Türkçe Meali Dinle */}
           <button 
             onClick={toggleTurkishAudio}
-            className={`py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold ${isPlayingTurkish ? 'bg-[#f59e0b] text-stone-950 border-[#f59e0b] shadow-lg shadow-[#f59e0b]/30' : 'bg-[#132A1D]/80 text-white border-[#1A3826] hover:border-[#f59e0b]/40'}`}
+            className={`py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold ${isPlayingTurkish ? 'bg-[#f59e0b] text-stone-950 border-[#f59e0b] shadow-lg shadow-[#f59e0b]/30' : 'bg-[#132A1D]/80 text-white border-[color:var(--bg-surface-light)] hover:border-[#f59e0b]/40'}`}
           >
             {isPlayingTurkish ? <Pause size={14} /> : <Volume2 size={14} className="text-[#f59e0b]" />}
             <span>{isPlayingTurkish ? 'Durdur' : 'Meali Oku'}</span>
@@ -224,7 +224,7 @@ export function VerseOfTheDayCard() {
           {/* Ayetin Meali Modal Toggle */}
           <button 
             onClick={() => setShowMealModal(!showMealModal)}
-            className="py-2.5 px-3 rounded-full border bg-[#132A1D]/80 text-white border-[#1A3826] hover:border-[#10b981]/40 transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
+            className="py-2.5 px-3 rounded-full border bg-[#132A1D]/80 text-white border-[color:var(--bg-surface-light)] hover:border-[#10b981]/40 transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
           >
             <BookOpen size={14} className="text-[#10b981]" />
             <span>Ayet Detayı</span>
@@ -233,7 +233,7 @@ export function VerseOfTheDayCard() {
           {/* Paylaş */}
           <button 
             onClick={handleShare}
-            className="py-2.5 px-3 rounded-full border bg-[#132A1D]/80 text-white border-[#1A3826] hover:border-[#10b981]/40 transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
+            className="py-2.5 px-3 rounded-full border bg-[#132A1D]/80 text-white border-[color:var(--bg-surface-light)] hover:border-[#10b981]/40 transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
           >
             {copied ? <Check size={14} className="text-green-400" /> : <Share2 size={14} className="text-[#10b981]" />}
             <span>{copied ? 'Kopyalandı' : 'Paylaş'}</span>

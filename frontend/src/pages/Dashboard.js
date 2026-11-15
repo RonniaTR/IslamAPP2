@@ -11,6 +11,8 @@ import { BookmarkService } from '../services/BookmarkService';
 import { getTodayPlan, isTaskDone, getStreak, getBadges, getHistory, TASK_POOL } from '../services/pathEngine';
 import { getCachedStats, fetchStats, subscribeStats } from '../services/gamification';
 import { useTx } from '../i18n';
+import { getHomeFeatures } from '../features/registry';
+import SessizDavet from '../components/SessizDavet';
 
 // Mini Quick Link
 function QuickLink({ icon: Icon, label, color, onClick }) {
@@ -236,7 +238,20 @@ export default function Dashboard() {
           <QuickLink icon={Wind} label="Halvet" color="#8b5cf6" onClick={() => navigate('/halvet')} />
           <QuickLink icon={Moon} label="Gece" color="#6366F1" onClick={() => navigate('/night')} />
           <QuickLink icon={Gamepad2} label="Oyna" color="#EC4899" onClick={() => navigate('/quiz')} />
+          {/* Yeni özellikler features/registry.js'ten gelir: listeye satır eklemek yeterli */}
+          {getHomeFeatures().map((f) => (
+            <button key={f.id} onClick={() => navigate(f.route)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: '64px', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <span style={{ width: '48px', height: '48px', borderRadius: '16px', background: theme.surface, border: `1px solid ${theme.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{f.emoji}</span>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: theme.textSecondary, whiteSpace: 'nowrap' }}>{tt(f.title)}</span>
+            </button>
+          ))}
+          <button onClick={() => navigate('/ozellikler')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: '64px', background: 'none', border: 'none', cursor: 'pointer' }}>
+            <span style={{ width: '48px', height: '48px', borderRadius: '16px', background: theme.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#1A1A1A', fontWeight: 800 }}>⋯</span>
+            <span style={{ fontSize: '11px', fontWeight: 600, color: theme.textSecondary }}>{tt('Tümü')}</span>
+          </button>
         </div>
+
+        <SessizDavet />
 
         {/* BUGÜNKÜ YOLUM — Nur Yolu planından gelir */}
         {plan ? (

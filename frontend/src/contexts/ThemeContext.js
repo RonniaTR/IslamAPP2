@@ -115,6 +115,70 @@ const THEMES = {
   },
 };
 
+// ─── YENİ TEMALAR (docs/YENI_OZELLIKLER.md Faz 1) ───
+// Her tema, koyu ya da açık tabandan türetilir; yalnız fark eden renkler yazılır.
+// Kutsal metin katmanı (Mushaf kâğıdı) temadan ETKİLENMEZ — bkz. 0.8 "Kâğıt, mürekkep, ışık".
+function derive(baseId, o) {
+  const b = THEMES[baseId];
+  return {
+    ...b, ...o,
+    primaryGradient: `linear-gradient(135deg, ${o.primary || b.primary}, ${o.primaryLight || b.primaryLight})`,
+    accent: o.gold || b.gold,
+  };
+}
+THEMES.dark.name = 'Zümrüt Gece';
+Object.assign(THEMES, {
+  isilti: derive('light', {
+    id: 'isilti', name: 'Işıltı', icon: '✨', mood: 'Aydınlık, ferah, sabah ışığı',
+    bg: '#FFFBF0', surface: '#FFFFFF', surfaceLight: '#FFF3D6', surfaceAlt: '#FFF8E6',
+    primary: '#B8860B', primaryLight: '#D9A520', primaryDark: '#8A6408', gold: '#C8911A', goldLight: '#E6B94D',
+    textPrimary: '#2A2110', textSecondary: '#7A6A45', textMuted: '#A8996F',
+    navBg: 'rgba(255, 251, 240, 0.97)', cardBg: '#FFFFFF', cardBorder: 'rgba(184, 134, 11, 0.14)',
+    glassBg: 'rgba(255, 255, 255, 0.7)', isDark: false,
+  }),
+  husu: derive('dark', {
+    id: 'husu', name: 'Huşu', icon: '🕯️', mood: 'Derin gece, tek kandil',
+    bg: '#07090F', surface: '#0E121C', surfaceLight: '#161C2B', surfaceAlt: '#0A0D15',
+    primary: '#2B3A67', primaryLight: '#3F5494', primaryDark: '#1B2545', gold: '#E0B354', goldLight: '#F2CF82',
+    textPrimary: '#E8E6DF', textSecondary: '#8F96A8', textMuted: '#5E6577',
+    navBg: 'rgba(7, 9, 15, 0.97)', cardBg: '#0E121C', cardBorder: 'rgba(224, 179, 84, 0.10)',
+    glassBg: 'rgba(14, 18, 28, 0.6)', isDark: true,
+  }),
+  sevgi: derive('light', {
+    id: 'sevgi', name: 'Sevgi', icon: '🌹', mood: 'Gül kurusu, sıcak ve yumuşak',
+    bg: '#FFF5F5', surface: '#FFFFFF', surfaceLight: '#FCE4E6', surfaceAlt: '#FFF0F1',
+    primary: '#A63D55', primaryLight: '#C95A73', primaryDark: '#7D2A3E', gold: '#B8863B', goldLight: '#D9AD6A',
+    textPrimary: '#2E1A1F', textSecondary: '#8A5E68', textMuted: '#B79AA1',
+    navBg: 'rgba(255, 245, 245, 0.97)', cardBg: '#FFFFFF', cardBorder: 'rgba(166, 61, 85, 0.12)',
+    glassBg: 'rgba(255, 255, 255, 0.7)', isDark: false,
+  }),
+  sukun: derive('light', {
+    id: 'sukun', name: 'Sükûn', icon: '🌊', mood: 'Su ve gök, sakin',
+    bg: '#F2F7F8', surface: '#FFFFFF', surfaceLight: '#DCEBEE', surfaceAlt: '#EAF3F5',
+    primary: '#1F6F7A', primaryLight: '#2F94A1', primaryDark: '#145058', gold: '#A8873A', goldLight: '#CDB06A',
+    textPrimary: '#12272B', textSecondary: '#55747A', textMuted: '#8FA7AB',
+    navBg: 'rgba(242, 247, 248, 0.97)', cardBg: '#FFFFFF', cardBorder: 'rgba(31, 111, 122, 0.12)',
+    glassBg: 'rgba(255, 255, 255, 0.7)', isDark: false,
+  }),
+  bereket: derive('dark', {
+    id: 'bereket', name: 'Bereket', icon: '🌾', mood: 'Toprak, başak, ahşap',
+    bg: '#17110A', surface: '#231A0F', surfaceLight: '#32261A', surfaceAlt: '#1C150C',
+    primary: '#7A5A1F', primaryLight: '#A67C2E', primaryDark: '#573F14', gold: '#E0A84A', goldLight: '#F1C878',
+    textPrimary: '#F3E9D2', textSecondary: '#B29E78', textMuted: '#7D6E52',
+    navBg: 'rgba(23, 17, 10, 0.97)', cardBg: '#231A0F', cardBorder: 'rgba(224, 168, 74, 0.12)',
+    glassBg: 'rgba(35, 26, 15, 0.6)', isDark: true,
+  }),
+});
+
+// ─── YAZI STİLİ ─── Hepsi SIL Open Font License. Arapça metin bu ayardan etkilenmez.
+export const FONT_STYLES = {
+  sade:    { id: 'sade',    name: 'Sade',    body: "'Inter', 'Noto Sans', sans-serif",  heading: "'Playfair Display', serif", gf: null },
+  kitap:   { id: 'kitap',   name: 'Kitap',   body: "'Lora', Georgia, serif",            heading: "'Lora', Georgia, serif",   gf: 'Lora:wght@400;500;600;700' },
+  yumusak: { id: 'yumusak', name: 'Yumuşak', body: "'Nunito', 'Noto Sans', sans-serif", heading: "'Nunito', sans-serif",     gf: 'Nunito:wght@400;600;700;800' },
+  klasik:  { id: 'klasik',  name: 'Klasik',  body: "'Noto Serif', Georgia, serif",      heading: "'Playfair Display', serif", gf: 'Noto+Serif:wght@400;500;700' },
+};
+export const TEXT_SCALES = { kucuk: 0.92, normal: 1, buyuk: 1.1, cokBuyuk: 1.22 };
+
 // Çocuk modu teması (sabit, tema seçiminden bağımsız)
 export const KIDS_THEME = {
   id: 'kids',
@@ -146,6 +210,25 @@ export function ThemeProvider({ children }) {
   const [themeId, setThemeId] = useState(() => localStorage.getItem('app_theme') || 'dark');
 
   const theme = THEMES[themeId] || THEMES.dark;
+  const [fontId, setFontId] = useState(() => localStorage.getItem('app_font') || 'sade');
+  const [textScale, setTextScaleId] = useState(() => localStorage.getItem('app_text_scale') || 'normal');
+
+  useEffect(() => {
+    const f = FONT_STYLES[fontId] || FONT_STYLES.sade;
+    localStorage.setItem('app_font', f.id);
+    localStorage.setItem('app_text_scale', textScale);
+    if (f.gf && !document.getElementById(`gf-${f.id}`)) {
+      const link = document.createElement('link');
+      link.id = `gf-${f.id}`; link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${f.gf}&display=swap`;
+      document.head.appendChild(link);
+    }
+    const root = document.documentElement;
+    root.style.setProperty('--font-body', f.body);
+    root.style.setProperty('--font-heading', f.heading);
+    document.body.style.fontFamily = f.body;
+    root.style.fontSize = `${Math.round(16 * (TEXT_SCALES[textScale] || 1))}px`;
+  }, [fontId, textScale]);
 
   useEffect(() => {
     localStorage.setItem('app_theme', themeId);
@@ -167,6 +250,7 @@ export function ThemeProvider({ children }) {
     root.style.setProperty('--input-bg', theme.inputBg);
     root.style.setProperty('--input-border', theme.inputBorder);
     root.style.setProperty('--glass-bg', theme.glassBg);
+    root.dataset.light = theme.isDark ? '' : '1'; // açık temalarda sabit beyaz yazıları düzeltmek için (index.css)
     document.body.style.background = theme.bg;
     document.body.style.color = theme.textPrimary;
 
@@ -192,7 +276,7 @@ export function ThemeProvider({ children }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, themeId, setTheme, toggleTheme, themes: THEMES, kidsTheme: KIDS_THEME }}>
+    <ThemeContext.Provider value={{ theme, themeId, setTheme, toggleTheme, themes: THEMES, kidsTheme: KIDS_THEME, fontId, setFont: (id) => FONT_STYLES[id] && setFontId(id), fonts: FONT_STYLES, textScale, setTextScale: (id) => TEXT_SCALES[id] && setTextScaleId(id) }}>
       {children}
     </ThemeContext.Provider>
   );

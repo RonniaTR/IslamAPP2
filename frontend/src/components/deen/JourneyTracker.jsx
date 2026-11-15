@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import '../styles/DeenConnect.css';
+import '../../styles/DeenConnect.css';
 
 export default function JourneyTracker() {
   const days = Array.from({ length: 28 }).map((_, i) => {
@@ -15,7 +15,7 @@ export default function JourneyTracker() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-black" style={{ color: '#f7e6ae' }}>Yolculuk</h2>
-            <p style={{ color: '#a8b5a0' }}>Toplam XP: <strong style={{ color: '#ffd369' }}>1,320</strong> · Seri: <strong style={{ color: '#ffd369' }}>6</strong></p>
+            <p style={{ color: 'var(--text-secondary)' }}>Toplam XP: <strong style={{ color: '#ffd369' }}>1,320</strong> · Seri: <strong style={{ color: '#ffd369' }}>6</strong></p>
           </div>
         </div>
       </div>
@@ -29,7 +29,7 @@ export default function JourneyTracker() {
               </div>
               <div>
                 <div style={{ color: '#f7e6ae', fontWeight: 800 }}>Gün {d.day}</div>
-                <div style={{ color: '#a8b5a0', fontSize: 13 }}>Kısa görev açıklaması burada.</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>Kısa görev açıklaması burada.</div>
               </div>
             </div>
             <div style={{ color: d.status === 'completed' ? '#032212' : '#ffd369', fontWeight: 800 }}>{d.status === 'completed' ? 'Tamamlandı' : d.status === 'active' ? 'Aktif' : 'Kilidi Açılmadı'}</div>

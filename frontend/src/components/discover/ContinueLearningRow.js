@@ -16,7 +16,7 @@ export function ContinueLearningRow({ items = [] }) {
           <div 
             key={item.id || idx} 
             onClick={() => navigate(`/content/${item.type}/${item.slug || item.id}`)}
-            className="min-w-[260px] h-[88px] bg-gradient-to-r from-[#132A1D]/80 to-[#0A1A12]/80 backdrop-blur-md border border-[#1A3826] rounded-2xl p-3 flex items-center justify-between cursor-pointer snap-start shrink-0 shadow-lg"
+            className="min-w-[260px] h-[88px] bg-gradient-to-r from-[#132A1D]/80 to-[#0A1A12]/80 backdrop-blur-md border border-[color:var(--bg-surface-light)] rounded-2xl p-3 flex items-center justify-between cursor-pointer snap-start shrink-0 shadow-lg"
           >
             {/* Text Content */}
             <div className="flex flex-col justify-center max-w-[130px] z-10">
@@ -40,12 +40,12 @@ export function ContinueLearningRow({ items = [] }) {
                     <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/40"></div>
                   </div>
                   {/* Floating Play Button */}
-                  <div className="absolute -left-3 w-8 h-8 rounded-full bg-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#f59e0b]/30 border-2 border-[#132A1D] z-20">
-                    <Icon size={14} className="text-[#052A1E] ml-0.5" />
+                  <div className="absolute -left-3 w-8 h-8 rounded-full bg-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#f59e0b]/30 border-2 border-[color:var(--bg-surface)] z-20">
+                    <Icon size={14} className="text-[color:var(--bg-primary)] ml-0.5" />
                   </div>
                 </>
               ) : (
-                <div className="w-14 h-14 rounded-full bg-[#1A3826] border border-[#2D8A4E] flex items-center justify-center shadow-inner">
+                <div className="w-14 h-14 rounded-full bg-[var(--bg-surface-light)] border border-[#2D8A4E] flex items-center justify-center shadow-inner">
                   <Icon size={24} className="text-[#10b981]" />
                 </div>
               )}

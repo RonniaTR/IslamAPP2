@@ -200,7 +200,7 @@ export default function SeedData() {
   };
 
   return (
-    <div className="min-h-screen bg-[#052A1E] text-white p-8">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-white p-8">
       <h1 className="text-3xl font-bold mb-4">Database Seeder</h1>
       <p className="mb-8 text-gray-300">Click the button below to populate Firestore with high quality mock data (Categories, Articles, Series, Audio).</p>
       

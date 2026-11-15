@@ -24,7 +24,7 @@ export function DiscoverHeader({ streak = 0, level = 1 }) {
         
         <div className="flex items-center gap-3">
           {/* Streak Badge */}
-          <div className="bg-[#132A1D]/80 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-[#1A3826] flex items-center gap-2 shadow-lg shadow-black/20">
+          <div className="bg-[#132A1D]/80 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-[color:var(--bg-surface-light)] flex items-center gap-2 shadow-lg shadow-black/20">
             <span className="text-orange-500 text-xl">🔥</span>
             <div className="flex flex-col">
               <span className="text-white font-bold text-sm leading-none">{streak}</span>
@@ -38,10 +38,10 @@ export function DiscoverHeader({ streak = 0, level = 1 }) {
               <img 
                 src={user?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=misafir&backgroundColor=2D8A4E"} 
                 alt="Profile" 
-                className="w-full h-full rounded-full border-2 border-[#052A1E] object-cover bg-[#2D8A4E]"
+                className="w-full h-full rounded-full border-2 border-[color:var(--bg-primary)] object-cover bg-[#2D8A4E]"
               />
             </div>
-            <div className="absolute -bottom-2 bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-[#052A1E] whitespace-nowrap shadow-md">
+            <div className="absolute -bottom-2 bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-[color:var(--bg-primary)] whitespace-nowrap shadow-md">
               Seviye {level}
             </div>
           </div>
@@ -50,7 +50,7 @@ export function DiscoverHeader({ streak = 0, level = 1 }) {
       
       {/* Search Bar & AI Button Row */}
       <div className="flex gap-3">
-        <div className="flex-1 bg-[#132A1D]/80 backdrop-blur-md border border-[#1A3826] rounded-full flex items-center px-4 h-12 shadow-lg shadow-black/20">
+        <div className="flex-1 bg-[#132A1D]/80 backdrop-blur-md border border-[color:var(--bg-surface-light)] rounded-full flex items-center px-4 h-12 shadow-lg shadow-black/20">
           <Search size={18} className="text-gray-400 mr-2" />
           <input 
             type="text" 

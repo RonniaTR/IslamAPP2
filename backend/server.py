@@ -4025,6 +4025,10 @@ setup_phase3_i18n_routes(api_router, db, gemini_generate)
 # Register Phase 4 routes (Core Islamic: Fiqh, Tafsir Advanced, Hadith AI, Dhikr, Guide)
 setup_phase4_routes(api_router, db, gemini_generate)
 
+# Rehber: kaynaklı yapay zekâ (kütüphaneci ilkesi) — bkz. rehber.py
+from rehber import setup_rehber_routes
+setup_rehber_routes(api_router, gemini_generate, TURKISH_SURAH_NAMES)
+
 # Setup Dynamic Content Routes (CMS)
 setup_dynamic_content_routes(api_router, db)
 

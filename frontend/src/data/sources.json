@@ -62,7 +62,7 @@
     }
   ],
   "generatedAudio": {
-    "ad": "Ney, şadırvan, tını ve eşik sesleri",
+    "ad": "Ney taksimleri (makamlar), şadırvan, tını ve eşik sesleri",
     "not": "Cihazda Web Audio ile üretilir; hiçbir ses kaydı içermez."
   },
   "fonts": [
@@ -80,6 +80,21 @@
       "ad": "Playfair Display",
       "lisans": "SIL Open Font License 1.1",
       "url": "https://fonts.google.com/specimen/Playfair+Display"
+    },
+    {
+      "ad": "Lora",
+      "lisans": "SIL Open Font License 1.1",
+      "url": "https://fonts.google.com/specimen/Lora"
+    },
+    {
+      "ad": "Nunito",
+      "lisans": "SIL Open Font License 1.1",
+      "url": "https://fonts.google.com/specimen/Nunito"
+    },
+    {
+      "ad": "Noto Serif",
+      "lisans": "SIL Open Font License 1.1",
+      "url": "https://fonts.google.com/noto/specimen/Noto+Serif"
     }
   ],
   "hadith": {
@@ -92,7 +107,7 @@
   },
   "ai": {
     "ad": "Yapay zekâ açıklamaları",
-    "not": "Yapay zekâ ile üretilir, hata içerebilir. Hiçbir âlimin sözü ya da fetva değildir."
+    "not": "Rehber yalnız uygulamadaki meal ve tefsirden bulduğu ayetlere dayanarak cevap yazar ve kaynağını gösterir; kaynak bulamazsa bunu söyler. Hata içerebilir. Hiçbir âlimin sözü ya da fetva değildir."
   },
   "diyanetOnayi": {
     "durum": "basvuru-oncesi",

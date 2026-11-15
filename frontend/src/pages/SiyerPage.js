@@ -349,7 +349,7 @@ export default function SiyerPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gradient-to-br from-[#0F3523] to-[#0A1A12] border border-[#1A3826] rounded-[32px] max-w-lg w-full p-6 relative shadow-2xl text-white"
+              className="bg-gradient-to-br from-[#0F3523] to-[#0A1A12] border border-[color:var(--bg-surface-light)] rounded-[32px] max-w-lg w-full p-6 relative shadow-2xl text-white"
             >
               {!quizFinished ? (
                 <div>
@@ -369,7 +369,7 @@ export default function SiyerPage() {
                       const isSelected = selectedAnswer === i;
                       const isCorrect = i === unitQuizzes[currentQuizIndex].correct;
 
-                      let btnStyle = "border-white/10 bg-[#132A1D]/80 hover:bg-[#1A3826]";
+                      let btnStyle = "border-white/10 bg-[#132A1D]/80 hover:bg-[var(--bg-surface-light)]";
                       if (selectedAnswer !== null) {
                         if (isCorrect) btnStyle = "border-green-500 bg-green-900/30 text-green-300 font-bold";
                         else if (isSelected) btnStyle = "border-red-500 bg-red-900/30 text-red-300";
@@ -392,7 +392,7 @@ export default function SiyerPage() {
 
                   {/* Explanation box */}
                   {selectedAnswer !== null && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-3.5 rounded-2xl bg-[#132A1D] border border-white/10 text-xs text-gray-300 mb-5">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-3.5 rounded-2xl bg-[var(--bg-surface)] border border-white/10 text-xs text-gray-300 mb-5">
                       <span className="font-bold text-[#10b981] block mb-1">Açıklama:</span>
                       {unitQuizzes[currentQuizIndex]?.explain}
                     </motion.div>

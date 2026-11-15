@@ -5,7 +5,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTx } from '../../i18n';
 import { alpha } from '../../donus/palette';
-import { playGate, stopGate, isGateSoundOn, setGateSound } from '../../services/donusAudio';
+import { playGate, stopGate, isGateSoundOn, setGateSound, PHASE_MAKAM, MAKAM_NAMES } from '../../services/donusAudio';
+import { getReturnDay, getTodayPhase } from '../../services/returnEngine';
 
 // 🪔 EŞİK — Dönüş Odası'na giriş sahnesi
 //
@@ -26,6 +27,50 @@ import { playGate, stopGate, isGateSoundOn, setGateSound } from '../../services/
 
 const GOLD = '#F0B429';
 const GLOW = '#FFD76A';
+
+// YENİ EŞİK (docs/YENI_OZELLIKLER.md 7.3) — "Kapı hep açıktı"
+// Kapı bir engel değil: zaten ARALIKTIR, kandilin ışığı aralıktan sızar. Kişi dokununca kapıyı o
+// itmez; kanatlar kendiliğinden açılır. Tasvir yok: yalnız kapı, kemer, ışık, desen.
+// Her evrenin kendi ışık rengi ve makamı vardır.
+const PHASE_LIGHT = {
+  kapi:  { light: '#F0B429', floor: '#1A1208' },
+  temel: { light: '#34D399', floor: '#06140F' },
+  bag:   { light: '#7DA2FF', floor: '#0A0F1F' },
+  ahlak: { light: '#F7A8B8', floor: '#1A0D11' },
+  kok:   { light: '#D9A066', floor: '#140E08' },
+};
+const WOOD = '#3A2614';
+const WOOD_DARK = '#24170B';
+
+/** Tek kapı kanadı: ahşap, çivili, üstü sivri kemere uyar. */
+function Leaf({ side, open, ajar, reduce }) {
+  const sign = side === 'left' ? -1 : 1;
+  const angle = open ? sign * 104 : ajar ? sign * 9 : 0;
+  return (
+    <motion.div
+      initial={false}
+      animate={reduce ? { opacity: open ? 0 : 1 } : { rotateY: angle }}
+      transition={{ duration: reduce ? 0.4 : 2.0, ease: [0.2, 0.8, 0.2, 1] }}
+      style={{
+        position: 'absolute', top: 0, bottom: 0, width: '50%', [side]: 0,
+        transformOrigin: side === 'left' ? 'left center' : 'right center',
+        background: `linear-gradient(${side === 'left' ? 90 : 270}deg, ${WOOD_DARK}, ${WOOD} 55%, ${WOOD_DARK})`,
+        borderRadius: side === 'left' ? '120px 0 0 0' : '0 120px 0 0',
+        boxShadow: 'inset 0 0 0 2px rgba(0,0,0,0.35)', backfaceVisibility: 'hidden',
+      }}>
+      {/* tahta araları */}
+      {[25, 50, 75].map((x) => (
+        <span key={x} style={{ position: 'absolute', top: 0, bottom: 0, left: `${x}%`, width: 1, background: 'rgba(0,0,0,0.35)' }} />
+      ))}
+      {/* çiviler */}
+      {[18, 38, 58, 78].map((y) => [22, 72].map((x) => (
+        <span key={`${x}-${y}`} style={{ position: 'absolute', top: `${y}%`, left: `${x}%`, width: 7, height: 7, borderRadius: 4, background: '#8A6A2F', boxShadow: '0 1px 0 rgba(0,0,0,0.5)' }} />
+      )))}
+      {/* halka tokmak */}
+      <span style={{ position: 'absolute', top: '52%', [side === 'left' ? 'right' : 'left']: 12, width: 18, height: 18, borderRadius: 9, border: '2px solid #B08A3A' }} />
+    </motion.div>
+  );
+}
 
 /** Rub'ul hizb — iki kare ve halkalar; ışıkla kendini çizer. */
 function Pattern({ draw }) {
@@ -96,6 +141,10 @@ export default function GateAnimation({ onDone }) {
   const timers = useRef([]);
 
   const name = (user?.name || '').split(' ')[0];
+  const day = getReturnDay();
+  const evre = getTodayPhase(day) || { id: 'kapi', name: 'Kapı' };
+  const L = PHASE_LIGHT[evre.id] || PHASE_LIGHT.kapi;
+  const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Sahne zamanlaması tek seferde kurulur. (Daha önce bu bir useEffect
   // içindeydi ve phase değişince kendi zamanlayıcılarını temizliyordu —
@@ -103,15 +152,18 @@ export default function GateAnimation({ onDone }) {
   const enter = useCallback(() => {
     if (started.current) return;
     started.current = true;
-    playGate();
+    playGate(evre.id);
     setPhase(1);
+    // 1 nefes+kapı açılır · 2 desen · 3 selam · 4 oda
     timers.current = [
-      setTimeout(() => setPhase(2), 700),
-      setTimeout(() => setPhase(3), 2400),
-      setTimeout(() => setPhase(4), 4000),
-      setTimeout(() => onDone && onDone(), 4700),
+      setTimeout(() => setPhase(2), 2200),
+      setTimeout(() => setPhase(3), 3800),
+      setTimeout(() => setPhase(4), 5600),
+      setTimeout(() => onDone && onDone(), 6300),
     ];
-  }, [onDone]);
+  }, [onDone, evre.id]);
+
+  const skip = (e) => { e.stopPropagation(); timers.current.forEach(clearTimeout); stopGate(); onDone && onDone(); };
 
   useEffect(() => () => {
     timers.current.forEach(clearTimeout);
@@ -121,9 +173,36 @@ export default function GateAnimation({ onDone }) {
   return (
     <motion.div
       className="fixed inset-0 z-[130] overflow-hidden flex flex-col items-center justify-center select-none"
-      style={{ background: theme.bg }}
+      style={{ background: `radial-gradient(ellipse at 50% 55%, ${L.floor} 0%, #050403 75%)` }}
       exit={{ opacity: 0 }} transition={{ duration: 0.5 }}
       onClick={enter} data-testid="donus-gate">
+
+      {/* Her an geçilebilir */}
+      {phase > 0 && phase < 4 && (
+        <button onClick={skip} className="absolute top-5 left-5 z-30 text-[11px] font-bold px-3 py-2 rounded-xl"
+          style={{ color: theme.textSecondary, background: 'rgba(255,255,255,0.06)' }}>{tt('Geç')}</button>
+      )}
+
+      {/* KAPI — sivri kemer içinde çift kanat; phase 0'da aralık, 1'de açılır */}
+      <AnimatePresence>
+        {phase < 3 && (
+          <motion.div className="absolute" exit={{ opacity: 0, scale: 1.25 }} transition={{ duration: 0.9 }}
+            style={{ width: 236, height: 372, perspective: 1200, zIndex: 5 }} aria-hidden>
+            {/* kemer çerçevesi */}
+            <div style={{ position: 'absolute', inset: -10, borderRadius: '132px 132px 6px 6px', border: `2px solid ${alpha(L.light, 0.45)}`, boxShadow: `0 0 40px ${alpha(L.light, phase === 0 ? 0.12 : 0.4)}` }} />
+            {/* kapının ardındaki ışık */}
+            <motion.div style={{ position: 'absolute', inset: 0, borderRadius: '120px 120px 0 0', background: `radial-gradient(ellipse at 50% 60%, #FFF6D8 0%, ${L.light} 38%, ${alpha(L.light, 0.1)} 100%)` }}
+              animate={{ opacity: phase === 0 ? [0.55, 0.85, 0.55] : 1 }}
+              transition={phase === 0 ? { duration: 3.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 1.2 }} />
+            <Leaf side="left" ajar={phase === 0} open={phase >= 1} reduce={reduce} />
+            <Leaf side="right" ajar={phase === 0} open={phase >= 1} reduce={reduce} />
+            {/* eşiğin altından sızan ışık */}
+            <motion.div style={{ position: 'absolute', left: '-30%', right: '-30%', bottom: -70, height: 90, background: `radial-gradient(ellipse at 50% 0%, ${alpha(L.light, 0.55)} 0%, transparent 70%)` }}
+              animate={{ opacity: phase === 0 ? [0.3, 0.6, 0.3] : 1, scaleX: phase >= 1 ? 1.8 : 1 }}
+              transition={phase === 0 ? { duration: 3.2, repeat: Infinity } : { duration: 1.6 }} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ses anahtarı — sahne başlamadan önce kapatılabilir */}
       {phase === 0 && (
@@ -165,8 +244,8 @@ export default function GateAnimation({ onDone }) {
 
       {/* Kandil */}
       <AnimatePresence>
-        {phase < 3 && (
-          <motion.div className="relative flex flex-col items-center"
+        {phase >= 1 && phase < 3 && (
+          <motion.div className="relative flex flex-col items-center" style={{ zIndex: 6 }}
             initial={{ opacity: 0, scale: 0.4 }}
             animate={{ opacity: 1, scale: phase === 0 ? 0.55 : 1 }}
             exit={{ opacity: 0, scale: 1.4 }}
@@ -195,7 +274,7 @@ export default function GateAnimation({ onDone }) {
               {tt('Dokun ve içeri gir')}
             </motion.p>
             <p className="text-[10.5px] mt-2" style={{ color: theme.textSecondary }}>
-              {tt('Kandil zaten yanıyordu')}
+              {tt('Kapı hep açıktı')}
             </p>
           </motion.div>
         )}
@@ -220,6 +299,9 @@ export default function GateAnimation({ onDone }) {
               style={{ color: theme.textSecondary }}>
               {tt('Burada kimse sana ne kadar geç kaldığını sormaz.')}
             </motion.p>
+            <p className="text-[10.5px] mt-4 font-bold tracking-wide" style={{ color: L.light }}>
+              {tt(evre.name)} · {day}. {tt('gün')} · {MAKAM_NAMES[PHASE_MAKAM[evre.id]] || ''}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>

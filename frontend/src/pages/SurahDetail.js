@@ -143,14 +143,14 @@ export default function SurahDetail() {
 
   if (loading || !surah) {
     return (
-      <div style={{ minHeight: '100vh', background: '#052A1E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant="bodySmall" style={{ color: '#CDA434' }}>Sure Yükleniyor...</Typography>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#052A1E', position: 'relative', paddingBottom: '120px' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', position: 'relative', paddingBottom: '120px' }}>
       <audio 
         ref={audioRef} 
         src={surah.full_audio_url} 

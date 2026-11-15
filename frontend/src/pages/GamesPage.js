@@ -20,6 +20,9 @@ import BossBattle from './games/BossBattle';
 import OrderGame from './games/OrderGame';
 import VoiceGuess from './games/VoiceGuess';
 import WhichSurah from './games/WhichSurah';
+import WhichProphet from './games/WhichProphet';
+import WhichName from './games/WhichName';
+import WhereAyah from './games/WhereAyah';
 import StoryMode from './games/StoryMode';
 import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
@@ -59,6 +62,9 @@ const GAME_MODES = [
   { id: 'wheel', title: 'Çarkıfelek', desc: 'Çevir — her tur farklı deneyim.', emoji: '🎡', color: '#14B8A6', type: 'game_wheel', Comp: WheelGame },
   { id: 'voice', title: 'Sesli Tahmin', desc: 'Tilaveti dinle, doğru sureyi bul.', emoji: '🎵', color: '#22C55E', type: 'game_quiz', Comp: VoiceGuess },
   { id: 'whichsurah', title: 'Hangi Sure?', desc: 'İpuçlarından sureyi tanı, dedektif ol.', emoji: '🔎', color: '#0EA5E9', type: 'game_quiz', Comp: WhichSurah, badge: 'Sure Dedektifi' },
+  { id: 'whichprophet', title: 'Hangi Peygamber?', desc: 'Dört ipucu, bir peygamber. Az ipucuyla bil, çok XP al.', emoji: '🌟', color: '#F59E0B', type: 'game_quiz', Comp: WhichProphet, badge: 'Kıssa Dedektifi' },
+  { id: 'whereayah', title: 'Ayet Nerede?', desc: 'Anlamından sureyi bul.', emoji: '📍', color: '#34D399', type: 'game_quiz', Comp: WhereAyah, badge: 'Ayet İzcisi' },
+  { id: 'whichname', title: 'Hangi İsim?', desc: 'Tefekkür cümlesinden Esmâ-i Hüsnâ’yı tanı.', emoji: '✨', color: '#A78BFA', type: 'game_quiz', Comp: WhichName, badge: 'Esmâ Yolcusu' },
 ];
 
 const CAT_ICONS = {
@@ -644,7 +650,7 @@ export default function GamesPage() {
                 <motion.div className="h-full rounded-full" initial={{ width: 0 }} animate={{ width: `${pct}%` }}
                   style={{ background: 'linear-gradient(90deg, #ffd369, #d4af37)' }} />
               </div>
-              <p className="text-[10px] mt-1" style={{ color: '#A8B5A0' }}>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                 {totalXP.toLocaleString('tr-TR')} / {next.toLocaleString('tr-TR')} XP · Sonraki seviye: <span style={{ color: '#ffd369' }}>{Math.max(0, next - totalXP)} XP kaldı</span>
               </p>
             </div>
@@ -659,7 +665,7 @@ export default function GamesPage() {
             ].map((s, i) => (
               <div key={i} className="rounded-xl px-1 py-2 text-center" style={{ background: '#ffffff0a', border: '1px solid #ffd36920' }}>
                 <p className="text-sm font-black tabular-nums" style={{ color: '#f7e6ae' }}>{s.icon} {s.val}</p>
-                <p className="text-[8px] mt-0.5" style={{ color: '#A8B5A0' }}>{s.label}</p>
+                <p className="text-[8px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{s.label}</p>
               </div>
             ))}
           </div>

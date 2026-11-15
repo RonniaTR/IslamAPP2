@@ -109,25 +109,44 @@ class NotificationManager {
     }
   }
 
-  /** Schedule a prayer reminder (uses setTimeout for web, not ideal but works) */
+  /**
+   * Vakit hatırlatması planlar.
+   * · Telefonda (Capacitor): işletim sisteminin yerel bildirim zamanlayıcısına verilir; uygulama
+   *   kapalıyken de gelir. Aynı vakit için kimlik sabittir, yeniden planlamak eskisinin üzerine yazar.
+   * · Web'de: setTimeout ile, yalnız sekme açıkken çalışır (tarayıcı kısıtı).
+   * Metin davet dilindedir; "kaçırdın" türü ifade kullanılmaz.
+   */
   schedulePrayerReminder(prayerName, prayerTime, minutesBefore = 10) {
     const [h, m] = prayerTime.split(':').map(Number);
     const target = new Date();
     target.setHours(h, m - minutesBefore, 0, 0);
-
     const delay = target.getTime() - Date.now();
-    if (delay <= 0) return null; // Already passed
+    if (delay <= 0) return null; // bugün için geçti
 
+    const title = `${prayerName} vaktine ${minutesBefore} dakika`;
+    const body = 'Hazırlanmak istersen vakit yaklaşıyor.';
+    const native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    if (native) {
+      const id = 9000 + (h * 60 + m); // vakte özgü sabit kimlik
+      LocalNotifications.schedule({
+        notifications: [{ id, title, body, schedule: { at: target, allowWhileIdle: true }, smallIcon: 'ic_stat_icon_config_sample', iconColor: '#C8A55A' }],
+      }).catch((e) => logger.error('Notifications', 'schedule failed', e.message));
+      return null;
+    }
     const timerId = setTimeout(() => {
-      this.showLocal(
-        `${prayerName} Vakti Yaklaşıyor`,
-        `${prayerName} namazına ${minutesBefore} dakika kaldı.`,
-        { data: { url: '/' }, tag: `prayer-${prayerName}` }
-      );
+      this.showLocal(title, body, { data: { url: '/' }, tag: `prayer-${prayerName}` });
     }, delay);
-
     logger.debug('Notifications', `Scheduled ${prayerName} reminder in ${Math.round(delay / 60000)}min`);
     return timerId;
+  }
+
+  /** Planlanmış bütün vakit hatırlatmalarını iptal eder (telefon). */
+  async cancelPrayerReminders() {
+    try {
+      const pending = await LocalNotifications.getPending();
+      const ours = (pending.notifications || []).filter((n) => n.id >= 9000 && n.id < 11000);
+      if (ours.length) await LocalNotifications.cancel({ notifications: ours.map((n) => ({ id: n.id })) });
+    } catch { /* web: yok */ }
   }
 
   /** Get user notification preferences from localStorage */

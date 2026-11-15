@@ -103,10 +103,10 @@ function ProfileHero({ profile }) {
           <img 
             src={profile.avatarUrl} 
             alt="Profile" 
-            className="w-full h-full rounded-full border-4 border-[#0A1A12] object-cover bg-gray-800"
+            className="w-full h-full rounded-full border-4 border-[color:var(--bg-primary)] object-cover bg-gray-800"
           />
         </div>
-        <div className="absolute -bottom-2 -right-2 bg-[#f59e0b] text-black font-bold px-3 py-1 rounded-full text-sm border-2 border-[#0A1A12] shadow-lg shadow-amber-500/20">
+        <div className="absolute -bottom-2 -right-2 bg-[#f59e0b] text-black font-bold px-3 py-1 rounded-full text-sm border-2 border-[color:var(--bg-primary)] shadow-lg shadow-amber-500/20">
           Seviye {profile.level}
         </div>
       </div>
@@ -210,13 +210,13 @@ function LearningJourney({ journey = [], navigate }) {
 
       <div className="relative pt-8 pb-4 overflow-x-auto no-scrollbar">
         {/* Background Line */}
-        <div className="absolute top-[3.25rem] left-8 right-8 h-1 bg-[#1A3826] z-0 rounded-full"></div>
+        <div className="absolute top-[3.25rem] left-8 right-8 h-1 bg-[var(--bg-surface-light)] z-0 rounded-full"></div>
         
         <div className="flex justify-between min-w-[600px] relative z-10 px-4">
           {data.map((item, i) => (
             <div key={i} className="flex flex-col items-center gap-3 w-24">
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 border-[#132A1D] shadow-lg shadow-black/50 ${item.percent === 100 ? item.color : 'bg-[#1A3826]'}`}>
-                {item.percent === 100 ? <CheckCircle2 size={24} className="text-[#0A1A12]" /> : <BookOpen size={24} className={item.percent > 0 ? "" : "text-gray-500"} />}
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center border-4 border-[color:var(--bg-surface)] shadow-lg shadow-black/50 ${item.percent === 100 ? item.color : 'bg-[var(--bg-surface-light)]'}`}>
+                {item.percent === 100 ? <CheckCircle2 size={24} className="text-[color:var(--bg-primary)]" /> : <BookOpen size={24} className={item.percent > 0 ? "" : "text-gray-500"} />}
               </div>
               <div className="text-center">
                 <div className="text-xs font-bold whitespace-nowrap">{item.title}</div>
@@ -226,7 +226,7 @@ function LearningJourney({ journey = [], navigate }) {
           ))}
           
           <div className="flex flex-col items-center gap-3 w-24 opacity-50">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center border-4 border-[#132A1D] bg-[#1A3826]">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center border-4 border-[color:var(--bg-surface)] bg-[var(--bg-surface-light)]">
               <div className="w-4 h-4 rounded-full border-2 border-gray-500"></div>
             </div>
             <div className="text-xs text-gray-500">Kilitli</div>
@@ -334,9 +334,9 @@ function StreakCalendar() {
                 const isToday = currentDate.toDateString() === today.toDateString();
 
                 // Stil belirleme
-                let bgClass = "bg-[#1A3826]"; // pasif gün
+                let bgClass = "bg-[var(--bg-surface-light)]"; // pasif gün
                 if (isActive) bgClass = "bg-emerald-500 shadow-sm shadow-[#10b981]/40";
-                if (isToday && !isActive) bgClass = "bg-[#1A3826] ring-1 ring-white/40"; // bugün: yalnız ince çerçeve, uyarı rengi yok
+                if (isToday && !isActive) bgClass = "bg-[var(--bg-surface-light)] ring-1 ring-white/40"; // bugün: yalnız ince çerçeve, uyarı rengi yok
                 if (isToday && isActive) bgClass = "bg-emerald-500 ring-2 ring-white ring-offset-1 ring-offset-[#132A1D]"; // Bugün sisteme girdiyse beyaz çerçeve
                 
                 return (
@@ -374,7 +374,7 @@ function RecentAudio({ audios = [], navigate }) {
             <div className="flex-1">
               <div className="font-bold">{a.title}</div>
               <div className="text-xs text-gray-400 capitalize">{a.type}</div>
-              <div className="mt-2 bg-[#1A3826] h-1.5 rounded-full overflow-hidden">
+              <div className="mt-2 bg-[var(--bg-surface-light)] h-1.5 rounded-full overflow-hidden">
                 <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${a.progress}%` }}></div>
               </div>
             </div>

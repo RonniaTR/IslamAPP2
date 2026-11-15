@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { nearestCity } from '../data/cityCoords';
 
 export const TURKISH_CITIES = [
   "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin", "Aydın", "Balıkesir",
@@ -40,14 +41,49 @@ export function usePrayerTimes() {
   };
 
   useEffect(() => {
-    fetchPrayerTimesByCity(city);
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem('islamapp_coords')); } catch { saved = null; }
+    if (saved?.lat) fetchByCoords(saved.lat, saved.lon); else fetchPrayerTimesByCity(city);
     // Cleanup interval on unmount
     return () => {
       if (timerInterval) clearInterval(timerInterval);
     };
   }, []);
 
+  // 📍 KONUM — vakitler kullanıcının gerçek koordinatıyla hesaplanır (Diyanet yöntemi, method=13).
+  // Koordinat yalnız cihazda saklanır; bizim sunucumuza gönderilmez.
+  const fetchByCoords = async (lat, lon) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=13`);
+      const data = await res.json();
+      if (data && data.data) { setTimings(data.data.timings); calculateNextPrayer(data.data.timings); }
+    } catch (err) { console.error('Ezan vakitleri alınamadı', err); } finally { setLoading(false); }
+  };
+
+  /** Tarayıcıdan konum ister. Dönüş: { ok, city } ya da { ok:false, reason }. */
+  const locate = () => new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve({ ok: false, reason: 'unsupported' });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const name = nearestCity(latitude, longitude) || city;
+        try {
+          localStorage.setItem('islamapp_coords', JSON.stringify({ lat: latitude, lon: longitude, at: Date.now() }));
+          localStorage.setItem('islamapp_city', name);
+        } catch { /* kota */ }
+        setCityState(name);
+        if (timerInterval) clearInterval(timerInterval);
+        fetchByCoords(latitude, longitude);
+        resolve({ ok: true, city: name });
+      },
+      (err) => resolve({ ok: false, reason: err.code === 1 ? 'denied' : 'unavailable' }),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 },
+    );
+  });
+
   const changeCity = (newCity) => {
+    try { localStorage.removeItem('islamapp_coords'); } catch { /* ignore */ }
     setCityState(newCity);
     localStorage.setItem('islamapp_city', newCity);
     if (timerInterval) clearInterval(timerInterval);
@@ -111,5 +147,5 @@ export function usePrayerTimes() {
     setTimerInterval(id);
   };
 
-  return { timings, city, changeCity, nextPrayer, countdown, loading };
+  return { timings, city, changeCity, locate, nextPrayer, countdown, loading };
 }

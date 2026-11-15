@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, X } from 'lucide-react';
-import { TYPOGRAPHY, RADIUS, SHADOWS } from '../../styles/designTokens';
+import { TYPOGRAPHY, RADIUS, SHADOWS } from '../styles/designTokens';
 
 export default function ParentalGate({ isOpen, onClose, onSuccess }) {
   const [num1, setNum1] = useState(0);
