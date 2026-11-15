@@ -119,6 +119,46 @@ ve uygulama tarayıcıda denenmedi** — deploy'dan önce yerelde `npm start` il
 
 **Hâlâ denenmedi:** uygulama tarayıcıda çalıştırılmadı; QuranEnc ve alquran.cloud'a bu ortamdan erişim yok.
 
+### 15 Kasım 2026 — üçüncü tur (Fable): Faz 1–9'dan kodlananlar
+
+Kullanıcı kararıyla "fazlar sırayla" kuralı gevşetildi; en görünür ve bağımsız parçalar birlikte kodlandı.
+**Commit ve deploy edilmedi; tarayıcıda denenmedi** (lint: `src` genelinde 0 hata, Python derleniyor).
+
+| Faz | Kodlanan | Dosya | Kalan |
+|---|---|---|---|
+| 1 Tema | 5 yeni tema (Işıltı, Huşu, Sevgi, Sükûn, Bereket) + Zümrüt Gece; 4 yazı stili; 4 yazı boyutu | `contexts/ThemeContext.js`, `index.css` | Tema = ayrı JSON dosyası yapısı; sabit renk yazılmış eski sayfaların temaya bağlanması (çoğu sayfa `#0A1F14` gibi sabit renk kullanıyor, tema değişince onlar değişmez) |
+| 2 Ayarlar | Ayarlar v2: tema stüdyosu, yazı, konum ("Konumumu bul" + il seçimi), vakit hatırlatması, dil, huzur sesi | `pages/SettingsPage.js`, `hooks/usePrayerTimes.js`, `data/cityCoords.js` | Yerel (Capacitor) zamanlanmış bildirim ve "Kıldım/Sonra" eylemleri; şu an hatırlatma yalnız uygulama açıkken çalışır |
+| 3 Mushaf | Tam sayfa Mushaf + ayet paneli (önceki tur) | `pages/MushafPage.js` | Üç mod düğmesi (Mushaf · Meal · İkisi), satır dizgisi |
+| 4 Dil | Ayarlar'dan TR/EN/AR seçimi | — | `tr.js` ayrımı, Arapça çeviri eksikleri, tam RTL düzen |
+| 5 Oyun | Hangi Peygamber?, Hangi İsim? (ortak motor) | `pages/games/ClueGame.jsx`, `WhichProphet.jsx`, `WhichName.jsx` | Ayet Nerede? ve diğer 6 oyun |
+| 7 Dönüş | Yeni Eşik: aralık ahşap kapı + kandil + evre rengi; ney sentezi ve 6 makam; "Geç" düğmesi; hareket azaltma desteği | `components/donus/GateAnimation.jsx`, `services/donusAudio.js` | Toz zerreleri, kısa/uzun sürüm, evre geçiş sahneleri, Firestore yedeği, sessiz davet, 40. gün sonrası |
+| 8 Yeni fikirler | Vakitlerin makamı (Ayarlar'da dinlenir), Gözsüz tesbihat, Rahmet defteri | `pages/TesbihatPage.js`, `pages/RahmetPage.js` | Vakit sesinin bildirime bağlanması, Huşu perdesi, kaza planı, esnek hatim, kandil haritası, hayat ayetleri, mahreç koçu |
+| 9 Yapay zekâ | Rehber: Sor (üç etiket + "Nereden biliyorum?"), Bugün bana ne söyler?, Doğrula, Kendi cümlenle anlat | `backend/rehber.py`, `pages/RehberPage.js` | Kelime koçu, aile sofrası, dinleyen yoldaş (uzman onayı şart), soru defteri, vektör araması, 100 soruluk deneme seti |
+| — | Misafir oturumu sayfa yenilenince düşmüyor | `contexts/AuthContext.js` | — |
+
+**Rehber'in bilinen sınırları (dürüst not):**
+- Arama anlam vektörüyle değil kelime kökü örtüşmesiyle yapılıyor. Açık sorularda iyi (ör. "yolculukta namazı kısaltmak" → Nisâ 4:101),
+  dolaylı ve duygusal cümlelerde zayıf. "Bugün bana ne söyler?" bu yüzden önce **elle seçilmiş** 12 konuluk ayet listesine bakar.
+- "Kaynağım yok" eşiği (`MIN_SCORE`, `MIN_COVER`) tahminidir; deneme setiyle ayarlanmalı. İkinci güvence istemdeki kuraldır.
+- Doğrula yalnız 500 Buhârî hadisinde arar ve o verinin Türkçe çevirisinin kaynağı belirsizdir (0.1 açık madde). "Tartışmalı" sonucu
+  henüz yok: veride sıhhat derecesi ayrımı bulunmuyor.
+- Fıkıh soruları (ör. zekât hesabı) çoğunlukla "kaynağım yok" dönecek; çünkü kaynak yalnız meal ve tefsir. Temel Bilgiler metinleri dizine eklenmeli.
+
+### 15 Kasım 2026 — dördüncü tur (Fable): kalanlar ve geliştirme altyapısı
+
+**Kodlandı** (commit/deploy yok; tarayıcıda denenmedi; `npm run check` 0 hata):
+- **Geliştirme altyapısı:** `features/registry.js` (özellik kaydı + bayraklar), `pages/OzelliklerPage.js` (Tüm özellikler),
+  `docs/GELISTIRME.md`, `npm run check` (ESLint + import/export doğrulaması). Yeni denetim 4 eski kırık import yakaladı; düzeltildi.
+- **Tema bağlama:** 25 eski dosyada 108 sabit renk tema değişkenine çevrildi (koyu-yeşil aile). Açık temalar için beyaz yazı düzeltmesi.
+- **Mushaf:** üç mod (Mushaf · Meal · İkisi).
+- **Bildirim:** telefonda işletim sisteminin zamanlayıcısıyla (uygulama kapalıyken de); web'de sekme açıkken.
+- **Huşu perdesi** (Ayarlar'dan açılır), **Kelime Koçu**, **Aile Sofrası**.
+
+**Hâlâ yapılmadı:** tam RTL ve Arapça çeviri eksikleri · `tr.js` ayrımı · Ayet Nerede? ve diğer oyunlar · ana ekran v2 (tuval G1) ·
+Dönüş Odası'nın kalanları (Firestore yedeği, sessiz davet, evre geçiş sahneleri, 40. gün sonrası) · kaza planı · esnek hatim ·
+kandil haritası · hayat ayetleri defteri · mahreç koçu · dinleyen yoldaş (uzman onayı) · Rehber için vektör araması ve deneme seti ·
+tema dışında kalan sabit renkler (altın/yeşil vurgu renkleri ve çocuk sayfaları bilerek bırakıldı).
+
 ### 0.7 Kur'an, meal, tefsir ve siyeri uygulamaya koymanın yolu
 
 | İçerik | Kaynak | Şart | Durum |

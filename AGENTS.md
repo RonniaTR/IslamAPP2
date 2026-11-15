@@ -130,9 +130,13 @@ Erişim kontrolü `firestore.rules` ile yapılır.
     `frontend/src/data/sources.json`, `mobile/src/services/quranService.js`, `backend/quran_translations.py`.
     Sunucu önbelleği `python backend/scripts/fetch_quranenc.py` ile üretilir.
 11. **Yapay zekâ hiçbir gerçek kişinin ağzından konuşmaz.** "Sen …'sın" biçiminde âlim/hoca personası yazılmaz.
-12. **Lint:** `cd frontend && npx eslint --no-eslintrc -c eslint.check.json --quiet --ext .js,.jsx src`
+12. **Denetim:** `cd frontend && npm run check` (ESLint + import/export doğrulaması; commit'ten önce 0 hata şart)
     (depoda ESLint ayarı yok; `npx eslint src` sessizce hata verir ve hiçbir şeyi denetlemez).
 13. **Uygulama tamamen ücretsiz.** `usePremium` yeni kodda kullanılmaz; hiçbir özellik ödemeye bağlanmaz.
+
+---
+
+14. **Yeni özellik `features/registry.js`'e kaydedilir** (bir satır). Adım adım yol: `docs/GELISTIRME.md`.
 
 ---
 
