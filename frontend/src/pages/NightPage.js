@@ -297,7 +297,7 @@ export default function NightPage() {
                 {contentType !== 'ambient' && selected && (
                   <p className="text-sm font-bold mt-1.5" style={{ fontFamily: 'Georgia, serif', color: NIGHT.text }}>
                     {selected.emoji} {selected.title}
-                    {tts.loading && <span className="text-[10px] font-normal ml-1.5" style={{ color: NIGHT.dim }}>{tt('(ses hazırlanıyor...)')}</span>}
+                    {tts.loading && <span className="text-[10px] font-normal ms-1.5" style={{ color: NIGHT.dim }}>{tt('(ses hazırlanıyor...)')}</span>}
                   </p>
                 )}
               </div>

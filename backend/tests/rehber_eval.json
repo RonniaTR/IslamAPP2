@@ -1,49 +1,719 @@
 {
-  "_not": "Rehber arama doğruluğu deneme seti. Her soru için beklenen ayet(ler)den biri ilk 5 sonuçta çıkmalı. Beklenen ayetler bilinen, açık ayetlerdir; bir ilahiyatçının bu listeyi gözden geçirip 100 soruya tamamlaması gerekir. Çalıştır: python tests/run_rehber_eval.py",
-  "items": [
-    {"q": "Allah insana gücünün yetmeyeceği yük yükler mi", "a": ["2:286", "7:42", "23:62", "6:152"]},
-    {"q": "Yolculukta namazı kısaltmak caiz mi", "a": ["4:101"]},
-    {"q": "Zorlukla beraber kolaylık var mı", "a": ["94:5", "94:6"]},
-    {"q": "Kalpler neyle huzur bulur", "a": ["13:28"]},
-    {"q": "Şükredersek nimet artar mı", "a": ["14:7"]},
-    {"q": "Oruç kimlere farz kılındı", "a": ["2:183", "2:184", "2:185"]},
-    {"q": "Kur'an hangi ayda indirildi", "a": ["2:185", "97:1", "44:3"]},
-    {"q": "Abdest nasıl alınır", "a": ["5:6"]},
-    {"q": "İçki ve kumar hakkında hüküm nedir", "a": ["5:90", "5:91", "2:219"]},
-    {"q": "Faiz haram mı", "a": ["2:275", "2:276", "2:278", "3:130"]},
-    {"q": "Anne babaya nasıl davranmalıyız öf bile dememek", "a": ["17:23", "17:24", "31:14", "46:15"]},
-    {"q": "Zinaya yaklaşmak", "a": ["17:32"]},
-    {"q": "Gıybet etmek ölü kardeşinin etini yemek gibi midir", "a": ["49:12"]},
-    {"q": "Müminler kardeş midir", "a": ["49:10"]},
-    {"q": "Dinde zorlama var mı", "a": ["2:256"]},
-    {"q": "Allah'ı uyuklama ve uyku tutmaz kürsüsü gökleri ve yeri kaplamıştır", "a": ["2:255"]},
-    {"q": "Allah birdir doğurmamış ve doğmamıştır", "a": ["112:1", "112:3"]},
-    {"q": "Namaz insanı kötülükten alıkoyar mı", "a": ["29:45"]},
-    {"q": "Sabır ve namazla yardım istemek", "a": ["2:153", "2:45"]},
-    {"q": "Günahkârlar Allah'ın rahmetinden ümit kesmeli mi", "a": ["39:53", "12:87", "15:56"]},
-    {"q": "Her canlı ölümü tadacak mı", "a": ["3:185", "21:35", "29:57"]},
-    {"q": "Zekât kimlere verilir", "a": ["9:60"]},
-    {"q": "Hac kimlere farzdır", "a": ["3:97"]},
-    {"q": "Kıble neresidir yüzünü Mescid-i Haram'a çevir", "a": ["2:144", "2:149", "2:150"]},
-    {"q": "Cuma günü namaza çağrıldığında alışverişi bırakmak", "a": ["62:9"]},
-    {"q": "Yiyin için ama israf etmeyin", "a": ["7:31", "6:141"]},
-    {"q": "Ölçüde ve tartıda hile yapanlar", "a": ["83:1", "83:2", "83:3", "17:35", "6:152", "11:85"]},
-    {"q": "Kulum bana dua ettiğinde ona yakınım", "a": ["2:186"]},
-    {"q": "Allah insana şah damarından daha yakındır", "a": ["50:16"]},
-    {"q": "Kötülüğü en güzel şekilde savmak düşman dost olur", "a": ["41:34", "23:96"]},
-    {"q": "Öfkesini yutan ve insanları affedenler", "a": ["3:134"]},
-    {"q": "Allah adaleti ve iyiliği emreder", "a": ["16:90"]},
-    {"q": "Emanetleri ehline vermek", "a": ["4:58"]},
-    {"q": "Kur'an okunurken susup dinlemek", "a": ["7:204"]},
-    {"q": "Kur'an'ı Allah mı koruyacak", "a": ["15:9"]},
-    {"q": "İnsanlar ve cinler niçin yaratıldı", "a": ["51:56"]},
-    {"q": "Lokman oğluna ne öğüt verdi şirk büyük zulümdür", "a": ["31:13"]},
-    {"q": "Yetim malını haksız yere yemek", "a": ["4:10", "4:2", "6:152", "17:34"]},
-    {"q": "Boşanma kaç defadır", "a": ["2:229", "2:230"]},
-    {"q": "Mirasta erkeğe iki kadın payı", "a": ["4:11", "4:176"]},
-    {"q": "Alkol almak günah mı", "a": ["5:90", "5:91", "2:219"]},
-    {"q": "Dedikodu yapmak", "a": ["49:12", "104:1"]},
-    {"q": "Kredi çekmek faiz", "a": ["2:275", "2:276", "2:278", "3:130"]},
-    {"q": "Seferi olan kişi namazı nasıl kılar", "a": ["4:101"]}
-  ]
+ "_not": "Rehber arama doğruluğu deneme seti. Her soru için beklenen ayet(ler)den biri ilk 5 sonuçta çıkmalı. Beklenen ayetler bilinen, açık ayetlerdir; bir ilahiyatçının bu listeyi gözden geçirip gözden geçirmesi gerekir. Çalıştır: python tests/run_rehber_eval.py 'noise': ilgisiz sorular; hiçbir kaynak eşiği geçmemeli.",
+ "items": [
+  {
+   "q": "Allah insana gücünün yetmeyeceği yük yükler mi",
+   "a": [
+    "2:286",
+    "7:42",
+    "23:62",
+    "6:152"
+   ]
+  },
+  {
+   "q": "Yolculukta namazı kısaltmak caiz mi",
+   "a": [
+    "4:101"
+   ]
+  },
+  {
+   "q": "Zorlukla beraber kolaylık var mı",
+   "a": [
+    "94:5",
+    "94:6"
+   ]
+  },
+  {
+   "q": "Kalpler neyle huzur bulur",
+   "a": [
+    "13:28"
+   ]
+  },
+  {
+   "q": "Şükredersek nimet artar mı",
+   "a": [
+    "14:7"
+   ]
+  },
+  {
+   "q": "Oruç kimlere farz kılındı",
+   "a": [
+    "2:183",
+    "2:184",
+    "2:185"
+   ]
+  },
+  {
+   "q": "Kur'an hangi ayda indirildi",
+   "a": [
+    "2:185",
+    "97:1",
+    "44:3"
+   ]
+  },
+  {
+   "q": "Abdest nasıl alınır",
+   "a": [
+    "5:6"
+   ]
+  },
+  {
+   "q": "İçki ve kumar hakkında hüküm nedir",
+   "a": [
+    "5:90",
+    "5:91",
+    "2:219"
+   ]
+  },
+  {
+   "q": "Faiz haram mı",
+   "a": [
+    "2:275",
+    "2:276",
+    "2:278",
+    "3:130"
+   ]
+  },
+  {
+   "q": "Anne babaya nasıl davranmalıyız öf bile dememek",
+   "a": [
+    "17:23",
+    "17:24",
+    "31:14",
+    "46:15"
+   ]
+  },
+  {
+   "q": "Zinaya yaklaşmak",
+   "a": [
+    "17:32"
+   ]
+  },
+  {
+   "q": "Gıybet etmek ölü kardeşinin etini yemek gibi midir",
+   "a": [
+    "49:12"
+   ]
+  },
+  {
+   "q": "Müminler kardeş midir",
+   "a": [
+    "49:10"
+   ]
+  },
+  {
+   "q": "Dinde zorlama var mı",
+   "a": [
+    "2:256"
+   ]
+  },
+  {
+   "q": "Allah'ı uyuklama ve uyku tutmaz kürsüsü gökleri ve yeri kaplamıştır",
+   "a": [
+    "2:255"
+   ]
+  },
+  {
+   "q": "Allah birdir doğurmamış ve doğmamıştır",
+   "a": [
+    "112:1",
+    "112:3"
+   ]
+  },
+  {
+   "q": "Namaz insanı kötülükten alıkoyar mı",
+   "a": [
+    "29:45"
+   ]
+  },
+  {
+   "q": "Sabır ve namazla yardım istemek",
+   "a": [
+    "2:153",
+    "2:45"
+   ]
+  },
+  {
+   "q": "Günahkârlar Allah'ın rahmetinden ümit kesmeli mi",
+   "a": [
+    "39:53",
+    "12:87",
+    "15:56"
+   ]
+  },
+  {
+   "q": "Her canlı ölümü tadacak mı",
+   "a": [
+    "3:185",
+    "21:35",
+    "29:57"
+   ]
+  },
+  {
+   "q": "Zekât kimlere verilir",
+   "a": [
+    "9:60"
+   ]
+  },
+  {
+   "q": "Hac kimlere farzdır",
+   "a": [
+    "3:97"
+   ]
+  },
+  {
+   "q": "Kıble neresidir yüzünü Mescid-i Haram'a çevir",
+   "a": [
+    "2:144",
+    "2:149",
+    "2:150"
+   ]
+  },
+  {
+   "q": "Cuma günü namaza çağrıldığında alışverişi bırakmak",
+   "a": [
+    "62:9"
+   ]
+  },
+  {
+   "q": "Yiyin için ama israf etmeyin",
+   "a": [
+    "7:31",
+    "6:141"
+   ]
+  },
+  {
+   "q": "Ölçüde ve tartıda hile yapanlar",
+   "a": [
+    "83:1",
+    "83:2",
+    "83:3",
+    "17:35",
+    "6:152",
+    "11:85"
+   ]
+  },
+  {
+   "q": "Kulum bana dua ettiğinde ona yakınım",
+   "a": [
+    "2:186"
+   ]
+  },
+  {
+   "q": "Allah insana şah damarından daha yakındır",
+   "a": [
+    "50:16"
+   ]
+  },
+  {
+   "q": "Kötülüğü en güzel şekilde savmak düşman dost olur",
+   "a": [
+    "41:34",
+    "23:96"
+   ]
+  },
+  {
+   "q": "Öfkesini yutan ve insanları affedenler",
+   "a": [
+    "3:134"
+   ]
+  },
+  {
+   "q": "Allah adaleti ve iyiliği emreder",
+   "a": [
+    "16:90"
+   ]
+  },
+  {
+   "q": "Emanetleri ehline vermek",
+   "a": [
+    "4:58"
+   ]
+  },
+  {
+   "q": "Kur'an okunurken susup dinlemek",
+   "a": [
+    "7:204"
+   ]
+  },
+  {
+   "q": "Kur'an'ı Allah mı koruyacak",
+   "a": [
+    "15:9"
+   ]
+  },
+  {
+   "q": "İnsanlar ve cinler niçin yaratıldı",
+   "a": [
+    "51:56"
+   ]
+  },
+  {
+   "q": "Lokman oğluna ne öğüt verdi şirk büyük zulümdür",
+   "a": [
+    "31:13"
+   ]
+  },
+  {
+   "q": "Yetim malını haksız yere yemek",
+   "a": [
+    "4:10",
+    "4:2",
+    "6:152",
+    "17:34"
+   ]
+  },
+  {
+   "q": "Boşanma kaç defadır",
+   "a": [
+    "2:229",
+    "2:230"
+   ]
+  },
+  {
+   "q": "Mirasta erkeğe iki kadın payı",
+   "a": [
+    "4:11",
+    "4:176"
+   ]
+  },
+  {
+   "q": "Alkol almak günah mı",
+   "a": [
+    "5:90",
+    "5:91",
+    "2:219"
+   ]
+  },
+  {
+   "q": "Dedikodu yapmak",
+   "a": [
+    "49:12",
+    "104:1"
+   ]
+  },
+  {
+   "q": "Kredi çekmek faiz",
+   "a": [
+    "2:275",
+    "2:276",
+    "2:278",
+    "3:130"
+   ]
+  },
+  {
+   "q": "Seferi olan kişi namazı nasıl kılar",
+   "a": [
+    "4:101"
+   ]
+  },
+  {
+   "q": "Yeryüzünde böbürlenerek yürüme",
+   "a": [
+    "17:37",
+    "31:18"
+   ]
+  },
+  {
+   "q": "Yürüyüşünde ölçülü ol sesini alçalt seslerin en çirkini eşeklerin sesidir",
+   "a": [
+    "31:19"
+   ]
+  },
+  {
+   "q": "Zannın bir kısmı günahtır birbirinizin kusurunu araştırmayın",
+   "a": [
+    "49:12"
+   ]
+  },
+  {
+   "q": "Bir topluluk başka bir toplulukla alay etmesin",
+   "a": [
+    "49:11"
+   ]
+  },
+  {
+   "q": "Fasık biri haber getirirse doğruluğunu araştırın",
+   "a": [
+    "49:6"
+   ]
+  },
+  {
+   "q": "Allah katında en değerliniz en takvalı olanınızdır",
+   "a": [
+    "49:13"
+   ]
+  },
+  {
+   "q": "Bir toplum kendini değiştirmedikçe Allah onların durumunu değiştirmez",
+   "a": [
+    "13:11",
+    "8:53"
+   ]
+  },
+  {
+   "q": "Yakın komşuya uzak komşuya yetimlere iyilik edin",
+   "a": [
+    "4:36"
+   ]
+  },
+  {
+   "q": "Borçlandığınız zaman onu yazın",
+   "a": [
+    "2:282"
+   ]
+  },
+  {
+   "q": "Borçlu darlık içindeyse ona eli genişleyinceye kadar süre verin",
+   "a": [
+    "2:280"
+   ]
+  },
+  {
+   "q": "Ölü hayvan eti kan ve domuz eti haram mı",
+   "a": [
+    "5:3",
+    "2:173",
+    "16:115",
+    "6:145"
+   ]
+  },
+  {
+   "q": "Sevdiğiniz şeylerden harcamadıkça iyiliğe eremezsiniz",
+   "a": [
+    "3:92"
+   ]
+  },
+  {
+   "q": "Mallarını Allah yolunda harcayanlar yedi başak veren tohum gibidir",
+   "a": [
+    "2:261"
+   ]
+  },
+  {
+   "q": "Sadakalarınızı başa kakarak ve inciterek boşa çıkarmayın",
+   "a": [
+    "2:264"
+   ]
+  },
+  {
+   "q": "Namazları ve orta namazı koruyun",
+   "a": [
+    "2:238"
+   ]
+  },
+  {
+   "q": "Gündüzün iki ucunda namaz kıl iyilikler kötülükleri giderir",
+   "a": [
+    "11:114"
+   ]
+  },
+  {
+   "q": "Gecenin bir kısmında teheccüd namazı kıl",
+   "a": [
+    "17:79"
+   ]
+  },
+  {
+   "q": "Namazlarını ciddiye almayanlara yazıklar olsun",
+   "a": [
+    "107:4",
+    "107:5"
+   ]
+  },
+  {
+   "q": "Emaneti göklere yere ve dağlara sunduk insan onu yüklendi",
+   "a": [
+    "33:72"
+   ]
+  },
+  {
+   "q": "Allah ve melekleri Peygambere salat ederler",
+   "a": [
+    "33:56"
+   ]
+  },
+  {
+   "q": "Muhammed peygamberlerin sonuncusudur",
+   "a": [
+    "33:40"
+   ]
+  },
+  {
+   "q": "Seni ancak alemlere rahmet olarak gönderdik",
+   "a": [
+    "21:107"
+   ]
+  },
+  {
+   "q": "Sen elbette yüce bir ahlak üzeresin",
+   "a": [
+    "68:4"
+   ]
+  },
+  {
+   "q": "Allah'ın Resulünde sizin için güzel bir örnek vardır",
+   "a": [
+    "33:21"
+   ]
+  },
+  {
+   "q": "Yaratan Rabbinin adıyla oku",
+   "a": [
+    "96:1"
+   ]
+  },
+  {
+   "q": "Kadir gecesi bin aydan daha hayırlıdır",
+   "a": [
+    "97:3"
+   ]
+  },
+  {
+   "q": "Zerre kadar hayır işleyen onu görür",
+   "a": [
+    "99:7",
+    "99:8"
+   ]
+  },
+  {
+   "q": "Hiçbir günahkar başkasının günah yükünü taşımaz",
+   "a": [
+    "6:164",
+    "17:15",
+    "35:18",
+    "39:7",
+    "53:38"
+   ]
+  },
+  {
+   "q": "İnsana ancak çalıştığının karşılığı vardır",
+   "a": [
+    "53:39"
+   ]
+  },
+  {
+   "q": "Bir cana kıyan bütün insanları öldürmüş gibi olur",
+   "a": [
+    "5:32"
+   ]
+  },
+  {
+   "q": "Kendi ellerinizle kendinizi tehlikeye atmayın",
+   "a": [
+    "2:195"
+   ]
+  },
+  {
+   "q": "Yoksulluk korkusuyla çocuklarınızı öldürmeyin",
+   "a": [
+    "17:31",
+    "6:151"
+   ]
+  },
+  {
+   "q": "Kendi aleyhinize de olsa adaleti ayakta tutun",
+   "a": [
+    "4:135"
+   ]
+  },
+  {
+   "q": "Bir topluluğa duyduğunuz kin sizi adaletsizliğe sürüklemesin",
+   "a": [
+    "5:8",
+    "5:2"
+   ]
+  },
+  {
+   "q": "İyilik ve takva üzerine yardımlaşın günah ve düşmanlık üzerine yardımlaşmayın",
+   "a": [
+    "5:2"
+   ]
+  },
+  {
+   "q": "Hep birlikte Allah'ın ipine sımsıkı sarılın ayrılığa düşmeyin",
+   "a": [
+    "3:103"
+   ]
+  },
+  {
+   "q": "Allah yolunda öldürülenleri ölü sanmayın",
+   "a": [
+    "3:169",
+    "2:154"
+   ]
+  },
+  {
+   "q": "Allah'a tevekkül edene O yeter",
+   "a": [
+    "65:3"
+   ]
+  },
+  {
+   "q": "Hoşlanmadığınız bir şey sizin için hayırlı olabilir",
+   "a": [
+    "2:216"
+   ]
+  },
+  {
+   "q": "Sizi korku açlık mallardan ve canlardan eksiltme ile sınarız sabredenleri müjdele",
+   "a": [
+    "2:155"
+   ]
+  },
+  {
+   "q": "Biz Allah'a aidiz ve O'na döneceğiz",
+   "a": [
+    "2:156"
+   ]
+  },
+  {
+   "q": "Rabbimiz bize dünyada da iyilik ver ahirette de iyilik ver",
+   "a": [
+    "2:201"
+   ]
+  },
+  {
+   "q": "Rabbim ilmimi artır",
+   "a": [
+    "20:114"
+   ]
+  },
+  {
+   "q": "Rabbim göğsümü genişlet işimi kolaylaştır",
+   "a": [
+    "20:25",
+    "20:26"
+   ]
+  },
+  {
+   "q": "Göklerin ve yerin yaratılışında akıl sahipleri için deliller vardır",
+   "a": [
+    "3:190",
+    "2:164"
+   ]
+  },
+  {
+   "q": "Allah göklerin ve yerin nurudur",
+   "a": [
+    "24:35"
+   ]
+  },
+  {
+   "q": "Mümin erkeklere söyle gözlerini haramdan sakınsınlar",
+   "a": [
+    "24:30"
+   ]
+  },
+  {
+   "q": "Başkalarının evlerine izin almadan ve selam vermeden girmeyin",
+   "a": [
+    "24:27"
+   ]
+  },
+  {
+   "q": "Size bir selam verildiğinde daha güzeliyle karşılık verin",
+   "a": [
+    "4:86"
+   ]
+  },
+  {
+   "q": "Hakkında bilgin olmayan şeyin ardına düşme kulak göz ve kalp sorumludur",
+   "a": [
+    "17:36"
+   ]
+  },
+  {
+   "q": "Saçıp savuranlar şeytanların kardeşleridir",
+   "a": [
+    "17:27",
+    "17:26"
+   ]
+  },
+  {
+   "q": "Dünya hayatı oyun ve eğlenceden ibarettir",
+   "a": [
+    "57:20",
+    "6:32",
+    "29:64",
+    "47:36"
+   ]
+  },
+  {
+   "q": "Mal ve oğullar dünya hayatının süsüdür",
+   "a": [
+    "18:46"
+   ]
+  },
+  {
+   "q": "Yapmayacağınız şeyi niçin söylüyorsunuz",
+   "a": [
+    "61:2",
+    "61:3"
+   ]
+  },
+  {
+   "q": "İnsanlara iyiliği emredip kendinizi unutuyor musunuz",
+   "a": [
+    "2:44"
+   ]
+  },
+  {
+   "q": "Hiç bilenlerle bilmeyenler bir olur mu",
+   "a": [
+    "39:9"
+   ]
+  },
+  {
+   "q": "Rabbinin yoluna hikmetle ve güzel öğütle çağır",
+   "a": [
+    "16:125"
+   ]
+  },
+  {
+   "q": "Güzel söz kökü sağlam dalları gökte güzel bir ağaç gibidir",
+   "a": [
+    "14:24"
+   ]
+  },
+  {
+   "q": "Şeytan sizi fakirlikle korkutur",
+   "a": [
+    "2:268"
+   ]
+  },
+  {
+   "q": "Su bulamazsanız temiz toprakla teyemmüm edin",
+   "a": [
+    "4:43",
+    "5:6"
+   ]
+  },
+  {
+   "q": "Kurbanların etleri ve kanları Allah'a ulaşmaz takvanız ulaşır",
+   "a": [
+    "22:37"
+   ]
+  },
+  {
+   "q": "Size kendi cinsinizden eşler yarattı aranıza sevgi ve merhamet koydu",
+   "a": [
+    "30:21"
+   ]
+  }
+ ],
+ "noise": [
+  "bitcoin madenciliği caiz mi",
+  "kredi kartıyla aldığım arabanın zekatı nasıl hesaplanır",
+  "telefon ekranı kırıldı ne yapmalıyım",
+  "en iyi dizi hangisi",
+  "python ile döngü nasıl yazılır",
+  "galatasaray maçı kaç kaç bitti",
+  "yarın hava nasıl olacak",
+  "iphone mu samsung mu almalıyım",
+  "kripto borsasında kaldıraçlı işlem",
+  "pizza hamuru tarifi",
+  "araba lastiği kaç yılda değişir",
+  "instagram hesabım çalındı"
+ ]
 }

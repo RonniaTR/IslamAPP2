@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, Send, Loader2, Phone, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTx } from '../i18n';
 import api from '../api';
+import { localAsk, localAyet } from '../services/localRehber';
 
 // 📚 REHBER — kaynaklı yapay zekâ (tuval M1–M4, backend/rehber.py)
 // İlke: kütüphaneci, müftü değil. Her cevap bir güven etiketi ve kaynak listesi taşır.
@@ -15,12 +16,13 @@ const LABELS = {
   acik: { text: 'Kaynakta açık', bg: '#1F4D33', fg: '#8EE3B0' },
   fark: { text: 'Görüş farkı var', bg: '#4A3A12', fg: '#F2CF6B' },
   yok: { text: 'Kaynağım yok', bg: '#4A1F1F', fg: '#F2A6A6' },
+  cevrimdisi: { text: 'Çevrimdışı · yalnız kaynak', bg: '#24343F', fg: '#A9D3F2' },
 };
 const TABS = [['sor', 'Sor'], ['bugun', 'Bugün bana ne söyler?'], ['dogrula', 'Doğrula'], ['anlat', 'Kendi cümlenle']];
 
 function AyahCard({ s, onOpen, tt }) {
   return (
-    <button onClick={onOpen} className="w-full text-left rounded-xl p-4" style={{ background: PAPER, color: INK }}>
+    <button onClick={onOpen} className="w-full text-start rounded-xl p-4" style={{ background: PAPER, color: INK }}>
       <p className="text-[14px] leading-relaxed">{s.meal}</p>
       <p className="text-[11px] mt-2" style={{ color: '#8A7A55' }}>[{s.n}] {s.ref} · {tt('Sureyi aç')} ›</p>
     </button>
@@ -32,7 +34,8 @@ export default function RehberPage() {
   const navigate = useNavigate();
   const tt = useTx();
   const [tab, setTab] = useState('sor');
-  const [text, setText] = useState('');
+  const [params] = useSearchParams();
+  const [text, setText] = useState(() => params.get('q') || ''); // ana ekran aramasından gelen soru
   const [surah, setSurah] = useState('');
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState(null);
@@ -47,12 +50,23 @@ export default function RehberPage() {
     setBusy(true); setErr(''); setRes(null); setWhy(false);
     try {
       let data;
+      // ÇEVRİMDIŞI: "Sor" ve "Bugün" cihazdaki meal + tefsirde arar; yapay zekâ özeti yazılmaz.
+      const local = tab === 'sor' ? localAsk : tab === 'bugun' ? localAyet : null;
+      if (local && typeof navigator !== 'undefined' && navigator.onLine === false) {
+        data = await local(q);
+        if (!data) throw new Error('paket yok');
+        setRes(data); setWhy(true);
+        return;
+      }
       if (tab === 'sor') ({ data } = await api.post('/rehber/sor', { question: q }));
       else if (tab === 'bugun') ({ data } = await api.post('/rehber/ayet', { text: q }));
       else if (tab === 'dogrula') ({ data } = await api.post('/rehber/dogrula', { text: q }));
       else ({ data } = await api.post('/rehber/anlat', { surah: Number(surah) || 1, text: q }));
       setRes(data);
     } catch (e) {
+      const local = tab === 'sor' ? localAsk : tab === 'bugun' ? localAyet : null;
+      const data = local ? await local(q).catch(() => null) : null;   // sunucuya ulaşılamadı: cihazda ara
+      if (data) { setRes(data); setWhy(true); return; }
       setErr(tt('Şu an cevap alınamadı. İnternet bağlantını kontrol edip yeniden dene.'));
     } finally { setBusy(false); }
   };
@@ -65,7 +79,7 @@ export default function RehberPage() {
   }[tab];
   const placeholder = { sor: 'Sorunu yaz…', bugun: 'Bugün…', dogrula: 'Mesajı buraya yapıştır…', anlat: 'Bu sure şunu anlatıyor…' }[tab];
 
-  const aiCard = { background: '#0A1F14', color: '#F5F5DC', borderLeft: '3px solid #D4AF37', borderRadius: 18, padding: 16 };
+  const aiCard = { background: '#0A1F14', color: '#F5F5DC', borderInlineStart: '3px solid #D4AF37', borderRadius: 18, padding: 16 };
   const L = res?.label ? LABELS[res.label] : null;
 
   return (

@@ -162,7 +162,7 @@ export default function QuranList() {
                 {/* Number Box */}
                 <div style={{
                   width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(15, 143, 87, 0.1)',
-                  border: '1px solid rgba(15, 143, 87, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(45deg)', marginRight: '24px'
+                  border: '1px solid rgba(15, 143, 87, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(45deg)', marginInlineEnd: '24px'
                 }}>
                   <span style={{ transform: 'rotate(-45deg)', color: '#2ECC71', fontWeight: 800, fontSize: '14px' }}>
                     {surah.number}

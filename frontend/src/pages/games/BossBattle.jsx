@@ -108,7 +108,7 @@ export default function BossBattle({ theme, onXP, onEvent = () => {} }) {
             const earned = badges.includes(a.badge);
             return (
               <button key={a.id} onClick={() => start(a)}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl text-left active:scale-95 transition-all relative overflow-hidden"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl text-start active:scale-95 transition-all relative overflow-hidden"
                 style={{ background: `linear-gradient(150deg, ${a.color}14, ${theme.surface})`, border: `1.5px solid ${a.color}45` }}>
                 <motion.span animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 2, repeat: Infinity }}
                   className="text-4xl" style={{ filter: `drop-shadow(0 4px 12px ${a.color}70)` }}>{a.emoji}</motion.span>
@@ -182,7 +182,7 @@ export default function BossBattle({ theme, onXP, onEvent = () => {} }) {
           {Array.from({ length: LIVES }).map((_, i) => (
             <Heart key={i} size={18} fill={i < lives ? '#EF4444' : 'transparent'} style={{ color: i < lives ? '#EF4444' : theme.textSecondary }} />
           ))}
-          {shieldOn && <Shield size={16} className="ml-1" style={{ color: '#10B981' }} />}
+          {shieldOn && <Shield size={16} className="ms-1" style={{ color: '#10B981' }} />}
         </div>
         <div className="flex items-center gap-2">
           <button onClick={useShield} disabled={!jokers.shield || shieldOn}

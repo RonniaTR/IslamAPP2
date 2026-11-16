@@ -88,7 +88,7 @@ export default function KidsDhikr() {
             position: 'absolute',
             bottom: '60px',
             left: '50%',
-            marginLeft: '-60px',
+            marginInlineStart: '-60px',
             width: '120px',
             height: '100px',
             display: 'flex',

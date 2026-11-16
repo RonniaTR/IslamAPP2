@@ -14,6 +14,7 @@ import {
 import { getTemelList, TEMEL_GRUPLARI } from '../../data/donusTemeller';
 import Kandil from '../../components/donus/Kandil';
 import KirkinciSir from '../../components/donus/KirkinciSir';
+import YoldaKal from '../../components/donus/YoldaKal';
 import { getPerde } from '../../data/donusPerde';
 import { getModuleSVG } from '../../components/donus/IslamicSVG';
 
@@ -83,7 +84,7 @@ export default function DonusHome() {
           {perde && (
             <motion.button {...stagger(1)} whileTap={{ scale: 0.985 }}
               onClick={() => navigate('/donus/perde')}
-              className="w-full text-left rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between"
+              className="w-full text-start rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between"
               style={{ background: p.cardStrong, border: `1.5px solid ${p.border}`, boxShadow: p.shadow }}>
               <motion.div className="absolute inset-0 pointer-events-none"
                 animate={{ x: ['-120%', '160%'] }}
@@ -118,7 +119,7 @@ export default function DonusHome() {
 
           <motion.button {...stagger(1)} whileTap={{ scale: 0.985 }}
             onClick={() => navigate('/donus/gun')}
-            className="w-full text-left rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between"
+            className="w-full text-start rounded-3xl p-5 relative overflow-hidden flex flex-col justify-between"
             style={{ background: p.card, border: `1px solid ${p.borderSoft}` }}>
             {/* Kart içi ışık hareketi */}
             <motion.div className="absolute inset-0 pointer-events-none"
@@ -174,10 +175,12 @@ export default function DonusHome() {
         </motion.div>
       )}
 
+      {beyond && <YoldaKal p={p} />}
+
       {/* ── EMANET — kendine mektup ── */}
       <motion.button {...stagger(2)} whileTap={{ scale: 0.985 }}
         onClick={() => navigate('/donus/emanet')}
-        className="w-full text-left rounded-2xl p-4 flex items-center gap-3.5 relative overflow-hidden mb-1"
+        className="w-full text-start rounded-2xl p-4 flex items-center gap-3.5 relative overflow-hidden mb-1"
         style={{
           background: letterReady ? p.cardStrong : p.card,
           border: `1.5px solid ${letterReady ? p.border : p.borderSoft}`,
@@ -221,7 +224,7 @@ export default function DonusHome() {
           return (
             <motion.button key={ph.id} {...stagger(3 + i)} whileTap={{ scale: 0.98 }}
               onClick={() => navigate(`/donus/bolum/${ph.id}`)}
-              className="w-full rounded-2xl p-3.5 flex items-center gap-3 text-left relative overflow-hidden"
+              className="w-full rounded-2xl p-3.5 flex items-center gap-3 text-start relative overflow-hidden"
               style={{
                 background: here ? pp.cardStrong : pp.card,
                 border: `1.5px solid ${here ? pp.border : pp.borderSoft}`,
@@ -284,7 +287,7 @@ export default function DonusHome() {
                       transition={{ delay: i * 0.05, duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
                       whileTap={{ scale: 0.96, boxShadow: `0 2px 16px ${alpha(tp.accent, 0.25)}` }}
                       onClick={() => navigate(`/donus/temeller/${t.id}`)}
-                      className="rounded-2xl p-3.5 text-left relative overflow-hidden"
+                      className="rounded-2xl p-3.5 text-start relative overflow-hidden"
                       style={{ background: tp.cardStrong, border: `1.5px solid ${tp.borderSoft}` }}>
                       {/* SVG arka plan motifi */}
                       <div className="absolute -bottom-3 -right-3 pointer-events-none">

@@ -44,7 +44,7 @@ export default function KirkinciSir({ p, day, compact = false }) {
         <span className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: p.accent }}>
           {tt('Kırkıncı Sır')}
         </span>
-        <span className="text-[9px] font-black ml-auto tabular-nums" style={{ color: p.dim }}>
+        <span className="text-[9px] font-black ms-auto tabular-nums" style={{ color: p.dim }}>
           {acik.length}/{SIR_PARCALARI.length + 1}
         </span>
       </div>

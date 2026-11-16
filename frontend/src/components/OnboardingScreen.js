@@ -180,12 +180,12 @@ function ThemeStep() {
               }}>
                 {t.icon}
               </div>
-              <div style={{ textAlign: 'left' }}>
+              <div style={{ textAlign: 'start' }}>
                 <p style={{ fontSize: '16px', fontWeight: 700, color: '#1A1A1A' }}>{t.name}</p>
                 <p style={{ fontSize: '13px', color: '#6B7280' }}>{t.desc}</p>
               </div>
               {active && (
-                <div style={{ marginLeft: 'auto', width: '24px', height: '24px', borderRadius: '12px', background: '#0D5C2F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ marginInlineStart: 'auto', width: '24px', height: '24px', borderRadius: '12px', background: '#0D5C2F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
               )}
@@ -244,7 +244,7 @@ function NotificationStep() {
             }}
           >
             <span style={{ fontSize: '24px' }}>{icon}</span>
-            <div style={{ flex: 1, textAlign: 'left' }}>
+            <div style={{ flex: 1, textAlign: 'start' }}>
               <p style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A' }}>{label}</p>
               <p style={{ fontSize: '12px', color: '#9CA3AF' }}>{desc}</p>
             </div>

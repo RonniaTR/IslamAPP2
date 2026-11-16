@@ -157,8 +157,8 @@ export default function AdventureMode({ theme, onXP, onEvent = () => {} }) {
               return (
                 <motion.button key={c.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: ci * 0.05 }}
                   onClick={() => state !== 'locked' && openMission(ci)} disabled={state === 'locked'}
-                  className="w-full flex items-center gap-3 text-left relative"
-                  style={{ marginLeft: ci % 2 === 1 ? 14 : 0 }}>
+                  className="w-full flex items-center gap-3 text-start relative"
+                  style={{ marginInlineStart: ci % 2 === 1 ? 14 : 0 }}>
                   <motion.span animate={state === 'current' ? { scale: [1, 1.14, 1] } : {}} transition={{ duration: 1.5, repeat: Infinity }}
                     className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 z-10 text-xl"
                     style={{

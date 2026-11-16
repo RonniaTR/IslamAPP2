@@ -68,7 +68,7 @@ export default function RahmetPage() {
 
         {list.map((x) => (
           <div key={x.id} style={card} className="flex items-center justify-between gap-3">
-            <button className="text-left flex-1" onClick={() => setReading(x)}>
+            <button className="text-start flex-1" onClick={() => setReading(x)}>
               <div style={{ color: theme.textPrimary, fontSize: 16, fontWeight: 700 }}>{x.name}</div>
               <div style={{ color: theme.textSecondary, fontSize: 12 }}>{x.rel ? `${x.rel} · ` : ''}{tt('Fâtiha oku')} ›</div>
             </button>

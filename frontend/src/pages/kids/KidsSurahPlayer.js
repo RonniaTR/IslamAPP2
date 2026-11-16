@@ -152,7 +152,7 @@ export default function KidsSurahPlayer() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 8px 20px rgba(31, 41, 55, 0.3)'
         }}>
-          {playing ? <Pause size={28} color="#FFFFFF" fill="#FFFFFF" /> : <Play size={28} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: '4px' }} />}
+          {playing ? <Pause size={28} color="#FFFFFF" fill="#FFFFFF" /> : <Play size={28} color="#FFFFFF" fill="#FFFFFF" style={{ marginInlineStart: '4px' }} />}
         </button>
         <button style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
           <SkipForward size={28} color="#4B5563" />

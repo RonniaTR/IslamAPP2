@@ -172,7 +172,7 @@ export default function ContentDetail() {
                   onClick={toggleAudio}
                   className="w-12 h-12 rounded-full flex items-center justify-center bg-green-600 text-white"
                 >
-                  {isPlaying ? <Pause fill="currentColor" /> : <Play fill="currentColor" className="ml-1" />}
+                  {isPlaying ? <Pause fill="currentColor" /> : <Play fill="currentColor" className="ms-1" />}
                 </button>
                 <div>
                   <h4 className="font-bold text-sm" style={{ color: theme.textPrimary }}>Sesli İçerik</h4>

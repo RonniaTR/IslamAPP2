@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = 'islamic-v16-20250705';
+const CACHE_NAME = 'islamic-v17-20261116';
 const API_CACHE_NAME = 'islamic-api-v2';
 const APP_SHELL = '/';
 
@@ -23,10 +23,22 @@ function isCacheableApiRequest(request) {
   return CACHEABLE_API_PATHS.some(path => request.url.includes(path));
 }
 
+// ÇEVRİMDIŞI ÖNCE: kurulumda uygulamanın BÜTÜN sayfa parçaları (asset-manifest) ön belleğe alınır;
+// böylece hiç açılmamış bir sayfa da bağlantı yokken açılır. Tek dosyanın hatası kurulumu durdurmaz.
+async function precacheAll() {
+  const cache = await caches.open(CACHE_NAME);
+  await cache.add(APP_SHELL);
+  const extra = ['/manifest.json', '/packs/index.json'];
+  try {
+    const res = await fetch('/asset-manifest.json', { cache: 'no-store' });
+    const files = Object.values((await res.json()).files || {}).filter((u) => typeof u === 'string' && !u.endsWith('.map'));
+    extra.push(...files);
+  } catch (e) { /* geliştirme ortamı: manifest yok */ }
+  await Promise.all(extra.map((u) => cache.add(u).catch(() => null)));
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll([APP_SHELL]))
-  );
+  event.waitUntil(precacheAll());
   self.skipWaiting();
 });
 
@@ -53,6 +65,32 @@ self.addEventListener('fetch', (event) => {
           });
         });
         return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Çevrimdışı paketler (meal, tefsir, Mushaf): önce ön bellek; yoksa ağdan al ve sakla
+  if (event.request.method === 'GET' && event.request.url.includes('/packs/')) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+        const response = await fetch(event.request);
+        if (response.ok && (response.headers.get('content-type') || '').includes('json')) cache.put(event.request, response.clone());
+        return response;
+      }).catch(() => new Response('{}', { status: 503, headers: { 'Content-Type': 'text/plain' } }))
+    );
+    return;
+  }
+
+  // Yazı tipleri (Google Fonts): ön bellekten, arkada yenile
+  if (event.request.method === 'GET' && /fonts\.(googleapis|gstatic)\.com/.test(event.request.url)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        const fresh = fetch(event.request).then((r) => { if (r.ok || r.type === 'opaque') cache.put(event.request, r.clone()); return r; }).catch(() => cached);
+        return cached || fresh;
       })
     );
     return;

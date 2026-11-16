@@ -266,10 +266,10 @@ export default function SiyerPage() {
                 <button
                   key={i}
                   onClick={() => setSelectedTopicIdx(i)}
-                  className={`w-full p-3.5 rounded-2xl text-left border transition-all flex items-center justify-between group ${isCurrent ? 'border-[#10b981] shadow-md scale-[1.02]' : 'opacity-80 hover:opacity-100'}`}
+                  className={`w-full p-3.5 rounded-2xl text-start border transition-all flex items-center justify-between group ${isCurrent ? 'border-[#10b981] shadow-md scale-[1.02]' : 'opacity-80 hover:opacity-100'}`}
                   style={{ backgroundColor: isCurrent ? `${themeStyles.cardBg}` : 'transparent', borderColor: isCurrent ? '#10b981' : themeStyles.border }}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                  <div className="flex items-center gap-2.5 min-w-0 pe-2">
                     <div className={`w-2 h-2 rounded-full shrink-0 ${isCurrent ? 'bg-[#10b981] animate-ping' : 'bg-gray-500/40'}`} />
                     <span className={`text-xs font-bold truncate ${isCurrent ? 'text-[#10b981]' : ''}`}>
                       {topic.title}
@@ -380,7 +380,7 @@ export default function SiyerPage() {
                           key={i}
                           disabled={selectedAnswer !== null}
                           onClick={() => handleAnswerSelect(i)}
-                          className={`w-full p-3.5 rounded-2xl text-left text-xs font-semibold border transition-all flex items-center justify-between ${btnStyle}`}
+                          className={`w-full p-3.5 rounded-2xl text-start text-xs font-semibold border transition-all flex items-center justify-between ${btnStyle}`}
                         >
                           <span>{choice}</span>
                           {selectedAnswer !== null && isCorrect && <CheckCircle2 size={16} className="text-green-400 shrink-0" />}

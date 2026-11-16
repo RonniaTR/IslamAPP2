@@ -73,7 +73,7 @@ export default function AIDuel({ theme, onXP, onEvent = () => {} }) {
         <div className="flex flex-col gap-2.5 w-full max-w-xs">
           {BOTS.map(b => (
             <button key={b.id} onClick={() => start(b)}
-              className="flex items-center gap-3 p-3.5 rounded-2xl text-left active:scale-95 transition-all"
+              className="flex items-center gap-3 p-3.5 rounded-2xl text-start active:scale-95 transition-all"
               style={{ background: `${b.color}12`, border: `1.5px solid ${b.color}40` }}>
               <span className="text-2xl">{b.emoji}</span>
               <div className="flex-1">

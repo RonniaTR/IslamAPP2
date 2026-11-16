@@ -146,7 +146,7 @@ export default function ScholarsPage() {
         {SCHOLARS.map(s => (
           <button key={s.id} onClick={() => setSelectedScholar(s)}
             data-testid={`scholar-${s.id}`}
-            className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all text-left active:scale-[0.98]">
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all text-start active:scale-[0.98]">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: s.color }}>
               {s.avatar}
             </div>

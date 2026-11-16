@@ -98,7 +98,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
             {/* Arapça için ayrı boyut */}
             <div className="rounded-2xl p-4" style={{ background: rt.bg, border: `1px solid ${rt.border}` }}>
               <button onClick={() => set({ arabicSeparate: !settings.arabicSeparate })}
-                className="w-full flex items-center justify-between gap-3 text-left">
+                className="w-full flex items-center justify-between gap-3 text-start">
                 <div>
                   <p className="text-xs font-black" style={{ color: rt.text }}>{tt('Arapça için ayrı boyut')}</p>
                   <p className="text-[10px] mt-0.5" style={{ color: rt.secondary }}>

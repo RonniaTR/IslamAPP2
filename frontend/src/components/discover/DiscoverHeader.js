@@ -51,13 +51,13 @@ export function DiscoverHeader({ streak = 0, level = 1 }) {
       {/* Search Bar & AI Button Row */}
       <div className="flex gap-3">
         <div className="flex-1 bg-[#132A1D]/80 backdrop-blur-md border border-[color:var(--bg-surface-light)] rounded-full flex items-center px-4 h-12 shadow-lg shadow-black/20">
-          <Search size={18} className="text-gray-400 mr-2" />
+          <Search size={18} className="text-gray-400 me-2" />
           <input 
             type="text" 
             placeholder="Sure, dua, hadis veya makale ara..." 
             className="flex-1 bg-transparent border-none text-white outline-none text-sm placeholder-gray-500"
           />
-          <Mic size={18} className="text-gray-400 ml-2 cursor-pointer hover:text-white transition-colors" />
+          <Mic size={18} className="text-gray-400 ms-2 cursor-pointer hover:text-white transition-colors" />
         </div>
         
         <button 

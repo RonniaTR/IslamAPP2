@@ -146,7 +146,7 @@ export default function PomodoroPage() {
             <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>İlim Saati</h1>
             <p className="text-xs" style={{ color: theme.textSecondary }}>Odaklanarak öğren</p>
           </div>
-          <Clock size={24} className="ml-auto" style={{ color: theme.gold }} />
+          <Clock size={24} className="ms-auto" style={{ color: theme.gold }} />
         </div>
         {/* Quote */}
         <div className="mt-3 rounded-xl p-3" style={{ background: `${theme.gold}10` }}>
@@ -181,7 +181,7 @@ export default function PomodoroPage() {
           <div className="grid grid-cols-2 gap-2">
             {PRESETS.map((p, i) => (
               <button key={i} onClick={() => setSelectedPreset(i)}
-                className="rounded-xl p-3 border text-left transition-all"
+                className="rounded-xl p-3 border text-start transition-all"
                 style={{ background: selectedPreset === i ? `${theme.gold}15` : theme.cardBg, borderColor: selectedPreset === i ? theme.gold : theme.cardBorder }}>
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{p.icon}</span>

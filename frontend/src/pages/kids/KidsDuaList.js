@@ -94,7 +94,7 @@ export default function KidsDuaList() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: SHADOWS.sm
           }}>
-            <Play size={24} color="#EF4444" fill="#EF4444" style={{ marginLeft: '4px' }} />
+            <Play size={24} color="#EF4444" fill="#EF4444" style={{ marginInlineStart: '4px' }} />
           </button>
 
           <button style={{

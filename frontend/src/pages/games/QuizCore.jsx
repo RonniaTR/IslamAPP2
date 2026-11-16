@@ -93,7 +93,7 @@ export default function QuizCore({ q, accent, theme, flash, hidden = [], onPick,
           {q.category && (
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${accent}18`, color: accent }}>{q.category}</span>
           )}
-          <div className="flex items-center gap-1.5 ml-auto">
+          <div className="flex items-center gap-1.5 ms-auto">
             {/* Tek seferlik okuma */}
             <button onClick={() => (speaking ? stopSpeak() : speak(q.question))}
               className="w-7 h-7 rounded-lg flex items-center justify-center active:scale-90 transition-transform"
@@ -129,7 +129,7 @@ export default function QuizCore({ q, accent, theme, flash, hidden = [], onPick,
             <motion.button key={i} onClick={() => onPick(i)} disabled={flash !== null}
               animate={isRight && flash !== null ? { scale: [1, 1.03, 1] } : isWrong ? { x: [-5, 5, -3, 0] } : {}}
               transition={{ duration: 0.35 }}
-              className="p-3.5 rounded-xl text-sm font-semibold text-left transition-colors active:scale-98 flex items-center justify-between"
+              className="p-3.5 rounded-xl text-sm font-semibold text-start transition-colors active:scale-98 flex items-center justify-between"
               style={{
                 background: isRight ? '#10B98122' : isWrong ? '#EF444422' : `${theme.textSecondary}0f`,
                 border: `1px solid ${isRight ? '#10B981' : isWrong ? '#EF4444' : theme.cardBorder}`,
@@ -137,7 +137,7 @@ export default function QuizCore({ q, accent, theme, flash, hidden = [], onPick,
                 boxShadow: isRight ? '0 0 18px #10B98130' : 'none',
               }}>
               <span>
-                {q.type !== 'tf' && <span className="font-bold mr-2" style={{ color: accent }}>{['A', 'B', 'C', 'D'][i]}.</span>}
+                {q.type !== 'tf' && <span className="font-bold me-2" style={{ color: accent }}>{['A', 'B', 'C', 'D'][i]}.</span>}
                 {opt}
               </span>
               {isRight && <Check size={15} style={{ color: '#10B981' }} />}

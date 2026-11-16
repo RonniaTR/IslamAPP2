@@ -155,7 +155,7 @@ export default function MultiplayerQuiz() {
             <h1 className="text-lg font-bold" style={{ color: theme.textPrimary }}>Multiplayer Quiz</h1>
             <p className="text-xs" style={{ color: theme.textSecondary }}>Arkadaşlarınla canlı yarış!</p>
           </div>
-          <Users size={24} className="ml-auto" style={{ color: theme.gold }} />
+          <Users size={24} className="ms-auto" style={{ color: theme.gold }} />
         </div>
       </div>
 
@@ -265,7 +265,7 @@ export default function MultiplayerQuiz() {
 
             return (
               <button key={idx} disabled={selected !== null || timer === 0} onClick={() => handleAnswer(idx)}
-                className="w-full text-left p-4 rounded-xl border-2 font-semibold transition-all flex justify-between items-center"
+                className="w-full text-start p-4 rounded-xl border-2 font-semibold transition-all flex justify-between items-center"
                 style={{ background: bg, borderColor: border, color }}>
                 {opt}
                 {timer === 0 && idx === q.answer && <Check size={20} />}

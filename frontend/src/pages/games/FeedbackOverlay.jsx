@@ -49,7 +49,7 @@ export default function FeedbackOverlay({ mode, data = {}, onContinue, theme }) 
                   Doğru cevap: <span className="font-black" style={{ color: '#ffd369' }}>{data.answer}</span>
                 </p>
                 {data.explanation && (
-                  <div className="rounded-xl p-3 mb-2 text-left" style={{ background: '#ffffff08', border: '1px solid #ffffff12' }}>
+                  <div className="rounded-xl p-3 mb-2 text-start" style={{ background: '#ffffff08', border: '1px solid #ffffff12' }}>
                     <p className="text-[10px] font-black uppercase tracking-wide mb-1" style={{ color: '#ffd369' }}>Açıklama</p>
                     <p className="text-xs leading-relaxed" style={{ color: '#e5ddd0' }}>{data.explanation}</p>
                   </div>

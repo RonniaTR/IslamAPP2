@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { packPage } from '../services/offline';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X, BookOpen } from 'lucide-react';
 import { useTx } from '../i18n';
@@ -34,6 +35,8 @@ const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
 async function loadPage(n) {
   const cached = read(CACHE + n);
   if (cached?.ayahs?.length) return cached;
+  const local = await packPage(n);          // çevrimdışı Mushaf paketi (Kurul onayından sonra yayımlanır)
+  if (local) return local;
   const res = await fetch(`https://api.alquran.cloud/v1/page/${n}/quran-uthmani`);
   if (!res.ok) throw new Error(`sayfa ${res.status}`);
   const json = await res.json();
@@ -267,7 +270,7 @@ export default function MushafPage() {
                 </>
               )}
               <button onClick={() => setSaved(addToDefter({ surah: sel.surah, ayah: sel.n, ar: sel.ar, meal: detail.meal }) ? 'ok' : 'var')}
-                className="text-[13px] font-semibold mr-4" style={{ color: '#8B6914' }}>
+                className="text-[13px] font-semibold me-4" style={{ color: '#8B6914' }}>
                 {saved === 'ok' ? tt('Defterine eklendi ✓') : saved === 'var' ? tt('Zaten defterinde') : tt('Defterime ekle')}
               </button>
               <button onClick={() => navigate(`/quran/${sel.surah}`)} className="text-[13px] font-semibold underline">

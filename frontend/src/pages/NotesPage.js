@@ -97,7 +97,7 @@ export default function NotesPage() {
             <button onClick={() => navigate('/quran')} data-testid="go-to-quran"
               className="mt-4 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
               style={{ background: `${theme.gold}15`, color: theme.gold }}>
-              <BookOpen size={14} className="inline mr-1" /> {t.go_to_quran || "Kur'an'a Git"}
+              <BookOpen size={14} className="inline me-1" /> {t.go_to_quran || "Kur'an'a Git"}
             </button>
           </div>
         ) : (
@@ -153,7 +153,7 @@ export default function NotesPage() {
                     <Share2 size={10} /> {t.share || 'Paylaş'}
                   </button>
                   <button onClick={() => deleteNote(note.created_at)} data-testid={`delete-note-${i}`}
-                    className="flex items-center gap-1 text-[10px] text-red-400 px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors ml-auto"
+                    className="flex items-center gap-1 text-[10px] text-red-400 px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors ms-auto"
                     disabled={deleting === note.created_at}>
                     {deleting === note.created_at ? <Loader2 size={10} className="animate-spin" /> : <Trash2 size={10} />}
                     {t.delete || 'Sil'}

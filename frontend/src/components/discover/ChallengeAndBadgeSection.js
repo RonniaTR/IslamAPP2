@@ -27,7 +27,7 @@ export function ChallengeAndBadgeSection() {
     <div className="px-4 flex flex-col md:flex-row gap-4 font-sans">
       {/* Bugünkü Yol */}
       <button onClick={() => navigate('/yol')}
-        className="flex-1 text-left bg-gradient-to-br from-[#0F3523] to-[#0A1A12] rounded-[24px] p-5 relative overflow-hidden border border-[color:var(--bg-surface-light)] shadow-xl">
+        className="flex-1 text-start bg-gradient-to-br from-[#0F3523] to-[#0A1A12] rounded-[24px] p-5 relative overflow-hidden border border-[color:var(--bg-surface-light)] shadow-xl">
         <h3 className="text-white font-bold text-lg mb-1">{tt('Bugünkü Yolum')}</h3>
         {plan ? (
           <>
@@ -47,7 +47,7 @@ export function ChallengeAndBadgeSection() {
         <div>
           <h3 className="text-white font-bold text-lg mb-4">{next ? tt('Sıradaki Rozet') : tt('Rozetler')}</h3>
           <div className="flex justify-between items-start mb-6">
-            <div className="pr-16">
+            <div className="pe-16">
               <h4 className="text-white text-lg font-bold">{next ? tt(next.name || next.title || '') : tt('Hepsi tamam')}</h4>
               {next?.desc ? <p className="text-gray-400 text-[11px] mt-1">{tt(next.desc)}</p> : null}
             </div>

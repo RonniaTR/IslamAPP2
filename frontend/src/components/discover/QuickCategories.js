@@ -28,7 +28,7 @@ export function QuickCategories() {
         </button>
       </div>
 
-      <div className="pl-4 pb-2 flex gap-4 overflow-x-auto no-scrollbar snap-x">
+      <div className="ps-4 pb-2 flex gap-4 overflow-x-auto no-scrollbar snap-x">
         {categories.map((cat, idx) => {
           const Icon = cat.icon;
           return (

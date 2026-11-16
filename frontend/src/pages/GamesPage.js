@@ -23,6 +23,7 @@ import WhichSurah from './games/WhichSurah';
 import WhichProphet from './games/WhichProphet';
 import WhichName from './games/WhichName';
 import WhereAyah from './games/WhereAyah';
+import WhichLetter from './games/WhichLetter';
 import StoryMode from './games/StoryMode';
 import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
@@ -65,6 +66,7 @@ const GAME_MODES = [
   { id: 'whichprophet', title: 'Hangi Peygamber?', desc: 'Dört ipucu, bir peygamber. Az ipucuyla bil, çok XP al.', emoji: '🌟', color: '#F59E0B', type: 'game_quiz', Comp: WhichProphet, badge: 'Kıssa Dedektifi' },
   { id: 'whereayah', title: 'Ayet Nerede?', desc: 'Anlamından sureyi bul.', emoji: '📍', color: '#34D399', type: 'game_quiz', Comp: WhereAyah, badge: 'Ayet İzcisi' },
   { id: 'whichname', title: 'Hangi İsim?', desc: 'Tefekkür cümlesinden Esmâ-i Hüsnâ’yı tanı.', emoji: '✨', color: '#A78BFA', type: 'game_quiz', Comp: WhichName, badge: 'Esmâ Yolcusu' },
+  { id: 'whichletter', title: 'Hangi Harf?', desc: 'Çıkış yerinden harfi tanı.', emoji: '🔡', color: '#38BDF8', type: 'game_quiz', Comp: WhichLetter },
 ];
 
 const CAT_ICONS = {
@@ -166,7 +168,7 @@ function DailyQuestion({ theme, onXP, onEvent }) {
           const isRight = answered && i === q.correct_index;
           return (
             <button key={i} onClick={() => answer(i)} disabled={!!answered}
-              className="p-2.5 rounded-xl text-[11px] font-semibold text-left transition-all active:scale-95"
+              className="p-2.5 rounded-xl text-[11px] font-semibold text-start transition-all active:scale-95"
               style={{
                 background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0d`,
                 border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
@@ -504,12 +506,12 @@ export default function GamesPage() {
         </div>
         <div className="px-5 pt-6 pb-4 flex items-center gap-2">
           <button onClick={() => (inPlay ? endPlay(active) : (setActive(null), setStage(lobbyFrom.current)))}
-            className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
+            className="p-2 -ms-2 rounded-xl active:scale-90" aria-label="Geri">
             <ArrowLeft size={20} style={{ color: theme.gold }} />
           </button>
           <h1 className="text-xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{activeGame.title}</h1>
           {dailyGameId === activeGame.id && (
-            <span className="ml-auto text-[10px] font-black px-2.5 py-1 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B', border: '1px solid #F59E0B55' }}>🔥 2x XP</span>
+            <span className="ms-auto text-[10px] font-black px-2.5 py-1 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B', border: '1px solid #F59E0B55' }}>🔥 2x XP</span>
           )}
         </div>
         {inPlay
@@ -527,7 +529,7 @@ export default function GamesPage() {
       <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
         {levelUpOverlay}
         <div className="px-5 pt-6 pb-4 flex items-center gap-2">
-          <button onClick={() => setStage('hub')} className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
+          <button onClick={() => setStage('hub')} className="p-2 -ms-2 rounded-xl active:scale-90" aria-label="Geri">
             <ArrowLeft size={20} style={{ color: theme.gold }} />
           </button>
           <div>
@@ -539,7 +541,7 @@ export default function GamesPage() {
         {/* Öne çıkan: Macera (tam genişlik, sinematik) */}
         <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
           onClick={() => openGame(featured)} whileTap={{ scale: 0.98 }}
-          className="mx-5 mb-4 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-left relative overflow-hidden"
+          className="mx-5 mb-4 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-start relative overflow-hidden"
           style={{ background: `linear-gradient(150deg, ${featured.color}1e, ${theme.surface})`, border: `1.5px solid ${featured.color}55`, boxShadow: `0 8px 34px ${featured.color}20` }}>
           <div className="absolute -top-12 -right-8 w-44 h-44 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${featured.color}35, transparent 65%)` }} />
           <div className="flex items-center gap-4 relative">
@@ -562,7 +564,7 @@ export default function GamesPage() {
             return (
               <motion.button key={g.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 + i * 0.035 }}
                 onClick={() => openGame(g)} whileTap={{ scale: 0.97 }}
-                className="rounded-2xl p-4 flex flex-col text-left relative overflow-hidden"
+                className="rounded-2xl p-4 flex flex-col text-start relative overflow-hidden"
                 style={{
                   background: `linear-gradient(160deg, ${theme.surface}, ${g.color}0c)`,
                   border: `1.5px solid ${isDaily ? '#F59E0B66' : `${g.color}30`}`,
@@ -725,7 +727,7 @@ export default function GamesPage() {
         return (
           <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}
             onClick={() => openGame(lastGame)} whileTap={{ scale: 0.98 }}
-            className="mx-5 mb-3 w-[calc(100%-2.5rem)] rounded-2xl p-3.5 flex items-center gap-3 text-left"
+            className="mx-5 mb-3 w-[calc(100%-2.5rem)] rounded-2xl p-3.5 flex items-center gap-3 text-start"
             style={{ background: `linear-gradient(135deg, ${lastGame.color}12, ${theme.surface})`, border: `1.5px solid ${lastGame.color}40` }}>
             <span className="text-2xl">{lastGame.emoji}</span>
             <div className="flex-1 min-w-0">
@@ -770,7 +772,7 @@ export default function GamesPage() {
       {/* ─── OYUN MODLARI VİTRİNİ (özet görsel → mod listesi ekranı) ─── */}
       <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
         onClick={() => setStage('modes')} whileTap={{ scale: 0.98 }}
-        className="hub-span mx-5 mb-6 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-left relative overflow-hidden"
+        className="hub-span mx-5 mb-6 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-start relative overflow-hidden"
         style={{
           background: `linear-gradient(150deg, ${theme.gold}16, ${theme.surface} 55%, #10B98110)`,
           border: `1.5px solid ${theme.gold}45`,

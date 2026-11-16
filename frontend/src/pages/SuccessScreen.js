@@ -92,7 +92,7 @@ export default function SuccessScreen() {
               <div className="flex items-center gap-2 mb-2" style={{ color: theme.gold }}>
                 <Star size={16} fill="currentColor" /><span className="text-xs font-bold uppercase tracking-wider">Kilidi Açılan Hikmet</span>
               </div>
-              <p className="text-sm text-left italic leading-relaxed" style={{ color: theme.textPrimary }}>"{unlockedWisdom}"</p>
+              <p className="text-sm text-start italic leading-relaxed" style={{ color: theme.textPrimary }}>"{unlockedWisdom}"</p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -100,7 +100,7 @@ export default function SuccessScreen() {
         <AnimatePresence>
           {revealStep >= 2 && (
             <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}
-              className="rounded-3xl p-5 mb-8 text-left space-y-4"
+              className="rounded-3xl p-5 mb-8 text-start space-y-4"
               style={{ background: `${theme.bg}80`, border: `1px solid ${theme.cardBorder}` }}>
               <div className="flex justify-between items-center">
                 <span className="text-sm flex items-center gap-2" style={{ color: theme.textSecondary }}><Target size={18} style={{ color: '#10B981' }} /> Doğru Cevaplar</span>
@@ -129,7 +129,7 @@ export default function SuccessScreen() {
             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               {errorMsg && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="text-xs font-bold p-3 rounded-xl flex items-center gap-2 text-left"
+                  className="text-xs font-bold p-3 rounded-xl flex items-center gap-2 text-start"
                   style={{ background: '#EF444410', border: '1px solid #EF444440', color: '#EF4444' }}>
                   <AlertCircle size={16} className="shrink-0" />
                   <span>{errorMsg}</span>

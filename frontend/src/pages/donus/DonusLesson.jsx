@@ -44,7 +44,7 @@ export default function DonusLesson() {
   // RTL sayfada LTR metin ters hizalanır — blokları açıkça soldan sağa alıyoruz.
   const ltr = lang === 'ar';
   const dirProps = ltr ? { dir: 'ltr' } : {};
-  const dirStyle = ltr ? { textAlign: 'left' } : {};
+  const dirStyle = ltr ? { textAlign: 'start' } : {};
 
   useEffect(() => { window.scrollTo(0, 0); }, [day]);
 
@@ -69,7 +69,7 @@ export default function DonusLesson() {
             style={{ background: alpha(p.accent, 0.16), color: p.accent }}>
             {phase.emoji} {tt(phase.name)}
           </span>
-          <span className="text-[10px] font-black ml-auto tabular-nums" style={{ color: p.dim }}>
+          <span className="text-[10px] font-black ms-auto tabular-nums" style={{ color: p.dim }}>
             {day}/{LAST_DAY}
           </span>
         </div>

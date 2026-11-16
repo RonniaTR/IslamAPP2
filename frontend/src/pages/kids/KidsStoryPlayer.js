@@ -89,7 +89,7 @@ export default function KidsStoryPlayer() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 10px 25px rgba(31, 41, 55, 0.3)'
         }}>
-          <Play size={32} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: '4px' }} />
+          <Play size={32} color="#FFFFFF" fill="#FFFFFF" style={{ marginInlineStart: '4px' }} />
         </button>
         <button style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
           <SkipForward size={28} color="#9CA3AF" />

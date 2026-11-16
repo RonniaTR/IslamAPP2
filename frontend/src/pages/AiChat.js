@@ -163,7 +163,7 @@ export default function AiChat() {
                 style={{
                   background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '100px', padding: '8px 16px', color: '#FFF', fontSize: '12px',
-                  cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left'
+                  cursor: 'pointer', transition: 'all 0.2s', textAlign: 'start'
                 }}
               >
                 {prompt}
@@ -275,7 +275,7 @@ export default function AiChat() {
               transition: 'all 0.2s'
             }}
           >
-            <Send size={20} color={inputValue.trim() && !isTyping ? '#000' : 'rgba(255,255,255,0.3)'} style={{ marginLeft: '4px' }} />
+            <Send size={20} color={inputValue.trim() && !isTyping ? '#000' : 'rgba(255,255,255,0.3)'} style={{ marginInlineStart: '4px' }} />
           </button>
         </div>
       </div>

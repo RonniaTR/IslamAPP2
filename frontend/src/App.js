@@ -19,6 +19,9 @@ import HusuPerdesi from './components/HusuPerdesi';
 import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { initOfflineSync } from './services/offlineSync';
+import { warmOffline } from './services/offline';
+import { initDiagnostics } from './services/diagnostics';
+import RouteMeter from './components/RouteMeter';
 // Yan etki: Geri Dönüş modunun plan filtresini pathEngine'e kaydeder.
 import './services/returnEngine';
 import api from './api';
@@ -28,6 +31,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const QuranList = lazy(() => import('./pages/QuranList'));
 const SurahDetail = lazy(() => import('./pages/SurahDetail'));
 const MushafPage = lazy(() => import('./pages/MushafPage'));
+const KandilPage = lazy(() => import('./pages/KandilPage'));
+const MahrecPage = lazy(() => import('./pages/MahrecPage'));
 const HadithPage = lazy(() => import('./pages/HadithPage'));
 const AiChat = lazy(() => import('./pages/AiChat'));
 const ScholarsPage = lazy(() => import('./pages/ScholarsPage'));
@@ -121,6 +126,8 @@ const ParentAddProfile = lazy(() => import('./pages/parent/ParentAddProfile'));
 const ParentSettings = lazy(() => import('./pages/parent/ParentSettings'));
 
 initOfflineSync(api);
+initDiagnostics();
+warmOffline();   // Türkçe meal + tefsir boşta cihaza iner; sonrası bağlantısız çalışır
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -172,6 +179,8 @@ function AdultRoutes() {
               <Route path="/sofra" element={<PageTransition><SofraPage /></PageTransition>} />
               <Route path="/hatim-plani" element={<PageTransition><HatimPlanPage /></PageTransition>} />
               <Route path="/kaza" element={<PageTransition><KazaPage /></PageTransition>} />
+              <Route path="/kandil" element={<PageTransition><KandilPage /></PageTransition>} />
+              <Route path="/mahrec" element={<PageTransition><MahrecPage /></PageTransition>} />
               <Route path="/defter" element={<PageTransition><DefterPage /></PageTransition>} />
               <Route path="/tesbihat" element={<TesbihatPage />} />
               <Route path="/rahmet" element={<PageTransition><RahmetPage /></PageTransition>} />
@@ -412,6 +421,7 @@ export default function App() {
                   <ReviewRedirect />
                   <AppFlow />
                   <HusuPerdesi />
+                  <RouteMeter />
                   <CompanionAI />
                 </AppModeProvider>
               </PremiumProvider>

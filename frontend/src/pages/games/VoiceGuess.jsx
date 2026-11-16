@@ -134,7 +134,7 @@ export default function VoiceGuess({ theme, onXP, onEvent = () => {} }) {
         <div className="flex flex-col gap-3 w-full max-w-xs">
           {MODES.map(m => (
             <button key={m.id} onClick={() => start(m)}
-              className="flex items-center gap-3 p-4 rounded-2xl text-left active:scale-95 transition-all"
+              className="flex items-center gap-3 p-4 rounded-2xl text-start active:scale-95 transition-all"
               style={{ background: `${m.color}12`, border: `1.5px solid ${m.color}40` }}>
               <Volume2 size={22} style={{ color: m.color }} />
               <div className="flex-1">

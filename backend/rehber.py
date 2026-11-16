@@ -141,17 +141,29 @@ class _Index:
                 matched[doc_id].add(t)
         qnorm = math.sqrt(qnorm) or 1.0
         known = [t for t in q if t in self.idf]
-        base_known = [t for t in base if t in self.idf] or known
+        # payda: kullanıcının BÜTÜN anlamlı kelimeleri — dizinde hiç geçmeyen kelime ('bitcoin') kapsama oranını düşürür
+        base_all = list(base) or known
         out = []
         for doc_id, s in scores.items():
             # genişletme kelimeleri de eşleşme sayılır ama payda kullanıcının kelime sayısıdır (en çok 1)
-            cover = min(1.0, len(matched[doc_id]) / max(1, len(base_known)))
+            cover = min(1.0, len(matched[doc_id]) / max(1, len(base_all)))
             out.append((s / (self.norm[doc_id] * qnorm) * (0.5 + cover), cover, doc_id))
         out.sort(reverse=True)
         return [(score, cover, self.docs[i]) for score, cover, i in out[:k]]
 
 
 INDEX = _Index()
+
+
+def good_hits(query: str, k: int = 5):
+    """Eşiği geçen sonuçlar. Kapsam dışı kuralı: sorunun anlamlı kelimelerinin yarısı ya da fazlası meal ve
+    tefsirde HİÇ geçmiyorsa ('kripto', 'borsa') konu kaynakların dışındadır; rastgele eşleşme gösterilmez."""
+    base = set(_tokens(query))
+    if base and INDEX.ready:
+        unknown = sum(1 for t in base if t not in INDEX.idf)
+        if unknown / len(base) >= 0.5:
+            return []
+    return [h for h in INDEX.search(query, k) if h[0] >= MIN_SCORE and h[1] >= MIN_COVER]
 
 # Bu eşiklerin altında "kaynağım yok" denir. Deneme setiyle ayarlanmalıdır (bkz. Faz 9 güvence).
 MIN_SCORE = 0.15
@@ -235,8 +247,7 @@ def setup_rehber_routes(router: APIRouter, gemini_generate, surah_names=None):
         q = (body.question or "").strip()
         if len(q) < 3:
             raise HTTPException(status_code=400, detail="Soru çok kısa")
-        hits = INDEX.search(q, 5)
-        good = [h for h in hits if h[0] >= MIN_SCORE and h[1] >= MIN_COVER]
+        good = good_hits(q, 5)
         if not good:
             return {
                 "label": "yok", "ai_label": AI_LABEL, "sources": [], "credits": credits(),

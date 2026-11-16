@@ -88,6 +88,25 @@ export function getUpcomingDays(limit = 3, from = new Date(), locale = 'tr-TR') 
   return out.sort((a, b) => a.date - b.date).slice(0, limit);
 }
 
+/**
+ * Bu akşam (ya da dün akşam başlayıp bu sabaha süren) mübarek gece. Yoksa null.
+ * Kandil ışık haritası yalnız bu aralıkta ışık kabul eder.
+ */
+export function getActiveNight(from = new Date()) {
+  const today = atNoon(from);
+  const hy = toHijri(today).y;
+  for (const y of [hy - 1, hy, hy + 1]) {
+    for (const day of DAYS) {
+      if (day.kind !== 'gece' && day.kind !== 'regaib') continue;
+      const date = resolve(day, y);
+      if (!date) continue;
+      const diff = Math.round((today - atNoon(date)) / 86400000);
+      if (diff === 0 || diff === 1) return { id: `${day.id}-${y}`, name: day.name, icon: day.icon, date };
+    }
+  }
+  return null;
+}
+
 export const CALENDAR_NOTE = 'Tarihler hesapla bulunur; Diyanet takvimine göre bir gün farklı olabilir.';
 
 const islamicCalendar = { toHijri, fromHijri, getUpcomingDays, CALENDAR_NOTE };

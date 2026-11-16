@@ -242,7 +242,7 @@ export default function HifzPage() {
               const v = list.find(x => x.number === a);
               return (
                 <button key={a} onClick={() => startSession([{ surah: track.no, ayah: a, track }])}
-                  className="w-full flex items-center gap-3 p-3 rounded-2xl text-left active:scale-98 transition-transform"
+                  className="w-full flex items-center gap-3 p-3 rounded-2xl text-start active:scale-98 transition-transform"
                   style={{ background: theme.surface, border: `1px solid ${stt === 'due' ? '#F59E0B50' : theme.cardBorder}` }}>
                   <span className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black shrink-0"
                     style={{ background: `${STATUS_COLOR[stt]}18`, color: STATUS_COLOR[stt], border: `1.5px solid ${STATUS_COLOR[stt]}50` }}>{a}</span>
@@ -295,7 +295,7 @@ export default function HifzPage() {
       {due.length > 0 && (
         <div className="px-5 mb-5">
           <button onClick={() => startSession(due)}
-            className="w-full flex items-center gap-3 p-4 rounded-2xl text-left active:scale-98 transition-transform"
+            className="w-full flex items-center gap-3 p-4 rounded-2xl text-start active:scale-98 transition-transform"
             style={{ background: 'linear-gradient(135deg, #B45309, #F59E0B)', color: '#fff' }}>
             <Award size={22} />
             <div className="flex-1">
@@ -319,7 +319,7 @@ export default function HifzPage() {
               const pct = Math.round((p.solid / p.total) * 100);
               return (
                 <button key={t.no} onClick={() => setTrackNo(t.no)}
-                  className="rounded-2xl p-3.5 text-left active:scale-97 transition-transform"
+                  className="rounded-2xl p-3.5 text-start active:scale-97 transition-transform"
                   style={{ background: theme.surface, border: `1px solid ${pct === 100 ? '#10B98150' : theme.cardBorder}` }}>
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{t.name}</p>

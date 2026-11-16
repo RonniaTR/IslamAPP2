@@ -73,7 +73,7 @@ export default function DonusPhase() {
               whileTap={open ? { scale: 0.96, boxShadow: `0 4px 16px ${alpha(p.accent, 0.25)}` } : undefined}
               onClick={() => open && navigate(`/donus/gun/${d}`)}
               disabled={!open}
-              className="w-full rounded-2xl p-4 flex items-center gap-3.5 text-left disabled:cursor-default relative overflow-hidden"
+              className="w-full rounded-2xl p-4 flex items-center gap-3.5 text-start disabled:cursor-default relative overflow-hidden"
               style={{
                 background: here ? p.cardStrong : p.card,
                 border: `1.5px solid ${here ? p.border : p.borderSoft}`,

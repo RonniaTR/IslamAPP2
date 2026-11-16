@@ -72,7 +72,7 @@ export default function LicensesPage() {
           ))}
           <div>
             <p className="text-[12px] font-semibold mb-1" style={{ color: theme.textPrimary }}>{tt('Yeniden yayın şartları (QuranEnc.com)')}</p>
-            <ul className="list-disc pl-5">
+            <ul className="list-disc ps-5">
               {sources.quranEncSartlari.map((s, i) => (
                 <li key={i} className="text-[12px] leading-relaxed" style={{ color: theme.textSecondary }}>{s}</li>
               ))}

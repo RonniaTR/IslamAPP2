@@ -54,7 +54,7 @@ export default function DonusPerde() {
 
   const ltr = lang === 'ar';
   const dirProps = ltr ? { dir: 'ltr' } : {};
-  const dirStyle = ltr ? { textAlign: 'left' } : {};
+  const dirStyle = ltr ? { textAlign: 'start' } : {};
 
   // Seslendirme var mı?
   useEffect(() => {
@@ -182,7 +182,7 @@ export default function DonusPerde() {
           ))}
         </select>
 
-        <span className="text-[9.5px] font-bold ml-auto" style={{ color: p.dim }}>
+        <span className="text-[9.5px] font-bold ms-auto" style={{ color: p.dim }}>
           {hasAudio === null ? '' : hasAudio ? tt('Sesli') : tt('Okuma')}
         </span>
       </div>

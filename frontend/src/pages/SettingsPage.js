@@ -8,7 +8,8 @@ import { useTx } from '../i18n';
 import { usePrayerTimes, TURKISH_CITIES } from '../hooks/usePrayerTimes';
 import ambient from '../services/ambient';
 import notifications from '../services/notifications';
-import { playVakit, VAKIT_MAKAM, MAKAM_NAMES } from '../services/donusAudio';
+import { VAKIT_MAKAM, MAKAM_NAMES } from '../services/donusAudio';
+import sound from '../services/sound';
 import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
 import { HUSU_KEY, loadHusu } from '../components/HusuPerdesi';
 
@@ -122,7 +123,7 @@ export default function SettingsPage() {
               const t = themes[id]; const on = id === themeId;
               return (
                 <button key={id} onClick={() => setTheme(id)} aria-pressed={on}
-                  style={{ borderRadius: 18, padding: 12, textAlign: 'left', cursor: 'pointer', background: t.bg, border: `2px solid ${on ? t.gold : 'transparent'}`, boxShadow: '0 2px 10px rgba(0,0,0,0.12)' }}>
+                  style={{ borderRadius: 18, padding: 12, textAlign: 'start', cursor: 'pointer', background: t.bg, border: `2px solid ${on ? t.gold : 'transparent'}`, boxShadow: '0 2px 10px rgba(0,0,0,0.12)' }}>
                   <div className="flex items-center justify-between mb-2">
                     <span style={{ fontSize: 20 }}>{t.icon}</span>
                     {on && <span style={{ width: 22, height: 22, borderRadius: 11, background: t.gold, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={14} color="#1A1A1A" /></span>}
@@ -147,7 +148,7 @@ export default function SettingsPage() {
           <div className="flex flex-wrap gap-2 mb-3">
             {Object.values(fonts).map((f) => (
               <button key={f.id} onClick={() => setFont(f.id)} aria-pressed={f.id === fontId}
-                style={{ minHeight: 56, padding: '6px 14px', borderRadius: 16, cursor: 'pointer', textAlign: 'left',
+                style={{ minHeight: 56, padding: '6px 14px', borderRadius: 16, cursor: 'pointer', textAlign: 'start',
                   background: f.id === fontId ? theme.surfaceLight : 'transparent', border: `1px solid ${f.id === fontId ? theme.gold : theme.cardBorder}` }}>
                 <div style={{ fontFamily: f.heading, color: theme.textPrimary, fontSize: 16, fontWeight: 700 }}>{tt(f.name)}</div>
                 <div style={{ fontFamily: f.body, color: theme.textSecondary, fontSize: 11 }}>Aa Ğğ Şş 123</div>
@@ -229,7 +230,7 @@ export default function SettingsPage() {
             <span style={label}>{tt('Vakitlerin makamı · dinle')}</span>
             <div className="flex flex-wrap gap-2 mt-2">
               {PRAYERS.map(([key, name]) => (
-                <Chip key={key} on={false} onClick={() => playVakit(key)}>{tt(name)} · {MAKAM_NAMES[VAKIT_MAKAM[key]]}</Chip>
+                <Chip key={key} on={false} onClick={() => sound.play('vakit', key)}>{tt(name)} · {MAKAM_NAMES[VAKIT_MAKAM[key]]}</Chip>
               ))}
             </div>
           </div>

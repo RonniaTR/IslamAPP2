@@ -112,7 +112,7 @@ export default function StoryMode({ theme, onXP, onEvent = () => {} }) {
             return (
               <motion.button key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                 onClick={() => openStory(s)}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl text-left active:scale-95 transition-all relative overflow-hidden"
+                className="w-full flex items-center gap-4 p-4 rounded-2xl text-start active:scale-95 transition-all relative overflow-hidden"
                 style={{ background: `linear-gradient(150deg, ${s.color}14, ${theme.surface})`, border: `1.5px solid ${s.color}45` }}>
                 <span className="text-4xl" style={{ filter: `drop-shadow(0 4px 12px ${s.color}70)` }}>{s.emoji}</span>
                 <div className="flex-1 min-w-0">
@@ -145,7 +145,7 @@ export default function StoryMode({ theme, onXP, onEvent = () => {} }) {
           <p className="text-[10px]" style={{ color: theme.textSecondary }}>{story.subtitle}</p>
         </div>
         {/* Harita: dikey yol */}
-        <div className="relative pl-6">
+        <div className="relative ps-6">
           <div className="absolute left-[35px] top-4 bottom-4 w-0.5" style={{ background: `${story.color}30` }} />
           <div className="space-y-3">
             {story.chapters.map((ch, ci) => {
@@ -153,7 +153,7 @@ export default function StoryMode({ theme, onXP, onEvent = () => {} }) {
               return (
                 <motion.button key={ci} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: ci * 0.07 }}
                   onClick={() => state !== 'locked' && startChapter(ci)} disabled={state === 'locked'}
-                  className="w-full flex items-center gap-3 text-left relative">
+                  className="w-full flex items-center gap-3 text-start relative">
                   <motion.span animate={state === 'current' ? { scale: [1, 1.12, 1] } : {}} transition={{ duration: 1.4, repeat: Infinity }}
                     className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 z-10 text-sm font-black"
                     style={{
@@ -193,7 +193,7 @@ export default function StoryMode({ theme, onXP, onEvent = () => {} }) {
           <span className="text-4xl block mb-2">{story.emoji}</span>
           <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: story.color }}>Bölüm {chapterIdx + 1}</p>
           <h2 className="text-xl font-black mb-3" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{ch.title}</h2>
-          <div className="rounded-2xl p-4 text-left" style={{ background: `${theme.bg}90`, border: `1px solid ${theme.cardBorder}` }}>
+          <div className="rounded-2xl p-4 text-start" style={{ background: `${theme.bg}90`, border: `1px solid ${theme.cardBorder}` }}>
             <BookOpen size={14} style={{ color: story.color }} className="mb-2" />
             <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{ch.narrative}</p>
           </div>

@@ -42,7 +42,7 @@ function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
         <div className="space-y-2">
           {cp.choices.map((c, i) => (
             <button key={i} onClick={() => onPick(i)}
-              className="w-full text-left p-3 rounded-xl text-sm font-semibold transition-all active:scale-98"
+              className="w-full text-start p-3 rounded-xl text-sm font-semibold transition-all active:scale-98"
               style={{ background: `${theme.textSecondary}0c`, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary }}>
               {c}
             </button>
@@ -54,7 +54,7 @@ function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
             {cp.choices.map((c, i) => {
               const isCorrect = i === cp.correct; const chosen = picked === i;
               return (
-                <div key={i} className="w-full text-left p-3 rounded-xl text-sm font-semibold flex items-center justify-between gap-2"
+                <div key={i} className="w-full text-start p-3 rounded-xl text-sm font-semibold flex items-center justify-between gap-2"
                   style={{
                     background: isCorrect ? '#10B98115' : chosen ? '#EF444412' : 'transparent',
                     border: `1px solid ${isCorrect ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
@@ -257,7 +257,7 @@ export default function StoriesPage() {
                     const isCorrect = picked !== null && i === story.correct;
                     return (
                       <button key={i} onClick={() => pickAnswer(i)} disabled={picked !== null}
-                        className="w-full text-left p-3.5 rounded-xl text-sm font-semibold transition-all active:scale-98 flex items-center justify-between gap-2"
+                        className="w-full text-start p-3.5 rounded-xl text-sm font-semibold transition-all active:scale-98 flex items-center justify-between gap-2"
                         style={{
                           background: isCorrect ? '#10B98118' : chosen ? '#EF444418' : `${theme.textSecondary}0c`,
                           border: `1px solid ${isCorrect ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
@@ -338,7 +338,7 @@ export default function StoriesPage() {
           {/* 🌙 Gece modunda dinle */}
           {phase === 'lesson' && (
             <button onClick={listenAtNight}
-              className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left active:scale-98 transition-transform mt-4"
+              className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-start active:scale-98 transition-transform mt-4"
               style={{ background: 'linear-gradient(135deg, #1E1B4B, #312E81)', border: '1px solid #6366F150' }}>
               <span className="text-2xl">🌙</span>
               <div className="flex-1 min-w-0">
@@ -354,7 +354,7 @@ export default function StoriesPage() {
             const next = STORIES.find(s => !readIds.includes(s.id) && s.id !== story.id) || STORIES.find(s => s.id !== story.id);
             if (!next) return null;
             return (
-              <button onClick={() => openStory(next.id)} className="w-full flex items-center gap-3 p-3 rounded-2xl text-left active:scale-98 transition-transform mt-3"
+              <button onClick={() => openStory(next.id)} className="w-full flex items-center gap-3 p-3 rounded-2xl text-start active:scale-98 transition-transform mt-3"
                 style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
                 <span className="text-2xl">{next.emoji}</span>
                 <div className="flex-1 min-w-0">
@@ -419,7 +419,7 @@ export default function StoriesPage() {
       {/* 🌙 Gece Modu girişi */}
       <div className="px-5 mb-6">
         <button onClick={() => { save('night_preset', null); navigate('/night'); }}
-          className="w-full flex items-center gap-3 p-4 rounded-2xl text-left active:scale-98 transition-transform relative overflow-hidden"
+          className="w-full flex items-center gap-3 p-4 rounded-2xl text-start active:scale-98 transition-transform relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #0F0D2E, #1E1B4B, #312E81)', border: '1px solid #6366F145' }}>
           <span className="absolute top-2 right-8 text-[8px]" style={{ color: '#C7D2FE' }}>✦</span>
           <span className="absolute top-5 right-16 text-[6px]" style={{ color: '#A5B4FC' }}>✦</span>
@@ -448,7 +448,7 @@ export default function StoriesPage() {
                 const isRead = readIds.includes(s.id);
                 return (
                   <button key={s.id} onClick={() => openStory(s.id)}
-                    className="shrink-0 w-48 md:w-auto rounded-2xl overflow-hidden text-left active:scale-97 transition-transform relative"
+                    className="shrink-0 w-48 md:w-auto rounded-2xl overflow-hidden text-start active:scale-97 transition-transform relative"
                     style={{ background: theme.surface, border: `1px solid ${s.deep ? '#6366F140' : theme.cardBorder}` }}>
                     <Cover s={s} />
                     {isRead && <span className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#10B981' }}><Check size={13} color="#fff" /></span>}

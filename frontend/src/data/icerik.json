@@ -1,0 +1,143 @@
+{
+ "_not": "src/data altındaki HER dosya burada kayıtlı olmalıdır (scripts/check-sources.py bunu denetler). kaynak: sources.json anahtarı, \"ozgun\" (bize ait yazım) ya da \"uretilmis\". durum: tamam | denetlenmedi | belirsiz. Yeni içerik dosyası eklerken önce kaynağını sources.json'a, sonra buraya yaz.",
+ "dosyalar": {
+  "adventureData.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "aiResponses.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "articles.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "cityCoords.js": {
+   "kaynak": "ozgun",
+   "durum": "tamam"
+  },
+  "cmsContent.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "dailyHadith.js": {
+   "kaynak": "hadith",
+   "durum": "belirsiz",
+   "not": "hadiths.json ile aynı sorun"
+  },
+  "donusPerde.en.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "donusPerde.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "donusTemeller.en.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "donusTemeller.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "elifba.js": {
+   "kaynak": "ozgun",
+   "durum": "tamam"
+  },
+  "esmaData.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "gameData.js": {
+   "kaynak": "ozgun",
+   "durum": "tamam"
+  },
+  "generatedQuestions.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "hadiths.json": {
+   "kaynak": "hadith",
+   "durum": "belirsiz",
+   "not": "Türkçe çevirinin kaynağı bilinmiyor; özgün çeviri ya da izinli çeviriyle değiştirilecek"
+  },
+  "kelimeMeal.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi",
+   "not": "Kelime karşılıkları bir sözlükle denetlenmedi"
+  },
+  "nurHazine.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "prophets.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "questionBank.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "questionBankExtra.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "quizData.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "quizQuestionsBig.json": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "quranContent.js": {
+   "kaynak": "quranText",
+   "durum": "denetlenmedi",
+   "not": "İçindeki ayet/meal alıntıları QuranEnc metniyle karşılaştırılmadı"
+  },
+  "rehberData.json": {
+   "kaynak": "uretilmis",
+   "durum": "tamam",
+   "not": "backend/rehber.py → export_rehber_data.py"
+  },
+  "returnPath.en.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "returnPath.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "siyerData.js": {
+   "kaynak": "siyer",
+   "durum": "denetlenmedi",
+   "not": "Metin özgün yazım olmalı; kaynak kitaplarla karşılaştırılmadı"
+  },
+  "siyerQuizzes.js": {
+   "kaynak": "siyer",
+   "durum": "denetlenmedi"
+  },
+  "sources.json": {
+   "kaynak": "ozgun",
+   "durum": "tamam"
+  },
+  "stories.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "storyData.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi"
+  },
+  "surahData.js": {
+   "kaynak": "ozgun",
+   "durum": "tamam"
+  },
+  "surahHints.js": {
+   "kaynak": "ozgun",
+   "durum": "tamam"
+  }
+ }
+}

@@ -65,10 +65,10 @@ export default function FiqhPage() {
                   return <h3 key={i} className="text-base font-bold mt-4 mb-2" style={{ color: theme.gold }}>{line.replace(/\*\*/g, '')}</h3>;
                 }
                 if (line.match(/^\d+\./)) {
-                  return <p key={i} className="ml-2 mb-1 text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{line.replace(/\*\*(.*?)\*\*/g, '$1')}</p>;
+                  return <p key={i} className="ms-2 mb-1 text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{line.replace(/\*\*(.*?)\*\*/g, '$1')}</p>;
                 }
                 if (line.startsWith('- ')) {
-                  return <p key={i} className="ml-4 mb-1 text-sm" style={{ color: theme.textSecondary }}>{line}</p>;
+                  return <p key={i} className="ms-4 mb-1 text-sm" style={{ color: theme.textSecondary }}>{line}</p>;
                 }
                 if (line.startsWith('*') && line.endsWith('*')) {
                   return <p key={i} className="text-xs italic mt-1" style={{ color: theme.textSecondary }}>{line.replace(/\*/g, '')}</p>;
@@ -101,7 +101,7 @@ export default function FiqhPage() {
           {selectedCat.topics?.map((topic, i) => (
             <motion.button key={topic.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
               onClick={() => setSelectedTopic(topic)}
-              className="w-full text-left rounded-2xl p-4 flex items-center gap-3"
+              className="w-full text-start rounded-2xl p-4 flex items-center gap-3"
               style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${theme.gold}15` }}>
                 <BookMarked size={18} style={{ color: theme.gold }} />
@@ -120,7 +120,7 @@ export default function FiqhPage() {
             className="w-full rounded-2xl p-4 flex items-center gap-3"
             style={{ background: `linear-gradient(135deg, ${theme.gold}20, ${theme.gold}08)`, border: `1px solid ${theme.gold}30` }}>
             <MessageCircle size={20} style={{ color: theme.gold }} />
-            <div className="flex-1 text-left">
+            <div className="flex-1 text-start">
               <p className="font-semibold text-sm" style={{ color: theme.gold }}>Soru Sor (Yapay Zekâ Rehber)</p>
               <p className="text-xs" style={{ color: theme.textSecondary }}>Hanefi fıkhına göre cevap al</p>
             </div>
@@ -214,7 +214,7 @@ export default function FiqhPage() {
             return (
               <motion.button key={cat.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                 onClick={() => loadCategory(cat.id)}
-                className="w-full text-left rounded-2xl p-4 flex items-center gap-4"
+                className="w-full text-start rounded-2xl p-4 flex items-center gap-4"
                 style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg" style={{ background: `${theme.gold}12` }}>
                   <span>{cat.icon}</span>
@@ -235,7 +235,7 @@ export default function FiqhPage() {
           {/* AI Mufti Card */}
           <motion.button initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
             onClick={() => { setAskMode(true); }}
-            className="w-full text-left rounded-2xl p-5"
+            className="w-full text-start rounded-2xl p-5"
             style={{ background: `linear-gradient(135deg, ${theme.gold}18, ${theme.gold}05)`, border: `1px solid ${theme.gold}25` }}>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: `${theme.gold}20` }}>

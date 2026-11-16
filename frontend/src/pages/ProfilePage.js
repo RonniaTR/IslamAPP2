@@ -111,7 +111,7 @@ function ProfileHero({ profile }) {
         </div>
       </div>
 
-      <div className="flex-1 text-center md:text-left mt-2 md:mt-0">
+      <div className="flex-1 text-center md:text-start mt-2 md:mt-0">
         <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
           <h2 className="text-3xl font-bold">{profile.name}</h2>
           <CheckCircle2 size={24} className="text-emerald-500" />
@@ -369,7 +369,7 @@ function RecentAudio({ audios = [], navigate }) {
           <div key={i} className="flex items-center gap-4 bg-transparent p-3 rounded-2xl border border-black/5 dark:border-white/10 cursor-pointer hover:border-[#10b981] transition-colors"
                onClick={() => navigate(`/content/${a.type}/${a.slug}`)}>
             <button className="w-12 h-12 bg-gradient-to-br from-[#10b981] to-[#059669] rounded-xl flex items-center justify-center  shadow-lg shadow-[#10b981]/20">
-              <Play size={20} className="ml-1" />
+              <Play size={20} className="ms-1" />
             </button>
             <div className="flex-1">
               <div className="font-bold">{a.title}</div>

@@ -51,7 +51,7 @@ export default function ProphetsPage() {
 
         {/* Search Bar */}
         <div className="max-w-md mx-auto mb-8 bg-[#132A1D]/90 border border-[color:var(--bg-surface-light)] rounded-full flex items-center px-4 h-12 shadow-xl backdrop-blur-md">
-          <Search size={18} className="text-gray-400 mr-2" />
+          <Search size={18} className="text-gray-400 me-2" />
           <input 
             type="text" 
             placeholder="Peygamber ismi veya mucize ara..." 
@@ -107,7 +107,7 @@ export default function ProphetsPage() {
 
               {/* Card Footer */}
               <div className="pt-3 border-t border-white/5 flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                <span className="truncate pr-2">Ayet: {prophet.quranVerses}</span>
+                <span className="truncate pe-2">Ayet: {prophet.quranVerses}</span>
                 <span className="text-[#10b981] font-bold flex items-center group-hover:translate-x-1 transition-transform">
                   Detay <ChevronRight size={14} />
                 </span>

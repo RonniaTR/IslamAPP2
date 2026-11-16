@@ -109,7 +109,7 @@ export default function JournalPage() {
     return (
       <div className="min-h-screen pb-24 max-w-2xl mx-auto" style={{ background: theme.bg }}>
         <div className="px-5 pt-6 pb-4 flex items-center gap-2">
-          <button onClick={() => setView('today')} className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
+          <button onClick={() => setView('today')} className="p-2 -ms-2 rounded-xl active:scale-90" aria-label="Geri">
             <ChevronLeft size={20} style={{ color: theme.gold }} />
           </button>
           <h1 className="text-xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Defter Geçmişi</h1>
@@ -126,7 +126,7 @@ export default function JournalPage() {
               </div>
               {QUESTIONS.map((q, i) => e.answers[i]?.trim() && (
                 <p key={q.key} className="text-xs leading-relaxed mb-1.5" style={{ color: theme.textPrimary }}>
-                  <span className="mr-1">{q.icon}</span>{e.answers[i]}
+                  <span className="me-1">{q.icon}</span>{e.answers[i]}
                 </p>
               ))}
             </div>

@@ -80,7 +80,7 @@ function RaviChain({ chain, theme, t }) {
   return (
     <div className="mt-3 p-3 rounded-xl" style={{ background: `${theme.gold}08`, border: `1px solid ${theme.gold}20` }}>
       <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: theme.gold }}>
-        <Link2 size={10} className="inline mr-1" /> {t.isnad_chain || 'İsnad Zinciri'}
+        <Link2 size={10} className="inline me-1" /> {t.isnad_chain || 'İsnad Zinciri'}
       </p>
       <div className="flex flex-wrap items-center gap-1">
         {chain.chain.map((ravi, i) => (
@@ -239,7 +239,7 @@ export default function HadithPage() {
             {i < words.length - 1 && ' '}
           </React.Fragment>
         ))}
-        {wordLoading && <Loader2 size={12} className="inline ml-1 animate-spin" style={{ color: theme.gold }} />}
+        {wordLoading && <Loader2 size={12} className="inline ms-1 animate-spin" style={{ color: theme.gold }} />}
       </p>
     );
   };
@@ -285,7 +285,7 @@ export default function HadithPage() {
           </div>
           <input value={query} onChange={e => setQuery(e.target.value)}
             placeholder={t.search_hadith || 'Hadis, tema veya kaynak ara...'}
-            className="w-full rounded-2xl py-4 pl-14 pr-4 text-sm outline-none transition-all focus:shadow-lg"
+            className="w-full rounded-2xl py-4 ps-14 pe-4 text-sm outline-none transition-all focus:shadow-lg"
             style={{ 
               background: theme.surface, 
               border: `1px solid ${theme.cardBorder}`, 

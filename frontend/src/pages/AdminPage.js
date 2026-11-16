@@ -151,7 +151,7 @@ function AdminPage() {
           ) : items.length === 0 ? (
             <p className="text-gray-500">Henüz içerik eklenmemiş.</p>
           ) : (
-            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pe-2">
               {items.map((item) => (
                 <div key={item.id} className="bg-gray-900 border border-gray-700 p-4 rounded-xl flex justify-between items-center">
                   <div>

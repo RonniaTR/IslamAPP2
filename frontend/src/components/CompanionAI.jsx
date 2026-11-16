@@ -88,7 +88,7 @@ export default function CompanionAI() {
                  style={{ background: 'linear-gradient(135deg, #1A7A42, #0D5C2F)' }}>
               <Sparkles size={20} color="#C8A55A" />
             </div>
-            <div className="pr-6">
+            <div className="pe-6">
               <h4 className="text-[12px] font-black tracking-wider uppercase mb-1" style={{ color: '#C8A55A' }}>
                 Yol Arkadaşın
               </h4>

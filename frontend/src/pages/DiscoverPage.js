@@ -251,7 +251,7 @@ export default function DiscoverPage() {
                 <FadeIn key={mod.path} delay={350 + i * 80}>
                   <button
                     onClick={() => navigate(mod.path)}
-                    className={`w-full bg-gradient-to-r ${mod.gradient} rounded-[28px] p-5 text-left relative overflow-hidden group transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-2xl`}
+                    className={`w-full bg-gradient-to-r ${mod.gradient} rounded-[28px] p-5 text-start relative overflow-hidden group transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-2xl`}
                   >
                     {/* Decorative glow */}
                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-white/10 transition-all" />
@@ -273,7 +273,7 @@ export default function DiscoverPage() {
                             {mod.badge}
                           </span>
                         </div>
-                        <p className="text-white/70 text-[13px] leading-relaxed pr-8">{mod.desc}</p>
+                        <p className="text-white/70 text-[13px] leading-relaxed pe-8">{mod.desc}</p>
                       </div>
                     </div>
 
@@ -301,7 +301,7 @@ export default function DiscoverPage() {
                 <FadeIn key={mod.path} delay={650 + i * 60}>
                   <button
                     onClick={() => navigate(mod.path)}
-                    className="flex items-center gap-3 bg-[#0D2418] border border-white/5 p-3.5 rounded-2xl text-left hover:bg-[#123121] hover:border-white/10 transition-all group w-full"
+                    className="flex items-center gap-3 bg-[#0D2418] border border-white/5 p-3.5 rounded-2xl text-start hover:bg-[#123121] hover:border-white/10 transition-all group w-full"
                   >
                     <div 
                       className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 group-hover:rotate-3"
@@ -336,12 +336,12 @@ export default function DiscoverPage() {
             </button>
           </div>
 
-          <div className="pl-4 pb-4 flex gap-3 overflow-x-auto no-scrollbar snap-x">
+          <div className="ps-4 pb-4 flex gap-3 overflow-x-auto no-scrollbar snap-x">
             {GAME_PREVIEWS.map((game, idx) => (
               <FadeIn key={game.id} delay={900 + idx * 60}>
                 <button
                   onClick={() => navigate('/games')}
-                  className="relative min-w-[150px] w-[150px] h-[190px] rounded-[24px] overflow-hidden snap-start shrink-0 cursor-pointer group shadow-xl text-left"
+                  className="relative min-w-[150px] w-[150px] h-[190px] rounded-[24px] overflow-hidden snap-start shrink-0 cursor-pointer group shadow-xl text-start"
                   style={{ backgroundColor: game.color + '15' }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0A1A12]/90 pointer-events-none" />

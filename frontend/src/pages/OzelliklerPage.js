@@ -34,7 +34,7 @@ export default function OzelliklerPage() {
             <h2 style={{ color: theme.textSecondary, fontSize: 12, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>{g.emoji} {tt(g.title)}</h2>
             <div className="grid grid-cols-2 gap-3">
               {g.items.map((f) => (
-                <button key={f.id} onClick={() => navigate(f.route)} className="text-left"
+                <button key={f.id} onClick={() => navigate(f.route)} className="text-start"
                   style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}`, borderRadius: 18, padding: 14, minHeight: 96 }}>
                   <div style={{ fontSize: 22 }}>{f.emoji}</div>
                   <div style={{ color: theme.textPrimary, fontSize: 14, fontWeight: 700, marginTop: 4 }}>{tt(f.title)}</div>

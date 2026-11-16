@@ -60,7 +60,7 @@ export default function SofraPage() {
         </section>
         <section style={card}>
           <p style={tag}>2 · {tt('SOR')}</p>
-          {questions.map((q) => <p key={q} style={{ color: theme.textPrimary, fontSize: 14, lineHeight: 1.5, marginTop: 8, paddingLeft: 12, borderLeft: `3px solid ${theme.gold}` }}>{tt(q)}</p>)}
+          {questions.map((q) => <p key={q} style={{ color: theme.textPrimary, fontSize: 14, lineHeight: 1.5, marginTop: 8, paddingInlineStart: 12, borderInlineStart: `3px solid ${theme.gold}` }}>{tt(q)}</p>)}
         </section>
         {STORY_APPLY[s.id] && (
           <section style={{ ...card, background: theme.surfaceLight }}>

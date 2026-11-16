@@ -5,8 +5,10 @@
   "scripts": {
     "start": "set PORT=3000 && set BROWSER=none && react-scripts start",
     "build": "react-scripts build",
-    "expo": "node scripts/start.js",
-    "check": "eslint --no-eslintrc -c eslint.check.json --quiet --ext .js,.jsx src"
+    "check": "eslint --no-eslintrc -c eslint.check.json --quiet --ext .js,.jsx src",
+    "i18n": "python3 scripts/i18n-missing.py ar && python3 scripts/i18n-missing.py en",
+    "packs": "python3 scripts/build-packs.py",
+    "verify": "bash scripts/verify.sh"
   },
   "dependencies": {
     "@capacitor-community/keep-awake": "^8.0.1",

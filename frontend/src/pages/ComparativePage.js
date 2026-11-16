@@ -127,7 +127,7 @@ export default function ComparativePage() {
               {topics.length} konu · Kur'an, İncil ve Tevrat'ta ortak konular
             </p>
           </div>
-          <Globe size={24} className="ml-auto" style={{ color: theme.gold }} />
+          <Globe size={24} className="ms-auto" style={{ color: theme.gold }} />
         </div>
 
         {/* Search */}
@@ -135,7 +135,7 @@ export default function ComparativePage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: theme.textSecondary }} />
           <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             placeholder="Konu ara..."
-            className="w-full rounded-xl pl-10 pr-3 py-2.5 text-sm outline-none"
+            className="w-full rounded-xl ps-10 pe-3 py-2.5 text-sm outline-none"
             style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
         </div>
       </div>
@@ -180,7 +180,7 @@ export default function ComparativePage() {
               <motion.button key={topic.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.02 }} whileTap={{ scale: 0.97 }}
                 onClick={() => loadTopic(topic.id)}
-                className="rounded-xl p-3 border text-left"
+                className="rounded-xl p-3 border text-start"
                 style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
                 <div className="text-xl mb-1.5">{topic.icon || '📖'}</div>
                 <div className="text-sm font-semibold leading-tight" style={{ color: theme.textPrimary }}>
@@ -245,7 +245,7 @@ export default function ComparativePage() {
             return (
               <div key={key} className="rounded-xl border overflow-hidden" style={{ borderColor: `${color}40` }}>
                 <button onClick={() => setExpandedReligion(isExpanded ? null : key)}
-                  className="w-full flex items-center gap-3 p-4 text-left"
+                  className="w-full flex items-center gap-3 p-4 text-start"
                   style={{ background: `${color}10` }}>
                   <span className="text-xl">{rel.icon}</span>
                   <div className="flex-1">

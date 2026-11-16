@@ -126,7 +126,7 @@ export default function WheelGame({ theme, onXP, onEvent = () => {} }) {
               const isWrong = chosen && !answered.correct;
               return (
                 <button key={idx} onClick={() => answer(idx)} disabled={!!answered}
-                  className="flex items-center justify-between text-left p-3 rounded-xl text-sm font-semibold transition-all"
+                  className="flex items-center justify-between text-start p-3 rounded-xl text-sm font-semibold transition-all"
                   style={{
                     background: isRight ? '#10B98122' : isWrong ? '#EF444422' : `${theme.textSecondary}0f`,
                     border: `1px solid ${isRight ? '#10B981' : isWrong ? '#EF4444' : theme.cardBorder}`,

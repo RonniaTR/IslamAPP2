@@ -32,7 +32,7 @@ export default function MealAudioPage() {
           <motion.div key={juz.juz} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
             className="rounded-2xl overflow-hidden" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }} data-testid={`meal-juz-${juz.juz}`}>
             <button onClick={() => setActiveJuz(activeJuz === juz.juz ? null : juz.juz)}
-              className="w-full flex items-center gap-3 p-3.5 text-left transition-colors">
+              className="w-full flex items-center gap-3 p-3.5 text-start transition-colors">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#EF444412' }}>
                 <span className="text-sm font-bold" style={{ color: '#EF4444' }}>{juz.juz}</span>
               </div>

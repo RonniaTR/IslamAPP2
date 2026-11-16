@@ -1,0 +1,17 @@
+{
+ "turkish_rwwad": {
+  "bytes": 927456,
+  "version": "1.0.4",
+  "name": "Turkish Translation - Rowwad Translation Center"
+ },
+ "english_rwwad": {
+  "bytes": 1137447,
+  "version": "1.0.21",
+  "name": "English Translation - Rowwad Translation Center"
+ },
+ "turkish_mokhtasar": {
+  "bytes": 1909991,
+  "version": "1.0.0",
+  "name": "turkish_mokhtasar"
+ }
+}

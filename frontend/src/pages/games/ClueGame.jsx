@@ -72,7 +72,7 @@ export default function ClueGame({ theme, onXP, items, accent = '#D4AF37', quest
       <h2 className="text-lg font-extrabold" style={{ color: theme.textPrimary }}>{tt(question)}</h2>
 
       {r.clues.slice(0, open).map((c, i) => (
-        <div key={i} style={{ ...card, borderLeft: `3px solid ${accent}` }}>
+        <div key={i} style={{ ...card, borderInlineStart: `3px solid ${accent}` }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: accent, letterSpacing: 0.4 }}>{tt('İPUCU')} {i + 1}</span>
           <p className="text-[14px] leading-relaxed mt-1" style={{ color: theme.textPrimary }}>{c}</p>
         </div>

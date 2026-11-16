@@ -187,7 +187,7 @@ export default memo(function Layout({ children }) {
       {/* DESKTOP SIDEBAR */}
       {!hideNav && (
         <aside className="hidden md:flex flex-col fixed top-0 bottom-0 left-0 w-[260px] z-50 p-6"
-          style={{ background: theme.navBg, borderRight: `1px solid ${theme.cardBorder}` }}>
+          style={{ background: theme.navBg, borderInlineEnd: `1px solid ${theme.cardBorder}` }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
             <svg width="32" height="32" viewBox="0 0 40 40">

@@ -265,7 +265,7 @@ export default function PathPage() {
               <div className="space-y-2">
                 {q.options.map(o => (
                   <button key={o.id} onClick={() => pickAnswer(q.id, o.id)}
-                    className="w-full p-3.5 rounded-2xl text-sm font-bold text-left active:scale-98 transition-all flex items-center justify-between"
+                    className="w-full p-3.5 rounded-2xl text-sm font-bold text-start active:scale-98 transition-all flex items-center justify-between"
                     style={{
                       background: answers[q.id] === o.id ? 'rgba(232,197,108,0.15)' : 'rgba(255,255,255,0.04)',
                       border: `1.5px solid ${answers[q.id] === o.id ? NUR.gold : NUR.borderSoft}`,
@@ -341,7 +341,7 @@ export default function PathPage() {
               <Share2 size={15} style={{ color: NUR.gold }} />
             </button>
           </div>
-          <div className="mt-3 mb-4 pl-3" style={{ borderLeft: `2px solid ${NUR.gold}` }}>
+          <div className="mt-3 mb-4 ps-3" style={{ borderInlineStart: `2px solid ${NUR.gold}` }}>
             <p className="text-[12.5px] italic leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd` }}>
               "{tt(quote.text)}"
             </p>
@@ -422,7 +422,7 @@ export default function PathPage() {
                       <p className="text-[10px] font-bold" style={{ color: NUR.dim }}>
                         {lessonProgress.read}/{lessonProgress.total} {tt('ders okundu')}
                       </p>
-                      <span className="text-[10px] font-black ml-auto" style={{ color: NUR.gold }}>
+                      <span className="text-[10px] font-black ms-auto" style={{ color: NUR.gold }}>
                         {phase.emoji} {tt(phase.name)}
                       </span>
                     </div>
@@ -463,7 +463,7 @@ export default function PathPage() {
               <div className="px-5 mt-4">
                 <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
                   onClick={() => navigate('/donus')} whileTap={{ scale: 0.98 }}
-                  className="w-full text-left rounded-2xl p-4 relative overflow-hidden"
+                  className="w-full text-start rounded-2xl p-4 relative overflow-hidden"
                   style={{ background: 'linear-gradient(120deg, rgba(232,197,108,0.14), rgba(13,51,36,0.7))', border: `1.5px solid ${NUR.border}` }}>
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-[9px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-full"
@@ -585,7 +585,7 @@ export default function PathPage() {
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                     className="mt-4 rounded-xl p-2.5 text-center" style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.35)' }}>
                     <p className="text-xs font-black" style={{ color: NUR.green }}>
-                      <Sparkles size={12} className="inline mr-1" />{tt('Bugünün yolu tamamlandı · +25 XP — Allah kabul etsin 🤲')}
+                      <Sparkles size={12} className="inline me-1" />{tt('Bugünün yolu tamamlandı · +25 XP — Allah kabul etsin 🤲')}
                     </p>
                   </motion.div>
                 )}
@@ -636,7 +636,7 @@ export default function PathPage() {
                       aria-label={done ? 'Geri al' : 'Tamamlandı işaretle'}>
                       {done && <Check size={15} color="#03130B" strokeWidth={3} />}
                     </button>
-                    <button onClick={() => navigate(t.route)} className="flex-1 min-w-0 text-left active:opacity-70">
+                    <button onClick={() => navigate(t.route)} className="flex-1 min-w-0 text-start active:opacity-70">
                       <p className="text-sm font-black flex items-center gap-1.5" style={{ color: NUR.text, textDecoration: done ? 'line-through' : 'none' }}>
                         <span>{t.icon}</span> {tt(t.title)}
                       </p>
@@ -841,7 +841,7 @@ export default function PathPage() {
                 <p className="text-[10px] mt-1" style={{ color: NUR.dim }}>{tt('İlk görevini tamamla — ilk satır bugün yazılsın.')}</p>
               </div>
             ) : (
-              <div className="relative pl-5">
+              <div className="relative ps-5">
                 <div className="absolute left-[9px] top-2 bottom-2 w-0.5" style={{ background: 'linear-gradient(180deg, rgba(232,197,108,0.6), rgba(232,197,108,0.05))' }} />
                 <div className="space-y-3">
                   {events.slice(0, 40).map((e, i) => (

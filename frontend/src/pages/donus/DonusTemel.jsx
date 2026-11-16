@@ -176,7 +176,7 @@ export default function DonusTemel() {
   const allDone = seen.length === temel.items.length;
   const ltr = lang === 'ar';
   const dirProps = ltr ? { dir: 'ltr' } : {};
-  const dirStyle = ltr ? { textAlign: 'left' } : {};
+  const dirStyle = ltr ? { textAlign: 'start' } : {};
 
   // Modüle özel SVG bileşeni
   const ModuleSVG = getModuleSVG(temel.id || id);
@@ -285,7 +285,7 @@ export default function DonusTemel() {
               <motion.button
                 whileTap={{ scale: 0.985 }}
                 onClick={() => handleItemClick(i)}
-                className="w-full p-4 sm:p-[18px] flex items-center gap-3 text-left relative">
+                className="w-full p-4 sm:p-[18px] flex items-center gap-3 text-start relative">
 
                 {/* Numara / Tik */}
                 <motion.span

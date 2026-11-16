@@ -128,7 +128,7 @@ export default function QuizEngine() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => startGame(mode.count, mode.mult)}
-                  className="w-full text-left p-4 rounded-[24px] shadow-sm flex items-center gap-4 relative overflow-hidden"
+                  className="w-full text-start p-4 rounded-[24px] shadow-sm flex items-center gap-4 relative overflow-hidden"
                   style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
                 >
                   <div className="w-16 h-16 rounded-[18px] flex items-center justify-center shrink-0 shadow-inner relative z-10" style={{ background: mode.gradient }}>
@@ -139,7 +139,7 @@ export default function QuizEngine() {
                     <p className="text-[12px] font-semibold" style={{ color: theme.textSecondary }}>{mode.desc}</p>
                   </div>
                   <div className="w-10 h-10 rounded-full flex items-center justify-center relative z-10" style={{ background: `${mode.color}15` }}>
-                    <Play size={18} color={mode.color} className="ml-0.5" />
+                    <Play size={18} color={mode.color} className="ms-0.5" />
                   </div>
                 </motion.button>
               ))}
@@ -211,7 +211,7 @@ export default function QuizEngine() {
               key={i}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleAnswer(i)}
-              className="w-full text-left p-4 rounded-2xl border-2 transition-colors relative overflow-hidden"
+              className="w-full text-start p-4 rounded-2xl border-2 transition-colors relative overflow-hidden"
               style={{ background: theme.surface, borderColor: theme.cardBorder, color: theme.textPrimary }}
             >
               <div className="flex items-center gap-3">

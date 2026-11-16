@@ -15,7 +15,8 @@ for name, attrs in (("fastapi", {"APIRouter": object, "HTTPException": Exception
 import rehber  # noqa: E402
 
 rehber.INDEX.build()
-items = json.load(open(ROOT / "tests" / "rehber_eval.json", encoding="utf-8"))["items"]
+data = json.load(open(ROOT / "tests" / "rehber_eval.json", encoding="utf-8"))
+items = data["items"]
 hit = 0
 for it in items:
     got = [f"{d['surah']}:{d['ayah']}" for _, _, d in rehber.INDEX.search(it["q"], 5)]
@@ -23,5 +24,14 @@ for it in items:
     hit += ok
     if not ok or "-v" in sys.argv:
         print(("✓" if ok else "✗"), it["q"], "→", got[:5], "| beklenen", it["a"])
+answered = sum(any(f"{d['surah']}:{d['ayah']}" in it["a"] for _, _, d in rehber.good_hits(it["q"], 5)) for it in items)
+print(f"Eşiği geçip cevaplanan: {answered}/{len(items)}")
 print(f"\nİlk 5'te isabet: {hit}/{len(items)} (%{round(100 * hit / len(items))})")
+leak = 0
+for q in data.get("noise", []):
+    good = [(round(s, 2), round(c, 2), f"{d['surah']}:{d['ayah']}") for s, c, d in rehber.good_hits(q, 5)]
+    leak += bool(good)
+    if good:
+        print("✗ gürültü geçti:", q, "→", good[:3])
+print(f"İlgisiz soruda eşiği geçen: {leak}/{len(data.get('noise', []))}")
 sys.exit(0 if hit / len(items) >= 0.8 else 1)

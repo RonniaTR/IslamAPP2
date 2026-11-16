@@ -1,0 +1,333 @@
+{
+ "_not": "ÜRETİLMİŞ DOSYA — elle düzenleme. Kaynak: backend/rehber.py · üret: python3 backend/scripts/export_rehber_data.py",
+ "stop": [
+  "ama",
+  "ancak",
+  "bana",
+  "ben",
+  "beni",
+  "bir",
+  "biz",
+  "bu",
+  "buna",
+  "bunu",
+  "da",
+  "daha",
+  "de",
+  "değil",
+  "diye",
+  "eder",
+  "en",
+  "etti",
+  "fakat",
+  "gibi",
+  "göre",
+  "hem",
+  "her",
+  "hiç",
+  "ile",
+  "ise",
+  "için",
+  "kadar",
+  "kendi",
+  "ki",
+  "kim",
+  "mi",
+  "mu",
+  "mü",
+  "mı",
+  "nasıl",
+  "ne",
+  "neden",
+  "niçin",
+  "o",
+  "olan",
+  "olarak",
+  "oldu",
+  "olur",
+  "ona",
+  "onlar",
+  "onu",
+  "onun",
+  "sana",
+  "sen",
+  "seni",
+  "siz",
+  "sonra",
+  "var",
+  "ve",
+  "veya",
+  "ya",
+  "yok",
+  "çok",
+  "önce",
+  "üzere",
+  "şey",
+  "şu"
+ ],
+ "expand": {
+  "alkol": "içki şarap",
+  "bira": "içki şarap",
+  "sarhoş": "içki şarap",
+  "dedikodu": "gıybet çekiştirmek arkasından",
+  "arkasından konuş": "gıybet",
+  "seferi": "yolculuk yolcu sefer namazı kısaltmak",
+  "seyahat": "yolculuk sefer",
+  "kredi": "faiz riba",
+  "banka": "faiz",
+  "zekât": "sadakalar fakirler yoksullar",
+  "zekat": "sadakalar fakirler yoksullar",
+  "hac": "kâbe haccetmek yoluna gücü yeten ev",
+  "umre": "hac umre kâbe",
+  "şükre": "şükrederseniz artırırım nimet",
+  "şükür": "şükrederseniz nimet",
+  "hangi ay": "ramazan ayı indirildi",
+  "kadir": "kadir gecesi indirdik",
+  "öfke": "öfkelerini yenen kızgınlık affeden bağışlayan",
+  "sinir": "öfke kızgınlık",
+  "susup": "sus dinleyin kulak verin",
+  "dinlemek": "dinleyin kulak verin",
+  "başörtü": "örtülerini yakalarının üzerine",
+  "tesettür": "örtülerini zinet",
+  "yalan": "yalan iftira doğru söz",
+  "iftira": "iftira bühtan",
+  "hırsız": "hırsızlık çalan",
+  "rüşvet": "mallarınızı haksız yere hâkimlere",
+  "kıskan": "haset çekemez",
+  "haset": "haset kıskanç",
+  "kibir": "büyüklenen böbürlenen",
+  "gurur": "büyüklenen böbürlenen",
+  "cimri": "cimrilik eli sıkı",
+  "israf": "israf saçıp savurma",
+  "komşu": "komşu yakın akraba iyilik",
+  "akraba": "akraba yakınlar hakkını ver",
+  "evlilik": "eşler nikâh evlen",
+  "eş": "eşler sevgi merhamet",
+  "ölünce": "ölüm diriliş kıyamet",
+  "ahiret": "ahiret kıyamet hesap",
+  "tövbe": "tövbe bağışlayan affeden rahmet",
+  "günah": "günah bağışla tövbe",
+  "rızık": "rızık veren geçim",
+  "fakir": "yoksul fakir sadaka",
+  "kaygı": "korku üzüntü güven",
+  "korku": "korkmayın üzülmeyin",
+  "yalnız": "yakınım dua şah damarı",
+  "dua": "dua edin icabet"
+ },
+ "themes": [
+  [
+   [
+    "zor",
+    "sıkın",
+    "daral",
+    "bunal",
+    "yorul",
+    "nefes",
+    "üst üste"
+   ],
+   [
+    [
+     94,
+     5
+    ],
+    [
+     94,
+     6
+    ],
+    [
+     2,
+     286
+    ]
+   ]
+  ],
+  [
+   [
+    "huzur",
+    "sakin",
+    "kalb",
+    "kalp"
+   ],
+   [
+    [
+     13,
+     28
+    ]
+   ]
+  ],
+  [
+   [
+    "şükür",
+    "şükre",
+    "iyili",
+    "nimet",
+    "sevin",
+    "mutlu"
+   ],
+   [
+    [
+     14,
+     7
+    ],
+    [
+     93,
+     11
+    ]
+   ]
+  ],
+  [
+   [
+    "yalnız",
+    "kimse",
+    "terk"
+   ],
+   [
+    [
+     2,
+     186
+    ],
+    [
+     50,
+     16
+    ]
+   ]
+  ],
+  [
+   [
+    "kork",
+    "endiş",
+    "kaygı",
+    "tedir"
+   ],
+   [
+    [
+     9,
+     40
+    ],
+    [
+     3,
+     173
+    ]
+   ]
+  ],
+  [
+   [
+    "öfke",
+    "sinir",
+    "kızgı",
+    "kırıl"
+   ],
+   [
+    [
+     3,
+     134
+    ],
+    [
+     41,
+     34
+    ]
+   ]
+  ],
+  [
+   [
+    "günah",
+    "pişma",
+    "tövbe",
+    "hata",
+    "utan"
+   ],
+   [
+    [
+     39,
+     53
+    ]
+   ]
+  ],
+  [
+   [
+    "hasta",
+    "ağrı",
+    "şifa"
+   ],
+   [
+    [
+     26,
+     80
+    ]
+   ]
+  ],
+  [
+   [
+    "rızık",
+    "para",
+    "borç",
+    "geçim",
+    "işsiz"
+   ],
+   [
+    [
+     65,
+     2
+    ],
+    [
+     65,
+     3
+    ]
+   ]
+  ],
+  [
+   [
+    "ölüm",
+    "kayb",
+    "yas",
+    "vefat",
+    "özle"
+   ],
+   [
+    [
+     2,
+     155
+    ],
+    [
+     2,
+     156
+    ]
+   ]
+  ],
+  [
+   [
+    "sabır",
+    "sabre",
+    "dayan"
+   ],
+   [
+    [
+     2,
+     153
+    ],
+    [
+     39,
+     10
+    ]
+   ]
+  ],
+  [
+   [
+    "haksı",
+    "zulüm",
+    "adalet"
+   ],
+   [
+    [
+     14,
+     42
+    ],
+    [
+     4,
+     135
+    ]
+   ]
+  ]
+ ],
+ "minScore": 0.15,
+ "minCover": 0.5
+}

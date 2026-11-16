@@ -9,6 +9,7 @@ import ambient from '../../services/ambient';
 import { donusPalette, PHASE_COLORS, alpha } from '../../donus/palette';
 import { getReturnDay, getTodayPhase, isReturnMode, enableReturnMode, LAST_DAY } from '../../services/returnEngine';
 import GateAnimation from './GateAnimation';
+import PhaseScene from './PhaseScene';
 import { useAuth } from '../../contexts/AuthContext';
 import { syncDonus } from '../../services/donusSync';
 import ReturnIntro from '../ReturnIntro';
@@ -95,7 +96,7 @@ function AmbientDock({ p }) {
             <div className="space-y-1">
               {ambient.TRACKS.map(tr => (
                 <button key={tr.id} onClick={() => ambient.setTrack(tr.id)}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left"
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-start"
                   style={{
                     background: state.track === tr.id ? p.cardTint : 'transparent',
                     border: `1px solid ${state.track === tr.id ? p.border : 'transparent'}`,
@@ -124,6 +125,7 @@ export default function DonusShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [gate, setGate] = useState(false);
+  const [scene, setScene] = useState(null); // { from, to } — evre geçiş sahnesi, eşikten ÖNCE oynar
   const { user } = useAuth();
 
   const day = Math.min(getReturnDay(), LAST_DAY);
@@ -138,7 +140,8 @@ export default function DonusShell() {
     // Evre geçişi (Kapı → Temel → …): yeni evreye ilk girişte eşik yeni rengi ve makamıyla bir kez daha açılır.
     let lastPhase = phase.id;
     try { lastPhase = localStorage.getItem('donus_last_phase') || ''; localStorage.setItem('donus_last_phase', phase.id); } catch { /* ignore */ }
-    if (!seen || (lastPhase && lastPhase !== phase.id)) setGate(true);
+    if (lastPhase && lastPhase !== phase.id) setScene({ from: lastPhase, to: phase.id });
+    else if (!seen) setGate(true);
     // Bulut yedeği: giriş yapmış kullanıcıda yol başka cihaza taşınabilsin (mektup hariç).
     syncDonus(user?.uid || user?.id).then((r) => { if (r === 'restored') window.location.reload(); });
   }, []);
@@ -188,6 +191,10 @@ export default function DonusShell() {
       data-testid="donus-shell">
 
       <AnimatePresence>
+        {scene && <PhaseScene fromId={scene.from} toId={scene.to} onDone={() => { setScene(null); setGate(true); }} />}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {gate && (
           <GateAnimation onDone={() => {
             try { sessionStorage.setItem(GATE_KEY, '1'); } catch { /* ignore */ }
@@ -212,7 +219,7 @@ export default function DonusShell() {
           <X size={16} style={{ color: p.dim }} />
         </button>
 
-        <button onClick={() => navigate('/donus')} className="flex-1 min-w-0 text-left active:opacity-70">
+        <button onClick={() => navigate('/donus')} className="flex-1 min-w-0 text-start active:opacity-70">
           <p className="text-[8.5px] font-black uppercase tracking-[0.32em]" style={{ color: p.accent }}>
             {tt('Dönüş Odası')}
           </p>

@@ -309,7 +309,7 @@ export default function ModeSelector({ onComplete }) {
         >
           <Globe size={14} />
           <span>Dil</span>
-          <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginLeft: '4px' }}>
+          <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginInlineStart: '4px' }}>
             {LANGUAGES.find(l => l.code === lang)?.name || 'Türkçe'}
           </span>
           <ChevronDown size={14} />

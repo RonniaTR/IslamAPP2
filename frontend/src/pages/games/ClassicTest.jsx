@@ -121,12 +121,12 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
                   className="overflow-hidden mt-2 rounded-xl" style={{ border: `1px solid ${theme.cardBorder}` }}>
                   <div className="max-h-44 overflow-y-auto">
                     <button onClick={() => { setCategory(null); setCatOpen(false); }}
-                      className="w-full text-left px-3 py-2.5 text-xs font-bold" style={{ color: !category ? theme.gold : theme.textPrimary, background: !category ? `${theme.gold}0d` : 'transparent' }}>
+                      className="w-full text-start px-3 py-2.5 text-xs font-bold" style={{ color: !category ? theme.gold : theme.textPrimary, background: !category ? `${theme.gold}0d` : 'transparent' }}>
                       Tümü (Karışık)
                     </button>
                     {BANK_CATEGORIES.map(c => (
                       <button key={c.name} onClick={() => { setCategory(c.name); setCatOpen(false); }}
-                        className="w-full text-left px-3 py-2.5 text-xs font-bold flex justify-between"
+                        className="w-full text-start px-3 py-2.5 text-xs font-bold flex justify-between"
                         style={{ color: category === c.name ? theme.gold : theme.textPrimary, background: category === c.name ? `${theme.gold}0d` : 'transparent' }}>
                         {c.name} <span style={{ color: theme.textSecondary }}>{c.count}</span>
                       </button>
@@ -155,7 +155,7 @@ export default function ClassicTest({ theme, onXP, onEvent = () => {} }) {
 
           {/* Yanlışları sona bırak */}
           <button onClick={() => setRetryWrongs(r => !r)} className="w-full flex items-center justify-between">
-            <div className="text-left">
+            <div className="text-start">
               <p className="text-xs font-black" style={{ color: theme.textPrimary }}>Yanlışları Sona Bırak</p>
               <p className="text-[9px]" style={{ color: theme.textSecondary }}>Yanlış cevapladığın sorular testin sonunda tekrar sorulur</p>
             </div>

@@ -11,6 +11,7 @@
 // Hangi çevirinin kullanılacağı data/sources.json içinde tanımlıdır; kodda anahtar yazılmaz.
 
 import sources from '../data/sources.json';
+import { packSurah } from './offline';
 
 const API = 'https://quranenc.com/api/v1';
 const CACHE_PREFIX = 'meal_v1';
@@ -51,6 +52,10 @@ export async function fetchMeal(surahNumber, lang = 'tr') {
   const src = getMealSource(lang);
   const n = Number(surahNumber);
   if (!(n >= 1 && n <= 114)) throw new Error('Geçersiz sure numarası');
+
+  // ÇEVRİMDIŞI ÖNCE: cihazdaki paket varsa ağ hiç kullanılmaz (sürüm paketin kendi sürümüdür).
+  const local = await packSurah(src.key, n);
+  if (local) return { ayahs: local.ayahs, source: src, version: local.version || src.surum, fromCache: true, offline: true };
 
   const version = await getLiveVersion(src, lang);
   const k = `${CACHE_PREFIX}:${src.key}:${version}:${n}`;
@@ -102,6 +107,8 @@ export async function fetchTafsir(surahNumber, lang = 'tr') {
   const src = getTafsirSource(lang);
   if (!src) return null;
   const n = Number(surahNumber);
+  const local = await packSurah(src.key, n);
+  if (local) return { ayahs: local.ayahs, source: src, version: local.version || src.surum, fromCache: true, offline: true };
   const version = await getLiveVersion(src, 'tr');
   const k = `${CACHE_PREFIX}:${src.key}:${version}:${n}`;
   const cached = read(k);

@@ -109,7 +109,7 @@ export default function DhikrPage() {
                 key={dhikr.id || idx}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate(`/dhikr/${dhikr.id}`)}
-                className="flex items-center justify-between p-4 rounded-[20px] transition-shadow hover:shadow-sm w-full text-left"
+                className="flex items-center justify-between p-4 rounded-[20px] transition-shadow hover:shadow-sm w-full text-start"
                 style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
               >
                 <div className="flex items-center gap-4">

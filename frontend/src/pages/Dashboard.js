@@ -1,401 +1,239 @@
-import React from 'react';
+// frontend/src/pages/Dashboard.js
+// 🏠 ANA EKRAN v2 (tuval G1) — Ana sayfa ve Keşfet tek akışta.
+// Sıra: selam · vakit kartı · vakte göre öneri · arama/Sor · kaldığın yerler · modlar · günün ayeti/hadisi · bugün.
+// Bütün değerler gerçek kaynaktan gelir; kaynak boşsa o parça hiç gösterilmez (sahte ilerleme yok).
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Play, Bookmark, Share2, MapPin, ChevronRight, BookOpen, Heart, ScrollText, Gamepad2, CheckCircle2, Circle, Users, Route, Moon, Wind } from 'lucide-react';
+import { Bell, Search, MessageCircle, Check, Zap, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Card } from '../components/ui/Card';
-import { Typography } from '../components/ui/Typography';
-import { ProgressBar } from '../components/ui/ProgressBar';
-import { usePrayerTimes, TURKISH_CITIES } from '../hooks/usePrayerTimes';
-import { BookmarkService } from '../services/BookmarkService';
-import { getTodayPlan, isTaskDone, getStreak, getBadges, getHistory, TASK_POOL } from '../services/pathEngine';
+import { getTodayPlan, isTaskDone, getStreak, TASK_POOL } from '../services/pathEngine';
+import { isReturnMode, getReturnDay, LAST_DAY } from '../services/returnEngine';
 import { getCachedStats, fetchStats, subscribeStats } from '../services/gamification';
+import { getDailyHadith } from '../data/dailyHadith';
+import { getFeatures, getHomeFeatures } from '../features/registry';
+import { QURAN_PUBLIC } from '../config/quranAccess';
+import { loadDefter } from './DefterPage';
 import { useTx } from '../i18n';
-import { getHomeFeatures } from '../features/registry';
+import PrayerCard from '../components/home/PrayerCard';
 import SessizDavet from '../components/SessizDavet';
 
-// Mini Quick Link
-function QuickLink({ icon: Icon, label, color, onClick }) {
-  return (
-    <div onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer', minWidth: '64px' }}>
-      <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${color}30` }}>
-        <Icon size={20} color={color} />
-      </div>
-      <Typography variant="caption" color="secondary" style={{ fontSize: '10px' }}>{label}</Typography>
-    </div>
-  );
-}
+const PAPER = { bg: '#FBF8F0', ink: '#1A1A1A', soft: '#5C4B2A', line: '#D9CDAE' };
+const read = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 
-// Daily Task Item
-function TaskItem({ title, xp, completed, theme }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: `1px solid ${theme.cardBorder}` }}>
-      {completed ? <CheckCircle2 size={20} color={theme.success} /> : <Circle size={20} color={theme.textMuted} />}
-      <div style={{ flex: 1 }}>
-        <Typography variant="bodySmall" weight={completed ? 600 : 500} color={completed ? 'primary' : 'secondary'} style={{ textDecoration: completed ? 'line-through' : 'none' }}>
-          {title}
-        </Typography>
-      </div>
-      {/* İbadet görevleri XP vermez (docs/YENI_OZELLIKLER.md §0 kural 7); XP yalnız ilim ve oyunda gösterilir. */}
-      {xp > 0 && <Typography variant="caption" color="gold" weight={700}>+{xp} XP</Typography>}
-    </div>
-  );
+const MODES = [
+  { n: '01', title: "Kur'an", desc: 'Oku · dinle · ezberle · hatim', route: '/mushaf' },
+  { n: '02', title: 'Hadis ve İlim', desc: 'Hadis · fıkıh · siyer · kütüphane', route: '/hadith' },
+  { n: '03', title: 'Yolculuk', desc: 'Nur Yolu · Kırk Perde · gece', route: '/yol' },
+  { n: '04', title: 'Oyun', desc: 'Oyunlar · lig · görevler', route: '/games' },
+  { n: '05', title: 'Günlük', desc: 'Zikir · kıble · kaza · defter', route: '/dhikr' },
+  { n: '06', title: 'Rehber', desc: 'Kaynaklı sor · doğrula · anlat', route: '/rehber' },
+];
+
+/** Günün vaktine göre tek öneri. Kur'an önerisi yalnız Kur'an bölümleri açıksa çıkar. */
+function suggestion(hour) {
+  if (hour >= 4 && hour < 11) return { tag: 'Sabah', title: 'Sabah zikirleri', sub: 'Güne birkaç dakikalık zikirle başla', route: '/dhikr', cta: 'Aç' };
+  if (hour >= 11 && hour < 16) return { tag: 'Gün ortası', title: 'Günün hadisi', sub: 'Kaynağıyla tek hadis', route: '/hadith', cta: 'Oku' };
+  if (hour >= 16 && hour < 19) return { tag: 'İkindi', title: 'Kelime Koçu', sub: 'Beş dakikalık tekrar', route: '/kelime', cta: 'Başla' };
+  if (hour >= 19 && hour < 22) return { tag: 'Akşam', title: 'Aile Sofrası', sub: 'Sofrada konuşmak için tek kart', route: '/sofra', cta: 'Aç' };
+  return QURAN_PUBLIC
+    ? { tag: 'Gece', title: 'Uyku öncesi: Mülk suresi', sub: '30 ayet', route: '/quran/67', cta: 'Oku' }
+    : { tag: 'Gece', title: 'Günün muhasebesi', sub: 'Amel defterine iki satır', route: '/journal', cta: 'Yaz' };
 }
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const { city, changeCity, nextPrayer, countdown } = usePrayerTimes();
-  const [isPlaying, setIsPlaying] = React.useState(false);
-  const [isBookmarked, setIsBookmarked] = React.useState(false);
   const tt = useTx();
-
-  // ─── Gerçek ilerleme verisi ───
-  // Önceki sürüm burada sabit değerler gösteriyordu (3/5 görev, 1250 XP, 7 gün, 45 rozet,
-  // "Yasin 45/83"); yeni kullanıcı da bunları kendi ilerlemesi sanıyordu. Artık her değer
-  // gerçek kaynaktan gelir, kaynak boşsa boş durum gösterilir.
-  const [stats, setStats] = React.useState(() => getCachedStats());
-  React.useEffect(() => {
+  const [q, setQ] = useState('');
+  const [stats, setStats] = useState(() => getCachedStats());
+  useEffect(() => {
     const off = subscribeStats(setStats);
     fetchStats(user).then((st) => { if (st) setStats(st); });
     return off;
   }, [user]);
-  const plan = getTodayPlan(); // Nur Yolu değerlendirmesi yapılmadıysa null
-  // plan.tasks görev kimliklerinin listesidir; ayrıntı TASK_POOL'dan gelir.
-  const planTasks = plan
-    ? plan.tasks.map((id) => ({ id, ...(TASK_POOL[id] || { title: id, xp: 0 }), done: isTaskDone(plan, id) }))
+
+  const plan = getTodayPlan();
+  const tasks = plan ? plan.tasks.map((id) => ({ id, ...(TASK_POOL[id] || { title: id, xp: 0 }), done: isTaskDone(plan, id) })) : [];
+  const worship = tasks.filter((t) => !t.xp);
+  const study = tasks.filter((t) => t.xp > 0);
+  const hadith = useMemo(() => getDailyHadith(), []);
+  const sug = suggestion(new Date().getHours());
+  const streak = getStreak();
+
+  // KALDIĞIN YERLER — yalnız gerçekten başlanmış olanlar
+  const places = [];
+  const lastRead = read('quran_last');
+  const lastPage = Number(read('mushaf_last_page')) || 0;
+  if (QURAN_PUBLIC && lastPage > 1) places.push({ tag: 'Mushaf', title: `${tt('Sayfa')} ${lastPage}`, sub: `${lastPage} / 604`, pct: (lastPage / 604) * 100, route: `/mushaf/${lastPage}` });
+  if (QURAN_PUBLIC && lastRead?.surah) places.push({ tag: 'Son okunan', title: lastRead.name || `${lastRead.surah}. ${tt('sure')}`, sub: lastRead.ayah && lastRead.total ? `${lastRead.ayah} / ${lastRead.total} ${tt('ayet')}` : '', pct: lastRead.ayah && lastRead.total ? (lastRead.ayah / lastRead.total) * 100 : null, route: `/quran/${lastRead.surah}` });
+  if (plan) places.push({ tag: 'Nur Yolu', title: tt('Bugünkü yolum'), sub: `${tasks.filter((t) => t.done).length} / ${tasks.length}${streak > 1 ? ` · ${streak} ${tt('gün')}` : ''}`, pct: tasks.length ? (tasks.filter((t) => t.done).length / tasks.length) * 100 : 0, route: '/yol' });
+  if (isReturnMode()) { const d = Math.min(getReturnDay(), LAST_DAY); places.push({ tag: 'Kırk Perde', title: tt('Dönüş Odası'), sub: `${d}. ${tt('gün')}`, pct: (d / LAST_DAY) * 100, route: '/donus' }); }
+  const hatim = read('hatim_plan_v1');
+  if (hatim) places.push({ tag: 'Esnek hatim', title: tt('Hatim planım'), sub: tt('Bugünkü payı gör'), pct: null, route: '/hatim-plani' });
+  const defterCount = loadDefter().length;
+  if (defterCount) places.push({ tag: 'Defter', title: tt('Hayat ayetleri'), sub: `${defterCount} ${tt('ayet')}`, pct: null, route: '/defter' });
+
+  // ARAMA — özellik kaydında arar; bulunamazsa soruyu Rehber'e taşır
+  const needle = q.trim().toLocaleLowerCase('tr');
+  const found = needle.length > 1
+    ? getFeatures().filter((f) => `${f.title} ${f.desc} ${tt(f.title)}`.toLocaleLowerCase('tr').includes(needle)).slice(0, 6)
     : [];
-  const doneCount = planTasks.filter((t) => t.done).length;
-  const streakDays = getStreak();
-  const earnedBadges = getBadges().filter((b) => b.earned).length;
-  const activeDays = Object.values(getHistory()).filter((h) => h.done > 0).length;
-  const totalXp = stats?.total_points || 0;
-  let lastRead = null;
-  try { lastRead = JSON.parse(localStorage.getItem('quran_last')); } catch { lastRead = null; }
+  const ask = () => navigate(needle ? `/rehber?q=${encodeURIComponent(q.trim())}` : '/rehber');
 
-  const verseText = "Öyleyse yalnız beni anın ki ben de sizi anayım. Bana şükredin, sakın nankörlük etmeyin.";
-  const verseRef = "Bakara Suresi - 152";
-
-  React.useEffect(() => {
-    // Check if bookmarked on mount
-    const checkBookmark = async () => {
-      const b = await BookmarkService.isBookmarked(user?.id, 'daily_verse');
-      setIsBookmarked(b);
-    };
-    checkBookmark();
-  }, [user]);
-
-  const handlePlayVerse = () => {
-    if (isPlaying) {
-      window.speechSynthesis.cancel();
-      setIsPlaying(false);
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(verseText + " " + verseRef);
-    utterance.lang = 'tr-TR';
-    utterance.pitch = 0.8; // Deep voice
-    utterance.rate = 0.85; // Slow, wise pace
-    utterance.onend = () => setIsPlaying(false);
-    setIsPlaying(true);
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const handleShareVerse = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Günün Ayeti - İslamApp',
-          text: `Günün Ayeti: "${verseText}"\n${verseRef}`,
-        });
-      } else {
-        alert("Paylaşım özelliği tarayıcınızda desteklenmiyor.");
-      }
-    } catch (e) {
-      console.log('Share error', e);
-    }
-  };
-
-  const handleSaveVerse = async () => {
-    try {
-      const newStatus = await BookmarkService.toggleBookmark(user?.id, {
-        id: 'daily_verse',
-        type: 'verse',
-        title: verseRef,
-        slug: '/quran/2', // Example slug for Bakara
-        desc: verseText
-      });
-      setIsBookmarked(newStatus);
-    } catch (e) {
-      console.error("Kaydetme hatası", e);
-    }
-  };
+  const card = { borderRadius: 20, background: theme.surface, border: `1px solid ${theme.cardBorder}` };
+  const label = { fontSize: 11, fontWeight: 600, letterSpacing: 1.6, color: theme.textSecondary, textTransform: 'uppercase', paddingTop: 4 };
+  const initial = (user?.name || '?').trim().charAt(0).toLocaleUpperCase('tr');
 
   return (
-    <div style={{ minHeight: '100vh', background: theme.bg, paddingBottom: '100px' }} data-testid="dashboard">
-      
-      {/* HEADER */}
-      <div style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10, background: theme.bg }}>
-        <div>
-          <Typography variant="h2" color="primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            Esselamu Aleyküm
-          </Typography>
-          <Typography variant="h2" color="primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            {user?.name || 'Hoş geldin'} <span role="img" aria-label="wave">👋</span>
-          </Typography>
-          <Typography variant="bodySmall" color="secondary">Hayırlı sabahlar</Typography>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button style={{ width: '40px', height: '40px', borderRadius: '50%', background: theme.surface, border: `1px solid ${theme.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <Bell size={20} color={theme.textSecondary} />
-            <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: '50%', background: theme.error, border: `2px solid ${theme.surface}` }} />
+    <div data-testid="dashboard" style={{ minHeight: '100vh', background: theme.bg, color: theme.textPrimary, paddingBottom: 110 }}>
+      <div className="stagger" style={{ maxWidth: 560, margin: '0 auto', padding: '18px 20px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+        <header style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ fontSize: 13, color: theme.textSecondary }}>{tt('Esselâmü aleyküm')}</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, letterSpacing: -0.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || tt('Hoş geldin')}</span>
+          </div>
+          <button type="button" aria-label={tt('Bildirim ayarları')} onClick={() => navigate('/settings')} style={{ width: 44, height: 44, borderRadius: 22, background: theme.surface, border: `1px solid ${theme.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <Bell size={18} color={theme.textSecondary} />
           </button>
-          <div onClick={() => navigate('/profile')} style={{ width: '44px', height: '44px', borderRadius: '50%', background: theme.surfaceLight, border: `2px solid ${theme.gold}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden' }}>
-             <span style={{ fontSize: '20px' }}>👨🏻</span>
-          </div>
-        </div>
-      </div>
+          <button type="button" aria-label={tt('Profil')} onClick={() => navigate('/profile')} style={{ width: 44, height: 44, borderRadius: 22, background: theme.surface, border: `2px solid ${theme.gold}`, color: theme.gold, fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>{initial}</button>
+        </header>
 
-      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        
-        {/* GÜNÜN AYETİ (Hero Card) - Gold/Beige styled */}
-        <Card gradient="linear-gradient(135deg, #FDF7E3 0%, #EFE1B8 100%)" border={false} style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <Typography variant="caption" weight={700} style={{ color: '#8C6C2E', textTransform: 'uppercase', letterSpacing: '1px' }}>Günün Ayeti</Typography>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={handleShareVerse} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                <Share2 size={18} color="#8C6C2E" />
-              </button>
-              <button onClick={handleSaveVerse} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                <Bookmark size={18} color="#8C6C2E" fill={isBookmarked ? "#8C6C2E" : "none"} />
-              </button>
-            </div>
-          </div>
-          <Typography variant="h3" style={{ color: '#4A3B18', lineHeight: 1.8, textAlign: 'right', fontFamily: "'Amiri', serif", fontSize: '28px', marginBottom: '12px' }}>
-            فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ
-          </Typography>
-          <Typography variant="bodySmall" style={{ color: '#5C4A21', marginBottom: '16px', lineHeight: 1.6 }}>
-            "{verseText}"
-          </Typography>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" weight={700} style={{ color: '#8C6C2E' }}>{verseRef}</Typography>
-            <button onClick={handlePlayVerse} style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#4A3B18', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
-              {isPlaying ? (
-                <div style={{ width: '12px', height: '12px', background: '#FFF', borderRadius: '2px' }} />
-              ) : (
-                <Play size={16} color="#FFF" style={{ marginLeft: '2px' }} />
-              )}
-            </button>
-          </div>
-        </Card>
-
-        {/* NAMAZA KALAN SÜRE */}
-        <Card style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <Typography variant="subtitle2" color="secondary" style={{ marginBottom: '4px' }}>Namaza Kalan Süre</Typography>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: `${theme.primary}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: '18px' }}>🕋</span>
-              </div>
-              <div>
-                <Typography variant="h3" color="primary">{nextPrayer ? nextPrayer.name : 'Hesaplanıyor'}</Typography>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                  <MapPin size={10} color={theme.textSecondary} />
-                  <select 
-                    value={city} 
-                    onChange={(e) => changeCity(e.target.value)}
-                    style={{ 
-                      background: 'transparent', 
-                      border: 'none', 
-                      outline: 'none', 
-                      fontSize: '11px', 
-                      color: theme.textSecondary,
-                      cursor: 'pointer',
-                      WebkitAppearance: 'none',
-                      fontFamily: "'Inter', sans-serif"
-                    }}
-                  >
-                    <option value="İstanbul">İstanbul</option>
-                    {TURKISH_CITIES.filter(c => c !== 'İstanbul').map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <Typography variant="h1" color="gold" style={{ fontFamily: 'monospace', letterSpacing: '-1px' }}>{countdown}</Typography>
-            <Typography variant="caption" color="secondary">Vakit: {nextPrayer ? nextPrayer.time : '--:--'}</Typography>
-          </div>
-        </Card>
-
-        {/* QUICK LINKS */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', overflowX: 'auto', gap: '8px', WebkitOverflowScrolling: 'touch' }}>
-          <QuickLink icon={Route} label="Yol" color="#10B981" onClick={() => navigate('/yol')} />
-          <QuickLink icon={BookOpen} label="Kur'an" color="#4A90D9" onClick={() => navigate('/quran')} />
-          <QuickLink icon={Users} label="Ortak Hatim" color="#10B981" onClick={() => navigate('/hatim')} />
-          <QuickLink icon={Wind} label="Halvet" color="#8b5cf6" onClick={() => navigate('/halvet')} />
-          <QuickLink icon={Moon} label="Gece" color="#6366F1" onClick={() => navigate('/night')} />
-          <QuickLink icon={Gamepad2} label="Oyna" color="#EC4899" onClick={() => navigate('/quiz')} />
-          {/* Yeni özellikler features/registry.js'ten gelir: listeye satır eklemek yeterli */}
-          {getHomeFeatures().map((f) => (
-            <button key={f.id} onClick={() => navigate(f.route)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: '64px', background: 'none', border: 'none', cursor: 'pointer' }}>
-              <span style={{ width: '48px', height: '48px', borderRadius: '16px', background: theme.surface, border: `1px solid ${theme.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{f.emoji}</span>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: theme.textSecondary, whiteSpace: 'nowrap' }}>{tt(f.title)}</span>
-            </button>
-          ))}
-          <button onClick={() => navigate('/ozellikler')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minWidth: '64px', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <span style={{ width: '48px', height: '48px', borderRadius: '16px', background: theme.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', color: '#1A1A1A', fontWeight: 800 }}>⋯</span>
-            <span style={{ fontSize: '11px', fontWeight: 600, color: theme.textSecondary }}>{tt('Tümü')}</span>
-          </button>
-        </div>
-
+        <PrayerCard />
         <SessizDavet />
 
-        {/* BUGÜNKÜ YOLUM — Nur Yolu planından gelir */}
-        {plan ? (
-          <Card onClick={() => navigate('/yol')}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <Typography variant="h4" color="primary" style={{ marginBottom: '4px' }}>{tt('Bugünkü Yolum')}</Typography>
-                <Typography variant="caption" color="secondary">{doneCount}/{planTasks.length} {tt('adım tamamlandı')}</Typography>
-              </div>
-            </div>
-            <ProgressBar progress={planTasks.length ? Math.round((doneCount / planTasks.length) * 100) : 0} color={theme.gold} height="6px" style={{ marginBottom: '16px' }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {planTasks.map((t) => (
-                <TaskItem key={t.id} title={`${t.icon || ''} ${tt(t.title)}`} xp={t.xp || 0} completed={t.done} theme={theme} />
-              ))}
-            </div>
-          </Card>
-        ) : (
-          <Card onClick={() => navigate('/yol')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <Typography variant="h4" color="primary" style={{ marginBottom: '4px' }}>{tt('Bugünkü Yolum')}</Typography>
-              <Typography variant="caption" color="secondary">{tt('Sana uygun günlük planı birlikte kuralım.')}</Typography>
-            </div>
-            <ChevronRight size={18} color={theme.textMuted} />
-          </Card>
+        <button type="button" onClick={() => navigate(sug.route)} style={{ ...card, borderRadius: 18, padding: '12px 12px 12px 16px', display: 'flex', alignItems: 'center', gap: 12, textAlign: 'start', cursor: 'pointer', color: theme.textPrimary }}>
+          <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.4, color: theme.gold, textTransform: 'uppercase' }}>{tt(sug.tag)} · {tt('vakte göre')}</span>
+            <span style={{ fontSize: 15, fontWeight: 600 }}>{tt(sug.title)}</span>
+            <span style={{ fontSize: 12, color: theme.textSecondary }}>{tt(sug.sub)}</span>
+          </span>
+          <span style={{ height: 44, padding: '0 18px', borderRadius: 22, background: theme.gold, color: '#1A1A1A', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center' }}>{tt(sug.cta)}</span>
+        </button>
+
+        <form onSubmit={(e) => { e.preventDefault(); if (found[0]) navigate(found[0].route); else ask(); }} style={{ display: 'flex', gap: 8 }} role="search">
+          <label style={{ flex: 1, minHeight: 48, borderRadius: 24, ...{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }, display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', minWidth: 0 }}>
+            <Search size={17} color={theme.textSecondary} aria-hidden="true" />
+            <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tt('Uygulamada ara ya da bir soru yaz')} aria-label={tt('Ara')}
+              style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: theme.textPrimary, fontFamily: 'inherit', fontSize: 14 }} />
+          </label>
+          <button type="button" onClick={ask} style={{ minHeight: 48, padding: '0 16px', borderRadius: 24, background: 'transparent', border: `1px solid ${theme.gold}`, color: theme.gold, display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            <MessageCircle size={16} aria-hidden="true" /> {tt('Sor')}
+          </button>
+        </form>
+        {needle.length > 1 && (
+          <div style={{ ...card, padding: '4px 14px' }}>
+            {found.map((f) => (
+              <button key={f.id} type="button" onClick={() => navigate(f.route)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, minHeight: 48, background: 'none', border: 'none', borderBottom: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, textAlign: 'start', cursor: 'pointer' }}>
+                <span aria-hidden="true">{f.emoji}</span>
+                <span style={{ flex: 1 }}><span style={{ fontSize: 14, fontWeight: 600 }}>{tt(f.title)}</span><br /><span style={{ fontSize: 11, color: theme.textSecondary }}>{tt(f.desc)}</span></span>
+              </button>
+            ))}
+            <button type="button" onClick={ask} style={{ width: '100%', minHeight: 48, background: 'none', border: 'none', color: theme.gold, textAlign: 'start', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+              {tt("Rehber'e sor")}: “{q.trim()}”
+            </button>
+          </div>
         )}
 
-        {/* İLERLEME — gerçek değerler; yeni kullanıcıda 0 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-          <Card padding="16px" style={{ textAlign: 'center' }}>
-            <Typography variant="h3" color="gold">{totalXp}</Typography>
-            <Typography variant="caption" color="secondary">{tt('İlim XP')}</Typography>
-          </Card>
-          <Card padding="16px" style={{ textAlign: 'center' }}>
-            <Typography variant="h3" color="primary">{activeDays}</Typography>
-            <Typography variant="caption" color="secondary">{streakDays > 1 ? `${tt('Yolda gün')} · ${streakDays} ${tt('art arda')}` : tt('Yolda gün')}</Typography>
-          </Card>
-          <Card padding="16px" style={{ textAlign: 'center' }}>
-            <Typography variant="h3" color="primary">{earnedBadges}</Typography>
-            <Typography variant="caption" color="secondary">{tt('Rozet')}</Typography>
-          </Card>
+        {places.length > 0 && (<>
+          <span style={label}>{tt('Kaldığın yerler')}</span>
+          <div style={{ display: 'flex', gap: 10, overflowX: 'auto', margin: '0 -20px', padding: '0 20px 4px' }}>
+            {places.map((p) => (
+              <button key={p.tag} type="button" onClick={() => navigate(p.route)} style={{ ...card, borderRadius: 18, flexShrink: 0, width: 160, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'start', color: theme.textPrimary, cursor: 'pointer' }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.2, color: theme.gold, textTransform: 'uppercase' }}>{tt(p.tag)}</span>
+                <span style={{ fontSize: 15, fontWeight: 700 }}>{p.title}</span>
+                <span style={{ fontSize: 11, color: theme.textSecondary }}>{p.sub}</span>
+                {p.pct != null && <span style={{ height: 4, borderRadius: 2, background: theme.bg, display: 'block', overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.min(100, Math.round(p.pct))}%`, height: 4, background: theme.gold }} /></span>}
+              </button>
+            ))}
+          </div>
+        </>)}
+
+        <span style={label}>{tt('Modlar')}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+          {MODES.map((m) => (
+            <button key={m.n} type="button" onClick={() => navigate(m.route)} style={{ ...card, borderRadius: 18, minHeight: 92, padding: 14, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textAlign: 'start', color: theme.textPrimary, cursor: 'pointer' }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 12, fontWeight: 700, color: theme.gold }}>{m.n}</span>
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontSize: 15, fontWeight: 700 }}>{tt(m.title)}</span>
+                <span style={{ fontSize: 11, color: theme.textSecondary }}>{tt(m.desc)}</span>
+              </span>
+            </button>
+          ))}
         </div>
 
-        {/* İLİM YOLCULUĞU */}
-        <Card gradient={theme.primaryGradient} onClick={() => navigate('/journey')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px' }}>
-          <div>
-            <Typography variant="h4" style={{ color: '#FFF', marginBottom: '4px' }}>{tt('İlim Yolculuğu')}</Typography>
-            <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.8)' }}>{tt('Kaldığın yerden devam et')}</Typography>
-          </div>
-          <button style={{ padding: '8px 16px', borderRadius: '12px', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#FFF', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {tt('Aç')} <ChevronRight size={14} />
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -20px', padding: '0 20px 2px' }}>
+          {getHomeFeatures().map((f) => (
+            <button key={f.id} type="button" onClick={() => navigate(f.route)} style={{ flexShrink: 0, minHeight: 44, padding: '0 14px', borderRadius: 22, background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              <span aria-hidden="true">{f.emoji}</span>{tt(f.title)}
+            </button>
+          ))}
+          <button type="button" onClick={() => navigate('/ozellikler')} style={{ flexShrink: 0, minHeight: 44, padding: '0 16px', borderRadius: 22, background: theme.gold, border: 'none', color: '#1A1A1A', fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>{tt('Tümü')}</button>
+        </div>
+
+        {/* Kutsal metin sabit kâğıt kartta; tema ne olursa olsun aynı (tasarım dili 0.8) */}
+        {QURAN_PUBLIC && (
+          <section style={{ borderRadius: 22, background: PAPER.bg, color: PAPER.ink, padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.4, color: '#6E5410', textTransform: 'uppercase' }}>{tt('Günün ayeti')}</span>
+              <span style={{ fontSize: 12, color: PAPER.soft }}>{tt('Bakara')} 152</span>
+            </div>
+            <p dir="rtl" lang="ar" style={{ margin: 0, fontFamily: "'Amiri', serif", fontSize: 28, lineHeight: 1.7, textAlign: 'right' }}>فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => navigate('/quran/2')} style={{ height: 40, padding: '0 16px', borderRadius: 20, background: PAPER.ink, border: 'none', color: PAPER.bg, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{tt('Meal ve tefsir')}</button>
+              <button type="button" onClick={() => navigate('/mushaf/23')} style={{ height: 40, padding: '0 16px', borderRadius: 20, background: 'transparent', border: `1px solid ${PAPER.line}`, color: PAPER.ink, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{tt("Mushaf'ta aç")}</button>
+            </div>
+          </section>
+        )}
+
+        {hadith && (
+          <section style={{ borderRadius: 22, background: PAPER.bg, color: PAPER.ink, padding: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.4, color: '#6E5410', textTransform: 'uppercase' }}>{tt('Günün hadisi')}</span>
+            {hadith.arabic && <p dir="rtl" lang="ar" style={{ margin: 0, fontFamily: "'Amiri', serif", fontSize: 22, lineHeight: 1.8, textAlign: 'right' }}>{hadith.arabic}</p>}
+            <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55 }}>“{hadith.turkish}”</p>
+            <span style={{ fontSize: 12, color: PAPER.soft }}>{hadith.source}</span>
+          </section>
+        )}
+
+        <span style={label}>{tt('Bugün')}</span>
+        {!plan && (
+          <button type="button" onClick={() => navigate('/yol')} style={{ ...card, padding: 16, textAlign: 'start', color: theme.textPrimary, cursor: 'pointer' }}>
+            <span style={{ fontSize: 15, fontWeight: 700, display: 'block' }}>{tt('Bugünkü Yolum')}</span>
+            <span style={{ fontSize: 12, color: theme.textSecondary }}>{tt('Sana uygun günlük planı birlikte kuralım.')}</span>
           </button>
-        </Card>
-
-        {/* 🕯️ GERİ DÖNÜŞ ODASI — Kırk Perde giriş kartı */}
-        <Card 
-          onClick={() => navigate('/donus')} 
-          gradient="linear-gradient(135deg, #0A0F0B 0%, #1A2A1E 40%, #0D1B12 100%)"
-          border={false}
-          style={{ 
-            padding: '24px', 
-            position: 'relative', 
-            overflow: 'hidden',
-            cursor: 'pointer',
-            border: '1px solid rgba(200, 165, 90, 0.15)',
-          }}
-        >
-          {/* Kandil ışık efekti */}
-          <div style={{
-            position: 'absolute',
-            top: '-20px',
-            right: '20px',
-            width: '120px',
-            height: '120px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(200,165,90,0.15) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '24px' }}>🕯️</span>
-                <Typography variant="h4" style={{ color: '#E8D5A8', letterSpacing: '0.5px' }}>
-                  Geri Dönüş Odası
-                </Typography>
+        )}
+        {worship.length > 0 && (
+          <section style={{ ...card, padding: '6px 16px 12px' }} onClick={() => navigate('/yol')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0 6px' }}>
+              <Lock size={13} color={theme.textSecondary} aria-hidden="true" />
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>{tt('İbadet')}</span>
+              <span style={{ fontSize: 11, color: theme.textSecondary }}>{tt('yalnızca sende · puansız')}</span>
+            </div>
+            {worship.map((t) => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 44, borderTop: `1px solid ${theme.cardBorder}` }}>
+                <span style={{ width: 22, height: 22, borderRadius: 11, boxSizing: 'border-box', background: t.done ? theme.gold : 'transparent', border: t.done ? 'none' : `1.5px dashed ${theme.textMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{t.done && <Check size={12} color="#1A1A1A" strokeWidth={3.5} />}</span>
+                <span style={{ fontSize: 14 }}>{tt(t.title)}</span>
               </div>
-              <Typography variant="bodySmall" style={{ color: 'rgba(232, 213, 168, 0.6)', lineHeight: 1.5 }}>
-                Kırk perde, kırk gün. Belki sen buraya gelmedin — belki çağrıldın.
-              </Typography>
+            ))}
+          </section>
+        )}
+        {study.length > 0 && (
+          <section style={{ ...card, padding: '6px 16px 12px' }} onClick={() => navigate('/yol')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0 6px' }}>
+              <Zap size={13} color={theme.gold} aria-hidden="true" />
+              <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>{tt('İlim görevleri')}</span>
+              <span style={{ fontSize: 11, color: theme.textSecondary }}>{tt('XP kazandırır')} · {stats?.total_points || 0} XP</span>
             </div>
-            <div style={{ 
-              width: '44px', 
-              height: '44px', 
-              borderRadius: '50%', 
-              background: 'rgba(200, 165, 90, 0.12)', 
-              border: '1px solid rgba(200, 165, 90, 0.25)',
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              flexShrink: 0,
-              marginLeft: '16px',
-            }}>
-              <ChevronRight size={20} color="#C8A55A" />
-            </div>
-          </div>
-        </Card>
-
-        {/* SON OKUNAN SURE — yalnız gerçekten okunmuş bir sure varsa */}
-        {lastRead?.surah ? (
-          <Card onClick={() => navigate(`/quran/${lastRead.surah}`)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: `${theme.primary}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BookOpen size={24} color={theme.primary} />
+            {study.map((t) => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 44, borderTop: `1px solid ${theme.cardBorder}` }}>
+                <span style={{ flex: 1, fontSize: 14, textDecoration: t.done ? 'line-through' : 'none', color: t.done ? theme.textSecondary : theme.textPrimary }}>{tt(t.title)}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: t.done ? '#1A1A1A' : theme.gold, background: t.done ? theme.gold : 'transparent', borderRadius: 8, padding: '2px 6px' }}>+{t.xp} XP</span>
               </div>
-              <div>
-                <Typography variant="bodySmall" color="secondary" style={{ marginBottom: '2px' }}>{tt('Son Okunan Sure')}</Typography>
-                <Typography variant="subtitle1" color="primary">{lastRead.name || `${lastRead.surah}. ${tt('sure')}`}</Typography>
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              {lastRead.ayah && lastRead.total ? (
-                <Typography variant="caption" color="gold" weight={700}>{tt('Ayet')} {lastRead.ayah} / {lastRead.total}</Typography>
-              ) : null}
-              <Typography variant="caption" color="secondary" style={{ display: 'block', marginTop: '4px' }}>{tt('Devam Et')}</Typography>
-            </div>
-          </Card>
-        ) : null}
-
-        {/* GÜNLÜK DUA */}
-        <Card onClick={() => navigate('/dhikr')} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: `${theme.gold}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Heart size={24} color={theme.gold} />
-            </div>
-            <div>
-              <Typography variant="bodySmall" color="secondary" style={{ marginBottom: '2px' }}>Günlük Dua</Typography>
-              <Typography variant="subtitle1" color="primary">Rızık Duası</Typography>
-            </div>
-          </div>
-          <button style={{ padding: '8px 16px', borderRadius: '12px', background: `${theme.gold}20`, color: theme.gold, border: 'none', fontSize: '12px', fontWeight: 700 }}>
-            Dinle
-          </button>
-        </Card>
-
+            ))}
+          </section>
+        )}
       </div>
     </div>
   );

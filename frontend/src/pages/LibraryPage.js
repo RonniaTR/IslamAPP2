@@ -146,7 +146,7 @@ export default function LibraryPage() {
           </button>
           {/* Okuma ayarları: tema + boyut (Mushaf/Kıssa ile ortak) */}
           <button onClick={() => setShowRS(true)}
-            className="ml-auto flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-black active:scale-95"
+            className="ms-auto flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-black active:scale-95"
             style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }} aria-label="Okuma ayarları">
             <Type size={13} /> Görünüm
           </button>
@@ -188,7 +188,7 @@ export default function LibraryPage() {
             const next = ARTICLES.find(a => a.shelf === article.shelf && !readIds.includes(a.id) && a.id !== article.id) || ARTICLES.find(a => a.id !== article.id);
             if (!next) return null;
             return (
-              <button onClick={() => openArticle(next.id)} className="w-full flex items-center gap-3 p-3 rounded-2xl text-left active:scale-98 transition-transform"
+              <button onClick={() => openArticle(next.id)} className="w-full flex items-center gap-3 p-3 rounded-2xl text-start active:scale-98 transition-transform"
                 style={{ background: rrt.surface, border: `1px solid ${rrt.border}` }}>
                 <span className="text-2xl">{next.emoji}</span>
                 <div className="flex-1 min-w-0">
@@ -230,7 +230,7 @@ export default function LibraryPage() {
         <div className="px-5 grid grid-cols-2 md:grid-cols-3 gap-3">
           {filtered.length === 0 && <p className="col-span-full text-center text-xs py-8" style={{ color: theme.textSecondary }}>Sonuç bulunamadı</p>}
           {filtered.map(a => (
-            <button key={a.id} onClick={() => openArticle(a.id)} className="rounded-2xl overflow-hidden text-left active:scale-97 transition-transform" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+            <button key={a.id} onClick={() => openArticle(a.id)} className="rounded-2xl overflow-hidden text-start active:scale-97 transition-transform" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
               <Cover a={a} h={100} />
               <div className="p-3">
                 <p className="text-xs font-black leading-snug" style={{ color: theme.textPrimary }}>{a.title}</p>
@@ -246,7 +246,7 @@ export default function LibraryPage() {
               <p className="px-5 text-sm font-black mb-2.5" style={{ color: theme.textPrimary }}>⭐ Kaydettiklerin</p>
               <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1 md:grid md:grid-cols-4 md:overflow-visible">
                 {favList.map(a => (
-                  <button key={a.id} onClick={() => openArticle(a.id)} className="shrink-0 w-40 md:w-auto rounded-2xl overflow-hidden text-left active:scale-97 transition-transform" style={{ background: theme.surface, border: `1px solid ${theme.gold}30` }}>
+                  <button key={a.id} onClick={() => openArticle(a.id)} className="shrink-0 w-40 md:w-auto rounded-2xl overflow-hidden text-start active:scale-97 transition-transform" style={{ background: theme.surface, border: `1px solid ${theme.gold}30` }}>
                     <Cover a={a} h={92} />
                     <div className="p-2.5"><p className="text-[11px] font-black leading-snug line-clamp-2" style={{ color: theme.textPrimary }}>{a.title}</p></div>
                   </button>
@@ -269,7 +269,7 @@ export default function LibraryPage() {
                     const isRead = readIds.includes(a.id);
                     return (
                       <button key={a.id} onClick={() => openArticle(a.id)}
-                        className="shrink-0 w-48 md:w-auto rounded-2xl overflow-hidden text-left active:scale-97 transition-transform relative"
+                        className="shrink-0 w-48 md:w-auto rounded-2xl overflow-hidden text-start active:scale-97 transition-transform relative"
                         style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
                         <Cover a={a} />
                         {isRead && <span className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#10B981' }}><Check size={13} color="#fff" /></span>}

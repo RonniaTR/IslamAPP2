@@ -80,7 +80,7 @@ export default function ElifBaPage() {
             return (
               <motion.button key={d.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                 onClick={() => setLesson(d)} whileTap={{ scale: 0.97 }}
-                className="rounded-2xl p-4 text-left relative overflow-hidden"
+                className="rounded-2xl p-4 text-start relative overflow-hidden"
                 style={{ background: `linear-gradient(150deg, ${theme.surface}, ${d.color}0d)`, border: `1.5px solid ${isDone ? '#10B98150' : `${d.color}30`}` }}>
                 <div className="flex items-start justify-between mb-2">
                   <span className="text-3xl" style={d.emoji.match(/[◌ًّ]/) ? glyphFont : {}}>{d.emoji}</span>
@@ -103,7 +103,7 @@ export default function ElifBaPage() {
   // ═══════════ DERS İÇİ ÜST BAR ═══════════
   const Header = ({ title }) => (
     <div className="px-5 pt-6 pb-4 flex items-center gap-2 sticky top-0 z-30" style={{ background: `${theme.bg}f5`, backdropFilter: 'blur(10px)' }}>
-      <button onClick={() => { setLesson(null); setDetail(null); }} className="p-2 -ml-2 rounded-xl active:scale-90" aria-label="Geri">
+      <button onClick={() => { setLesson(null); setDetail(null); }} className="p-2 -ms-2 rounded-xl active:scale-90" aria-label="Geri">
         <ArrowLeft size={20} style={{ color: theme.gold }} />
       </button>
       <h1 className="text-xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{title}</h1>
@@ -149,7 +149,7 @@ export default function ElifBaPage() {
                 <p className="text-8xl mb-1" style={{ ...glyphFont, color: theme.gold }}>{detail.ar}</p>
                 <p className="text-xl font-black" style={{ color: theme.textPrimary }}>{detail.name}</p>
                 <p className="text-sm mb-4" style={{ color: theme.textSecondary }}>Ses: <span style={{ color: theme.gold }}>{detail.tr}</span></p>
-                <div className="rounded-xl p-3 mb-4 text-left flex items-start gap-2" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.cardBorder}` }}>
+                <div className="rounded-xl p-3 mb-4 text-start flex items-start gap-2" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.cardBorder}` }}>
                   <Info size={14} className="mt-0.5 shrink-0" style={{ color: theme.gold }} />
                   <div>
                     <p className="text-[10px] font-black uppercase" style={{ color: theme.gold }}>Çıkış Yeri (Mahrec)</p>
@@ -184,7 +184,7 @@ export default function ElifBaPage() {
               className="rounded-2xl p-4" style={S.card}>
               <div className="flex items-center justify-between mb-1">
                 <p className="text-sm font-black" style={{ color: theme.textPrimary }}>
-                  {g.mark && <span className="text-2xl mr-2" style={{ ...glyphFont, color: theme.gold }}>◌{g.mark}</span>}
+                  {g.mark && <span className="text-2xl me-2" style={{ ...glyphFont, color: theme.gold }}>◌{g.mark}</span>}
                   {g.name}
                 </p>
                 {g.sound && <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ background: `${theme.gold}14`, color: theme.gold }}>{g.sound}</span>}
@@ -292,9 +292,9 @@ function ElifBaQuiz({ theme, glyphFont, speak, onFinish, onExit }) {
   return (
     <div className="min-h-screen pb-24 max-w-lg mx-auto" style={{ background: theme.bg }}>
       <div className="px-5 pt-6 pb-4 flex items-center gap-2">
-        <button onClick={onExit} className="p-2 -ml-2 rounded-xl active:scale-90"><ArrowLeft size={20} style={{ color: theme.gold }} /></button>
+        <button onClick={onExit} className="p-2 -ms-2 rounded-xl active:scale-90"><ArrowLeft size={20} style={{ color: theme.gold }} /></button>
         <span className="px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: theme.surface, color: theme.textPrimary }}>{idx + 1}/{rounds.length}</span>
-        <span className="ml-auto px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: '#10B98118', color: '#10B981' }}>{score} ✓</span>
+        <span className="ms-auto px-3 py-1.5 rounded-full text-sm font-bold" style={{ background: '#10B98118', color: '#10B981' }}>{score} ✓</span>
       </div>
       <div className="h-1.5 mx-5 rounded-full overflow-hidden mb-6" style={{ background: `${theme.textSecondary}20` }}>
         <motion.div className="h-full rounded-full" animate={{ width: `${(idx / rounds.length) * 100}%` }} style={{ background: theme.gold }} />

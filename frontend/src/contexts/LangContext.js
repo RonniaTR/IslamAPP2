@@ -46,6 +46,14 @@ export function LangProvider({ children }) {
     setT(base);
   }, []);
 
+  // RTL hemen uygulanır: yön ve dil, sunucu çevirisi gelmese de (çevrimdışı) doğru olmalı.
+  useEffect(() => {
+    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    setDirection(dir);
+    document.documentElement.dir = dir;
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   useEffect(() => { loadTranslations(lang); }, [lang, loadTranslations]);
 
   const setLang = (newLang) => {

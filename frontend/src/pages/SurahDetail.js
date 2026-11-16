@@ -199,7 +199,7 @@ export default function SurahDetail() {
               boxShadow: '0 8px 24px rgba(205, 164, 52, 0.4)', cursor: 'pointer', position: 'relative', zIndex: 2
             }}
           >
-            {playing && !activeAyah ? <Pause size={28} color="#000" /> : <Play size={28} color="#000" style={{ marginLeft: '4px' }} />}
+            {playing && !activeAyah ? <Pause size={28} color="#000" /> : <Play size={28} color="#000" style={{ marginInlineStart: '4px' }} />}
           </button>
         </div>
       </div>
@@ -267,7 +267,7 @@ export default function SurahDetail() {
             {showTafsir[ayah.number] && ayah.tafsir && (
               <div style={{
                 marginTop: '16px', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px',
-                borderLeft: '4px solid #CDA434'
+                borderInlineStart: '4px solid #CDA434'
               }}>
                 <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 700, marginBottom: '8px', display: 'block' }}>TEFSİR</Typography>
                 <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: 1.6 }}>

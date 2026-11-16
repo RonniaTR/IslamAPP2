@@ -335,7 +335,7 @@ function MiniQuiz({ title, color, theme, user, makeRounds, xpKey, onExit }) {
             const isWrongPick = picked === opt && opt !== r.correct;
             return (
               <button key={i} onClick={() => pick(opt)} disabled={picked !== null}
-                className="w-full text-left p-3 rounded-xl text-[12.5px] font-semibold transition-all active:scale-98 flex items-center justify-between gap-2"
+                className="w-full text-start p-3 rounded-xl text-[12.5px] font-semibold transition-all active:scale-98 flex items-center justify-between gap-2"
                 style={{
                   background: isCorrect ? '#10B98118' : isWrongPick ? '#EF444418' : `${theme.textSecondary}0a`,
                   border: `1.5px solid ${isCorrect ? '#10B981' : isWrongPick ? '#EF4444' : theme.cardBorder}`,
@@ -406,11 +406,11 @@ function DualarSection({ theme, onBack }) {
           return (
             <motion.button key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.04 }}
               onClick={() => openDua(d.id)}
-              className="w-full text-left rounded-2xl p-4 transition-all"
+              className="w-full text-start rounded-2xl p-4 transition-all"
               style={{ background: theme.surface, border: `1.5px solid ${isOpen ? `${theme.gold}55` : theme.cardBorder}` }}>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0" style={{ background: `${theme.gold}14`, color: theme.gold }}>{d.when}</span>
-                <span className="text-[10px] font-bold ml-auto shrink-0" style={{ color: theme.textSecondary }}>{d.source}</span>
+                <span className="text-[10px] font-bold ms-auto shrink-0" style={{ color: theme.textSecondary }}>{d.source}</span>
                 <ChevronDown size={13} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} style={{ color: theme.textSecondary }} />
               </div>
               <p dir="rtl" className="mt-3 leading-loose" style={{ fontFamily: "'Amiri', 'Scheherazade New', serif", fontSize: isOpen ? 22 : 18, color: theme.gold }}>
@@ -421,7 +421,7 @@ function DualarSection({ theme, onBack }) {
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                     <p className="text-[11px] mt-2 italic" style={{ color: theme.textSecondary }}>{d.read}</p>
                     <p className="text-[13.5px] mt-2.5 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>"{d.tr}"</p>
-                    <p className="text-[11px] mt-2.5 leading-relaxed pl-2.5" style={{ borderLeft: `2px solid ${theme.gold}50`, color: theme.textSecondary }}>{d.note}</p>
+                    <p className="text-[11px] mt-2.5 leading-relaxed ps-2.5" style={{ borderInlineStart: `2px solid ${theme.gold}50`, color: theme.textSecondary }}>{d.note}</p>
                     <span onClick={(e) => copy(d, e)} role="button"
                       className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl text-[10px] font-black active:scale-95"
                       style={{ background: `${theme.gold}12`, color: copied === d.id ? '#10B981' : theme.gold, border: `1px solid ${theme.gold}30` }}>
@@ -542,7 +542,7 @@ function TesbihatSection({ theme, user, onBack }) {
         {TESBIHAT_SETS.map((s, i) => (
           <motion.button key={s.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
             onClick={() => start(s.id)}
-            className="text-left rounded-2xl p-4 active:scale-98 transition-transform relative overflow-hidden"
+            className="text-start rounded-2xl p-4 active:scale-98 transition-transform relative overflow-hidden"
             style={{ background: theme.surface, border: `1.5px solid ${todayLog[s.id] ? `${s.color}60` : theme.cardBorder}` }}>
             {todayLog[s.id] && <span className="absolute top-2.5 right-2.5 text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${s.color}18`, color: s.color }}>{tt('Bugün ✓')}</span>}
             <span className="text-3xl">{s.emoji}</span>
@@ -614,7 +614,7 @@ function TarihSection({ theme, user, onBack }) {
       <div className="relative">
         <span className="absolute -left-[15px] top-3 w-2.5 h-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}80` }} />
         <button onClick={() => openItem(it)}
-          className="w-full text-left rounded-xl p-2.5 -m-0.5 transition-all"
+          className="w-full text-start rounded-xl p-2.5 -m-0.5 transition-all"
           style={{ background: isOpen ? `${color}0c` : 'transparent', border: `1px solid ${isOpen ? `${color}40` : 'transparent'}` }}>
           <p className="text-xs font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}>
             <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0" style={{ background: `${color}16`, color }}>{it.year}</span>
@@ -665,7 +665,7 @@ function TarihSection({ theme, user, onBack }) {
       {/* 🎯 Zaman Yolcusu */}
       <div className="px-5 mb-3">
         <button onClick={() => setQuiz(true)}
-          className="w-full flex items-center gap-3 p-4 rounded-2xl text-left active:scale-98 transition-transform"
+          className="w-full flex items-center gap-3 p-4 rounded-2xl text-start active:scale-98 transition-transform"
           style={{ background: 'linear-gradient(120deg, #2E1065, #5B21B6)', border: '1px solid #A78BFA50' }}>
           <Swords size={22} style={{ color: '#C4B5FD' }} />
           <div className="flex-1">
@@ -680,7 +680,7 @@ function TarihSection({ theme, user, onBack }) {
       <div className="px-5 mb-4">
         <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           onClick={() => openItem(featured)}
-          className="w-full text-left rounded-2xl p-4 relative overflow-hidden active:scale-[0.98] transition-transform"
+          className="w-full text-start rounded-2xl p-4 relative overflow-hidden active:scale-[0.98] transition-transform"
           style={{ background: `linear-gradient(120deg, ${featured.color}18, ${theme.surface})`, border: `1.5px solid ${featured.color}45` }}>
           <span className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-25 pointer-events-none" style={{ background: `radial-gradient(circle, ${featured.color}, transparent 65%)` }} />
           <p className="text-[9px] font-black uppercase tracking-[0.25em]" style={{ color: featured.color }}>{tt('💡 Günün Buluşu')}</p>
@@ -708,7 +708,7 @@ function TarihSection({ theme, user, onBack }) {
                 </span>
               </div>
               <p className="text-[11px] leading-relaxed mb-3" style={{ color: theme.textSecondary }}>{era.intro}</p>
-              <div className="relative pl-4 space-y-2">
+              <div className="relative ps-4 space-y-2">
                 <span className="absolute left-[5px] top-1 bottom-1 w-0.5 rounded-full" style={{ background: `linear-gradient(180deg, ${era.color}, ${era.color}15)` }} />
                 {era.items.map(it => <ItemCard key={it.id} it={it} color={era.color} />)}
               </div>
@@ -755,7 +755,7 @@ function MucizelerSection({ theme, user, onBack }) {
             <motion.div key={m.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(i, 8) * 0.05 }}
               className="rounded-3xl overflow-hidden"
               style={{ background: theme.surface, border: `1.5px solid ${isOpen ? `${m.color}60` : isRead ? `${m.color}35` : theme.cardBorder}` }}>
-              <button onClick={() => { setOpen(isOpen ? null : m.id); if (!isOpen) markRead(m); }} className="w-full text-left">
+              <button onClick={() => { setOpen(isOpen ? null : m.id); if (!isOpen) markRead(m); }} className="w-full text-start">
                 {/* İnfografik */}
                 <div className="pt-4 px-4" style={{ background: `linear-gradient(160deg, ${m.color}10, transparent)` }}>
                   <MiracleArt type={m.art} color={m.color} />
@@ -774,7 +774,7 @@ function MucizelerSection({ theme, user, onBack }) {
                 {isOpen && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                     <div className="px-4 pb-4">
-                      <p className="text-[12.5px] italic leading-relaxed pl-2.5" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary, borderLeft: `2px solid ${m.color}` }}>
+                      <p className="text-[12.5px] italic leading-relaxed ps-2.5" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary, borderInlineStart: `2px solid ${m.color}` }}>
                         {m.verse}
                       </p>
                       <div className="rounded-xl p-3 mt-3" style={{ background: `${m.color}0c`, border: `1px solid ${m.color}25` }}>
@@ -782,7 +782,7 @@ function MucizelerSection({ theme, user, onBack }) {
                         <p className="text-[11.5px] leading-relaxed" style={{ color: theme.textPrimary }}>{m.fact}</p>
                       </div>
                       <p className="text-[10.5px] mt-2.5 leading-relaxed" style={{ color: theme.textSecondary }}>
-                        <Sparkles size={10} className="inline mr-1" style={{ color: m.color }} />{m.detail}
+                        <Sparkles size={10} className="inline me-1" style={{ color: m.color }} />{m.detail}
                       </p>
                     </div>
                   </motion.div>
@@ -865,7 +865,7 @@ function EsmaSection({ theme, user, onBack }) {
       {/* Günün İsmi */}
       <div className="px-5 mb-3">
         <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={() => openEsma(featured)}
-          className="w-full text-left rounded-3xl p-5 relative overflow-hidden active:scale-[0.98] transition-transform"
+          className="w-full text-start rounded-3xl p-5 relative overflow-hidden active:scale-[0.98] transition-transform"
           style={{ background: 'linear-gradient(135deg, #3B2A16, #8A5A12)', border: '1.5px solid #E8C56C50' }}>
           <span className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-25 pointer-events-none" style={{ background: 'radial-gradient(circle, #E8C56C, transparent 65%)' }} />
           <p className="text-[9px] font-black uppercase tracking-[0.3em]" style={{ color: '#E8C56C' }}>{tt('🌟 Günün İsmi')} · {featured.n}/99</p>
@@ -881,7 +881,7 @@ function EsmaSection({ theme, user, onBack }) {
       {/* Esma Ezberi */}
       <div className="px-5 mb-3">
         <button onClick={() => setQuiz(true)}
-          className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-left active:scale-98 transition-transform"
+          className="w-full flex items-center gap-3 p-3.5 rounded-2xl text-start active:scale-98 transition-transform"
           style={{ background: `${theme.gold}10`, border: `1.5px solid ${theme.gold}35` }}>
           <Swords size={20} style={{ color: theme.gold }} />
           <div className="flex-1">
@@ -896,7 +896,7 @@ function EsmaSection({ theme, user, onBack }) {
       <div className="px-5 mb-3 relative">
         <Search size={14} className="absolute left-8 top-1/2 -translate-y-1/2" style={{ color: theme.textSecondary }} />
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tt("İsim veya anlam ara...")}
-          className="w-full rounded-2xl pl-9 pr-4 py-2.5 text-xs focus:outline-none"
+          className="w-full rounded-2xl ps-9 pe-4 py-2.5 text-xs focus:outline-none"
           style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary }} />
       </div>
 
@@ -936,7 +936,7 @@ function EsmaSection({ theme, user, onBack }) {
               </p>
               <p className="text-xl font-black mt-2 relative" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{active.name}</p>
               <p className="text-xs mt-1 relative" style={{ color: theme.textSecondary }}>{active.mean}</p>
-              <div className="rounded-2xl p-3.5 mt-4 text-left relative" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}30` }}>
+              <div className="rounded-2xl p-3.5 mt-4 text-start relative" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}30` }}>
                 <p className="text-[9px] font-black uppercase tracking-wider mb-1.5" style={{ color: theme.gold }}>{tt('💭 Tefekkür')}</p>
                 <p className="text-[12px] leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{active.tef}</p>
               </div>
@@ -976,7 +976,7 @@ export function HazineCards({ theme, navigate, compact = false }) {
       {HAZINE_BOLUMLERI.map((b, i) => (
         <motion.button key={b.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
           onClick={() => navigate(b.route)}
-          className="w-full text-left rounded-3xl p-5 relative overflow-hidden active:scale-[0.98] transition-transform"
+          className="w-full text-start rounded-3xl p-5 relative overflow-hidden active:scale-[0.98] transition-transform"
           style={{ background: `linear-gradient(135deg, ${b.grad[0]}, ${b.grad[1]})`, border: `1.5px solid ${b.accent}40`, minHeight: 128 }}>
           {/* Süsleme */}
           <span className="absolute -top-6 -right-6 w-28 h-28 rounded-full opacity-25 pointer-events-none" style={{ background: `radial-gradient(circle, ${b.accent}, transparent 65%)` }} />

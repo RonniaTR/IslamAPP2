@@ -4,6 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTx } from '../i18n';
 import { localKey } from '../services/pathEngine';
+import ScenePlayer from '../components/scene/ScenePlayer';
 
 // 🌙 ESNEK HATİM (docs/YENI_OZELLIKLER.md 8.6)
 // Hedef tarih seçilir; günlük pay = kalan sayfa / kalan gün. Okunmayan gün sessizce ileriye dağılır.
@@ -31,11 +32,16 @@ export default function HatimPlanPage() {
   const perDay = plan ? Math.ceil(remaining / daysLeft) : 0;
   const pct = Math.round(((page - 1) / TOTAL) * 100);
   const done = page >= TOTAL;
+  // Hatim tamamlandığında sahne bir kez oynar (plan başına).
+  const sceneKey = plan ? `hatim_scene_${plan.startedAt}` : '';
+  const [scene, setScene] = useState(() => { try { return !!plan && done && !localStorage.getItem(sceneKey); } catch { return false; } });
+  const endScene = () => { setScene(false); try { localStorage.setItem(sceneKey, '1'); } catch { /* kota */ } };
   const card = { background: theme.surface, border: `1px solid ${theme.cardBorder}`, borderRadius: 22, padding: 18 };
   const btn = { minHeight: 46, borderRadius: 23, background: theme.gold, color: '#1A1A1A', fontWeight: 700, fontSize: 14, padding: '0 18px' };
 
   return (
     <div className="min-h-screen pb-28" style={{ background: theme.bg }} data-testid="hatim-plan-page">
+      {scene && <ScenePlayer id="hatim" onDone={endScene} />}
       <div className="flex items-center gap-2 px-4 pt-6 pb-3">
         <button onClick={() => navigate(-1)} aria-label={tt('Geri')}><ChevronLeft size={24} style={{ color: theme.textPrimary }} /></button>
         <h1 className="text-xl font-extrabold" style={{ color: theme.textPrimary }}>{tt('Esnek Hatim')}</h1>

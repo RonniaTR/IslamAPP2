@@ -68,7 +68,7 @@ export default function DonusYoldas() {
               <a href="tel:112" style={{ marginTop: 12, minHeight: 46, borderRadius: 23, background: '#2B2416', color: '#F3E9D2', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}>{tt('112’yi ara')}</a>
             </div>
           ) : (
-            <div style={{ borderRadius: 18, borderLeft: '3px solid #F0B429', background: 'rgba(240,180,41,0.08)', padding: 16 }}>
+            <div style={{ borderRadius: 18, borderInlineStart: '3px solid #F0B429', background: 'rgba(240,180,41,0.08)', padding: 16 }}>
               <p style={{ fontSize: 14.5, lineHeight: 1.6 }}>{entry.reply}</p>
               <p style={{ fontSize: 10, color: '#A89262', marginTop: 8 }}>{tt('yapay zekâ · seni yargılamaz · terapi değildir')}</p>
             </div>
