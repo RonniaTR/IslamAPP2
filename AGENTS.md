@@ -13,7 +13,7 @@ başlarken **önce bunu oku**.
 | Katman | Teknoloji | Konum |
 |---|---|---|
 | Web (PWA) | React 19 + CRA + TailwindCSS + Capacitor | `frontend/` |
-| Mobil | React Native 0.83 + Expo 55 | `mobile/` |
+| Mobil | Capacitor (web uygulamasının kabuğu). Expo uygulaması 16.11.2026'da kaldırıldı; git geçmişinde durur | `frontend/android/` |
 | Backend | Python 3.12 + FastAPI + MongoDB (motor) | `backend/` |
 | Serverless | Firebase Cloud Functions (Node 18) | `functions/` |
 
@@ -37,7 +37,6 @@ frontend/src/
   i18n/           tr / en / ar.
   services/       pathEngine vb.
   api.js          Merkezi axios örneği.
-mobile/src/       screens/, services/, contexts/, navigation/.
 functions/        index.js (120 satır).
 memory/           PRD.md, ROADMAP.md, CHANGELOG.md — ESKİ, bkz. §7.
 tests/            Pytest. Kökteki *_test.py dosyaları buraya taşınacak.
@@ -56,7 +55,6 @@ cd frontend && npm start          # :3000, proxy → localhost:8001
 cd frontend && npm run build      # → frontend/build
 
 # Mobil
-cd mobile && npm start            # Expo
 
 # Testler
 pytest tests/
@@ -84,7 +82,7 @@ Erişim kontrolü `firestore.rules` ile yapılır.
 
 ## 5. Dokunulmayacaklar
 
-- `frontend/node_modules/`, `mobile/node_modules/`, `frontend/build/`, `.firebase/`
+- `frontend/node_modules/`, `frontend/build/`, `.firebase/`
 - `frontend/android/app/src/main/assets/public/` — Capacitor'ün ürettiği build çıktısı,
   elle düzenlenmez.
 - `IslamAPP2-claude-app-understanding-ihz5me (1)/` — 27 MB'lık eski kopya.
@@ -127,10 +125,10 @@ Erişim kontrolü `firestore.rules` ile yapılır.
 ---
 
 10. **Mealler QuranEnc'ten gelir**, metne dokunulmaz. Çeviri anahtarları üç yerde aynı olmalı:
-    `frontend/src/data/sources.json`, `mobile/src/services/quranService.js`, `backend/quran_translations.py`.
+    `frontend/src/data/sources.json`, `backend/quran_translations.py`.
     Sunucu önbelleği `python backend/scripts/fetch_quranenc.py` ile üretilir.
 11. **Yapay zekâ hiçbir gerçek kişinin ağzından konuşmaz.** "Sen …'sın" biçiminde âlim/hoca personası yazılmaz.
-12. **Denetim:** `cd frontend && npm run check` (ESLint + import/export doğrulaması; commit'ten önce 0 hata şart)
+12. **Denetim:** `cd frontend && npm run verify` (kalite kapısı: kod, çeviri, içerik hattı, ölü dosya, rotalar, paketler, Rehber seti). Hızlısı: `npm run check` (ESLint + import/export doğrulaması; commit'ten önce 0 hata şart)
     (depoda ESLint ayarı yok; `npx eslint src` sessizce hata verir ve hiçbir şeyi denetlemez).
 13. **Uygulama tamamen ücretsiz.** `usePremium` yeni kodda kullanılmaz; hiçbir özellik ödemeye bağlanmaz.
 
@@ -183,3 +181,10 @@ Kurallar:
 Tema sistemi, Ayarlar v2, konum, bildirimler, yeni Mushaf, üç dil (TR/EN/AR), yeni oyunlar ve telif düzeltmeleri
 fazlara ayrılmış şartname olarak `docs/YENI_OZELLIKLER.md` içinde. Kod yazmaya başlamadan önce o dosyayı oku;
 **Faz 0 (güven ve telif) her şeyden önce gelir.**
+
+15. **Çevrimdışı önce.** Meal/tefsir `frontend/public/packs/` altında uygulamayla yayımlanır (`npm run packs`), `services/offline.js`
+    üzerinden okunur; ağ ikinci tercihtir. Rehber araması cihazda da çalışır (`services/localRehber.js`); sözlükleri
+    `backend/rehber.py`'den **üretilir** (`python3 backend/scripts/export_rehber_data.py`) — `rehberData.json` elle düzenlenmez.
+16. **Mushaf paketi** (`build-packs.py --mushaf`) Kurul onayı gelmeden üretilmez; `check-sources.py` bunu hata sayar.
+17. **Yeni içerik dosyası** `src/data/icerik.json`'a kaydedilmeden kalite kapısından geçmez. **Yeni ses** `services/sound/index.js`
+    tablosuna, **yeni sahne** `components/scene/scenes.js`'e bir kayıttır.

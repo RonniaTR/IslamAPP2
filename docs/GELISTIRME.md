@@ -51,7 +51,14 @@ Bu dosya, uygulamayı büyütürken her seferinde aynı yolu izlemek için. Önc
 | `cd backend && python -m py_compile server.py rehber.py` | Python sözdizimi |
 | `cd backend && python scripts/fetch_quranenc.py` | Meal ve tefsir önbelleğini günceller |
 
+### Dil ve yön (RTL)
+- Her görünen metin `tt('…')` içinden geçer. Eksikleri gör: `python3 scripts/i18n-missing.py ar` (ya da `en`).
+  Ekle: `{"Türkçe": ["English", "العربية"]}` biçiminde bir JSON yazıp `python3 scripts/i18n-add.py dosya.json`.
+- Yön için fiziksel özellik KULLANILMAZ: `marginLeft/Right`, `paddingLeft/Right`, `textAlign: 'left'`, `text-left`, `ml-/mr-/pl-/pr-`
+  yerine `marginInlineStart/End`, `paddingInlineStart/End`, `'start'`, `text-start`, `ms-/me-/ps-/pe-`.
+- Rehber araması değişince: `python backend/tests/run_rehber_eval.py` (isabet %80'in altına düşerse hata verir).
+
 ## 6. Yayın sırası
 
-1. `npm run check` → 0 hata · 2. `npm run build` · 3. yerelde dene (`npm start`) · 4. commit · 5. deploy (Antigravity).
+1. `npm run verify` → kalite kapısı geçer · 2. `npm run build` · 3. yerelde dene (`npm start`) · 4. commit · 5. deploy (Antigravity).
 Kur'an bölümleri üretimde `REACT_APP_QURAN_PUBLIC=true` tanımlı değilse kapalıdır (Diyanet onayı; bkz. `docs/kurul/`).

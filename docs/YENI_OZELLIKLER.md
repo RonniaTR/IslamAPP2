@@ -154,10 +154,85 @@ Kullanıcı kararıyla "fazlar sırayla" kuralı gevşetildi; en görünür ve b
 - **Bildirim:** telefonda işletim sisteminin zamanlayıcısıyla (uygulama kapalıyken de); web'de sekme açıkken.
 - **Huşu perdesi** (Ayarlar'dan açılır), **Kelime Koçu**, **Aile Sofrası**.
 
-**Hâlâ yapılmadı:** tam RTL ve Arapça çeviri eksikleri · `tr.js` ayrımı · Ayet Nerede? ve diğer oyunlar · ana ekran v2 (tuval G1) ·
-Dönüş Odası'nın kalanları (Firestore yedeği, sessiz davet, evre geçiş sahneleri, 40. gün sonrası) · kaza planı · esnek hatim ·
-kandil haritası · hayat ayetleri defteri · mahreç koçu · dinleyen yoldaş (uzman onayı) · Rehber için vektör araması ve deneme seti ·
-tema dışında kalan sabit renkler (altın/yeşil vurgu renkleri ve çocuk sayfaları bilerek bırakıldı).
+#### Beşinci tur (16.11.2026) — kalan listenin tamamı
+
+| Konu | Yapılan | Dosya |
+|---|---|---|
+| Ana ekran v2 (tuval G1) | Vakit kartı (sıradaki vakit, geri sayım, konum, 5 vaktin puansız kişisel takibi) · vakte göre tek öneri · arama (özellik kaydında) + "Sor" (Rehber'e taşır) · Kaldığın yerler (yalnız gerçekten başlanmış olanlar) · 6 mod · günün ayeti (Kur'an bayrağına bağlı) ve hadisi kâğıt kartta · Bugün: ibadet (puansız) / ilim görevleri (XP) ayrı | `pages/Dashboard.js`, `components/home/PrayerCard.jsx` |
+| Arapça / RTL | 186 fiziksel yön kullanımı mantıksal özelliğe çevrildi (75 dosya): `marginInlineStart`, `text-start`, `ms-/me-/ps-/pe-` · yön ve dil sunucu beklemeden uygulanır · yön simgeleri aynalanır, Arapçada harf aralığı ve büyük harf kapatılır · Noto Naskh Arabic · en/ar sözlüklerinde **0 eksik** (512 metin; +421 en, +475 ar) | `index.css`, `contexts/LangContext.js`, `i18n/en.js`, `i18n/ar.js`, `scripts/i18n-missing.py`, `scripts/i18n-add.py` |
+| Oyunlar | Ayet Nerede? (önceki tur) + Hangi Harf? (mahreçten harfi tanı) | `pages/games/WhichLetter.jsx` |
+| Dönüş Odası | Evre geçiş sahnesi (eski evre uğurlanır, yenisi tanıtılır, sonra eşik açılır) · **Yolda kal**: 40. günden sonra haftada tek ders, evreler sırayla; uzun arada "kaldığın yerden" · bulut yedeği ve sessiz davet (önceki tur) | `components/donus/PhaseScene.jsx`, `components/donus/YoldaKal.jsx`, `DonusShell.jsx`, `DonusHome.jsx` |
+| Kandil ışık haritası | Mübarek gecede il il anonim sayaç; gecede cihaz başına 1; 10'dan az ışıkta sayı gizli; sıralama yok. Harita, il merkezlerinin enlem/boylam noktalarıdır (sınır verisi ve lisansı gerekmez) | `pages/KandilPage.js`, `services/islamicCalendar.js` (`getActiveNight`), `firestore.rules` (`kandil/{gece}/iller/{il}`: yalnız `n`, yalnız +1) |
+| Mahreç koçu | 7 karışan harf grubu · çıkış yeri tarifi · kendi sesini kaydet/dinle (cihazdan çıkmaz) · kişi kendi kulağıyla değerlendirir. **Telaffuzu puanlamaz** (bilerek) | `pages/MahrecPage.js` |
+| Rehber doğruluğu | Deneme seti 44 → **106 soru** + 12 ilgisiz soru. Sonuç: ilk 5'te isabet **100/106 (%94)**; ilgisiz soruda eşiği geçen **2/12**. Kapsama oranı artık kullanıcının bütün kelimeleriyle ölçülür (dizinde olmayan kelime oranı düşürür) | `backend/rehber.py`, `backend/tests/rehber_eval.json`, `backend/tests/run_rehber_eval.py` |
+
+**Bilinen sınırlar (dürüst liste):**
+- Bu turun kodu `npm run check` (0 hata) ve `py_compile` ile denetlendi; **tarayıcıda denenmedi**, üretim derlemesi alınmadı.
+- Rehber'deki arama hâlâ **kelime kökü + kavram sözlüğü**dür; gerçek anlam (vektör) araması değildir. Kaçan 6 soru ve geçen
+  2 ilgisiz soru bunun sınırıdır ("dizi", "işlem" gibi kökler). Vektör araması bir gömme modeli/servisi gerektirir; eklenirse yalnız `search()` değişir.
+- Deneme setindeki beklenen ayetler bilinen açık ayetlerdir; bir ilahiyatçı gözden geçirmelidir.
+- Arapça çeviriler makine yardımıyla yazıldı; ana dili Arapça olan biri okumalıdır. Veri dosyalarındaki uzun içerik (dersler, kıssalar) Arapçaya çevrilmedi; İngilizceye düşer.
+- RTL: `left/right` ile konumlanan mutlak öğeler elle gözden geçirilmedi (ortalanmış öğeleri bozmamak için otomatik çevrilmedi).
+- Kandil haritası: `firestore.rules` yayımlanmadan çalışmaz; kötüye kullanıma karşı App Check açılmalıdır.
+- Dinleyen yoldaş bir uzman incelemesi olmadan açıktır (ürün sahibi kararı).
+
+**Hâlâ yapılmadı:** `tr.js` ayrımı · vektör araması · Türkiye il sınırlı gerçek harita · ana ekran widget'ı · tema dışında kalan sabit renkler.
+
+#### Altıncı tur (16.11.2026) — huşu ile açılan kapı, ses ve hareket dili
+
+| Konu | Yapılan | Dosya |
+|---|---|---|
+| Huşu ile açış | Kapıya parmak konup **beklenir**; kapı basılı tutuldukça (2,8 sn) gıcırdayarak açılır, nefes halkası dolar, çeyreklerde hafif titreşim. Bırakılırsa kapı yine aralık kalır (ceza/sayaç yok). Kısa dokunuş ve Enter kapıyı kendiliğinden açar | `components/donus/GateAnimation.jsx` |
+| Kapı sesi | Üretilmiş ahşap gıcırtısı (titrek testere dalga + iki dar süzgeç + sürtünme gürültüsü) ve kanatların yaslandığı tok vuruş. Kayıt yok | `services/donusAudio.js` (`creakVoice`, `playDoor`, `thud`, `startHold`) |
+| Ney | Üst oktav sesi, "çarpma" süslemesi, uzun karar notası, alttan **dem**; notalar arası istenmeyen sürekli kayma hatası giderildi. Gecikme yankısı yerine üretilmiş **kubbe yankısı** | `services/donusAudio.js` (`playNey`, `wetBus`) |
+| Kapı görseli | Işık hüzmeleri, toz zerreleri, ahşap damarı ve demir kuşaklar, kapı açıldıkça derinleşen gölge, zemine yayılan ışık | `GateAnimation.jsx` |
+| Vakit sesi | Huşu perdesi açılırken vaktin makamı + "dinle" düğmesi; ana ekran vakit kartında makam düğmesi | `components/HusuPerdesi.jsx`, `components/home/PrayerCard.jsx` |
+| Hareket dili | `.stagger` (sıralı giriş, ana ekranda), `.flame`, `.halo`, düğmelerde basma tepkisi; **hareket azaltma** tercihine genel uyum; `.paper` (kutsal metin) üzerinde hareket yok | `index.css` |
+
+Denetim: `npm run check` 0 hata, en/ar sözlükte 0 eksik. **Ses ve kapı sahnesi gerçek cihazda dinlenmedi/denenmedi** — gıcırtı ve ney seviyesi kulakla ayarlanmalı.
+
+**Bulunan eksikler (öncelik sırasıyla):**
+1. Hiçbir tur gerçek cihazda denenmedi; otomatik arayüz testi yok. → Playwright ile 10 ana akışın duman testi.
+2. `hadiths.json` çeviri kaynağı belirsiz; siyer metni kaynakla karşılaştırılmadı (telif + doğruluk riski).
+3. Kandil haritası ve çok oyunculu yarışma App Check olmadan kötüye kullanıma açık.
+4. Rehber'de 2/12 ilgisiz soru eşiği geçiyor; yapay zekâ kuralı canlıda ölçülmedi.
+5. Açık temalarda eski sayfalarda sabit renkler; RTL'de mutlak konumlu öğeler.
+6. Çevrimdışı: meal/tefsir cihaza inmiyor; ilk açılış paketi büyük (sayfa bazlı kod bölme yok).
+7. Mobil (Expo) uygulama web'in çok gerisinde; iki ayrı kod tabanı.
+8. Hata izleme ve gizliliğe saygılı kullanım ölçümü yok — neyin kullanıldığı bilinmiyor.
+
+**Büyük yapı önerileri (sıradaki fazlar için):**
+- **Ses motoru** (`services/sound/`): tek yerden ney, kapı, tını, tesbih tıkı; makam verisi ayrı dosyada; her sayfa `sound.play('vakit', …)` der. Kayıtlı gerçek ney için izinli bir neyzenle 6 makamda kısa kayıt → sentez yedek kalır.
+- **Sahne motoru** (`components/scene/`): kapı, evre geçişi, kutlama, kandil gecesi aynı zaman çizelgesi biçimiyle (JSON adımlar: süre, ses, görsel). Yeni sahne = yeni veri dosyası.
+- **İçerik hattı**: bütün içerik `content/*.json` + şema doğrulama + kaynak zorunluluğu (`sources.json`'da karşılığı olmayan içerik derlemeyi durdurur).
+- **Çevrimdışı önce**: meal, tefsir ve Rehber dizini IndexedDB'ye; Rehber araması cihazda çalışır (sunucu yalnız özet için).
+- **Anlam araması**: çok dilli küçük gömme modeli ile ayet vektörleri bir kez üretilir, cihaza iner; `search()` değişir, etiket kuralları aynı kalır.
+- **Tek kod tabanı**: Capacitor'a tam geçiş; Expo uygulaması emekli edilir. Ana ekran widget'ı ve gerçek "Rahatsız Etmeyin" bağlantısı native eklentiyle.
+- **Kalite kapısı**: `npm run check` + i18n eksik denetimi + Rehber deneme seti + duman testleri tek komutta (`npm run verify`), commit öncesi zorunlu.
+
+#### Yedinci tur (16.11.2026) — çevrimdışı önce, sadeleştirme, yapılar
+
+| Konu | Yapılan | Dosya |
+|---|---|---|
+| Çevrimdışı paketler | Türkçe meal, Türkçe tefsir, İngilizce meal uygulamayla birlikte yayımlanır (3,9 MB ham; sıkıştırılmış iner). İlk açılıştan sonra boşta cihaza (IndexedDB) alınır; meal/tefsir okuma artık **önce cihazdan** | `scripts/build-packs.py`, `public/packs/`, `services/offline.js`, `services/mealService.js` |
+| Bütün sayfalar çevrimdışı | Servis çalışanı kurulumda bütün sayfa parçalarını ön belleğe alır; paketler ve yazı tipleri de ön bellekten | `public/sw.js` |
+| Rehber cihazda | "Sor" ve "Bugün bana ne söyler?" bağlantı yokken (ya da sunucu cevap vermezken) cihazdaki meal+tefsirde arar; **özet yazmaz, yalnız kaynak gösterir**. Sunucudaki aramayla aynı sonuçları verdiği 5 soruda karşılaştırıldı | `services/localRehber.js`, `data/rehberData.json` (üretilmiş) |
+| Rehber gürültü | Kapsam dışı kuralı: sorunun kelimelerinin yarısı kaynaklarda hiç geçmiyorsa sonuç gösterilmez. İlgisiz soru 2/12 → **1/12**, isabet aynı (100/106) | `backend/rehber.py` (`good_hits`) |
+| Firestore | Cihazda kalıcı önbellek (çevrimdışı okuma/yazma kuyruğu) · App Check (anahtar tanımlanırsa) | `services/firebase.js` |
+| Ses motoru | Bütün sesler tek kapıdan: `sound.play('vakit', …)`; ana sessiz anahtarı; `public/audio/ney/<makam>.mp3` konursa gerçek ney çalar | `services/sound/index.js` |
+| Sahne motoru | Veriyle tanımlanan tam ekran sahneler; Kandil ışığı ve hatim tamamlanınca oynar | `components/scene/` |
+| İçerik hattı | Her veri dosyası kaynağıyla kayıtlı olmak zorunda; Mushaf paketi onaysız üretilirse hata | `data/icerik.json`, `scripts/check-sources.py` |
+| Tanılama | Hata ve sayfa sayıları **yalnız cihazda**; kullanıcı görür, kopyalar, siler | `services/diagnostics.js`, `pages/OfflinePacksPage.js` (yeniden yazıldı) |
+| Kalite kapısı | `npm run verify` — 7 denetim tek komutta; `.githooks/pre-commit` | `scripts/verify.sh` |
+| Sadeleştirme | Silindi: `mobile/` (Expo), kök `android/` (eski WebView), eski kopya klasörü (27 MB), `backup_v3`, `memory`, `.emergent`, 14 eski test betiği, kök `package.json`, `_to_delete`, 36 ölü kaynak dosyası (114 KB) | — |
+
+**Çevrimdışı ÇALIŞMAYANLAR (dürüst liste):** Mushaf Arapça metni (paket Kurul onayına bağlı; o zamana kadar yalnız daha önce açılmış sayfalar),
+ayet sesleri (kıraat akışı), yapay zekâ özetleri/Doğrula/Kendi cümlenle/Dinleyen yoldaş (sunucu gerekir), namaz vakti ilk indirme (son vakitler ön bellekte),
+giriş/kayıt, çok oyunculu yarışma, kandil haritasındaki başkalarının ışıkları.
+
+**Denenmedi:** servis çalışanının ön belleği ve IndexedDB akışı gerçek tarayıcıda; Firestore kalıcı önbelleği; ses motoru. Üretim derlemesi alınmadı.
+
+**Kalan:** gerçek anlam (vektör) araması · Playwright duman testleri · açık temalarda sabit renkler · hadis/siyer kaynak denetimi (içerik hattında 26 uyarı) · native widget ve "Rahatsız Etmeyin".
 
 ### 0.7 Kur'an, meal, tefsir ve siyeri uygulamaya koymanın yolu
 
