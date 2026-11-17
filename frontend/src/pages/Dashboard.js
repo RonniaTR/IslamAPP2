@@ -16,6 +16,8 @@ import { QURAN_PUBLIC } from '../config/quranAccess';
 import { loadDefter } from './DefterPage';
 import { useTx } from '../i18n';
 import PrayerCard from '../components/home/PrayerCard';
+import GokKubbe from '../components/home/GokKubbe';
+import KalbindenGecen from '../components/home/KalbindenGecen';
 import SessizDavet from '../components/SessizDavet';
 
 const PAPER = { bg: '#FBF8F0', ink: '#1A1A1A', soft: '#5C4B2A', line: '#D9CDAE' };
@@ -101,6 +103,7 @@ export default function Dashboard() {
           <button type="button" aria-label={tt('Profil')} onClick={() => navigate('/profile')} style={{ width: 44, height: 44, borderRadius: 22, background: theme.surface, border: `2px solid ${theme.gold}`, color: theme.gold, fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>{initial}</button>
         </header>
 
+        <GokKubbe />
         <PrayerCard />
         <SessizDavet />
 
@@ -112,6 +115,8 @@ export default function Dashboard() {
           </span>
           <span style={{ height: 44, padding: '0 18px', borderRadius: 22, background: theme.gold, color: '#1A1A1A', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center' }}>{tt(sug.cta)}</span>
         </button>
+
+        <KalbindenGecen />
 
         <form onSubmit={(e) => { e.preventDefault(); if (found[0]) navigate(found[0].route); else ask(); }} style={{ display: 'flex', gap: 8 }} role="search">
           <label style={{ flex: 1, minHeight: 48, borderRadius: 24, ...{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }, display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', minWidth: 0 }}>

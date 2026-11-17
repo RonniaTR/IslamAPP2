@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Flame, Star, Gem, Trophy, CheckCircle2, Gift, Crown, Medal, ChevronRight, Library, Award, Swords } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Crown, Medal, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { awardXP, fetchStats, subscribeStats, getCachedStats, getUsername } from '../services/gamification';
 import sfx, { sfxEnabled, setSfxEnabled } from '../services/sfx';
-import ambient from '../services/ambient';
-import { BANK_CATEGORIES, QUESTION_BANK } from '../data/questionBank';
+import { QUESTION_BANK } from '../data/questionBank';
 import api from '../api';
 import WheelGame from './games/WheelGame';
 import WordGame from './games/WordGame';
@@ -28,7 +27,9 @@ import StoryMode from './games/StoryMode';
 import AdventureMode from './games/AdventureMode';
 import GameLobby from './games/GameLobby';
 import Confetti from './games/Confetti';
-import { ADVENTURE } from '../data/adventureData';
+import HikmetCarki from './games/HikmetCarki';
+import OnikiBasamak from './games/OnikiBasamak';
+import { MODULES, ModuleScene } from './games/arena';
 
 // ════════════════════════════════════════════════════════════
 // OYUN MERKEZİ — referans tasarım birebir (mobil düzene uyarlı)
@@ -49,6 +50,8 @@ const LEAGUES = [
 
 // ─── Oyun modları (premium tek satırlık metinler) ───
 const GAME_MODES = [
+  { id: 'cark', title: 'Hikmet Çarkı', desc: 'Çevir, bil, altı nişanı topla.', emoji: '🎡', color: '#E2B85A', type: 'game_quiz', Comp: HikmetCarki },
+  { id: 'sahne', title: '12 Basamak', desc: 'Sahnede on iki soru, iki baraj, üç joker.', emoji: '🎙️', color: '#6E5BB0', type: 'game_quiz', Comp: OnikiBasamak },
   { id: 'adventure', title: 'İslam Tarihi Macerası', desc: "Mekke'den Veda'ya tarihte yolculuk et.", emoji: '🌍', color: '#F59E0B', type: 'game_quiz', Comp: AdventureMode, cta: 'Yolculuğa Çık', xpHint: '80+', badge: 'Siyer Kâşifi', featured: true },
   { id: 'story', title: 'Hikâye Modu', desc: 'Kıssaların içinde yolculuğa çık.', emoji: '📜', color: '#D946EF', type: 'game_quiz', Comp: StoryMode, cta: 'Keşfet', xpHint: '55+', badge: 'Kıssa Alimi' },
   { id: 'rapid', title: 'Hızlı Bilgi (Blitz)', desc: '30 saniyede refleksini test et.', emoji: '⚡', color: '#EAB308', type: 'game_quiz', Comp: RapidQuiz, xpHint: '150+', badge: 'Blitz Ustası' },
@@ -69,14 +72,7 @@ const GAME_MODES = [
   { id: 'whichletter', title: 'Hangi Harf?', desc: 'Çıkış yerinden harfi tanı.', emoji: '🔡', color: '#38BDF8', type: 'game_quiz', Comp: WhichLetter },
 ];
 
-const CAT_ICONS = {
-  Kuran: '📖', Hadis: '📜', Siyer: '🕌', Peygamberler: '⭐', Sahabe: '👥',
-  Tarih: '🏰', İbadet: '🕋', Fıkıh: '⚖️', Ramazan: '🌙', Medeniyet: '🏛️',
-  Genel: '✨', İtikat: '💠', Ahlak: '❤️', 'Esmaül Hüsna': '💎', Dualar: '🤲',
-  İlmihal: '📚', Çocuk: '🧒',
-};
 
-const WEEK_DAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cts', 'Paz'];
 
 // ─── Yerel ilerleme (görevler / sandıklar / başarılar) ───
 const todayKey = () => new Date().toISOString().split('T')[0];
@@ -189,41 +185,6 @@ function DailyQuestion({ theme, onXP, onEvent }) {
 }
 
 // ─── Cami gece silueti (dış görsel yok — saf SVG) ───
-function MosqueScene({ theme }) {
-  return (
-    <svg viewBox="0 0 400 120" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="gcSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#04150d" />
-          <stop offset="100%" stopColor="#0a2a1a" />
-        </linearGradient>
-        <radialGradient id="gcGlow" cx="0.5" cy="1" r="0.9">
-          <stop offset="0%" stopColor="#ffd36922" />
-          <stop offset="100%" stopColor="transparent" />
-        </radialGradient>
-      </defs>
-      <rect width="400" height="120" fill="url(#gcSky)" />
-      <rect width="400" height="120" fill="url(#gcGlow)" />
-      {[[30, 18], [70, 40], [120, 14], [340, 22], [370, 44], [300, 10], [255, 30]].map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 1.6 : 1} fill="#ffd369" opacity={0.7 - (i % 3) * 0.15} />
-      ))}
-      {/* Hilal */}
-      <path d="M347 28 a13 13 0 1 0 12 20 a10.5 10.5 0 1 1 -12 -20 Z" fill="#ffd369" opacity="0.9" transform="translate(-22,-12)" />
-      {/* Cami silueti */}
-      <g fill="#06281a" stroke="#ffd36933" strokeWidth="0.8">
-        <rect x="150" y="86" width="100" height="34" />
-        <path d="M160 86 Q200 38 240 86 Z" />
-        <circle cx="200" cy="58" r="4" fill="#ffd369" stroke="none" opacity="0.85" />
-        <rect x="126" y="60" width="8" height="60" />
-        <path d="M122 60 L130 42 L138 60 Z" />
-        <rect x="266" y="60" width="8" height="60" />
-        <path d="M262 60 L270 42 L278 60 Z" />
-        <rect x="176" y="98" width="12" height="22" rx="6" fill="#ffd369" opacity="0.25" stroke="none" />
-        <rect x="212" y="98" width="12" height="22" rx="6" fill="#ffd369" opacity="0.25" stroke="none" />
-      </g>
-    </svg>
-  );
-}
 
 // ─── Lig arması (SVG kalkan) ───
 function LeagueEmblem({ color, size = 52 }) {
@@ -240,15 +201,16 @@ export default function GamesPage() {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [active, setActive] = useState(null);
-  const [stage, setStage] = useState('hub'); // hub | lobby | play
+  const [stage, setStage] = useState('hub'); // hub | module | lobby | play
+  const [mod, setMod] = useState(null);
   const sessionXP = useRef(0);
+  const direct = useRef(false);   // modül kartındaki "Oyna" ile lobisiz başlatıldı mı
   const [stats, setStats] = useState(() => getCachedStats() || { total_points: 0, level: 1, current_streak: 0 });
   const [daily, setDaily] = useState(loadDaily);
   const [totals, setTotals] = useState(loadTotals);
   const [week, setWeek] = useState(loadWeek);
   const [levelUp, setLevelUp] = useState(null); // yeni seviye numarası
   const [sfxOn, setSfxOn] = useState(sfxEnabled);
-  const [amb, setAmb] = useState(() => ambient.getState());
   const prevLvl = useRef(null);
   const [gameMeta, setGameMeta] = useState(loadGameMeta);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -298,8 +260,6 @@ export default function GamesPage() {
     setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 1600);
   }, []);
 
-  // Atmosfer durumu aboneliği
-  useEffect(() => ambient.subscribe(setAmb), []);
 
   // Seviye atlama kutlaması — XP artınca seviye değiştiyse tam ekran kutla
   const totalXPNow = stats.total_points || 0;
@@ -355,7 +315,7 @@ export default function GamesPage() {
   const openGame = useCallback((g) => {
     if (g.locked) return;
     if (g.route) { navigate(g.route); return; }
-    lobbyFrom.current = stage === 'modes' ? 'modes' : 'hub';
+    lobbyFrom.current = stage === 'module' ? 'module' : 'hub';
     setActive(g.id);
     setStage('lobby');
     try { localStorage.setItem('gc_last_mode', g.id); } catch { /* ignore */ }
@@ -381,8 +341,32 @@ export default function GamesPage() {
       save('game_meta', meta);
       return meta;
     });
+    if (direct.current) { direct.current = false; setActive(null); setStage(lobbyFrom.current); return; }
     setStage('lobby');
   }, []);
+
+  // Modüller: kartın kendisi modülü açar, "Oyna" doğrudan oyunu başlatır (lobi atlanır)
+  const openModule = useCallback((m) => { setMod(m.id); setStage('module'); }, []);
+  const playModule = useCallback((m) => {
+    const playable = m.rounds.filter((id) => GAME_MODES.some((g) => g.id === id && g.Comp));
+    const id = m.primary === 'random' ? playable[Math.floor(Math.random() * playable.length)] : m.primary;
+    const g = GAME_MODES.find((x) => x.id === id);
+    if (!g) return;
+    if (g.route) { navigate(g.route); return; }
+    setMod(m.id);
+    lobbyFrom.current = 'module';
+    direct.current = true;
+    setActive(g.id);
+    sessionXP.current = 0;
+    setStage('play');
+    setGameMeta(prev => {
+      const mm = prev[g.id] || {};
+      const meta = { ...prev, [g.id]: { ...mm, plays: (mm.plays || 0) + 1, xp: mm.xp || 0 } };
+      save('game_meta', meta);
+      return meta;
+    });
+    try { localStorage.setItem('gc_last_mode', g.id); } catch { /* ignore */ }
+  }, [navigate]);
 
   const handleXP = useCallback(async (amount, type, label) => {
     const isDaily = active && dailyGameId === active;
@@ -454,10 +438,8 @@ export default function GamesPage() {
     { icon: '⚡', name: 'Bilgi Deposu', desc: 'Toplam 500 doğru cevap', cur: totals.correct, max: 500 },
   ];
 
-  const todayIdx = (new Date().getDay() + 6) % 7;
   const streak = stats.current_streak || 0;
 
-  const S = { card: { background: theme.cardBg, border: `1px solid ${theme.cardBorder}` } };
 
   // ─── Seviye atlama kutlaması (her iki görünümde de gösterilir) ───
   const levelUpOverlay = (
@@ -521,604 +503,235 @@ export default function GamesPage() {
     );
   }
 
-  // ═══ OYUN MODLARI EKRANI (şık liste) ═══
-  if (stage === 'modes') {
-    const featured = GAME_MODES.find(g => g.featured) || GAME_MODES[0];
-    const rest = GAME_MODES.filter(g => g.id !== featured.id);
+  // ═══ MODÜL EKRANI ═══
+  const module = MODULES.find((m) => m.id === mod);
+  const modeOf = (id) => GAME_MODES.find((g) => g.id === id);
+  const xpBar = (
+    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+      <AnimatePresence>
+        {floats.map(f => (
+          <motion.div key={f.id} initial={{ opacity: 0, y: 10, scale: 0.8 }} animate={{ opacity: 1, y: -30, scale: 1 }} exit={{ opacity: 0, y: -60 }}
+            transition={{ duration: 1.2 }} className="px-4 py-1.5 rounded-full font-black text-sm shadow-lg whitespace-nowrap"
+            style={{ background: f.bonus ? 'linear-gradient(135deg, #F59E0B, #EF4444)' : theme.gold, color: f.bonus ? '#fff' : theme.bg }}>
+            +{f.amount} XP {f.bonus ? '🔥 2x' : ''}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+  const serif = { fontFamily: 'var(--font-heading)', fontWeight: 600, letterSpacing: -0.4 };
+  const goldBtn = { minHeight: 50, padding: '0 26px', borderRadius: 25, background: '#E2B85A', color: '#2A1E05', fontWeight: 800, fontSize: 15, display: 'inline-flex', alignItems: 'center', gap: 8 };
+
+  if (stage === 'module' && module) {
+    const best = Math.max(0, ...module.rounds.map((id) => (gameMeta[id] && gameMeta[id].best) || 0));
+    const plays = module.rounds.reduce((a, id) => a + ((gameMeta[id] && gameMeta[id].plays) || 0), 0);
     return (
-      <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
-        {levelUpOverlay}
-        <div className="px-5 pt-6 pb-4 flex items-center gap-2">
-          <button onClick={() => setStage('hub')} className="p-2 -ms-2 rounded-xl active:scale-90" aria-label="Geri">
-            <ArrowLeft size={20} style={{ color: theme.gold }} />
+      <div className="min-h-screen pb-28" style={{ background: theme.bg, color: theme.textPrimary }}>
+        {levelUpOverlay}{xpBar}
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: '16px 18px 0' }}>
+          <button onClick={() => { setStage('hub'); setMod(null); }} aria-label="Geri" style={{ width: 44, height: 44, borderRadius: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+            <ArrowLeft size={20} style={{ color: theme.textPrimary }} />
           </button>
-          <div>
-            <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Oyun Modları</h1>
-            <p className="text-[10px] mt-0.5" style={{ color: theme.textSecondary }}>{GAME_MODES.length} mod · her biri farklı bir deneyim</p>
-          </div>
-        </div>
-
-        {/* Öne çıkan: Macera (tam genişlik, sinematik) */}
-        <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-          onClick={() => openGame(featured)} whileTap={{ scale: 0.98 }}
-          className="mx-5 mb-4 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-start relative overflow-hidden"
-          style={{ background: `linear-gradient(150deg, ${featured.color}1e, ${theme.surface})`, border: `1.5px solid ${featured.color}55`, boxShadow: `0 8px 34px ${featured.color}20` }}>
-          <div className="absolute -top-12 -right-8 w-44 h-44 rounded-full pointer-events-none" style={{ background: `radial-gradient(circle, ${featured.color}35, transparent 65%)` }} />
-          <div className="flex items-center gap-4 relative">
-            <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 2.4, repeat: Infinity }}
-              className="text-5xl" style={{ filter: `drop-shadow(0 6px 16px ${featured.color}80)` }}>{featured.emoji}</motion.span>
-            <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: featured.color }}>Öne Çıkan</p>
-              <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{featured.title}</p>
-              <p className="text-[11px]" style={{ color: theme.textSecondary }}>{featured.desc}</p>
+          <motion.div layoutId={`mod-${module.id}`} style={{ marginTop: 14, borderRadius: 30, overflow: 'hidden', position: 'relative', boxShadow: '0 22px 44px -22px rgba(8,10,25,0.8)' }}>
+            <ModuleScene id={module.id} height={250} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(5,6,14,0.85) 100%)' }} />
+            <div style={{ position: 'absolute', insetInline: 20, bottom: 18, color: '#F6EFDD' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: module.accent, textTransform: 'uppercase' }}>{module.tag}</span>
+              <h1 style={{ ...serif, fontSize: 36, margin: '4px 0 0' }}>{module.title}</h1>
             </div>
-            <span className="text-[11px] font-black px-3.5 py-2 rounded-xl shrink-0" style={{ background: featured.color, color: '#fff' }}>{featured.cta || 'Oyna'}</span>
+          </motion.div>
+          <p style={{ fontSize: 15, lineHeight: 1.6, color: theme.textSecondary, margin: '16px 2px' }}>{module.desc}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <motion.button type="button" whileTap={{ scale: 0.95 }} onClick={() => playModule(module)} style={{ ...goldBtn, minHeight: 58, fontSize: 17, flex: 1, justifyContent: 'center' }}>▶ Oyna</motion.button>
+            <div style={{ textAlign: 'end' }}>
+              <p style={{ fontSize: 11, color: theme.textSecondary, margin: 0 }}>En iyi</p>
+              <p style={{ ...serif, fontSize: 22, margin: 0, color: theme.gold }}>{best}</p>
+            </div>
           </div>
-        </motion.button>
+          <p style={{ fontSize: 12, color: theme.textMuted, margin: '8px 2px 0' }}>{plays ? `${plays} kez oynadın` : 'Henüz oynamadın'}</p>
 
-        {/* Diğer modlar: telefonda 2, tablette 3, PC'de 4 sütun */}
-        <div className="px-5 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-          {rest.map((g, i) => {
-            const meta = gameMeta[g.id];
-            const isDaily = dailyGameId === g.id;
-            return (
-              <motion.button key={g.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 + i * 0.035 }}
-                onClick={() => openGame(g)} whileTap={{ scale: 0.97 }}
-                className="rounded-2xl p-4 flex flex-col text-start relative overflow-hidden"
-                style={{
-                  background: `linear-gradient(160deg, ${theme.surface}, ${g.color}0c)`,
-                  border: `1.5px solid ${isDaily ? '#F59E0B66' : `${g.color}30`}`,
-                }}>
-                <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-20 pointer-events-none" style={{ background: `radial-gradient(circle, ${g.color}, transparent)` }} />
-                <div className="flex items-start justify-between">
-                  <span className="text-3xl mb-2 block" style={{ filter: `drop-shadow(0 2px 8px ${g.color}60)` }}>{g.emoji}</span>
-                  {isDaily && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full" style={{ background: '#F59E0B22', color: '#F59E0B' }}>🔥 2x</span>}
-                </div>
-                <p className="text-sm font-black leading-tight" style={{ color: theme.textPrimary }}>{g.title}</p>
-                <p className="text-[10px] mt-1 flex-1 leading-relaxed" style={{ color: theme.textSecondary }}>{g.desc}</p>
-                <p className="text-[9px] font-bold mt-2" style={{ color: g.color }}>
-                  {meta ? `${meta.plays} oyun · ${meta.xp} XP` : 'Hiç oynanmadı'}
-                </p>
-              </motion.button>
-            );
-          })}
+          <h2 style={{ ...serif, fontSize: 22, margin: '28px 2px 12px' }}>Turlar</h2>
+          <div className="stagger" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {module.rounds.map((id) => {
+              const g = modeOf(id);
+              if (!g) return null;
+              const m = gameMeta[id] || {};
+              return (
+                <button key={id} type="button" onClick={() => openGame(g)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14, borderRadius: 22, background: theme.cardBg, border: `1px solid ${theme.cardBorder}`, textAlign: 'start', color: theme.textPrimary }}>
+                  <span style={{ width: 48, height: 48, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, background: `${g.color}1F`, flexShrink: 0 }}>{g.emoji}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 16, fontWeight: 700 }}>{g.title}{dailyGameId === id ? '  🔥 2x' : ''}</span>
+                    <span style={{ display: 'block', fontSize: 13, color: theme.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.desc}</span>
+                  </span>
+                  {m.best ? <span style={{ fontSize: 12, color: theme.gold, fontWeight: 700 }}>{m.best}</span> : null}
+                  <ChevronRight size={18} style={{ color: theme.textMuted }} />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
   }
 
-  // ═══ OYUN MERKEZİ (HUB) ═══
+  // ═══ BİLGİ MEYDANI (merkez) ═══
+  const dailyMod = MODULES.find((m) => m.rounds.includes(dailyGameId));
+  const dailyGame = modeOf(dailyGameId);
+  const initial = (username || '?').trim().charAt(0).toLocaleUpperCase('tr');
+  const C = 2 * Math.PI * 27;
   return (
-    <div className="min-h-screen pb-24" style={{ background: theme.bg }}>
-      {levelUpOverlay}
-      {/* Uçan XP */}
-      <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
-        <AnimatePresence>
-          {floats.map(f => (
-            <motion.div key={f.id} initial={{ opacity: 0, y: 10, scale: 0.8 }} animate={{ opacity: 1, y: -30, scale: 1 }} exit={{ opacity: 0, y: -60 }}
-              transition={{ duration: 1.2 }} className="px-4 py-1.5 rounded-full font-black text-sm shadow-lg whitespace-nowrap"
-              style={{ background: f.bonus ? 'linear-gradient(135deg, #F59E0B, #EF4444)' : theme.gold, color: f.bonus ? '#fff' : theme.bg }}>
-              +{f.amount} XP {f.bonus ? '🔥 2x' : '⚡'}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+    <div className="min-h-screen pb-28" style={{ background: theme.bg, color: theme.textPrimary }}>
+      {levelUpOverlay}{xpBar}
 
-      {/* ─── BAŞLIK + ÇİPLER ─── */}
-      <div className="px-5 pt-6 pb-3">
-        <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>Oyun Merkezi</h1>
-        <p className="text-xs mt-0.5 mb-3" style={{ color: theme.textSecondary }}>Bilgiyle yarış, ilimle yüksel!</p>
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {[
-            { icon: <Flame size={13} style={{ color: '#EF4444' }} />, val: streak, label: 'Günlük Seri' },
-            { icon: <Star size={13} style={{ color: theme.gold }} />, val: totalXP.toLocaleString('tr-TR'), label: 'XP Puanı' },
-            { icon: <Gem size={13} style={{ color: '#10B981' }} />, val: totals.correct, label: 'İlmi' },
-          ].map((c, i) => (
-            <div key={i} className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl" style={S.card}>
-              {c.icon}
-              <div>
-                <p className="text-sm font-black leading-none tabular-nums" style={{ color: theme.textPrimary }}>{c.val}</p>
-                <p className="text-[8px] uppercase tracking-wide mt-0.5" style={{ color: theme.textSecondary }}>{c.label}</p>
-              </div>
-            </div>
+      {/* GECE BAŞLIĞI */}
+      <header style={{ position: 'relative', overflow: 'hidden', borderRadius: '0 0 34px 34px', color: '#F6EFDD', padding: '22px 20px 26px',
+        background: 'linear-gradient(180deg, #0A1024 0%, #15214A 70%, #22305E 100%)' }}>
+        <svg viewBox="0 0 360 160" preserveAspectRatio="xMidYMid slice" aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          {Array.from({ length: 30 }, (_, i) => (
+            <motion.circle key={i} cx={(i * 53) % 360} cy={(i * 37) % 120} r={0.6 + (i % 3) * 0.5} fill="#FFF8E6" animate={{ opacity: [0.15, 0.9, 0.15] }} transition={{ duration: 2 + (i % 5), repeat: Infinity, delay: i * 0.17 }} />
           ))}
-        </div>
-      </div>
-
-      <div className="hub-grid">
-      {/* ─── HERO: profil + cami sahnesi ─── */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        className="hub-span mx-5 mb-3 rounded-3xl relative overflow-hidden" style={{ border: `1px solid ${theme.gold}30`, minHeight: 150 }}>
-        <MosqueScene theme={theme} />
-        <div className="relative z-10 p-5">
-          <div className="flex items-center gap-4">
-            {/* Avatar + seviye halkası */}
-            <div className="relative shrink-0">
-              <svg width="74" height="74" viewBox="0 0 74 74" className="-rotate-90">
-                <circle cx="37" cy="37" r="32" fill="none" stroke="#ffffff18" strokeWidth="4.5" />
-                <motion.circle cx="37" cy="37" r="32" fill="none" stroke="#ffd369" strokeWidth="4.5" strokeLinecap="round"
-                  strokeDasharray={2 * Math.PI * 32} initial={{ strokeDashoffset: 2 * Math.PI * 32 }}
-                  animate={{ strokeDashoffset: 2 * Math.PI * 32 * (1 - pct / 100) }} transition={{ duration: 1 }} />
+        </svg>
+        <div style={{ position: 'relative', maxWidth: 560, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.4, color: '#E2B85A' }}>BİLGİ MEYDANI</span>
+            <button type="button" onClick={() => { const v = !sfxOn; setSfxOn(v); setSfxEnabled(v); }} aria-label={sfxOn ? 'Sesi kapat' : 'Sesi aç'}
+              style={{ minHeight: 34, padding: '0 12px', borderRadius: 17, background: 'rgba(255,255,255,0.08)', color: '#F6EFDD', fontSize: 12, fontWeight: 600 }}>{sfxOn ? '♪ Ses açık' : '♪ Ses kapalı'}</button>
+          </div>
+          <h1 style={{ ...serif, fontSize: 34, margin: '10px 0 16px', lineHeight: 1.1 }}>Bil, yüksel,<br />ışığını yak.</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ position: 'relative', width: 64, height: 64, flexShrink: 0 }}>
+              <svg width="64" height="64" viewBox="0 0 64 64" style={{ transform: 'rotate(-90deg)' }} aria-hidden>
+                <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="5" />
+                <motion.circle cx="32" cy="32" r="27" fill="none" stroke="#E2B85A" strokeWidth="5" strokeLinecap="round" strokeDasharray={C}
+                  initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct / 100) }} transition={{ duration: 1.2, ease: 'easeOut' }} />
               </svg>
-              <div className="absolute inset-[9px] rounded-full flex items-center justify-center text-2xl" style={{ background: '#0a2a1a', border: '1px solid #ffd36940' }}>
-                {username.charAt(0).toUpperCase()}
-              </div>
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: '#ffd369', color: '#04150d' }}>{stats.level || lvl}</span>
+              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', ...serif, fontSize: 24 }}>{initial}</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#ffd369' }}>{levelTitle}</p>
-              <p className="text-xl font-black truncate" style={{ fontFamily: 'Playfair Display, serif', color: '#f7e6ae' }}>{username}</p>
-              <div className="h-2 rounded-full overflow-hidden mt-2" style={{ background: '#ffffff15' }}>
-                <motion.div className="h-full rounded-full" initial={{ width: 0 }} animate={{ width: `${pct}%` }}
-                  style={{ background: 'linear-gradient(90deg, #ffd369, #d4af37)' }} />
-              </div>
-              <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                {totalXP.toLocaleString('tr-TR')} / {next.toLocaleString('tr-TR')} XP · Sonraki seviye: <span style={{ color: '#ffd369' }}>{Math.max(0, next - totalXP)} XP kaldı</span>
-              </p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{levelTitle} · {lvl}. seviye</p>
+              <p style={{ margin: '2px 0 0', fontSize: 13, color: '#BFC6DD' }}>{totalXP.toLocaleString('tr-TR')} / {next.toLocaleString('tr-TR')} XP</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <LeagueEmblem color={league.cur.color} size={40} />
+              <span style={{ fontSize: 10, color: '#BFC6DD', marginTop: 2 }}>{league.cur.name}</span>
             </div>
           </div>
-          {/* İstatistik şeridi */}
-          <div className="grid grid-cols-4 gap-1.5 mt-4">
-            {[
-              { icon: '🔥', val: streak, label: 'Günlük Seri' },
-              { icon: '🏆', val: (stats.badges || []).length, label: 'Rozet' },
-              { icon: '🎮', val: totals.wins, label: 'Oyun Kazanımı' },
-              { icon: '✅', val: totals.correct.toLocaleString('tr-TR'), label: 'Doğru Cevap' },
-            ].map((s, i) => (
-              <div key={i} className="rounded-xl px-1 py-2 text-center" style={{ background: '#ffffff0a', border: '1px solid #ffd36920' }}>
-                <p className="text-sm font-black tabular-nums" style={{ color: '#f7e6ae' }}>{s.icon} {s.val}</p>
-                <p className="text-[8px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>{s.label}</p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            {[[`🔥 ${streak}`, 'gün seri'], [`${totals.correct}`, 'doğru'], [`${Math.min(week.xp, WEEK_GOAL)}/${WEEK_GOAL}`, 'haftalık hedef']].map(([v, l]) => (
+              <div key={l} style={{ flex: 1, borderRadius: 16, padding: '10px 8px', background: 'rgba(255,255,255,0.07)', textAlign: 'center' }}>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{v}</p>
+                <p style={{ margin: 0, fontSize: 10, color: '#BFC6DD' }}>{l}</p>
               </div>
             ))}
           </div>
+          {week.xp >= WEEK_GOAL && !week.claimed && (
+            <button type="button" onClick={claimWeek} style={{ ...goldBtn, marginTop: 12, width: '100%', justifyContent: 'center' }}>Haftalık ödülü al · +{WEEK_BONUS} XP</button>
+          )}
         </div>
-      </motion.div>
+      </header>
 
-      {/* ─── GÜNÜN SORUSU ─── */}
-      <DailyQuestion theme={theme} onXP={handleXP} onEvent={handleEvent} />
-
-      {/* ─── ATMOSFER SESİ + EFEKTLER ─── */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}
-        className="mx-5 mb-3 rounded-2xl px-4 py-3 flex items-center gap-3" style={S.card}>
-        <button onClick={() => ambient.toggle()}
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-          style={{ background: amb.playing ? '#10B98122' : `${theme.gold}12`, border: `1.5px solid ${amb.playing ? '#10B981' : `${theme.gold}35`}` }}
-          aria-label={amb.playing ? 'Atmosferi durdur' : 'Atmosferi başlat'}>
-          <span className="text-lg">{amb.playing ? '⏸️' : '🎵'}</span>
-        </button>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-xs font-black shrink-0" style={{ color: theme.textPrimary }}>
-              Atmosfer {amb.playing && <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }} style={{ color: '#10B981' }}>·</motion.span>}
-            </p>
-            <div className="flex gap-1">
-              {amb.tracks.map(t => (
-                <button key={t.id} onClick={() => ambient.setTrack(t.id)}
-                  className="text-[8px] font-black px-2 py-0.5 rounded-full transition-all"
-                  style={{
-                    background: amb.track === t.id ? `${theme.gold}20` : 'transparent',
-                    border: `1px solid ${amb.track === t.id ? `${theme.gold}50` : theme.cardBorder}`,
-                    color: amb.track === t.id ? theme.gold : theme.textSecondary,
-                  }}>
-                  {t.icon || '🎙️'} {t.name.split(' ')[0]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <input type="range" min="0" max="1" step="0.05" value={amb.volume}
-            onChange={e => ambient.setVolume(Number(e.target.value))}
-            className="w-full h-1 mt-1.5 accent-current cursor-pointer"
-            style={{ accentColor: theme.gold }} aria-label="Ses seviyesi" />
-        </div>
-        <button onClick={() => { const v = !sfxOn; setSfxOn(v); setSfxEnabled(v); if (v) sfx.correct(); }}
-          className="shrink-0 flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-xl active:scale-95 transition-transform"
-          style={{ background: sfxOn ? `${theme.gold}12` : `${theme.textSecondary}10`, border: `1px solid ${sfxOn ? `${theme.gold}35` : theme.cardBorder}` }}>
-          <span className="text-sm">{sfxOn ? '🔔' : '🔕'}</span>
-          <span className="text-[8px] font-bold" style={{ color: sfxOn ? theme.gold : theme.textSecondary }}>Efektler</span>
-        </button>
-      </motion.div>
-
-      {/* ─── DEVAM ET (son oynanan mod) ─── */}
-      {(() => {
-        let lastId = null;
-        try { lastId = localStorage.getItem('gc_last_mode'); } catch { /* ignore */ }
-        const lastGame = GAME_MODES.find(g => g.id === lastId && g.Comp);
-        if (!lastGame) return null;
-        return (
-          <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}
-            onClick={() => openGame(lastGame)} whileTap={{ scale: 0.98 }}
-            className="mx-5 mb-3 w-[calc(100%-2.5rem)] rounded-2xl p-3.5 flex items-center gap-3 text-start"
-            style={{ background: `linear-gradient(135deg, ${lastGame.color}12, ${theme.surface})`, border: `1.5px solid ${lastGame.color}40` }}>
-            <span className="text-2xl">{lastGame.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-black" style={{ color: theme.textPrimary }}>{lastGame.title}</p>
-              <p className="text-[9px]" style={{ color: theme.textSecondary }}>Son oynadığın mod</p>
-            </div>
-            <span className="text-[11px] font-black px-3.5 py-2 rounded-xl" style={{ background: lastGame.color, color: '#fff' }}>Devam Et</span>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '18px 18px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {dailyMod && dailyGame && (
+          <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={() => openGame(dailyGame)}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px 12px 12px', borderRadius: 999, background: theme.surface, border: `1px solid ${theme.gold}55`, textAlign: 'start', color: theme.textPrimary }}>
+            <motion.span animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2 }} style={{ width: 40, height: 40, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${theme.gold}22`, fontSize: 20 }}>{dailyGame.emoji}</motion.span>
+            <span style={{ flex: 1 }}><span style={{ display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: 1.4, color: theme.gold }}>GÜNÜN OYUNU · 2x XP</span><span style={{ fontWeight: 700 }}>{dailyGame.title}</span><span style={{ color: theme.textSecondary }}> · {dailyMod.title}</span></span>
+            <ChevronRight size={18} style={{ color: theme.textMuted }} />
           </motion.button>
-        );
-      })()}
+        )}
 
-      {/* ─── LİG PANELİ + SEZON ─── */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
-        className="mx-5 mb-5 rounded-2xl p-4 flex items-center gap-4" style={S.card}>
-        <LeagueEmblem color={league.cur.color} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <p className="text-base font-black" style={{ color: league.cur.color }}>{league.cur.name}</p>
-            {(() => {
-              const now = new Date();
-              const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-              const daysLeft = Math.max(1, Math.ceil((monthEnd - now) / 86400000));
-              const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-              return (
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold }}>
-                  Sezon: {months[now.getMonth()]} · {daysLeft} gün
-                </span>
-              );
-            })()}
-          </div>
-          <div className="h-2 rounded-full overflow-hidden mt-1.5" style={{ background: `${theme.textSecondary}20` }}>
-            <motion.div className="h-full rounded-full" initial={{ width: 0 }} animate={{ width: `${league.pct}%` }} style={{ background: league.cur.color }} />
-          </div>
-          <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>
-            {league.next
-              ? <>{totalXP.toLocaleString('tr-TR')} / {league.next.min.toLocaleString('tr-TR')} XP · Sonraki Lig: <span style={{ color: league.next.color }}>{league.next.name.replace(' Lig', '')}</span> 🛡️</>
-              : 'En yüksek ligdesin! 👑'}
-          </p>
-        </div>
-      </motion.div>
-
-      {/* ─── OYUN MODLARI VİTRİNİ (özet görsel → mod listesi ekranı) ─── */}
-      <motion.button initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
-        onClick={() => setStage('modes')} whileTap={{ scale: 0.98 }}
-        className="hub-span mx-5 mb-6 w-[calc(100%-2.5rem)] rounded-3xl p-5 text-start relative overflow-hidden"
-        style={{
-          background: `linear-gradient(150deg, ${theme.gold}16, ${theme.surface} 55%, #10B98110)`,
-          border: `1.5px solid ${theme.gold}45`,
-          boxShadow: `0 10px 40px ${theme.gold}18`,
-        }}>
-        {/* Parıltı süpürmesi */}
-        <motion.div className="absolute inset-0 pointer-events-none" animate={{ x: ['-100%', '160%'] }}
-          transition={{ duration: 3.2, repeat: Infinity, repeatDelay: 1.6, ease: 'easeInOut' }}
-          style={{ background: `linear-gradient(105deg, transparent 42%, ${theme.gold}14 50%, transparent 58%)` }} />
-        <div className="flex items-center justify-between relative mb-3.5">
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.22em]" style={{ color: theme.gold }}>Oyun Modları</p>
-            <p className="text-lg font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
-              {GAME_MODES.length} farklı deneyim
-            </p>
-            <p className="text-[10px]" style={{ color: theme.textSecondary }}>Blitz'ten Maceraya — hepsi seni bekliyor</p>
-          </div>
-          <span className="text-[11px] font-black px-4 py-2.5 rounded-xl shrink-0 flex items-center gap-1"
-            style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight})`, color: theme.bg }}>
-            Modlara Git <ChevronRight size={13} />
-          </span>
-        </div>
-        {/* Emoji mozaiği — modların vitrini */}
-        <div className="flex gap-1.5 relative">
-          {GAME_MODES.slice(0, 8).map((g, i) => (
-            <motion.span key={g.id}
-              animate={{ y: [0, i % 2 === 0 ? -3 : 3, 0] }}
-              transition={{ duration: 2 + (i % 3) * 0.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0"
-              style={{ background: `${g.color}16`, border: `1px solid ${g.color}35`, filter: `drop-shadow(0 2px 6px ${g.color}40)` }}>
-              {g.emoji}
-            </motion.span>
-          ))}
-          <span className="w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0"
-            style={{ background: `${theme.gold}12`, border: `1px dashed ${theme.gold}45`, color: theme.gold }}>
-            +{GAME_MODES.length - 8}
-          </span>
-        </div>
-      </motion.button>
-
-      {/* ─── GÜNLÜK GÖREVLER ─── */}
-      <div className="px-5 mb-5">
-        <div className="rounded-2xl p-4" style={S.card}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>Günlük Görevler</h2>
-            <span className="text-[10px] font-bold tabular-nums px-2 py-1 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold }}>⏳ {midnight}</span>
-          </div>
-          <div className="space-y-2.5">
-            {TASKS.map(t => {
-              const done = t.cur >= t.max;
-              const claimed = daily.claimedTasks.includes(t.id);
-              return (
-                <div key={t.id} className="flex items-center gap-3">
-                  <span className="text-base w-6 text-center">{t.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{t.label}</p>
-                      <span className="text-[10px] font-bold tabular-nums" style={{ color: done ? '#10B981' : theme.textSecondary }}>{Math.min(t.cur, t.max)} / {t.max}</span>
-                    </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
-                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (t.cur / t.max) * 100)}%`, background: done ? '#10B981' : theme.gold }} />
-                    </div>
-                  </div>
-                  {done && (claimed
-                    ? <CheckCircle2 size={18} style={{ color: '#10B981' }} />
-                    : <button onClick={() => claimReward('task', t.id, t.xp)} className="text-[10px] font-black px-2.5 py-1.5 rounded-lg active:scale-95" style={{ background: '#10B981', color: '#fff' }}>+{t.xp} Al</button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── HAFTALIK HEDEF ─── */}
-      <div className="px-5 mb-5">
-        <div className="rounded-2xl p-4" style={S.card}>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>🎯 Haftalık Hedef</h2>
-            {week.claimed
-              ? <span className="text-[10px] font-black" style={{ color: '#10B981' }}>Alındı ✓</span>
-              : week.xp >= WEEK_GOAL
-                ? <button onClick={claimWeek} className="text-[10px] font-black px-3 py-1.5 rounded-lg active:scale-95" style={{ background: '#10B981', color: '#fff' }}>+{WEEK_BONUS} Al</button>
-                : <span className="text-[10px] font-bold tabular-nums" style={{ color: theme.textSecondary }}>{Math.min(week.xp, WEEK_GOAL)} / {WEEK_GOAL} XP</span>}
-          </div>
-          <div className="h-2.5 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
-            <motion.div className="h-full rounded-full" animate={{ width: `${Math.min(100, (week.xp / WEEK_GOAL) * 100)}%` }}
-              style={{ background: week.xp >= WEEK_GOAL ? '#10B981' : `linear-gradient(90deg, ${theme.gold}, ${theme.goldLight})` }} />
-          </div>
-          <p className="text-[10px] mt-1.5" style={{ color: theme.textSecondary }}>
-            Bu hafta {WEEK_GOAL} XP topla, +{WEEK_BONUS} bonus kazan! Hafta pazartesi sıfırlanır.
-          </p>
-        </div>
-      </div>
-
-      {/* ─── SANDIKLAR + ETKİNLİKLER ─── */}
-      <div className="px-5 mb-5 grid grid-cols-1 gap-4">
-        <div className="rounded-2xl p-4" style={S.card}>
-          <h2 className="text-sm font-black mb-3" style={{ color: theme.textPrimary }}>Sandıklar</h2>
-          <div className="grid grid-cols-3 gap-2.5">
-            {CHESTS.map(c => {
-              const ready = daily.wins >= c.need;
-              const claimed = daily.claimedChests.includes(c.id);
-              return (
-                <div key={c.id} className="rounded-xl p-3 text-center" style={{ background: `${c.color}0e`, border: `1px solid ${c.color}35` }}>
-                  <motion.span animate={ready && !claimed ? { rotate: [-4, 4, -4], scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.9, repeat: Infinity }}
-                    className="text-2xl block mb-1">{claimed ? '📭' : '🎁'}</motion.span>
-                  <p className="text-[10px] font-black" style={{ color: c.color }}>{c.name}</p>
-                  <p className="text-[9px] mb-2 tabular-nums" style={{ color: theme.textSecondary }}>{Math.min(daily.wins, c.need)} / {c.need} Galibiyet</p>
-                  {claimed
-                    ? <span className="text-[9px] font-bold" style={{ color: '#10B981' }}>Alındı ✓</span>
-                    : ready
-                      ? <button onClick={() => claimReward('chest', c.id, c.xp)} className="text-[9px] font-black px-2.5 py-1 rounded-lg active:scale-95" style={{ background: c.color, color: '#04150d' }}>+{c.xp} Aç</button>
-                      : <span className="text-[9px] font-bold flex items-center justify-center gap-0.5" style={{ color: theme.textSecondary }}><Gift size={9} /> +{c.xp} XP</span>}
-                </div>
-              );
-            })}
-          </div>
-          {daily.wins < 10 && (
-            <p className="text-[10px] text-center mt-3" style={{ color: theme.textSecondary }}>
-              Sonraki sandık için <span style={{ color: theme.gold }}>{CHESTS.find(c => daily.wins < c.need)?.need - daily.wins} oyun kazan</span>!
-            </p>
-          )}
-        </div>
-
-        {/* Etkinlikler */}
-        <div className="rounded-2xl p-4" style={S.card}>
-          <h2 className="text-sm font-black mb-3" style={{ color: theme.textPrimary }}>Etkinlikler</h2>
-          <div className="space-y-2">
-            {[
-              { icon: '⭐', name: 'Cuma Özel Meydan Okuması', when: 'Her Cuma', active: new Date().getDay() === 5 },
-              { icon: '🎉', name: 'Haftasonu Çılgınlığı', when: 'Cmt-Paz', active: [0, 6].includes(new Date().getDay()) },
-              { icon: '🌙', name: 'Ramazan Turnuvası', when: 'Ramazan ayında', active: false },
-            ].map((e, i) => (
-              <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: e.active ? `${theme.gold}10` : `${theme.textSecondary}08`, border: `1px solid ${e.active ? `${theme.gold}35` : 'transparent'}` }}>
-                <span className="text-lg">{e.icon}</span>
-                <div className="flex-1">
-                  <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{e.name}</p>
-                  <p className="text-[9px]" style={{ color: theme.textSecondary }}>{e.when}</p>
-                </div>
-                {e.active && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: '#10B98122', color: '#10B981' }}>Bugün!</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── LİDERLİK TABLOSU ─── */}
-      <div className="px-5 mb-5">
-        <div className="rounded-2xl p-4" style={S.card}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>Liderlik Tablosu</h2>
-            <button onClick={() => navigate('/profile')} className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: theme.gold }}>
-              Tüm Sıralama <ChevronRight size={11} />
+        {/* MODÜLLER */}
+        {MODULES.map((m, i) => (
+          <motion.article key={m.id} layoutId={`mod-${m.id}`} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * i, type: 'spring', stiffness: 160, damping: 22 }}
+            style={{ position: 'relative', borderRadius: 30, overflow: 'hidden', boxShadow: '0 22px 40px -24px rgba(8,10,25,0.9)' }}>
+            <button type="button" onClick={() => openModule(m)} aria-label={m.title} style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none' }}>
+              <ModuleScene id={m.id} height={i === 0 ? 230 : 190} />
             </button>
-          </div>
-          {leaderboard.length === 0 ? (
-            <p className="text-xs text-center py-4" style={{ color: theme.textSecondary }}>İlk oyununu oyna, sıralamaya gir! 🏁</p>
-          ) : (
-            <div className="space-y-2">
-              {leaderboard.map((e, i) => (
-                <div key={e.user_id || i} className="flex items-center gap-3 p-2 rounded-xl" style={{ background: i === 0 ? `${theme.gold}0e` : 'transparent' }}>
-                  {i === 0 ? <Crown size={16} style={{ color: theme.gold }} /> : i < 3 ? <Medal size={16} style={{ color: i === 1 ? '#C0C0C0' : '#CD7F32' }} /> : <span className="w-4 text-center text-xs font-black" style={{ color: theme.textSecondary }}>{i + 1}</span>}
-                  <span className="flex-1 text-xs font-bold truncate" style={{ color: theme.textPrimary }}>{e.username || 'Anonim'}</span>
-                  <span className="text-xs font-black tabular-nums" style={{ color: theme.gold }}>{(e.total_points ?? e.points ?? 0).toLocaleString('tr-TR')} XP</span>
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(5,6,14,0.88) 100%)' }} />
+            <div style={{ position: 'absolute', insetInline: 18, bottom: 16, color: '#F6EFDD', display: 'flex', alignItems: 'flex-end', gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.8, color: m.accent, textTransform: 'uppercase' }}>{m.tag}</span>
+                <h2 style={{ ...serif, fontSize: i === 0 ? 32 : 26, margin: '2px 0 0', lineHeight: 1.1 }}>{m.title}</h2>
+              </div>
+              <motion.button type="button" whileTap={{ scale: 0.93 }} onClick={() => playModule(m)} style={{ ...goldBtn, minHeight: 46, padding: '0 20px' }}>▶ Oyna</motion.button>
+            </div>
+          </motion.article>
+        ))}
+
+        <h2 style={{ ...serif, fontSize: 24, margin: '12px 2px 0' }}>Günün sorusu</h2>
+        <DailyQuestion theme={theme} onXP={handleXP} onEvent={handleEvent} />
+
+        {/* GÖREVLER + SANDIKLAR */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '12px 2px 0' }}>
+          <h2 style={{ ...serif, fontSize: 24, margin: 0 }}>Bugünün görevleri</h2>
+          <span style={{ fontSize: 12, color: theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>{midnight}</span>
+        </div>
+        <div style={{ borderRadius: 24, background: theme.cardBg, border: `1px solid ${theme.cardBorder}`, padding: '6px 14px' }}>
+          {TASKS.map((t, k) => {
+            const done = t.cur >= t.max; const claimed = daily.claimedTasks.includes(t.id);
+            return (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: k < TASKS.length - 1 ? `1px solid ${theme.cardBorder}` : 'none' }}>
+                <span style={{ fontSize: 20 }}>{t.icon}</span>
+                <span style={{ flex: 1 }}>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{t.label}</span>
+                  <span style={{ display: 'block', height: 5, borderRadius: 3, background: `${theme.primary}22`, marginTop: 6, overflow: 'hidden' }}>
+                    <motion.span initial={{ width: 0 }} animate={{ width: `${Math.min(100, (t.cur / t.max) * 100)}%` }} style={{ display: 'block', height: '100%', background: done ? '#2F8F6B' : theme.gold }} />
+                  </span>
+                </span>
+                {claimed ? <CheckCircle2 size={20} color="#2F8F6B" />
+                  : done ? <button type="button" onClick={() => claimReward('task', t.id, t.xp)} style={{ minHeight: 34, padding: '0 12px', borderRadius: 17, background: '#2F8F6B', color: '#fff', fontSize: 12, fontWeight: 800 }}>+{t.xp}</button>
+                    : <span style={{ fontSize: 12, color: theme.textSecondary, fontVariantNumeric: 'tabular-nums' }}>{Math.min(t.cur, t.max)}/{t.max}</span>}
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10 }}>
+          {CHESTS.map((c) => {
+            const ready = daily.wins >= c.need; const claimed = daily.claimedChests.includes(c.id);
+            return (
+              <div key={c.id} style={{ borderRadius: 22, padding: '14px 8px', textAlign: 'center', background: theme.cardBg, border: `1px solid ${ready && !claimed ? c.color : theme.cardBorder}` }}>
+                <motion.div animate={ready && !claimed ? { rotate: [-5, 5, -5], y: [0, -3, 0] } : {}} transition={{ duration: 0.9, repeat: Infinity }} style={{ fontSize: 28 }}>{claimed ? '📭' : '🎁'}</motion.div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: c.color, margin: '4px 0 2px' }}>{c.name}</p>
+                {claimed ? <p style={{ fontSize: 11, color: '#2F8F6B', margin: 0 }}>Alındı</p>
+                  : ready ? <button type="button" onClick={() => claimReward('chest', c.id, c.xp)} style={{ minHeight: 30, padding: '0 10px', borderRadius: 15, background: c.color, color: '#1A1205', fontSize: 11, fontWeight: 800 }}>+{c.xp} Aç</button>
+                    : <p style={{ fontSize: 11, color: theme.textSecondary, margin: 0 }}>{Math.min(daily.wins, c.need)}/{c.need} galibiyet</p>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* NİŞANLAR */}
+        <h2 style={{ ...serif, fontSize: 24, margin: '12px 2px 0' }}>Nişanlar</h2>
+        <div className="scrollbar-hide" style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }}>
+          {ACHIEVEMENTS.map((a) => {
+            const p = Math.min(100, Math.round((a.cur / a.max) * 100));
+            return (
+              <div key={a.name} style={{ flexShrink: 0, width: 150, borderRadius: 22, padding: 14, background: theme.cardBg, border: `1px solid ${p >= 100 ? theme.gold : theme.cardBorder}` }}>
+                <div style={{ fontSize: 24, filter: p >= 100 ? 'none' : 'grayscale(0.7)', opacity: p >= 100 ? 1 : 0.75 }}>{a.icon}</div>
+                <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0 2px' }}>{a.name}</p>
+                <p style={{ fontSize: 11, color: theme.textSecondary, margin: 0, minHeight: 28 }}>{a.desc}</p>
+                <div style={{ height: 4, borderRadius: 2, background: `${theme.primary}22`, marginTop: 8 }}><div style={{ width: `${p}%`, height: '100%', borderRadius: 2, background: theme.gold }} /></div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* SIRALAMA */}
+        {leaderboard.length > 0 && (
+          <>
+            <h2 style={{ ...serif, fontSize: 24, margin: '12px 2px 0' }}>Sıralama</h2>
+            <div style={{ borderRadius: 24, background: theme.cardBg, border: `1px solid ${theme.cardBorder}`, padding: 8 }}>
+              {leaderboard.map((e, k) => (
+                <div key={e.user_id || k} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px', borderRadius: 16, background: k === 0 ? `${theme.gold}12` : 'transparent' }}>
+                  {k === 0 ? <Crown size={18} style={{ color: theme.gold }} /> : k < 3 ? <Medal size={18} style={{ color: k === 1 ? '#A8A8A8' : '#CD7F32' }} /> : <span style={{ width: 18, textAlign: 'center', fontSize: 12, color: theme.textMuted }}>{k + 1}</span>}
+                  <span style={{ flex: 1, fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.username || 'Anonim'}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: theme.gold, fontVariantNumeric: 'tabular-nums' }}>{(e.total_points ?? e.points ?? 0).toLocaleString('tr-TR')}</span>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* ─── KATEGORİLER (Soru Havuzu) ─── */}
-      <div className="px-5 mb-5">
-        <div className="rounded-2xl p-4" style={S.card}>
-          <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-sm font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}><Library size={14} style={{ color: theme.gold }} /> Kategoriler</h2>
-            <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>Dokun → o konuda test başlat</span>
-          </div>
-          {/* Kompakt yatay şerit — dokununca o kategoriyle Klasik Test açılır */}
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
-            {BANK_CATEGORIES.map(c => (
-              <button key={c.name}
-                onClick={() => {
-                  try { localStorage.setItem('gc_preset_category', c.name); } catch { /* ignore */ }
-                  openGame(GAME_MODES.find(g => g.id === 'classic'));
-                }}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-black active:scale-95 transition-transform"
-                style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}25`, color: theme.textPrimary }}>
-                <span className="text-sm">{CAT_ICONS[c.name] || '📚'}</span> {c.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── BAŞARILARIM ─── */}
-      <div className="px-5 mb-5">
-        <div className="rounded-2xl p-4" style={S.card}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>Başarılarım</h2>
-            <button onClick={() => navigate('/achievements')} className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: theme.gold }}>
-              Tüm Rozetler <ChevronRight size={11} />
-            </button>
-          </div>
-          <div className="space-y-3">
-            {ACHIEVEMENTS.map((a, i) => {
-              const done = a.cur >= a.max;
-              return (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0" style={{ background: `${theme.gold}12`, border: `1px solid ${theme.gold}25` }}>{a.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold" style={{ color: theme.textPrimary }}>{a.name}</p>
-                      {done ? <CheckCircle2 size={14} style={{ color: '#10B981' }} /> : <span className="text-[9px] tabular-nums" style={{ color: theme.textSecondary }}>{Math.min(a.cur, a.max)} / {a.max}</span>}
-                    </div>
-                    <p className="text-[9px] mb-1" style={{ color: theme.textSecondary }}>{a.desc}</p>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: `${theme.textSecondary}18` }}>
-                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, (a.cur / a.max) * 100)}%`, background: done ? '#10B981' : theme.gold }} />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── KOLEKSİYON ALBÜMÜ ─── */}
-      {(() => {
-        let artifacts = []; let badges = [];
-        try { artifacts = JSON.parse(localStorage.getItem('gc_artifacts')) || []; } catch { /* ignore */ }
-        try { badges = JSON.parse(localStorage.getItem('gc_badges')) || []; } catch { /* ignore */ }
-        return (
-          <div className="px-5 mb-5">
-            <div className="rounded-2xl p-4" style={S.card}>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-black" style={{ color: theme.textPrimary }}>🎒 Koleksiyon Albümü</h2>
-                <span className="text-[10px] font-bold" style={{ color: theme.gold }}>{artifacts.length + badges.length} parça</span>
-              </div>
-              {/* Macera hatıraları */}
-              <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>Macera Hatıraları</p>
-              <div className="grid grid-cols-6 gap-1.5 mb-3">
-                {ADVENTURE.map(c => {
-                  const owned = artifacts.includes(c.id);
-                  return (
-                    <div key={c.id} className="aspect-square rounded-xl flex items-center justify-center text-lg"
-                      title={c.artifactName}
-                      style={{
-                        background: owned ? `${theme.gold}14` : `${theme.textSecondary}08`,
-                        border: `1px solid ${owned ? `${theme.gold}45` : theme.cardBorder}`,
-                        filter: owned ? 'none' : 'grayscale(1)', opacity: owned ? 1 : 0.35,
-                      }}>
-                      {owned ? c.artifact : '❔'}
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Rozetler */}
-              {badges.length > 0 && (
-                <>
-                  <p className="text-[9px] font-black uppercase tracking-wide mb-2" style={{ color: theme.textSecondary }}>Kazanılan Rozetler</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {badges.map(b => (
-                      <span key={b} className="text-[9px] font-black px-2.5 py-1 rounded-full" style={{ background: `${theme.gold}12`, color: theme.gold, border: `1px solid ${theme.gold}35` }}>
-                        🏅 {b}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
-              {artifacts.length === 0 && badges.length === 0 && (
-                <p className="text-[10px] text-center py-2" style={{ color: theme.textSecondary }}>Macera duraklarını bitir, hatıraları topla! 🌍</p>
-              )}
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ─── GÜNLÜK SERİ ─── */}
-      <div className="px-5 mb-5">
-        <div className="rounded-2xl p-4" style={S.card}>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative w-16 h-16 shrink-0">
-              <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
-                <circle cx="32" cy="32" r="27" fill="none" stroke={`${theme.textSecondary}20`} strokeWidth="5" />
-                <circle cx="32" cy="32" r="27" fill="none" stroke="#EF4444" strokeWidth="5" strokeLinecap="round"
-                  strokeDasharray={2 * Math.PI * 27} strokeDashoffset={2 * Math.PI * 27 * (1 - Math.min(1, (streak % 30) / 30))} />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-black" style={{ color: theme.textPrimary }}>{streak}</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-black" style={{ color: theme.textPrimary }}>Günlük Seri</p>
-              <p className="text-[10px]" style={{ color: theme.textSecondary }}>Serini koru, ödülleri kap!</p>
-            </div>
-          </div>
-          {/* Hafta günleri */}
-          <div className="flex justify-between mb-4">
-            {WEEK_DAYS.map((d, i) => {
-              const filled = i <= todayIdx && (todayIdx - i) < streak;
-              return (
-                <div key={d} className="flex flex-col items-center gap-1">
-                  <span className="text-[8px] font-bold" style={{ color: theme.textSecondary }}>{d}</span>
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[9px]"
-                    style={{ background: filled ? '#10B981' : `${theme.textSecondary}15`, color: filled ? '#fff' : theme.textSecondary }}>
-                    {filled ? '✓' : ''}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          {/* Seri ödülleri */}
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { emoji: '💚', days: 10, reward: '50 XP' },
-              { emoji: '⚔️', days: 20, reward: '100 XP' },
-              { emoji: '👑', days: 30, reward: 'Özel Rozet' },
-            ].map((r, i) => (
-              <div key={i} className="rounded-xl p-2.5 text-center" style={{ background: streak >= r.days ? '#10B98112' : `${theme.textSecondary}08`, border: `1px solid ${streak >= r.days ? '#10B98140' : theme.cardBorder}` }}>
-                <span className="text-lg block">{r.emoji}</span>
-                <p className="text-[9px] font-black mt-0.5" style={{ color: theme.textPrimary }}>{r.days} Gün</p>
-                <p className="text-[8px]" style={{ color: streak >= r.days ? '#10B981' : theme.textSecondary }}>{r.reward}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── HIZLI ERİŞİM ─── */}
-      <div className="hub-span px-5 flex gap-2">
-        {[
-          { icon: <Library size={14} />, label: 'Soru Havuzu', to: '/quiz' },
-          { icon: <Award size={14} />, label: 'Rozetler', to: '/achievements' },
-          { icon: <Swords size={14} />, label: 'Düello', to: '/multiplayer' },
-          { icon: <Trophy size={14} />, label: 'Liderlik', to: '/profile' },
-        ].map((l, i) => (
-          <button key={i} onClick={() => navigate(l.to)}
-            className="flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl active:scale-95 transition-all"
-            style={S.card}>
-            <span style={{ color: theme.gold }}>{l.icon}</span>
-            <span className="text-[9px] font-bold" style={{ color: theme.textSecondary }}>{l.label}</span>
-          </button>
-        ))}
-      </div>
+          </>
+        )}
+        <button type="button" onClick={() => navigate('/leaderboard')} style={{ alignSelf: 'center', minHeight: 40, padding: '0 16px', color: theme.textSecondary, fontSize: 13 }}>Bütün sıralama ›</button>
       </div>
     </div>
   );

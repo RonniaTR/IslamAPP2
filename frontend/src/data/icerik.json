@@ -68,6 +68,11 @@
    "durum": "denetlenmedi",
    "not": "Kelime karşılıkları bir sözlükle denetlenmedi"
   },
+  "kidsQuestions.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi",
+   "not": "Çocuk soru paketi (36 soru); bir din eğitimcisi gözden geçirmeli"
+  },
   "nurHazine.js": {
    "kaynak": "ozgun",
    "durum": "denetlenmedi"

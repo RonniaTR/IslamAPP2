@@ -160,6 +160,16 @@ Object.assign(THEMES, {
     navBg: 'rgba(242, 247, 248, 0.97)', cardBg: '#FFFFFF', cardBorder: 'rgba(31, 111, 122, 0.12)',
     glassBg: 'rgba(255, 255, 255, 0.7)', isDark: false,
   }),
+  // Ravza: açık ada çayı zemin, kâğıt kartlar, koyu çam yeşili düğme, altın ayrıntı. Yeni kullanıcının varsayılanı.
+  revza: derive('light', {
+    id: 'revza', name: 'Ravza', icon: '🌿', mood: 'Bahçe, sabah serinliği, kâğıt',
+    bg: '#E7EEE6', surface: '#F8FAF4', surfaceLight: '#DCE6DA', surfaceAlt: '#EFF4EC',
+    primary: '#1E5A44', primaryLight: '#2D7A5E', primaryDark: '#143F30', gold: '#B0893C', goldLight: '#D2AE62',
+    textPrimary: '#17261F', textSecondary: '#5A6B62', textMuted: '#8C9A92',
+    navBg: 'rgba(248, 250, 244, 0.86)', cardBg: '#F8FAF4', cardBorder: 'rgba(30, 90, 68, 0.10)',
+    inputBg: 'rgba(30, 90, 68, 0.04)', inputBorder: 'rgba(30, 90, 68, 0.14)',
+    glassBg: 'rgba(248, 250, 244, 0.7)', isDark: false,
+  }),
   bereket: derive('dark', {
     id: 'bereket', name: 'Bereket', icon: '🌾', mood: 'Toprak, başak, ahşap',
     bg: '#17110A', surface: '#231A0F', surfaceLight: '#32261A', surfaceAlt: '#1C150C',
@@ -172,6 +182,8 @@ Object.assign(THEMES, {
 
 // ─── YAZI STİLİ ─── Hepsi SIL Open Font License. Arapça metin bu ayardan etkilenmez.
 export const FONT_STYLES = {
+  // Zarif: başlıklar Fraunces (yumuşak, yüksek kontrastlı serif), metin Noto Sans. Yeni kullanıcının varsayılanı.
+  zarif:   { id: 'zarif',   name: 'Zarif',   body: "'Noto Sans', sans-serif",           heading: "'Fraunces', 'Playfair Display', serif", gf: 'Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700' },
   sade:    { id: 'sade',    name: 'Sade',    body: "'Inter', 'Noto Sans', sans-serif",  heading: "'Playfair Display', serif", gf: null },
   kitap:   { id: 'kitap',   name: 'Kitap',   body: "'Lora', Georgia, serif",            heading: "'Lora', Georgia, serif",   gf: 'Lora:wght@400;500;600;700' },
   yumusak: { id: 'yumusak', name: 'Yumuşak', body: "'Nunito', 'Noto Sans', sans-serif", heading: "'Nunito', sans-serif",     gf: 'Nunito:wght@400;600;700;800' },
@@ -207,10 +219,10 @@ export const KIDS_THEME = {
 };
 
 export function ThemeProvider({ children }) {
-  const [themeId, setThemeId] = useState(() => localStorage.getItem('app_theme') || 'dark');
+  const [themeId, setThemeId] = useState(() => localStorage.getItem('app_theme') || 'revza');
 
   const theme = THEMES[themeId] || THEMES.dark;
-  const [fontId, setFontId] = useState(() => localStorage.getItem('app_font') || 'sade');
+  const [fontId, setFontId] = useState(() => localStorage.getItem('app_font') || 'zarif');
   const [textScale, setTextScaleId] = useState(() => localStorage.getItem('app_text_scale') || 'normal');
 
   useEffect(() => {

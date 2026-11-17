@@ -86,6 +86,22 @@ export const sfx = {
     [0, 1, 2, 3, 4, 5].forEach((deg, i) => tone(HICAZ[deg], { start: i * 0.09, dur: 0.3, vol: 0.13 }));
     tone(HICAZ[5], { start: 0.66, dur: 0.9, vol: 0.15 });
   },
+  /** Çark tıkırtısı — çok kısa, kuru */
+  tick() {
+    if (!sfxEnabled()) return;
+    tone(1250 + Math.random() * 120, { dur: 0.035, vol: 0.05, type: 'triangle' });
+  },
+  /** Gerilim davulu — "son kararın mı?" anı */
+  suspense() {
+    if (!sfxEnabled()) return;
+    [0, 0.32, 0.62, 0.88, 1.1].forEach((t, i) => tone(98 + i * 6, { start: t, dur: 0.22, vol: 0.13, type: 'triangle' }));
+  },
+  /** Nişan kazanma — üç basamaklı parlak tını */
+  crown() {
+    if (!sfxEnabled()) return;
+    [0, 2, 4, 5].forEach((deg, i) => tone(HICAZ[deg], { start: i * 0.11, dur: 0.5, vol: 0.13 }));
+    tone(HICAZ[5] * 2, { start: 0.5, dur: 1.2, vol: 0.08 });
+  },
   claim() {
     if (!sfxEnabled()) return;
     tone(783.99, { dur: 0.12, vol: 0.12 });

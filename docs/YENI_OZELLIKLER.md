@@ -234,6 +234,42 @@ giriş/kayıt, çok oyunculu yarışma, kandil haritasındaki başkalarının ı
 
 **Kalan:** gerçek anlam (vektör) araması · Playwright duman testleri · açık temalarda sabit renkler · hadis/siyer kaynak denetimi (içerik hattında 26 uyarı) · native widget ve "Rahatsız Etmeyin".
 
+#### Sekizinci tur (17.11.2026) — tasarım dili v3: "Ravza"
+
+Kategorideki yeni bir uygulamadan ilham alındı; **kalıplar** alındı, görünüm, metin, görsel ve adlar alınmadı.
+
+| İlham (onlarda) | Bizdeki karşılığı (farklı) | Dosya |
+|---|---|---|
+| Koyu gece başlığı, 3B diorama, büyük Miladi tarih | **Gök kubbe**: gökyüzü vakte göre değişir (seher/gündüz/ikindi/akşam/gece), ay gerçek evresiyle çizilir, büyük tarih **Hicrî**, cami silueti (tasvir yok, görsel dosya yok → çevrimdışı) | `components/home/GokKubbe.jsx` |
+| Haftalık seri çemberleri (onay işareti) | **Vakit halkaları**: her gün beş dilimli halka; dilim = kişinin kendi işaretlediği vakit. Seri, puan, ceza yok | aynı dosya |
+| Yüzen kapsül alt menü, kaydırınca simgeye iner | Etkin sekme adıyla, ötekiler simgeyle; etkin sekmenin üstünde **kandil ışığı**; aşağı kaydırınca incelir | `components/Layout.js` |
+| Nane zemin + koyu yeşil düğme + serif başlık | **Ravza** teması (ada çayı zemin, kâğıt kart, çam yeşili, altın) + **Zarif** yazı (Fraunces). Yeni kullanıcının varsayılanı; mevcut seçim korunur | `contexts/ThemeContext.js` |
+| "Nasıl hissediyorsun?" emoji ızgarası → yapay zekâ bilgesi | **Kalbinden ne geçiyor?**: 6 hâl → elle seçilmiş ayet, kâğıt kartta, kaynağıyla; **internetsiz**, yapay zekâsız | `components/home/KalbindenGecen.jsx` |
+
+**Bilerek ALINMAYANLAR:** yapay zekâ "bilge" karakteri ve insan resimleri (persona/tasvir ilkesi) · ücretli abonelik ve "Premium'a özel" kilitleri (uygulama ücretsiz) · herkese açık kullanıcı dua akışı (denetim yükü; ayrı karar) · onların adları (Duahane, Zikirhane, Ulu Bilge), görselleri ve cümleleri.
+
+**Denenmedi:** tarayıcıda/telefonda görülmedi; ay çiziminin dört evresi hesapla doğrulandı, ekranda bakılmadı.
+
+#### Dokuzuncu tur (17.11.2026) — Bilgi Meydanı ve Oyun Bahçesi
+
+**Oyun: 21 ayrı oyun → 5 modül.** Eski oyunlar silinmedi; modüllerin içinde "tur" olarak duruyor (kimlikler, skorlar, Günün Oyunu korunur).
+
+| Modül | Ana oyun | İçindeki turlar |
+|---|---|---|
+| Hikmet Çarkı | **Yeni.** 6 alan + Taç dilimli çark; üst üste 3 doğru taç hakkı; nişanı olmayan alanın zor sorusu; 3 kandil; 6 nişan kazanır | Klasik Test |
+| Sahne | **Yeni: 12 Basamak.** Kolaydan zora 12 soru, 4. ve 8. basamak baraj, 3 joker (yarı yarıya, +15 sn, pas), "çekil", kilitlenme anında davul | Blitz, Sonsuz |
+| Düello | Gerçek rakip (arena) | Yapay rakip, Patron |
+| İz Sürücü | Her girişte rastgele ipucu oyunu | Hangi Sure/Peygamber/İsim/Harf, Ayet Nerede, Sesli Tahmin |
+| Atölye | Her girişte rastgele bulmaca | Eşleştir, Sırala, Kelime, Çarkıfelek, Macera, Hikâye |
+
+Hareket dili: modül kartı → modül ekranı ortak geçiş (layoutId) · çark 4,2 sn yavaşlayarak döner, yavaşlayan tıkırtı + titreşim · soru kartı yaydan gelir, şıklar sırayla dizilir · doğru şık nabız, yanlış sarsılır · nişanda konfeti + üç basamaklı tını · sahnede dönen projektörler, kilitlenmede ışık kısılır. Bütün kapaklar SVG (dosya yok, çevrimdışı).
+
+Soru havuzu (`pages/games/questionPool.js`): 17 banka kategorisi 6 alana toplanır; bir oyunda soru tekrarlanmaz; **şıklar karıştırılır** (önceden doğru cevap hep aynı harfteydi). 400 deneme: doğru şık A/B/C/D = 104/94/106/96.
+
+**Çocuk: Oyun Bahçesi.** Çocuk bölümündeki oyun kartları önceden hiçbir şey açmıyordu (`onClick={() => {}}`). Şimdi dört oyun çalışıyor: Bilgi Çarkı (çocuk sürümü: süre yok, kandil sönmez, 2 doğruda taç), Eşini Bul, Kelime Avı, Sıraya Koy. Doğru cevap yıldız getirir (yalnız cihazda). 36 soruluk özgün çocuk paketi (`data/kidsQuestions.js`, denetlenmedi).
+
+**Yapılmadı / denenmedi:** hiçbiri tarayıcıda denenmedi · oyun ekranları i18n'e bağlı değil (yalnız Türkçe) · çocuk soru paketi bir din eğitimcisine gösterilmeli · Eşleştir/Kelime/Sırala'nın içi çocuk diline göre yeniden yazılmadı (yalnız renk teması) · ebeveyn paneline oyun süresi/yıldız raporu bağlanmadı.
+
 ### 0.7 Kur'an, meal, tefsir ve siyeri uygulamaya koymanın yolu
 
 | İçerik | Kaynak | Şart | Durum |
