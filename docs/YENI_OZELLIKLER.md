@@ -270,6 +270,25 @@ Soru havuzu (`pages/games/questionPool.js`): 17 banka kategorisi 6 alana toplan�
 
 **Yapılmadı / denenmedi:** hiçbiri tarayıcıda denenmedi · oyun ekranları i18n'e bağlı değil (yalnız Türkçe) · çocuk soru paketi bir din eğitimcisine gösterilmeli · Eşleştir/Kelime/Sırala'nın içi çocuk diline göre yeniden yazılmadı (yalnız renk teması) · ebeveyn paneline oyun süresi/yıldız raporu bağlanmadı.
 
+#### Onuncu tur (18.11.2026) — Çocuk bölümü: açılış, Namaz Yolu, Kıble Avcısı, Ailem, Hikâye Haritası
+
+| Konu | Yapılan | Dosya |
+|---|---|---|
+| Yazı sığmıyordu | Alt menü: Ev · Harita · Ödüller · Ailem · Ayarlar (kısa ad, taşarsa üç nokta). Ana sayfa kartları tek kelime (Namaz, Hikâyeler, Oyunlar, Kıble, Kur'an, Zikir, Boyama, Görevler), 4 sütun `minmax(0,1fr)` | `styles/designTokens.js`, `components/KidsLayout.js`, `pages/kids/KidsDashboard.js` |
+| Açılış | Oturum başına bir kez: besmele + kısa hayır duası (9 dua, kelime kelime belirir) → "Âmin" → günün ayeti: hareketli çizim + meal (paketten birebir, künyeli) + çocuk diliyle tek cümle. Art arda aynısı gelmez. 9 ayet: kısa, somut, korkutmayan | `components/kids/KidsAcilis.jsx`, `data/kidsAyetler.js` (üretilmiş) |
+| Namaz Yolu | 8 duraklı harita: Namaz nedir · Namazda ne yapmayız / namaz ne değildir · Hazırlık (6 şart, dokunarak işaretlenir) · Abdest (9 adım; çocuk her yıkamada dokunur, su sıçrar; farzlar ve bozanlar) · Kılınış (yüzsüz çocuk silueti 12 adımda duruştan duruşa yaylanarak geçer; okunan dualar) · Beş vakit (rekâtlar) · Kıble · Sınav (7 soru, rozet) | `pages/kids/KidsNamaz.jsx`, `pages/kids/NamazDersleri.jsx`, `components/kids/PrayerFigure.jsx`, `data/kidsNamaz.js` |
+| Kıble Avcısı | Seccade telefonla döner; üstteki yeşil bölgeye girince yeşile döner, ortaya oturur ve **durur** (8° içinde kilitlenir, 20° dışına çıkmadan çözülmez); konfeti, titreşim. iOS izni, Android mutlak yön, pusulasız cihazda parmakla oynanır | `pages/kids/KidsKible.jsx` |
+| Ailem | "Arkadaşlar" kaldırıldı (yabancıyla iletişim yok). Çocuk: aileden mesaj + çıkartma, haftalık hedefler (kendiliğinden dolar), yıldızlar. Ebeveyn (çarpım sorusuyla): rapor, günlük süre (dolunca nazik "bugünlük bu kadar" perdesi, +15 dk), açık bölümler, hedef seçimi, mesaj | `pages/kids/KidsAilem.jsx`, `services/kidsFamily.js` |
+| Hikâye Haritası | Denizde adalar; 5 hikâye (Hz. Nuh, Hz. Yunus, Hz. Süleyman ve karınca, Hz. İbrahim ve Kâbe, Güvenilir Muhammed). Her sayfada hareketli sahne + kaynak ayet; cihazın sesiyle sesli okuma; sonda "ne öğrendik" + soru | `data/kidsStories.js`, `pages/kids/KidsStories.js`, `pages/kids/KidsStoryPlayer.js` |
+| Sahneler | 20 hareketli çizim (kuşlar, güneş-ay, yağmur, gemi, balık, karınca, Kâbe, cami…). İnsan/peygamber çizilmez; dosya yok | `components/kids/KidsScene.jsx` |
+| Sahte değerler | Ana sayfadaki "3 gün seri · 450 puan · Seviye 4" kaldırıldı → gerçek yıldız, Namaz Yolu ve hikâye sayısı | `pages/kids/KidsDashboard.js` |
+
+İçerik dayanağı: namaz/abdest Diyanet ilmihali (Hanefî), yalnız tartışmasız temel bilgiler; hikâyeler yalnız ayetlerde anlatılanla sınırlı (kaynak her sayfada).
+Kıble açısı denetlendi: İstanbul 151,6°, Londra 119,0° (bilinen değerlerle aynı).
+
+**Yayından önce şart:** `kidsNamaz.js`, `kidsStories.js`, `kidsAyetler.js` (açıklamalar), `kidsQuestions.js` bir din eğitimcisine okutulmalı.
+**Denenmedi:** hiçbiri cihazda denenmedi; pusula gerçek telefonda kalibre edilmeli. **Bulunan ayrı hata:** büyüklerin `QiblaPage`'i kıble açısını İstanbul'a sabit (147°) alıyor — çocuktaki hesap oraya taşınmalı.
+
 ### 0.7 Kur'an, meal, tefsir ve siyeri uygulamaya koymanın yolu
 
 | İçerik | Kaynak | Şart | Durum |

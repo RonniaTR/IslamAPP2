@@ -115,6 +115,9 @@ const KidsDhikr = lazy(() => import('./pages/kids/KidsDhikr'));
 const KidsBadges = lazy(() => import('./pages/kids/KidsBadges'));
 const KidsProgress = lazy(() => import('./pages/kids/KidsProgress'));
 const KidsColoring = lazy(() => import('./pages/kids/KidsColoring'));
+const KidsNamaz = lazy(() => import('./pages/kids/KidsNamaz'));
+const KidsKible = lazy(() => import('./pages/kids/KidsKible'));
+const KidsAilem = lazy(() => import('./pages/kids/KidsAilem'));
 
 // --- EBEVEYN SAYFALARI ---
 const ParentLayout = lazy(() => import('./components/ParentLayout'));
@@ -236,7 +239,10 @@ function KidsRoutes() {
               <Route path="/kids/tasks" element={<PageTransition><KidsTasks /></PageTransition>} />
               <Route path="/kids/games" element={<PageTransition><KidsGames /></PageTransition>} />
               <Route path="/kids/rewards" element={<PageTransition><KidsRewards /></PageTransition>} />
-              <Route path="/kids/friends" element={<PageTransition><KidsDashboard /></PageTransition>} />
+              <Route path="/kids/friends" element={<Navigate to="/kids/ailem" replace />} />
+              <Route path="/kids/ailem" element={<PageTransition><KidsAilem /></PageTransition>} />
+              <Route path="/kids/namaz" element={<PageTransition><KidsNamaz /></PageTransition>} />
+              <Route path="/kids/kible" element={<PageTransition><KidsKible /></PageTransition>} />
               <Route path="/kids/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
               <Route path="/kids/licenses" element={<PageTransition><LicensesPage /></PageTransition>} />
               <Route path="/kids/elifba" element={<PageTransition><KidsElifba /></PageTransition>} />
@@ -246,10 +252,9 @@ function KidsRoutes() {
               <Route path="/kids/badges" element={<PageTransition><KidsBadges /></PageTransition>} />
               <Route path="/kids/progress" element={<PageTransition><KidsProgress /></PageTransition>} />
               <Route path="/kids/coloring" element={<PageTransition><KidsColoring /></PageTransition>} />
-              <Route path="/kids/prayer" element={<PageTransition><QiblaPage /></PageTransition>} />
+              <Route path="/kids/prayer" element={<Navigate to="/kids/namaz" replace />} />
               <Route path="/kids/prophets" element={<PageTransition><KidsStories /></PageTransition>} />
               <Route path="/kids/quiz" element={<PageTransition><KidsGames /></PageTransition>} />
-              <Route path="/kids/songs" element={<PageTransition><KidsDashboard /></PageTransition>} />
               <Route path="*" element={<Navigate to="/kids" />} />
             </Routes>
           </AnimatePresence>

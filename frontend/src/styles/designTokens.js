@@ -219,23 +219,25 @@ export const ADULT_NAV_TABS = [
 
 // ─── Çocuk alt menü sekmeler ───
 export const KIDS_NAV_TABS = [
-  { id: 'home', path: '/kids', icon: 'Home', label: 'Ana Sayfa' },
-  { id: 'stories', path: '/kids/stories', icon: 'BookOpen', label: 'Hikaye Haritası' },
+  // Etiketler kısa tutulur: dar ekranda 5 sekme sığmalı (en çok ~7 harf)
+  { id: 'home', path: '/kids', icon: 'Home', label: 'Ev' },
+  { id: 'stories', path: '/kids/stories', icon: 'Map', label: 'Harita' },
   { id: 'rewards', path: '/kids/rewards', icon: 'Award', label: 'Ödüller', isCenter: true },
-  { id: 'friends', path: '/kids/friends', icon: 'Users', label: 'Arkadaşlar' },
+  { id: 'family', path: '/kids/ailem', icon: 'Heart', label: 'Ailem' },
   { id: 'settings', path: '/kids/settings', icon: 'Settings', label: 'Ayarlar' },
 ];
 
 // ─── Çocuk kategori tanımları (Görsel 4 referans) ───
 export const KIDS_CATEGORIES = [
-  { id: 'quran', title: "Kur'an Macerası", icon: '📖', color: '#8BC34A', path: '/kids/quran' },
-  { id: 'prayer', title: 'Namaz Kahramanı', icon: '🕌', color: '#4A90D9', path: '/kids/prayer' },
-  { id: 'prophets', title: 'Peygamber Hikâyeleri', icon: '🌙', color: '#9B59B6', path: '/kids/prophets' },
-  { id: 'quiz', title: 'Bil Bakalım Junior', icon: '🏆', color: '#FF9F43', path: '/kids/quiz' },
-  { id: 'coloring', title: 'Boyama', icon: '🎨', color: '#FF6B8A', path: '/kids/coloring' },
-  { id: 'songs', title: 'İlahi ve Ninni', icon: '🎵', color: '#26A69A', path: '/kids/songs' },
-  { id: 'tasks', title: 'Günlük Görevler', icon: '📋', color: '#FACC15', path: '/kids/tasks' },
-  { id: 'games', title: 'Oyunlar', icon: '🎮', color: '#8B5CF6', path: '/kids/games' },
+  // Başlıklar tek kelime: 4 sütunlu ızgarada dar telefonda bile sığar. section: ebeveynin kapatabileceği bölüm
+  { id: 'prayer', title: 'Namaz', icon: '🕌', color: '#4A90D9', path: '/kids/namaz', section: 'prayer' },
+  { id: 'prophets', title: 'Hikâyeler', icon: '🗺️', color: '#9B59B6', path: '/kids/stories', section: 'prophets' },
+  { id: 'games', title: 'Oyunlar', icon: '🎮', color: '#8B5CF6', path: '/kids/games', section: 'games' },
+  { id: 'kible', title: 'Kıble', icon: '🧭', color: '#F2B33D', path: '/kids/kible', section: 'prayer' },
+  { id: 'quran', title: "Kur'an", icon: '📖', color: '#8BC34A', path: '/kids/quran', section: 'quran' },
+  { id: 'dhikr', title: 'Zikir', icon: '📿', color: '#26A69A', path: '/kids/dhikr' },
+  { id: 'coloring', title: 'Boyama', icon: '🎨', color: '#FF6B8A', path: '/kids/coloring', section: 'coloring' },
+  { id: 'tasks', title: 'Görevler', icon: '📋', color: '#FACC15', path: '/kids/tasks', section: 'tasks' },
 ];
 
 // ─── Onboarding sayfa verileri ───

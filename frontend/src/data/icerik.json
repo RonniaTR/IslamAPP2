@@ -68,10 +68,25 @@
    "durum": "denetlenmedi",
    "not": "Kelime karşılıkları bir sözlükle denetlenmedi"
   },
+  "kidsAyetler.js": {
+   "kaynak": "translations",
+   "durum": "denetlenmedi",
+   "not": "Mealler QuranEnc paketinden üretildi (birebir); çocuk açıklamaları özgün, din eğitimcisi okumalı"
+  },
+  "kidsNamaz.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi",
+   "not": "Çocuklar için namaz/abdest (Diyanet ilmihali, Hanefî); din eğitimcisi okumalı"
+  },
   "kidsQuestions.js": {
    "kaynak": "ozgun",
    "durum": "denetlenmedi",
    "not": "Çocuk soru paketi (36 soru); bir din eğitimcisi gözden geçirmeli"
+  },
+  "kidsStories.js": {
+   "kaynak": "ozgun",
+   "durum": "denetlenmedi",
+   "not": "5 çocuk hikâyesi; ayet kaynakları sayfalarda; din eğitimcisi okumalı"
   },
   "nurHazine.js": {
    "kaynak": "ozgun",

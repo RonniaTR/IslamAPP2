@@ -8,6 +8,7 @@ import MatchGame from '../games/MatchGame';
 import WordGame from '../games/WordGame';
 import OrderGame from '../games/OrderGame';
 import sfx from '../../services/sfx';
+import { addStars, getStars } from '../../services/kidsFamily';
 
 // 🌳 OYUN BAHÇESİ — çocuk bölümünün oyunları.
 // Dört oyun, dördü de çalışır (önceden kartlar boştu). Süre yok, ceza yok, can yok; doğru cevap yıldız getirir.
@@ -27,7 +28,6 @@ const GAMES = [
   { id: 'order', title: 'Sıraya Koy', sub: 'Hangisi önce?', color: '#9B59B6', bg: '#F1E4F7', Comp: OrderGame },
 ];
 
-const loadStars = () => { try { return Number(localStorage.getItem('kids_stars')) || 0; } catch { return 0; } };
 
 /** Gündüz bahçesi: güneş, bulutlar, tepeler, küçük cami. */
 function Garden() {
@@ -60,12 +60,12 @@ function Garden() {
 export default function KidsGames() {
   const navigate = useNavigate();
   const [active, setActive] = useState(null);
-  const [stars, setStars] = useState(loadStars);
+  const [stars, setStars] = useState(getStars);
   const [pop, setPop] = useState(0);
 
   const onXP = (amount) => {
     const add = Math.max(1, Math.round(amount / 5));
-    setStars((s) => { const n = s + add; try { localStorage.setItem('kids_stars', String(n)); } catch { /* kota */ } return n; });
+    setStars(addStars(add));
     setPop((p) => p + 1);
   };
   const game = GAMES.find((g) => g.id === active);

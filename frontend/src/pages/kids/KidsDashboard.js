@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, Star, Diamond, Flame, Shield, Gift, CheckCircle2 } from 'lucide-react';
 import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS, KIDS_CATEGORIES } from '../../styles/designTokens';
 import { useAppMode } from '../../contexts/AppModeContext';
+import { getStars, loadKidsProgress, sectionOn } from '../../services/kidsFamily';
+import { KIDS_STORIES } from '../../data/kidsStories';
 
 // ─── Stat Kartı ───
 function StatBadge({ icon, value, label, labelColor }) {
@@ -44,7 +46,8 @@ function CategoryCard({ category, index, onClick }) {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
-        padding: '20px 10px 14px',
+        padding: '14px 4px 12px',
+        minWidth: 0,
         borderRadius: RADIUS.kidsCard,
         background: `linear-gradient(135deg, ${category.color}EE 0%, ${category.color} 100%)`,
         boxShadow: `0 8px 24px ${category.color}40`,
@@ -64,7 +67,7 @@ function CategoryCard({ category, index, onClick }) {
 
       {/* İkon */}
       <div style={{
-        fontSize: '48px',
+        fontSize: '38px',
         filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
         marginBottom: 'auto',
         transform: 'translateY(10px)',
@@ -75,11 +78,12 @@ function CategoryCard({ category, index, onClick }) {
       {/* Başlık */}
       <span style={{
         fontSize: '13px',
-        fontWeight: 800,
+        fontWeight: 900,
         color: '#FFFFFF',
         fontFamily: TYPOGRAPHY.fonts.kids,
         textAlign: 'center',
         lineHeight: 1.2,
+        whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis',
         textShadow: '0 2px 4px rgba(0,0,0,0.2)',
         zIndex: 1,
         marginTop: '10px'
@@ -288,9 +292,9 @@ export default function KidsDashboard() {
             marginBottom: '24px',
           }}
         >
-          <StatBadge icon="🔥" value="3" label="Günlük Seri" labelColor="#EA580C" />
-          <StatBadge icon="🏅" value="450" label="Puanın" labelColor="#B45309" />
-          <StatBadge icon="🛡️" value="Seviye 4" label="Mini Âlim" labelColor="#15803D" />
+          <StatBadge icon="⭐" value={getStars()} label="Yıldız" labelColor="#B45309" />
+          <StatBadge icon="🕌" value={`${(loadKidsProgress().namaz || []).length}/7`} label="Namaz Yolu" labelColor="#2563EB" />
+          <StatBadge icon="📖" value={`${(loadKidsProgress().hikaye || []).length}/${KIDS_STORIES.length}`} label="Hikâye" labelColor="#15803D" />
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: '60px', borderRadius: RADIUS.kidsLg,
@@ -305,11 +309,11 @@ export default function KidsDashboard() {
         {/* Kategori Grid — 8 kategori (Görsel referans) */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '12px',
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gap: '10px',
           padding: '0 20px',
         }}>
-          {KIDS_CATEGORIES.map((cat, i) => (
+          {KIDS_CATEGORIES.filter((c) => !c.section || sectionOn(c.section)).map((cat, i) => (
             <CategoryCard
               key={cat.id}
               category={cat}

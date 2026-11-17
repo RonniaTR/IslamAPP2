@@ -1,119 +1,58 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, SlidersHorizontal, Play } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS } from '../../styles/designTokens';
+import KidsScene from '../../components/kids/KidsScene';
+import { KIDS_STORIES } from '../../data/kidsStories';
+import { loadKidsProgress } from '../../services/kidsFamily';
 
-const STORY_CATEGORIES = [
-  { id: 'all', label: 'Tümü' },
-  { id: 'prophets', label: 'Peygamberler' },
-  { id: 'sahaba', label: 'Sahabeler' },
-  { id: 'kids', label: 'Çocuklar' },
-];
-
-const STORIES = [
-  { id: 1, category: 'prophets', title: "Hz. Nuh'un Büyük Gemisi", subtitle: 'Sabır ve Umut', color: '#3B82F6', image: '🚢', bg: '#DBEAFE', duration: '5 Dk' },
-  { id: 2, category: 'prophets', title: "Hz. Yunus ve Balina", subtitle: 'Tövbe ve Kurtuluş', color: '#10B981', image: '🐋', bg: '#D1FAE5', duration: '4 Dk' },
-  { id: 3, category: 'prophets', title: "Hz. İbrahim'in Misafirperverliği", subtitle: 'Cömertlik', color: '#F59E0B', image: '⛺', bg: '#FEF3C7', duration: '6 Dk' },
-  { id: 4, category: 'prophets', title: "Hz. Süleyman ve Karınca", subtitle: 'Adalet ve Merhamet', color: '#8B5CF6', image: '🐜', bg: '#EDE9FE', duration: '5 Dk' },
-  { id: 5, category: 'sahaba', title: "Hz. Ali'nin Cesareti", subtitle: 'Hz. Ali (r.a)', color: '#EF4444', image: '⚔️', bg: '#FEE2E2', duration: '7 Dk' },
-  { id: 6, category: 'sahaba', title: "Bilal-i Habeşi'nin Ezani", subtitle: 'İnanç ve Azim', color: '#14B8A6', image: '🕌', bg: '#CCFBF1', duration: '4 Dk' },
-  { id: 7, category: 'kids', title: "Küçük Ahmet'in İyiliği", subtitle: 'Yardımlaşma', color: '#EC4899', image: '🤝', bg: '#FCE7F3', duration: '3 Dk' },
-  { id: 8, category: 'kids', title: "Yalan Söylemeyen Çocuk", subtitle: 'Dürüstlük', color: '#6366F1', image: '🌟', bg: '#E0E7FF', duration: '4 Dk' },
-];
+// 🗺️ HİKÂYE HARİTASI — denizde adalar; her ada bir hikâye. Küçük gemi sıradaki okunmamış adanın yanında bekler.
+const font = { fontFamily: "'Nunito', 'Noto Sans', sans-serif" };
+const ROW = 190;
 
 export default function KidsStories() {
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState('all');
-
-  const filteredStories = activeCategory === 'all' 
-    ? STORIES 
-    : STORIES.filter(s => s.category === activeCategory);
+  const done = loadKidsProgress().hikaye || [];
+  const nextIdx = Math.max(0, KIDS_STORIES.findIndex((s) => !done.includes(s.id)));
+  const height = KIDS_STORIES.length * ROW + 60;
+  const pts = useMemo(() => KIDS_STORIES.map((_, k) => ({ x: k % 2 ? 230 : 90, y: 70 + k * ROW })), []);
+  const route = pts.map((p, k) => (k === 0 ? `M${p.x} ${p.y}` : `Q${k % 2 ? 300 : 20} ${p.y - ROW / 2} ${p.x} ${p.y}`)).join(' ');
 
   return (
-    <div style={{ background: '#F9FAFB', minHeight: '100vh', paddingBottom: '100px' }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '24px 20px', background: '#FFFFFF', position: 'sticky', top: 0, zIndex: 10,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-      }}>
-        <button onClick={() => navigate('/kids')} style={{ background: '#F3F4F6', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '20px', display: 'flex', alignItems: 'center' }}>
-          <ChevronLeft size={24} color="#4B5563" />
-        </button>
-        <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#1F2937', fontFamily: TYPOGRAPHY.fonts.kids, margin: 0 }}>
-          Hikayeler
-        </h1>
-        <button style={{ background: '#F3F4F6', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '20px', display: 'flex', alignItems: 'center' }}>
-          <SlidersHorizontal size={20} color="#4B5563" />
-        </button>
+    <div style={{ minHeight: '100vh', background: '#BFE6FF', paddingBottom: 110, color: '#24364A', ...font }}>
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '22px 16px 6px' }}>
+        <h1 style={{ fontSize: 32, fontWeight: 900, margin: 0, color: '#1F4E79' }}>Hikâye Haritası</h1>
+        <p style={{ fontSize: 16, fontWeight: 800, margin: '4px 0 0', color: '#3D6E99' }}>{done.length} / {KIDS_STORIES.length} ada keşfedildi</p>
       </div>
-
-      {/* Categories */}
-      <div style={{ display: 'flex', gap: '8px', padding: '20px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        {STORY_CATEGORIES.map(cat => {
-          const isActive = activeCategory === cat.id;
+      <div style={{ position: 'relative', maxWidth: 520, margin: '0 auto', height }}>
+        <svg viewBox={`0 0 320 ${height}`} width="100%" height={height} preserveAspectRatio="none" style={{ position: 'absolute', inset: 0 }} aria-hidden>
+          {Array.from({ length: Math.ceil(height / 60) }, (_, i) => (
+            <motion.path key={i} d={`M${(i * 70) % 300} ${30 + i * 60} q10 -6 20 0 t20 0`} fill="none" stroke="#FFFFFF" strokeOpacity="0.6" strokeWidth="2.5" strokeLinecap="round"
+              animate={{ x: [0, 12, 0] }} transition={{ duration: 4 + (i % 3), repeat: Infinity }} />
+          ))}
+          <path d={route} fill="none" stroke="#FFFFFF" strokeWidth="4" strokeDasharray="3 12" strokeLinecap="round" />
+        </svg>
+        {KIDS_STORIES.map((s, k) => {
+          const p = pts[k]; const ok = done.includes(s.id);
           return (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              style={{
-                padding: '8px 20px', borderRadius: '24px',
-                background: isActive ? '#10B981' : '#F3F4F6',
-                color: isActive ? '#FFFFFF' : '#6B7280',
-                border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, fontFamily: TYPOGRAPHY.fonts.kids,
-                whiteSpace: 'nowrap', transition: 'all 0.2s ease',
-              }}
-            >
-              {cat.label}
-            </button>
+            <motion.button key={s.id} type="button" onClick={() => navigate(`/kids/story/${s.id}`)}
+              initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: k * 0.12, type: 'spring', bounce: 0.45 }} whileTap={{ scale: 0.94 }}
+              style={{ position: 'absolute', left: `calc(${(p.x / 320) * 100}% - 78px)`, top: p.y - 60, width: 156, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+              <motion.div animate={{ y: [0, -4, 0] }} transition={{ duration: 3 + k * 0.4, repeat: Infinity }}
+                style={{ borderRadius: '50% 50% 46% 46% / 55% 55% 45% 45%', overflow: 'hidden', border: `5px solid ${ok ? '#FFD93D' : '#F6E3B4'}`, boxShadow: '0 10px 0 rgba(31,78,121,0.25)', width: 156, height: 116, position: 'relative' }}>
+                <KidsScene id={s.kapak} height={116} />
+                {ok && <span style={{ position: 'absolute', top: 6, insetInlineEnd: 10 }}><Star size={26} fill="#FFD93D" color="#F2B33D" /></span>}
+              </motion.div>
+              <span style={{ display: 'block', marginTop: 8, background: '#FFFFFF', borderRadius: 16, padding: '6px 10px', fontSize: 15, fontWeight: 900, lineHeight: 1.25, boxShadow: '0 3px 0 rgba(31,78,121,0.15)' }}>{s.title}</span>
+              <span style={{ display: 'block', fontSize: 12, fontWeight: 800, color: s.color, marginTop: 3 }}>{s.konu}</span>
+            </motion.button>
           );
         })}
-      </div>
-
-      {/* Stories List */}
-      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {filteredStories.map((story, i) => (
-          <motion.div
-            key={story.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            onClick={() => navigate(`/kids/story/${story.id}`)}
-            style={{
-              background: '#FFFFFF', borderRadius: RADIUS.xl, padding: '12px',
-              display: 'flex', alignItems: 'center', gap: '16px',
-              boxShadow: SHADOWS.sm, cursor: 'pointer'
-            }}
-          >
-            {/* Thumbnail Placeholder */}
-            <div style={{
-              width: '80px', height: '80px', borderRadius: '16px',
-              background: story.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '40px', flexShrink: 0
-            }}>
-              {story.image}
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#1F2937', margin: '0 0 4px 0', fontFamily: TYPOGRAPHY.fonts.kids }}>
-                {story.title}
-              </h3>
-              <p style={{ fontSize: '13px', color: '#6B7280', margin: 0, fontWeight: 600, fontFamily: TYPOGRAPHY.fonts.kids }}>
-                {story.subtitle}
-              </p>
-            </div>
-
-            {/* Play Button */}
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '20px',
-              background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <Play size={20} color="#10B981" fill="#10B981" />
-            </div>
-          </motion.div>
-        ))}
+        {/* küçük gemi */}
+        {pts[nextIdx] && done.length < KIDS_STORIES.length && (
+          <motion.div aria-hidden animate={{ rotate: [-6, 6, -6], y: [0, -3, 0] }} transition={{ duration: 2.4, repeat: Infinity }}
+            style={{ position: 'absolute', left: `calc(${(pts[nextIdx].x / 320) * 100}% + ${nextIdx % 2 ? -110 : 70}px)`, top: pts[nextIdx].y + 20, fontSize: 34 }}>⛵</motion.div>
+        )}
       </div>
     </div>
   );
