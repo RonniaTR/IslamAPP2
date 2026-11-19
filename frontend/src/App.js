@@ -91,6 +91,7 @@ const ProphetsPage = lazy(() => import('./pages/ProphetsPage'));
 
 // --- GERİ DÖNÜŞ ODASI (KIRK PERDE) ---
 const DonusShell = lazy(() => import('./components/donus/DonusShell'));
+const OdaPage = lazy(() => import('./pages/oda/OdaPage'));
 const DonusHome = lazy(() => import('./pages/donus/DonusHome'));
 const DonusLesson = lazy(() => import('./pages/donus/DonusLesson'));
 const DonusPhase = lazy(() => import('./pages/donus/DonusPhase'));
@@ -349,6 +350,18 @@ function AppFlow() {
     };
     initNative();
   }, []);
+
+  // Oda (ekran paylaşımı / birlikte izleme): giriş ve mod seçimi istemez, menülerde yoktur; yalnız bağlantıyla açılır
+  if (location.pathname.startsWith('/oda')) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/oda" element={<OdaPage />} />
+          <Route path="/oda/:id" element={<OdaPage />} />
+        </Routes>
+      </Suspense>
+    );
+  }
 
   // Splash Screen
   if (showSplash) {

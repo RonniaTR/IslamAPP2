@@ -96,6 +96,27 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ODA (ekran paylaşımı / birlikte izleme). Belge yalnız tanışma bilgisini (teklif/cevap) ve odanın kendi
+    // adlarını/şiirlerini tutar; görüntü, ses ve sohbet hiçbir yere yazılmaz. En çok iki üye.
+    match /odalar/{oda} {
+      allow create: if request.auth != null && request.resource.data.sahip == request.auth.uid
+        && request.resource.data.uyeler == [request.auth.uid];
+      allow read: if request.auth != null && (request.auth.uid in resource.data.uyeler || resource.data.uyeler.size() < 2);
+      allow update: if request.auth != null && (
+        (request.auth.uid in resource.data.uyeler && request.resource.data.uyeler == resource.data.uyeler
+          && request.resource.data.sahip == resource.data.sahip)
+        || (request.auth.uid == resource.data.sahip && request.resource.data.sahip == resource.data.sahip)
+        || (resource.data.uyeler.size() < 2 && !(request.auth.uid in resource.data.uyeler)
+          && request.resource.data.uyeler == resource.data.uyeler.concat([request.auth.uid])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uyeler', 'isimler']))
+      );
+      allow delete: if request.auth != null && request.auth.uid == resource.data.sahip;
+      match /aday/{a} {
+        allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/odalar/$(oda)).data.uyeler;
+        allow update, delete: if false;
+      }
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

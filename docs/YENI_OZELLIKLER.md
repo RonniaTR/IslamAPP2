@@ -289,6 +289,25 @@ Kıble açısı denetlendi: İstanbul 151,6°, Londra 119,0° (bilinen değerler
 **Yayından önce şart:** `kidsNamaz.js`, `kidsStories.js`, `kidsAyetler.js` (açıklamalar), `kidsQuestions.js` bir din eğitimcisine okutulmalı.
 **Denenmedi:** hiçbiri cihazda denenmedi; pusula gerçek telefonda kalibre edilmeli. **Bulunan ayrı hata:** büyüklerin `QiblaPage`'i kıble açısını İstanbul'a sabit (147°) alıyor — çocuktaki hesap oraya taşınmalı.
 
+#### On birinci tur (19.11.2026) — Oda: uzaktan ekran paylaşımı ve birlikte izleme
+
+**Menülerde yok; yalnız bağlantıyla açılır** (`/oda` kur · `/oda/:id` gir). İleride ayrı uygulamaya taşınacak; bu yüzden kendi klasöründe ve uygulamanın geri kalanına dokunmuyor.
+
+| Parça | Ne yapar | Dosya |
+|---|---|---|
+| Bağlantı | İki kişilik uçtan uca WebRTC. Firebase yalnız tanışma (teklif/cevap/ağ adayı) için. Görüntü, ses, sohbet hiçbir yere yazılmaz. Yenileyen taraf için yeniden teklif | `services/oda/rtc.js` |
+| Ekran paylaşımı | Film ipucu (`motion`), en çok 30 kare/sn, 3 Mbps tavan, ağ zayıfsa kare korunur netlik düşer. Sekme sesi de gider (Chrome/Edge) | aynı |
+| Birlikte izle | Film yayınlanmaz: ikiniz aynı dosyayı kendi cihazında açarsınız; oynat/durdur/sar eşlenir, oda sahibi 4 sn'de bir saat yollar (0,7 sn üstü kayma düzeltilir). Dosyalar farklıysa uyarır | `pages/oda/OdaPage.jsx` |
+| Düş Bahçesi | Gece bahçesi, ateş böcekleri, iki fener; karşı taraf gelince feneri yanar, bağlanınca aralarına ışık ipi gerilir; uçan kalpler; şiir köşesi | `pages/oda/DusBahcesi.jsx`, `OdaKur.jsx` |
+| Kişisel içerik | Adlar, "bizim cümlemiz", şiirler **kodda değil**, odanın kendi Firestore belgesinde | `odalar/{id}` |
+| Güvenlik | Tahmin edilemez oda kimliği (15 karakter), en çok 2 üye, kurallar: yalnız üyeler okur/yazar | `firestore.rules` |
+| Yan etki düzeltmesi | Anonim Firebase oturumu uygulamada "giriş" sayılmaz | `contexts/AuthContext.js` |
+
+**Çalışması için (bir kez):** Firebase Console › Authentication › Sign-in method › **Anonymous: Enable** · `firebase deploy --only firestore:rules` ·
+bazı mobil ağlarda (operatör NAT'ı) doğrudan bağlantı kurulamaz → bir TURN sunucusu: `.env` içine `REACT_APP_TURN_URLS`, `REACT_APP_TURN_USER`, `REACT_APP_TURN_PASS`.
+
+**Sınırlar:** telefon tarayıcıları ekran PAYLAŞAMAZ (izleyebilir; "Birlikte izle" telefonda da çalışır) · Netflix/Disney+ gibi korumalı yayınlar paylaşımda siyah görünür ve hizmet şartlarına aykırıdır · şimdilik iki kişilik (arkadaş grubu için çoklu bağlantı ya da SFU sonraki iş) · kamera yok · **gerçek iki cihazda denenmedi**.
+
 ### 0.7 Kur'an, meal, tefsir ve siyeri uygulamaya koymanın yolu
 
 | İçerik | Kaynak | Şart | Durum |

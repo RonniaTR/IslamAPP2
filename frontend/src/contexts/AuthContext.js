@@ -15,8 +15,8 @@ export function AuthProvider({ children }) {
     // Firebase Auth State Listener
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setFirebaseUser(currentUser);
-      
-      if (currentUser) {
+      // Anonim oturum yalnız Oda içindir (services/oda/rtc.js); uygulamada giriş sayılmaz.
+      if (currentUser && !currentUser.isAnonymous) {
         // Kullanıcı giriş yaptıysa, Firestore'da users dokümanını yarat veya getir
         const firestoreUser = await UserService.createOrUpdateUser(currentUser);
         setUser(firestoreUser);
