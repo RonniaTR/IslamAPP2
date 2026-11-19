@@ -41,7 +41,7 @@
           },
           {
             "key": "Permissions-Policy",
-            "value": "geolocation=(), microphone=(), camera=(), payment=()"
+            "value": "geolocation=(self), microphone=(self), camera=(self), display-capture=(self), autoplay=(self), fullscreen=(self), payment=()"
           },
           {
             "key": "X-XSS-Protection",

@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mic,
   MicOff,
+  Video,
+  VideoOff,
+  RefreshCw,
   Heart,
   MessageCircle,
   Feather,
@@ -21,6 +24,7 @@ import {
   X,
   Send,
   Sliders,
+  AlertCircle,
 } from 'lucide-react';
 import {
   startSession,
@@ -31,7 +35,9 @@ import {
   canShareScreen,
   canStreamFile,
   listAudioInputs,
+  listVideoInputs,
   watchVoiceLevel,
+  describeMediaError,
 } from '../../services/oda/peer';
 import { parseYouTube } from '../../services/oda/youtube';
 import { Backdrop, Lanterns, Hearts, Sakayik } from './DusBahcesi';
@@ -109,16 +115,23 @@ function OdaInner({ code }) {
   const [peerFile, setPeerFile] = useState(null);
   const [sharing, setSharing] = useState(false);
 
-  // Mikrofon ve ses durumu (Telefon, Tablet ve PC)
+  // Mikrofon, Kamera ve Hoparlör durumu (HarmonyOS, Android, Apple iOS/macOS ve PC)
   const [mic, setMic] = useState(false);
   const [peerMic, setPeerMic] = useState(false);
+  const [cam, setCam] = useState(false);
+  const [peerCam, setPeerCam] = useState(false);
+  const [camFacing, setCamFacing] = useState('user');
+  const [myCamStream, setMyCamStream] = useState(null);
   const [myLevel, setMyLevel] = useState(0);
   const [peerLevel, setPeerLevel] = useState(0);
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [speakerVol, setSpeakerVol] = useState(1);
   const [audioDevices, setAudioDevices] = useState([]);
+  const [videoDevices, setVideoDevices] = useState([]);
   const [selectedMicId, setSelectedMicId] = useState('');
+  const [selectedCamId, setSelectedCamId] = useState('');
   const [showAudioSettings, setShowAudioSettings] = useState(false);
+  const [permHelp, setPermHelp] = useState(null); // { label, text }
 
   const [chat, setChat] = useState([]);
   const [msg, setMsg] = useState('');
@@ -134,6 +147,8 @@ function OdaInner({ code }) {
   const vStage = useRef(null);
   const aMic = useRef(null);
   const vLocal = useRef(null);
+  const vMyCam = useRef(null);
+  const vPeerCam = useRef(null);
   const panelRef = useRef(null);
   const hid = useRef(0);
   const applying = useRef(0);
@@ -143,7 +158,7 @@ function OdaInner({ code }) {
 
   const say = (t) => {
     setToast(t);
-    setTimeout(() => setToast((x) => (x === t ? '' : x)), 2800);
+    setTimeout(() => setToast((x) => (x === t ? '' : x)), 2900);
   };
   const heart = useCallback((e, mine) => {
     const k = ++hid.current;
@@ -168,6 +183,7 @@ function OdaInner({ code }) {
       if (role === 'guest' && m.room) setRoom(m.room);
       if (role === 'host') send({ t: 'mode', mode, vid });
       if (mic) send({ t: 'mic', on: true });
+      if (cam) send({ t: 'cam', on: true });
     }
     if (m.t === 'room' && role === 'guest') setRoom(m.room);
     if (m.t === 'chat') setChat((c) => [...c.slice(-100), { me: false, m: m.m, at: Date.now() + Math.random() }]);
@@ -178,6 +194,9 @@ function OdaInner({ code }) {
       if (m.on && aMic.current) {
         aMic.current.play().catch(() => setNeedTap(true));
       }
+    }
+    if (m.t === 'cam') {
+      setPeerCam(!!m.on);
     }
     if (m.t === 'mode') {
       setModeState(m.mode);
@@ -243,7 +262,15 @@ function OdaInner({ code }) {
     };
   }, [entered, code]);
 
-  // Karşıdan gelen ses ve görüntü akışlarını bağla
+  // Kendi kamera görüntümü video öğesine bağla
+  useEffect(() => {
+    if (vMyCam.current) {
+      vMyCam.current.srcObject = myCamStream || null;
+      if (myCamStream) vMyCam.current.play().catch(() => {});
+    }
+  }, [myCamStream, cam, mode]);
+
+  // Karşıdan gelen ses, sahne ve kamera akışlarını bağla
   useEffect(() => {
     if (!remote) return undefined;
     if (vStage.current && remote.stage) {
@@ -256,9 +283,16 @@ function OdaInner({ code }) {
       aMic.current.volume = speakerVol;
       aMic.current.play().catch(() => setNeedTap(true));
     }
+    if (vPeerCam.current) {
+      vPeerCam.current.srcObject = remote.cam || null;
+      if (remote.cam) {
+        setPeerCam(true);
+        vPeerCam.current.play().catch(() => {});
+      }
+    }
     const stopWatch = remote.mic ? watchVoiceLevel(remote.mic, setPeerLevel) : () => {};
     return () => stopWatch();
-  }, [remote]);
+  }, [remote, peerCam, mode]);
 
   useEffect(() => {
     if (aMic.current) {
@@ -271,6 +305,7 @@ function OdaInner({ code }) {
     if (st !== 'bagli') {
       setRemoteLive(null);
       setPeerMic(false);
+      setPeerCam(false);
       setPeerLevel(0);
     }
   }, [st]);
@@ -358,15 +393,18 @@ function OdaInner({ code }) {
     }
   };
 
+  // Mikrofon Aç / Kapat (HarmonyOS, Android, iOS Safari ve PC)
   const toggleMic = async (forceDeviceId) => {
     if (!s.current) return;
+    setPermHelp(null);
     try {
       if (stopLocalWatch.current) {
         stopLocalWatch.current();
         stopLocalWatch.current = null;
       }
-      const nextState = forceDeviceId ? true : !mic;
-      const active = await s.current.setMic(nextState, forceDeviceId || selectedMicId || undefined);
+      const nextState = typeof forceDeviceId === 'string' ? true : !mic;
+      const devId = typeof forceDeviceId === 'string' ? forceDeviceId : selectedMicId || undefined;
+      const active = await s.current.setMic(nextState, devId);
       setMic(active);
       if (active) {
         const stream = s.current.getMicStream();
@@ -379,8 +417,46 @@ function OdaInner({ code }) {
         setMyLevel(0);
         say('Mikrofon kapatıldı.');
       }
-    } catch {
-      say('Mikrofon izni verilmedi veya mikrofon bulunamadı.');
+    } catch (err) {
+      const info = describeMediaError(err, 'Mikrofon');
+      setPermHelp({ label: 'Mikrofon', text: info.text });
+      say(info.text);
+    }
+  };
+
+  // Kamera Aç / Kapat / Çevir (HarmonyOS, Android, iOS Safari ve PC)
+  const toggleCam = async (opts = {}) => {
+    if (!s.current) return;
+    setPermHelp(null);
+    try {
+      const wantOn = opts.forceOn !== undefined ? opts.forceOn : !cam;
+      const facing = opts.facingMode || camFacing;
+      const deviceId = opts.deviceId !== undefined ? opts.deviceId : selectedCamId;
+      const stream = await s.current.setCamera(wantOn, { facingMode: facing, deviceId });
+      if (stream) {
+        setCam(true);
+        setMyCamStream(stream);
+        const cams = await listVideoInputs();
+        setVideoDevices(cams);
+        say('Kamera açıldı 📷');
+      } else {
+        setCam(false);
+        setMyCamStream(null);
+        say('Kamera kapatıldı.');
+      }
+    } catch (err) {
+      const info = describeMediaError(err, 'Kamera');
+      setPermHelp({ label: 'Kamera', text: info.text });
+      say(info.text);
+    }
+  };
+
+  const flipCamera = async () => {
+    const nextFacing = camFacing === 'user' ? 'environment' : 'user';
+    setCamFacing(nextFacing);
+    setSelectedCamId('');
+    if (cam) {
+      await toggleCam({ forceOn: true, facingMode: nextFacing, deviceId: '' });
     }
   };
 
@@ -388,6 +464,13 @@ function OdaInner({ code }) {
     setSelectedMicId(devId);
     if (mic) {
       await toggleMic(devId);
+    }
+  };
+
+  const changeCamDevice = async (devId) => {
+    setSelectedCamId(devId);
+    if (cam) {
+      await toggleCam({ forceOn: true, deviceId: devId });
     }
   };
 
@@ -448,7 +531,7 @@ function OdaInner({ code }) {
 
   const tapResume = () => {
     setNeedTap(false);
-    [vStage.current, aMic.current].forEach((x) => x && x.play().catch(() => {}));
+    [vStage.current, aMic.current, vPeerCam.current].forEach((x) => x && x.play().catch(() => {}));
     if (yt.current) yt.current.resume();
   };
 
@@ -474,8 +557,8 @@ function OdaInner({ code }) {
   const benimAd = role === 'host' ? (room && room.benim) || name : name;
   const onunAd = peerName || (role === 'host' ? room && room.onun : room && room.benim) || '';
   const ayni = file && peerFile && file.ad === peerFile.ad;
+  const anyCamOpen = cam || (peerCam && remote && remote.cam);
 
-  // Ortak kaydırılabilir tam ekran kapsayıcı (body overflow:hidden olduğu için şart)
   const scrollShell = {
     height: '100dvh',
     width: '100%',
@@ -570,7 +653,7 @@ function OdaInner({ code }) {
               </p>
             )}
             <p style={{ margin: '0 0 16px', color: '#BDB6D8', fontSize: 13.5, lineHeight: 1.5 }}>
-              Mikrofonla sesli konuşma, görüntü ve sohbet doğrudan ikiniz arasında akar; hiçbir yere kaydedilmez.
+              Mikrofonla sesli ve kameralı konuşma, görüntü ve sohbet doğrudan ikiniz arasında akar; hiçbir yere kaydedilmez.
             </p>
             {role === 'guest' && (
               <input
@@ -634,7 +717,7 @@ function OdaInner({ code }) {
         justifyContent: 'center',
         gap: 6,
         fontWeight: 700,
-        fontSize: compact ? 13 : 14,
+        fontSize: compact ? 12.5 : 14,
         padding: '0 8px',
         cursor: disabled ? 'not-allowed' : 'pointer',
         background: mode === id ? 'rgba(255,227,163,0.2)' : 'transparent',
@@ -648,7 +731,7 @@ function OdaInner({ code }) {
     </button>
   );
 
-  // Sesli Konuşma + Şakayık + Etkileşim Çubuğu (Telefon, Tablet ve PC'de karışmayan esnek yapı)
+  // Mikrofon + Kamera + Hoparlör + Şakayık Kontrol Kartı (HarmonyOS, Android, Apple, PC)
   const voiceAndActionBar = (
     <div
       style={{
@@ -669,37 +752,37 @@ function OdaInner({ code }) {
           flexWrap: 'wrap',
         }}
       >
-        {/* Mikrofon Ana Düğmesi (Telefon/Tablet/PC) */}
+        {/* 1) MİKROFON AÇ / KAPAT */}
         <button
           type="button"
           onClick={() => toggleMic()}
           style={{
             minHeight: 44,
-            padding: '0 16px',
+            padding: '0 14px',
             borderRadius: 22,
             border: mic ? '1.5px solid #F7A8B8' : '1px solid rgba(255,233,184,0.2)',
             background: mic
-              ? 'linear-gradient(135deg, rgba(247,168,184,0.32), rgba(255,227,163,0.25))'
+              ? 'linear-gradient(135deg, rgba(247,168,184,0.34), rgba(255,227,163,0.25))'
               : 'rgba(255,255,255,0.08)',
             color: mic ? '#FFE9B8' : '#F6EFDD',
             fontWeight: 700,
-            fontSize: 13.5,
+            fontSize: 13,
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
+            gap: 7,
             cursor: 'pointer',
-            flex: '1 1 auto',
+            flex: '1 1 135px',
             justifyContent: 'center',
             boxShadow: mic ? '0 0 18px rgba(247,168,184,0.35)' : 'none',
           }}
         >
-          {mic ? <Mic size={18} color="#F7A8B8" /> : <MicOff size={18} />}
-          <span>{mic ? 'Mikrofon Açık' : 'Mikrofonla Konuş'}</span>
+          {mic ? <Mic size={17} color="#F7A8B8" /> : <MicOff size={17} />}
+          <span>{mic ? 'Mikrofon Açık' : 'Mikrofon Aç'}</span>
           {mic && (
             <span
               aria-hidden
               style={{
-                width: 24,
+                width: 22,
                 height: 6,
                 borderRadius: 3,
                 background: 'rgba(255,255,255,0.18)',
@@ -720,7 +803,57 @@ function OdaInner({ code }) {
           )}
         </button>
 
-        {/* Karşı Tarafın Sesi / Hoparlör */}
+        {/* 2) KAMERA AÇ / KAPAT */}
+        <button
+          type="button"
+          onClick={() => toggleCam()}
+          style={{
+            minHeight: 44,
+            padding: '0 14px',
+            borderRadius: 22,
+            border: cam ? '1.5px solid #FFE3A3' : '1px solid rgba(255,233,184,0.2)',
+            background: cam
+              ? 'linear-gradient(135deg, rgba(255,227,163,0.32), rgba(247,168,184,0.24))'
+              : 'rgba(255,255,255,0.08)',
+            color: cam ? '#FFE9B8' : '#F6EFDD',
+            fontWeight: 700,
+            fontSize: 13,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7,
+            cursor: 'pointer',
+            flex: '1 1 125px',
+            justifyContent: 'center',
+            boxShadow: cam ? '0 0 18px rgba(255,227,163,0.32)' : 'none',
+          }}
+        >
+          {cam ? <Video size={17} color="#FFE3A3" /> : <VideoOff size={17} />}
+          <span>{cam ? 'Kamera Açık' : 'Kamera Aç'}</span>
+        </button>
+
+        {/* Ön / Arka Kamera Çevir (Kamera açıkken) */}
+        {cam && (
+          <button
+            type="button"
+            onClick={flipCamera}
+            aria-label="Kamerayı çevir"
+            title="Ön / Arka Kamera"
+            style={{
+              ...ghostBtn,
+              minHeight: 44,
+              padding: '0 11px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              color: '#FFE3A3',
+            }}
+          >
+            <RefreshCw size={15} />
+            <span style={{ fontSize: 12 }}>{camFacing === 'user' ? 'Ön' : 'Arka'}</span>
+          </button>
+        )}
+
+        {/* 3) HOPARLÖR */}
         <button
           type="button"
           onClick={() => {
@@ -732,28 +865,29 @@ function OdaInner({ code }) {
           style={{
             ...ghostBtn,
             minHeight: 44,
-            padding: '0 12px',
+            padding: '0 11px',
             display: 'flex',
             alignItems: 'center',
-            gap: 6,
+            gap: 5,
             color: speakerMuted ? '#F7A8B8' : '#9FE3C8',
           }}
         >
-          {speakerMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-          <span style={{ fontSize: 12.5 }}>{speakerMuted ? 'Ses Kapalı' : 'Hoparlör'}</span>
+          {speakerMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          <span style={{ fontSize: 12 }}>{speakerMuted ? 'Sessiz' : 'Ses'}</span>
         </button>
 
-        {/* Ses Ayarları (Mikrofon seçimi ve ses seviyesi) */}
+        {/* 4) CİHAZ & SES AYARLARI */}
         <button
           type="button"
           onClick={async () => {
             if (!showAudioSettings) {
-              const devs = await listAudioInputs();
-              setAudioDevices(devs);
+              const [mics, cams] = await Promise.all([listAudioInputs(), listVideoInputs()]);
+              setAudioDevices(mics);
+              setVideoDevices(cams);
             }
             setShowAudioSettings(!showAudioSettings);
           }}
-          aria-label="Ses ayarları"
+          aria-label="Ses ve kamera ayarları"
           style={{
             ...ghostBtn,
             minHeight: 44,
@@ -769,14 +903,57 @@ function OdaInner({ code }) {
         </button>
       </div>
 
-      {/* Açılır Ses ve Mikrofon Ayarları (PC / Tablet / Telefon) */}
+      {/* İzin Rehberi & Tek Dokunuşla Yeniden Dene (İzin reddedildiyse çıkar) */}
+      {permHelp && (
+        <div
+          role="alert"
+          style={{
+            padding: '10px 12px',
+            borderRadius: 16,
+            background: 'rgba(247,168,184,0.14)',
+            border: '1px solid rgba(247,168,184,0.45)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            fontSize: 12.5,
+            color: '#FFE4EC',
+            lineHeight: 1.5,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <AlertCircle size={17} color="#F7A8B8" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div style={{ flex: 1 }}>
+              <strong style={{ color: '#FFE9B8' }}>{permHelp.label} İzni Nasıl Açılır? (HarmonyOS · Android · iPhone · PC)</strong>
+              <p style={{ margin: '3px 0 0' }}>{permHelp.text}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPermHelp(null)}
+              style={{ background: 'none', border: 'none', color: '#F7A8B8', cursor: 'pointer', fontSize: 16 }}
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => (permHelp.label === 'Kamera' ? toggleCam({ forceOn: true }) : toggleMic())}
+              style={{ ...goldBtn, minHeight: 36, padding: '0 14px', fontSize: 12.5 }}
+            >
+              Tekrar İzin İste
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Açılır Ses ve Kamera Cihaz Ayarları */}
       {showAudioSettings && (
         <div
           style={{
             padding: '10px 12px',
             borderRadius: 16,
-            background: 'rgba(10,8,26,0.65)',
-            border: '1px solid rgba(255,233,184,0.12)',
+            background: 'rgba(10,8,26,0.68)',
+            border: '1px solid rgba(255,233,184,0.14)',
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
@@ -801,7 +978,7 @@ function OdaInner({ code }) {
           </div>
           {audioDevices.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ color: '#BDB6D8' }}>Mikrofon cihazı (Telefon / Kulaklık / PC):</span>
+              <span style={{ color: '#BDB6D8' }}>Mikrofon seçimi:</span>
               <select
                 value={selectedMicId}
                 onChange={(e) => changeMicDevice(e.target.value)}
@@ -813,6 +990,25 @@ function OdaInner({ code }) {
                 {audioDevices.map((d, idx) => (
                   <option key={d.deviceId || idx} value={d.deviceId} style={{ background: '#141030', color: '#F6EFDD' }}>
                     {d.label || `Mikrofon ${idx + 1}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {videoDevices.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ color: '#BDB6D8' }}>Kamera seçimi:</span>
+              <select
+                value={selectedCamId}
+                onChange={(e) => changeCamDevice(e.target.value)}
+                style={{ ...field, minHeight: 38, padding: '6px 10px', fontSize: 13 }}
+              >
+                <option value="" style={{ background: '#141030', color: '#F6EFDD' }}>
+                  Varsayılan Kamera ({camFacing === 'user' ? 'Ön' : 'Arka'})
+                </option>
+                {videoDevices.map((d, idx) => (
+                  <option key={d.deviceId || idx} value={d.deviceId} style={{ background: '#141030', color: '#F6EFDD' }}>
+                    {d.label || `Kamera ${idx + 1}`}
                   </option>
                 ))}
               </select>
@@ -838,8 +1034,8 @@ function OdaInner({ code }) {
             minHeight: 42,
             padding: '0 14px',
             borderRadius: 21,
-            border: '1px solid rgba(247,168,184,0.4)',
-            background: 'linear-gradient(135deg, rgba(247,168,184,0.22), rgba(201,74,114,0.18))',
+            border: '1px solid rgba(247,168,184,0.45)',
+            background: 'linear-gradient(135deg, rgba(247,168,184,0.24), rgba(201,74,114,0.18))',
             color: '#FFD6E2',
             fontWeight: 700,
             fontSize: 13,
@@ -929,6 +1125,127 @@ function OdaInner({ code }) {
           </>
         )}
       </div>
+    </div>
+  );
+
+  // Canlı Kamera Kartları (Film/YouTube izlerken veya Yüz Yüze modda ikinizin kameraları)
+  const cameraStrip = anyCamOpen && (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns:
+          cam && peerCam && remote && remote.cam ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)',
+        gap: 10,
+      }}
+    >
+      {peerCam && remote && remote.cam && (
+        <div
+          style={{
+            position: 'relative',
+            borderRadius: 20,
+            overflow: 'hidden',
+            aspectRatio: mode === 'kamera' ? '16 / 10' : '16 / 9',
+            maxHeight: mode === 'kamera' ? 320 : 185,
+            background: '#080614',
+            border: peerLevel > 0.06 ? '2px solid #F7A8B8' : '1px solid rgba(255,233,184,0.22)',
+            boxShadow: peerLevel > 0.06 ? '0 0 22px rgba(247,168,184,0.4)' : '0 12px 28px -12px rgba(0,0,0,0.8)',
+          }}
+        >
+          <video
+            ref={vPeerCam}
+            autoPlay
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              left: 10,
+              bottom: 8,
+              padding: '3px 10px',
+              borderRadius: 99,
+              background: 'rgba(10,8,24,0.72)',
+              color: '#FFE9B8',
+              fontSize: 12,
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+            }}
+          >
+            <Sakayik size={15} glow={false} /> {onunAd || 'O'} {peerLevel > 0.06 ? '🎤' : ''}
+          </span>
+        </div>
+      )}
+
+      {cam && (
+        <div
+          style={{
+            position: 'relative',
+            borderRadius: 20,
+            overflow: 'hidden',
+            aspectRatio: mode === 'kamera' ? '16 / 10' : '16 / 9',
+            maxHeight: mode === 'kamera' ? 320 : 185,
+            background: '#080614',
+            border: myLevel > 0.06 ? '2px solid #F7A8B8' : '1px solid rgba(255,233,184,0.22)',
+            boxShadow: myLevel > 0.06 ? '0 0 22px rgba(247,168,184,0.4)' : '0 12px 28px -12px rgba(0,0,0,0.8)',
+          }}
+        >
+          <video
+            ref={vMyCam}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              transform: camFacing === 'user' ? 'scaleX(-1)' : 'none',
+            }}
+          />
+          <span
+            style={{
+              position: 'absolute',
+              left: 10,
+              bottom: 8,
+              padding: '3px 10px',
+              borderRadius: 99,
+              background: 'rgba(10,8,24,0.72)',
+              color: '#FFE9B8',
+              fontSize: 12,
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+            }}
+          >
+            {benimAd} (Sen) {myLevel > 0.06 ? '🎤' : ''}
+          </span>
+          <button
+            type="button"
+            onClick={flipCamera}
+            aria-label="Kamerayı çevir"
+            style={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              border: 'none',
+              background: 'rgba(10,8,24,0.68)',
+              color: '#FFE3A3',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <RefreshCw size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -1062,7 +1379,7 @@ function OdaInner({ code }) {
   return (
     <div style={scrollShell}>
       <style>{'.oda-yt iframe{width:100%;height:100%;border:0;display:block}'}</style>
-      <Backdrop dim={showRemote || (mode === 'video' && !!file) || (mode === 'yt' && !!vid)} />
+      <Backdrop dim={showRemote || anyCamOpen || (mode === 'video' && !!file) || (mode === 'yt' && !!vid)} />
       <Hearts list={hearts} />
       <audio ref={aMic} autoPlay playsInline />
 
@@ -1080,7 +1397,7 @@ function OdaInner({ code }) {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
-          {/* ÜST BAŞLIK (Responsive: telefon, tablet ve PC'de taşmaz) */}
+          {/* ÜST BAŞLIK */}
           <div
             style={{
               display: 'flex',
@@ -1205,54 +1522,105 @@ function OdaInner({ code }) {
             </p>
           )}
 
-          {/* TELEFON & TABLET İÇİN SES / MİKROFON / ŞAKAYIK KONTROL KARTI (Menüler asla üst üste binmez) */}
+          {/* TELEFON & TABLET İÇİN MİKROFON / KAMERA / ŞAKAYIK KONTROL KARTI */}
           {!wide && voiceAndActionBar}
+
+          {/* CANLI KAMERA ŞERİDİ (Kamera açıldığında hem film izlerken hem sohbette görünür) */}
+          {cameraStrip}
 
           {/* KİP SEÇİCİ SEKMELER */}
           <div style={{ ...glass, padding: 5, borderRadius: 26, display: 'flex', gap: 4 }}>
             {tab('yt', 'YouTube', Tv)}
             {tab('video', 'Video', Film)}
+            {tab('kamera', 'Kamera', Video)}
             {tab('ekran', 'Ekran', MonitorUp)}
           </div>
 
-          {/* 16:9 VİDEO / YOUTUBE / EKRAN SAHNESİ */}
-          <div
-            ref={stage}
-            style={{
-              position: 'relative',
-              width: '100%',
-              aspectRatio: '16 / 9',
-              maxHeight: wide ? '62vh' : '48vh',
-              borderRadius: wide ? 28 : 20,
-              overflow: 'hidden',
-              background: '#04030A',
-              boxShadow: '0 30px 60px -30px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,233,184,0.12)',
-            }}
-          >
-            <video
-              ref={vStage}
-              autoPlay
-              playsInline
+          {/* 16:9 VİDEO / YOUTUBE / EKRAN SAHNESİ (Kamera sekmesinde kamera şeridi büyür) */}
+          {mode !== 'kamera' ? (
+            <div
+              ref={stage}
               style={{
-                position: 'absolute',
-                inset: 0,
+                position: 'relative',
                 width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                background: '#000',
-                opacity: showRemote ? 1 : 0,
-                pointerEvents: showRemote ? 'auto' : 'none',
-                transition: 'opacity .5s',
+                aspectRatio: '16 / 9',
+                maxHeight: wide ? '62vh' : '48vh',
+                borderRadius: wide ? 28 : 20,
+                overflow: 'hidden',
+                background: '#04030A',
+                boxShadow: '0 30px 60px -30px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,233,184,0.12)',
               }}
-            />
-            <div style={{ position: 'absolute', inset: 0, visibility: !showRemote && mode === 'yt' ? 'visible' : 'hidden' }}>
-              <YTStage
-                ref={yt}
-                vid={vid}
-                onLocal={(a, time) => send({ t: 'yt', a, time })}
-                onBlocked={() => setNeedTap(true)}
+            >
+              <video
+                ref={vStage}
+                autoPlay
+                playsInline
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  background: '#000',
+                  opacity: showRemote ? 1 : 0,
+                  pointerEvents: showRemote ? 'auto' : 'none',
+                  transition: 'opacity .5s',
+                }}
               />
-              {!vid && (
+              <div style={{ position: 'absolute', inset: 0, visibility: !showRemote && mode === 'yt' ? 'visible' : 'hidden' }}>
+                <YTStage
+                  ref={yt}
+                  vid={vid}
+                  onLocal={(a, time) => send({ t: 'yt', a, time })}
+                  onBlocked={() => setNeedTap(true)}
+                />
+                {!vid && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      background: 'radial-gradient(ellipse at center, #1A1640 0%, #05040C 80%)',
+                      textAlign: 'center',
+                      padding: 16,
+                    }}
+                  >
+                    <Tv size={34} color="#FFE3A3" />
+                    <p style={{ margin: 0, color: '#BDB6D8', maxWidth: 360, fontSize: compact ? 13 : 14.5, lineHeight: 1.5 }}>
+                      Aşağıya bir YouTube bağlantısı yapıştır; ikinizde aynı anda açılır, oynat ve durdur birlikte çalışır.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {!showRemote && mode === 'video' && file && (
+                <video
+                  ref={vLocal}
+                  src={file.url}
+                  controls
+                  playsInline
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+                  onPlaying={onLocalPlaying}
+                  onLoadedMetadata={(e) => send({ t: 'dosya', ad: file.ad, sure: e.currentTarget.duration })}
+                  onPlay={(e) => {
+                    if (kind === 'ayni' && !isQuiet()) send({ t: 'izle', a: 'play', time: e.currentTarget.currentTime });
+                  }}
+                  onPause={(e) => {
+                    if (kind === 'ayni' && !isQuiet()) send({ t: 'izle', a: 'pause', time: e.currentTarget.currentTime });
+                  }}
+                  onSeeked={(e) => {
+                    if (kind === 'ayni' && !isQuiet()) {
+                      send({ t: 'izle', a: e.currentTarget.paused ? 'pause' : 'play', time: e.currentTarget.currentTime });
+                    }
+                  }}
+                />
+              )}
+
+              {!showRemote && ((mode === 'video' && !file) || mode === 'ekran') && (
                 <div
                   style={{
                     position: 'absolute',
@@ -1261,184 +1629,170 @@ function OdaInner({ code }) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 8,
+                    gap: 10,
                     background: 'radial-gradient(ellipse at center, #1A1640 0%, #05040C 80%)',
                     textAlign: 'center',
                     padding: 16,
                   }}
                 >
-                  <Tv size={34} color="#FFE3A3" />
-                  <p style={{ margin: 0, color: '#BDB6D8', maxWidth: 360, fontSize: compact ? 13 : 14.5, lineHeight: 1.5 }}>
-                    Aşağıya bir YouTube bağlantısı yapıştır; ikinizde aynı anda açılır, oynat ve durdur birlikte çalışır.
+                  <Sakayik size={44} glow pulse />
+                  <p style={{ margin: 0, color: '#BDB6D8', maxWidth: 380, fontSize: compact ? 13 : 14.5, lineHeight: 1.5 }}>
+                    {mode === 'ekran'
+                      ? sharing
+                        ? 'Ekranını paylaşıyorsun; şu an senin ekranını görüyor.'
+                        : canShareScreen()
+                        ? 'Ekranını paylaştığında burada onda görünür.'
+                        : 'Telefon ve tablet ekran paylaşamaz; karşı taraf bilgisayardan paylaşınca burada izlersin.'
+                      : 'Bir video seç. İstersen ona yayınlarsın, istersen ikinizde de olan dosyayı birlikte oynatırsınız.'}
                   </p>
                 </div>
               )}
-            </div>
 
-            {!showRemote && mode === 'video' && file && (
-              <video
-                ref={vLocal}
-                src={file.url}
-                controls
-                playsInline
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
-                onPlaying={onLocalPlaying}
-                onLoadedMetadata={(e) => send({ t: 'dosya', ad: file.ad, sure: e.currentTarget.duration })}
-                onPlay={(e) => {
-                  if (kind === 'ayni' && !isQuiet()) send({ t: 'izle', a: 'play', time: e.currentTarget.currentTime });
-                }}
-                onPause={(e) => {
-                  if (kind === 'ayni' && !isQuiet()) send({ t: 'izle', a: 'pause', time: e.currentTarget.currentTime });
-                }}
-                onSeeked={(e) => {
-                  if (kind === 'ayni' && !isQuiet()) {
-                    send({ t: 'izle', a: e.currentTarget.paused ? 'pause' : 'play', time: e.currentTarget.currentTime });
-                  }
-                }}
-              />
-            )}
+              {showRemote && remoteLive.kind === 'video' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    bottom: 12,
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: 8,
+                    padding: 6,
+                    borderRadius: 999,
+                    background: 'rgba(10,8,24,0.75)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  {[
+                    ['geri', RotateCcw, '10 sn geri'],
+                    ['play', Play, 'Oynat'],
+                    ['pause', Pause, 'Durdur'],
+                    ['ileri', RotateCw, '10 sn ileri'],
+                  ].map(([a, I, l]) => (
+                    <button
+                      key={a}
+                      type="button"
+                      aria-label={l}
+                      onClick={() => send({ t: 'uzak', a })}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        border: 'none',
+                        background: 'rgba(255,255,255,0.1)',
+                        color: '#F6EFDD',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <I size={17} />
+                    </button>
+                  ))}
+                </div>
+              )}
 
-            {!showRemote && ((mode === 'video' && !file) || mode === 'ekran') && (
-              <div
+              {showRemote && (
+                <p
+                  style={{
+                    position: 'absolute',
+                    left: 12,
+                    top: 10,
+                    margin: 0,
+                    padding: '4px 10px',
+                    borderRadius: 12,
+                    background: 'rgba(10,8,24,0.7)',
+                    fontSize: 12,
+                    color: '#FFE3A3',
+                    maxWidth: 'calc(100% - 70px)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {remoteLive.kind === 'ekran'
+                    ? `${onunAd} ekranını paylaşıyor`
+                    : `${onunAd} yayınlıyor${remoteLive.ad ? ` · ${remoteLive.ad}` : ''}`}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={fullscreen}
+                aria-label="Tam ekran"
                 style={{
                   position: 'absolute',
-                  inset: 0,
+                  right: 10,
+                  top: 10,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 19,
+                  border: 'none',
+                  background: 'rgba(10,8,24,0.6)',
+                  color: '#F6EFDD',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <Maximize2 size={16} />
+              </button>
+
+              {needTap && (
+                <button
+                  type="button"
+                  onClick={tapResume}
+                  style={{
+                    ...goldBtn,
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%,-50%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <Volume2 size={18} /> Sesi ve Görüntüyü Başlat
+                </button>
+              )}
+            </div>
+          ) : (
+            !anyCamOpen && (
+              <div
+                style={{
+                  ...glass,
+                  padding: '28px 20px',
+                  textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  background: 'radial-gradient(ellipse at center, #1A1640 0%, #05040C 80%)',
-                  textAlign: 'center',
-                  padding: 16,
+                  gap: 12,
                 }}
               >
-                <Sakayik size={44} glow pulse />
-                <p style={{ margin: 0, color: '#BDB6D8', maxWidth: 380, fontSize: compact ? 13 : 14.5, lineHeight: 1.5 }}>
-                  {mode === 'ekran'
-                    ? sharing
-                      ? 'Ekranını paylaşıyorsun; şu an senin ekranını görüyor.'
-                      : canShareScreen()
-                      ? 'Ekranını paylaştığında burada onda görünür.'
-                      : 'Telefon ve tablet ekran paylaşamaz; karşı taraf bilgisayardan paylaşınca burada izlersin.'
-                    : 'Bir video seç. İstersen ona yayınlarsın, istersen ikinizde de olan dosyayı birlikte oynatırsınız.'}
+                <Sakayik size={48} glow pulse />
+                <p style={{ margin: 0, color: '#BDB6D8', maxWidth: 380, fontSize: 14, lineHeight: 1.55 }}>
+                  Yüz yüze görüntülü ve sesli konuşmak için aşağıdaki düğmeye dokun; telefon, tablet (HarmonyOS, Android, iPhone/iPad) ve bilgisayarda çalışır.
                 </p>
-              </div>
-            )}
-
-            {showRemote && remoteLive.kind === 'video' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  bottom: 12,
-                  transform: 'translateX(-50%)',
-                  display: 'flex',
-                  gap: 8,
-                  padding: 6,
-                  borderRadius: 999,
-                  background: 'rgba(10,8,24,0.75)',
-                  backdropFilter: 'blur(8px)',
-                }}
-              >
-                {[
-                  ['geri', RotateCcw, '10 sn geri'],
-                  ['play', Play, 'Oynat'],
-                  ['pause', Pause, 'Durdur'],
-                  ['ileri', RotateCw, '10 sn ileri'],
-                ].map(([a, I, l]) => (
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
                   <button
-                    key={a}
                     type="button"
-                    aria-label={l}
-                    onClick={() => send({ t: 'uzak', a })}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      border: 'none',
-                      background: 'rgba(255,255,255,0.1)',
-                      color: '#F6EFDD',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
+                    onClick={async () => {
+                      if (!mic) await toggleMic();
+                      if (!cam) await toggleCam({ forceOn: true });
                     }}
+                    style={{ ...goldBtn, display: 'flex', alignItems: 'center', gap: 8 }}
                   >
-                    <I size={17} />
+                    <Video size={18} /> Kamera ve Mikrofonu Aç
                   </button>
-                ))}
+                </div>
               </div>
-            )}
+            )
+          )}
 
-            {showRemote && (
-              <p
-                style={{
-                  position: 'absolute',
-                  left: 12,
-                  top: 10,
-                  margin: 0,
-                  padding: '4px 10px',
-                  borderRadius: 12,
-                  background: 'rgba(10,8,24,0.7)',
-                  fontSize: 12,
-                  color: '#FFE3A3',
-                  maxWidth: 'calc(100% - 70px)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {remoteLive.kind === 'ekran'
-                  ? `${onunAd} ekranını paylaşıyor`
-                  : `${onunAd} yayınlıyor${remoteLive.ad ? ` · ${remoteLive.ad}` : ''}`}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={fullscreen}
-              aria-label="Tam ekran"
-              style={{
-                position: 'absolute',
-                right: 10,
-                top: 10,
-                width: 38,
-                height: 38,
-                borderRadius: 19,
-                border: 'none',
-                background: 'rgba(10,8,24,0.6)',
-                color: '#F6EFDD',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
-            >
-              <Maximize2 size={16} />
-            </button>
-
-            {needTap && (
-              <button
-                type="button"
-                onClick={tapResume}
-                style={{
-                  ...goldBtn,
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%,-50%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-              >
-                <Volume2 size={18} /> Sesi ve Görüntüyü Başlat
-              </button>
-            )}
-          </div>
-
-          {/* KİP GİRİŞ PANELİ (Responsive: dar ekranda alt alta kırılır, taşmaz) */}
+          {/* KİP GİRİŞ PANELİ */}
           {mode === 'yt' && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <input
@@ -1575,7 +1929,7 @@ function OdaInner({ code }) {
             </p>
           )}
 
-          {/* TELEFON & TABLET: SOHBET VE ŞİİR KÖŞESİ (Sabit pop-up yerine akış içinde, menüler üst üste binmez) */}
+          {/* TELEFON & TABLET: SOHBET VE ŞİİR KÖŞESİ */}
           {!wide && (
             <div ref={panelRef} style={{ ...glass, display: 'flex', flexDirection: 'column', gap: 12, padding: 14 }}>
               <div style={{ display: 'flex', gap: 6, padding: 4, borderRadius: 20, background: 'rgba(255,255,255,0.05)' }}>

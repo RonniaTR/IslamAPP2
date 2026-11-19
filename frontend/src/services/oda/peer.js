@@ -1,9 +1,10 @@
 // 🎬 ODA BAĞLANTISI (PeerJS) — Firebase ayarı GEREKMEZ.
 //
-// Telefon, tablet ve PC (iOS Safari, Android Chrome, Windows/Mac Chrome/Edge/Firefox) için çift katmanlı ses ve görüntü:
-// 1) Ana medya çağrısı: sahne görüntüsü (video/ekran) + içerik sesi + mikrofon yedeği.
-// 2) Özel ses çağrısı (metadata: { kind: 'mic' }): mobil tarayıcıların (özellikle iOS Safari ve Android) çoklu ses izi
-//    kısıtlamasına takılmaması için mikrofon açıldığında doğrudan tek izli net ses akışı da bağlanır.
+// HarmonyOS (Huawei), Android, Apple (iPhone/iPad/Mac Safari) ve Windows PC için
+// çok aşamalı (progressive fallback) Mikrofon + Kamera + Sahne (Video/Ekran) sistemi:
+// 1) Ana medya çağrısı (kind: 'stage'): sahne görüntüsü (film/ekran) + içerik sesi + mikrofon yedeği.
+// 2) Özel ses çağrısı (kind: 'mic'): mobil tarayıcıların çoklu ses izi kısıtlamasına takılmayan tek izli mikrofon akışı.
+// 3) Özel kamera çağrısı (kind: 'cam'): film veya YouTube izlerken aynı anda birbirinizi görebilmeniz için bağımsız kamera akışı.
 import Peer from 'peerjs';
 
 const PREFIX = 'dusbahcesi-v1-';
@@ -37,11 +38,156 @@ function peerOptions() {
 export const canShareScreen = () =>
   typeof navigator !== 'undefined' &&
   !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) &&
-  !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  !/Android|iPhone|iPad|iPod|HarmonyOS/i.test(navigator.userAgent);
 
 export const canStreamFile = () =>
   typeof HTMLMediaElement !== 'undefined' &&
   !!(HTMLMediaElement.prototype.captureStream || HTMLMediaElement.prototype.mozCaptureStream);
+
+/** HarmonyOS, Android, iOS Safari ve PC için geriye uyumlu getUserMedia çağrısı. */
+async function rawGetUserMedia(constraints) {
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    return navigator.mediaDevices.getUserMedia(constraints);
+  }
+  const legacy =
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia;
+  if (legacy) {
+    return new Promise((resolve, reject) => {
+      legacy.call(navigator, constraints, resolve, reject);
+    });
+  }
+  const err = new Error('Tarayıcı mikrofon/kamera erişimini desteklemiyor.');
+  err.name = 'NotSupportedError';
+  throw err;
+}
+
+/**
+ * HarmonyOS / Android / iOS Safari / PC için kademeli mikrofon izni ve akışı alma.
+ * İlk gelişmiş kısıtlamalar reddedilirse (OverconstrainedError vb.) saf { audio: true } ile tekrar dener.
+ */
+export async function acquireMicrophoneStream(deviceId) {
+  const attempts = [];
+  if (deviceId) {
+    attempts.push({
+      audio: {
+        deviceId: { ideal: deviceId },
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: true },
+        autoGainControl: { ideal: true },
+      },
+      video: false,
+    });
+  }
+  attempts.push(
+    {
+      audio: {
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: true },
+        autoGainControl: { ideal: true },
+      },
+      video: false,
+    },
+    { audio: true, video: false }
+  );
+
+  let lastErr = null;
+  for (const c of attempts) {
+    try {
+      return await rawGetUserMedia(c);
+    } catch (e) {
+      lastErr = e;
+      const name = (e && e.name) || '';
+      // Kullanıcı veya tarayıcı politikası izni reddettiyse diğer kısıtlamaları denemeye gerek yok
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') {
+        throw e;
+      }
+    }
+  }
+  throw lastErr || new Error('Mikrofon açılamadı.');
+}
+
+/**
+ * HarmonyOS / Android / iOS Safari / PC için kademeli kamera izni ve akışı alma.
+ */
+export async function acquireCameraStream({ facingMode = 'user', deviceId = '' } = {}) {
+  const attempts = [];
+  if (deviceId) {
+    attempts.push({
+      video: {
+        deviceId: { ideal: deviceId },
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+      },
+      audio: false,
+    });
+  }
+  attempts.push(
+    {
+      video: {
+        facingMode: { ideal: facingMode },
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+      },
+      audio: false,
+    },
+    {
+      video: { facingMode },
+      audio: false,
+    },
+    { video: true, audio: false }
+  );
+
+  let lastErr = null;
+  for (const c of attempts) {
+    try {
+      return await rawGetUserMedia(c);
+    } catch (e) {
+      lastErr = e;
+      const name = (e && e.name) || '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') {
+        throw e;
+      }
+    }
+  }
+  throw lastErr || new Error('Kamera açılamadı.');
+}
+
+/** Hata nedenini kullanıcıya anlaşılır Türkçe mesaj ve çözüm adımı olarak döndürür. */
+export function describeMediaError(err, label = 'Mikrofon') {
+  const name = (err && err.name) || '';
+  const msg = (err && err.message) || '';
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') {
+    if (/ policy|Permissions-Policy|Feature-Policy/i.test(msg)) {
+      return {
+        denied: true,
+        text: `${label} izni eski sayfa önbelleği tarafından engellendi. Sayfayı yenileyip tekrar dokun.`,
+      };
+    }
+    return {
+      denied: true,
+      text: `${label} izni tarayıcıda kapalı görünüyor. Adres çubuğundaki kilit (🔒) veya ayar simgesine dokunup "${label} → İzin Ver" seç, ardından tekrar dene.`,
+    };
+  }
+  if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+    return {
+      denied: false,
+      text: `Cihazında kullanılabilir bir ${label.toLowerCase()} bulunamadı.`,
+    };
+  }
+  if (name === 'NotReadableError' || name === 'TrackStartError') {
+    return {
+      denied: false,
+      text: `${label} şu an başka bir uygulama veya sekme tarafından kullanılıyor. Diğer uygulamayı kapatıp tekrar dene.`,
+    };
+  }
+  return {
+    denied: false,
+    text: `${label} açılamadı (${name || 'Bilinmeyen hata'}). Lütfen izinleri kontrol edip tekrar dene.`,
+  };
+}
 
 export async function listAudioInputs() {
   try {
@@ -53,13 +199,23 @@ export async function listAudioInputs() {
   }
 }
 
+export async function listVideoInputs() {
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return [];
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    return devs.filter((d) => d.kind === 'videoinput');
+  } catch {
+    return [];
+  }
+}
+
 export function newCode() {
   const a = new Uint8Array(10);
   crypto.getRandomValues(a);
   return Array.from(a, (b) => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
 }
 
-/** Sessiz/siyah yer tutucu izler (tüm tarayıcılar için güvenli). */
+/** Sessiz/siyah yer tutucu izler. */
 function placeholders() {
   const c = document.createElement('canvas');
   c.width = 640;
@@ -146,6 +302,7 @@ export function startSession(o) {
   let conn = null;
   let call = null;
   let micCall = null;
+  let camCall = null;
   let remotePeerId = o.role === 'guest' ? hostId(o.code) : null;
   let closed = false;
   let retry = null;
@@ -153,6 +310,7 @@ export function startSession(o) {
   let mids = null;
   let remoteStream = null;
   let dedicatedMicStream = null;
+  let dedicatedCamStream = null;
   const ph = placeholders();
   const state = (s) => {
     if (!closed) o.onState(s);
@@ -172,13 +330,19 @@ export function startSession(o) {
     const video = remoteStream ? remoteStream.getVideoTracks()[0] : null;
     const content = mids ? byMid(mids.content) : remoteStream ? remoteStream.getAudioTracks()[0] : null;
     const fallbackMic = mids ? byMid(mids.mic) : remoteStream ? remoteStream.getAudioTracks()[1] : null;
-    const micTracks = dedicatedMicStream && dedicatedMicStream.getAudioTracks().length
-      ? dedicatedMicStream.getAudioTracks()
-      : [fallbackMic].filter(Boolean);
+    const micTracks =
+      dedicatedMicStream && dedicatedMicStream.getAudioTracks().length
+        ? dedicatedMicStream.getAudioTracks()
+        : [fallbackMic].filter(Boolean);
+    const camTracks =
+      dedicatedCamStream && dedicatedCamStream.getVideoTracks().length
+        ? dedicatedCamStream.getVideoTracks()
+        : [];
 
     o.onRemote({
       stage: new MediaStream([video, content].filter(Boolean)),
       mic: new MediaStream(micTracks),
+      cam: camTracks.length ? new MediaStream(camTracks) : null,
     });
   }
 
@@ -213,9 +377,34 @@ export function startSession(o) {
     });
   }
 
+  function wireCamCall(c) {
+    if (camCall && camCall !== c) {
+      try {
+        camCall.close();
+      } catch {
+        /* kapalı */
+      }
+    }
+    camCall = c;
+    c.on('stream', (s) => {
+      dedicatedCamStream = s;
+      emitRemote();
+    });
+    c.on('close', () => {
+      if (camCall === c) {
+        dedicatedCamStream = null;
+        emitRemote();
+      }
+    });
+  }
+
   function wireCall(c) {
     if (c && c.metadata && c.metadata.kind === 'mic') {
       wireMicCall(c);
+      return;
+    }
+    if (c && c.metadata && c.metadata.kind === 'cam') {
+      wireCamCall(c);
       return;
     }
     if (call && call !== c) {
@@ -254,6 +443,7 @@ export function startSession(o) {
 
   let screen = null;
   let micStream = null;
+  let camStream = null;
   let fileStream = null;
 
   function wireConn(c) {
@@ -275,6 +465,14 @@ export function startSession(o) {
         send({ t: 'mic', on: true });
         try {
           wireMicCall(peer.call(remotePeerId, micStream, { metadata: { kind: 'mic' } }));
+        } catch {
+          /* yedek */
+        }
+      }
+      if (camStream && camStream.getVideoTracks().length && remotePeerId) {
+        send({ t: 'cam', on: true });
+        try {
+          wireCamCall(peer.call(remotePeerId, camStream, { metadata: { kind: 'cam' } }));
         } catch {
           /* yedek */
         }
@@ -323,6 +521,11 @@ export function startSession(o) {
       if (c.metadata && c.metadata.kind === 'mic') {
         c.answer(micStream || new MediaStream([ph.a2].filter(Boolean)));
         wireMicCall(c);
+        return;
+      }
+      if (c.metadata && c.metadata.kind === 'cam') {
+        c.answer(camStream || new MediaStream([ph.v].filter(Boolean)));
+        wireCamCall(c);
         return;
       }
       if (o.role === 'host') {
@@ -407,6 +610,7 @@ export function startSession(o) {
     send,
     isConnected: () => !!(conn && conn.open),
     getMicStream: () => micStream,
+    getCamStream: () => camStream,
     async shareScreen() {
       screen = await navigator.mediaDevices.getDisplayMedia({
         video: { frameRate: { ideal: 30, max: 30 } },
@@ -433,19 +637,11 @@ export function startSession(o) {
     async setMic(on, deviceId) {
       if (ph.ac && ph.ac.state === 'suspended') ph.ac.resume().catch(() => {});
       if (on) {
-        if (micStream && deviceId) {
+        if (micStream) {
           micStream.getTracks().forEach((t) => t.stop());
           micStream = null;
         }
-        if (!micStream) {
-          const audioConstraints = {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
-          };
-          micStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false });
-        }
+        micStream = await acquireMicrophoneStream(deviceId);
         micStream.getAudioTracks().forEach((t) => {
           t.enabled = true;
         });
@@ -491,12 +687,52 @@ export function startSession(o) {
       send({ t: 'mic', on: false });
       return false;
     },
+    async setCamera(on, opts = {}) {
+      if (on) {
+        if (camStream) {
+          camStream.getTracks().forEach((t) => t.stop());
+          camStream = null;
+        }
+        camStream = await acquireCameraStream(opts);
+        if (peer && !peer.destroyed && remotePeerId) {
+          try {
+            wireCamCall(peer.call(remotePeerId, camStream, { metadata: { kind: 'cam' } }));
+          } catch {
+            /* bağlantı kurulunca wireConn içinde gönderilir */
+          }
+        }
+        send({ t: 'cam', on: true });
+        return camStream;
+      }
+      if (camStream) {
+        camStream.getTracks().forEach((t) => {
+          t.enabled = false;
+          t.stop();
+        });
+        camStream = null;
+      }
+      if (camCall) {
+        try {
+          camCall.close();
+        } catch {
+          /* kapalı */
+        }
+        camCall = null;
+      }
+      send({ t: 'cam', on: false });
+      return null;
+    },
     close() {
       closed = true;
       clearTimeout(retry);
-      [screen, micStream].forEach((m) => m && m.getTracks().forEach((t) => t.stop()));
+      [screen, micStream, camStream].forEach((m) => m && m.getTracks().forEach((t) => t.stop()));
       try {
         if (micCall) micCall.close();
+      } catch {
+        /* kapalı */
+      }
+      try {
+        if (camCall) camCall.close();
       } catch {
         /* kapalı */
       }
