@@ -289,24 +289,25 @@ Kıble açısı denetlendi: İstanbul 151,6°, Londra 119,0° (bilinen değerler
 **Yayından önce şart:** `kidsNamaz.js`, `kidsStories.js`, `kidsAyetler.js` (açıklamalar), `kidsQuestions.js` bir din eğitimcisine okutulmalı.
 **Denenmedi:** hiçbiri cihazda denenmedi; pusula gerçek telefonda kalibre edilmeli. **Bulunan ayrı hata:** büyüklerin `QiblaPage`'i kıble açısını İstanbul'a sabit (147°) alıyor — çocuktaki hesap oraya taşınmalı.
 
-#### On birinci tur (19.11.2026) — Oda: uzaktan ekran paylaşımı ve birlikte izleme
+#### On birinci tur (19.11.2026, ikinci sürüm) — Oda / Düş Bahçesi: birlikte izleme
 
-**Menülerde yok; yalnız bağlantıyla açılır** (`/oda` kur · `/oda/:id` gir). İleride ayrı uygulamaya taşınacak; bu yüzden kendi klasöründe ve uygulamanın geri kalanına dokunmuyor.
+**İlk sürüm çalışmıyordu:** Firebase'de Anonim giriş ve oda kuralları açılmadan oda kurulamıyordu; ayrıca `/oda`'dan `/oda/:kod`'a geçişte aynı bileşen yeniden kullanıldığı için sayfa boş kalıyordu. İkinci sürüm Firebase'e hiç bağlı değil.
 
 | Parça | Ne yapar | Dosya |
 |---|---|---|
-| Bağlantı | İki kişilik uçtan uca WebRTC. Firebase yalnız tanışma (teklif/cevap/ağ adayı) için. Görüntü, ses, sohbet hiçbir yere yazılmaz. Yenileyen taraf için yeniden teklif | `services/oda/rtc.js` |
-| Ekran paylaşımı | Film ipucu (`motion`), en çok 30 kare/sn, 3 Mbps tavan, ağ zayıfsa kare korunur netlik düşer. Sekme sesi de gider (Chrome/Edge) | aynı |
-| Birlikte izle | Film yayınlanmaz: ikiniz aynı dosyayı kendi cihazında açarsınız; oynat/durdur/sar eşlenir, oda sahibi 4 sn'de bir saat yollar (0,7 sn üstü kayma düzeltilir). Dosyalar farklıysa uyarır | `pages/oda/OdaPage.jsx` |
-| Düş Bahçesi | Gece bahçesi, ateş böcekleri, iki fener; karşı taraf gelince feneri yanar, bağlanınca aralarına ışık ipi gerilir; uçan kalpler; şiir köşesi | `pages/oda/DusBahcesi.jsx`, `OdaKur.jsx` |
-| Kişisel içerik | Adlar, "bizim cümlemiz", şiirler **kodda değil**, odanın kendi Firestore belgesinde | `odalar/{id}` |
-| Güvenlik | Tahmin edilemez oda kimliği (15 karakter), en çok 2 üye, kurallar: yalnız üyeler okur/yazar | `firestore.rules` |
-| Yan etki düzeltmesi | Anonim Firebase oturumu uygulamada "giriş" sayılmaz | `contexts/AuthContext.js` |
+| Bağlantı | PeerJS (tanışma sunucusu + kendi TURN sunucuları). Ev sahibi oda kodundan sabit kimlik alır; misafir önce gelse de ev sahibi açılınca bağlanır; yenileyen taraf yeniden bağlanır. Üç yer tutucu iz + `replaceTrack`, iz eşlemesi `mid` ile | `services/oda/peer.js` |
+| YouTube | Resmî IFrame oynatıcısı; oynat/durdur/sar eşlenir, ev sahibi 4 sn'de bir saat yollar | `pages/oda/YTStage.jsx`, `services/oda/youtube.js` |
+| Video | "Ona yayınla": dosya sende, görüntü+ses ona akar (en çok 4 Mbps), o kendi ekranından durdurup ±10 sn sarabilir · "İkimizde de var": aynı dosya eşlenir | `pages/oda/OdaPage.jsx` |
+| Ekran | Bilgisayardan ekran paylaşımı (sekme sesiyle) | aynı |
+| Düş Bahçesi | Giriş töreni (baş harfler ♥), iki fener ve ışık ipi, ateş böcekleri, kalpler, şiir köşesi (ev sahibi oda içinden de şiir ekler), "bizim cümlemiz"; davet bağlantısı kimin çağırdığını gösterir | `DusBahcesi.jsx`, `OdaKur.jsx` |
+| Düzen | Telefon/tablet: alt kontrol kapsülü + alt sayfa sohbet. Bilgisayar (≥1024 px): sağda sohbet/şiir paneli ve kontroller | `OdaPage.jsx` |
+| Kişisel içerik | Adlar, cümle, şiirler ev sahibinin cihazında (localStorage); misafire bağlanınca gönderilir. Kodda kişisel bilgi yok | — |
 
-**Çalışması için (bir kez):** Firebase Console › Authentication › Sign-in method › **Anonymous: Enable** · `firebase deploy --only firestore:rules` ·
-bazı mobil ağlarda (operatör NAT'ı) doğrudan bağlantı kurulamaz → bir TURN sunucusu: `.env` içine `REACT_APP_TURN_URLS`, `REACT_APP_TURN_USER`, `REACT_APP_TURN_PASS`.
+**Denendi (otomatik, iki ayrı tarayıcı; biri telefon boyutu):** oda kurma → davet → bağlanma 1 sn · ad/şiir/cümle aktarımı · sohbet · kalp · mikrofon izi · video yayını misafirde görüntüleniyor · misafirin uzaktan durdurması · misafir yenileyince yeniden bağlanma · misafir ev sahibinden önce gelirse bekleyip bağlanma. Yakalanıp düzeltilenler: sayfa çökmesi, lucide'de kaldırılan YouTube simgesi, fener animasyonu hatası, yenilemede ev sahibi hatası, yayın bitince donan kare.
+**Denenmedi:** gerçek iki farklı ağ (mobil veri ↔ ev interneti), iPhone Safari, YouTube (test ortamında internet yok), ekran paylaşımı (başsız tarayıcıda seçim penceresi yok).
 
-**Sınırlar:** telefon tarayıcıları ekran PAYLAŞAMAZ (izleyebilir; "Birlikte izle" telefonda da çalışır) · Netflix/Disney+ gibi korumalı yayınlar paylaşımda siyah görünür ve hizmet şartlarına aykırıdır · şimdilik iki kişilik (arkadaş grubu için çoklu bağlantı ya da SFU sonraki iş) · kamera yok · **gerçek iki cihazda denenmedi**.
+**Sınırlar:** iPhone/iPad'den dosya YAYINLANAMAZ (Safari izin vermez; izlemek ve "İkimizde de var" çalışır) · telefondan ekran paylaşılamaz · Netflix gibi korumalı yayınlar siyah görünür · Firefox'ta yayınlanan videonun sesi yayınlayan tarafta kısılır · PeerJS'in ücretsiz genel sunucusu kullanılıyor (yoğunlukta yavaşlayabilir; kendi sunucun için `REACT_APP_PEER_HOST`).
+**Kurulum:** `package.json`'a `peerjs` eklendi, `frontend/.npmrc` `legacy-peer-deps=true` (projede önceden de olan bağımlılık çakışması yüzünden). Eski Firebase'li sürüm `_to_delete/rtc.js`.
 
 ### 0.7 Kur'an, meal, tefsir ve siyeri uygulamaya koymanın yolu
 

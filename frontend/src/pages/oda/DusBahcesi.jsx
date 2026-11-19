@@ -39,7 +39,7 @@ function Lantern({ lit, name, side }) {
         <path d="M23 2 v8" stroke="#8A7B5A" strokeWidth="2" />
         <rect x="9" y="10" width="28" height="6" rx="3" fill="#8A7B5A" />
         <path d="M11 16 Q6 34 11 52 H35 Q40 34 35 16 Z" fill={lit ? '#FFD27A' : '#2A2742'} stroke="#8A7B5A" strokeWidth="2" style={{ transition: 'fill .8s' }} />
-        {lit && <motion.ellipse cx="23" cy="36" rx="5" ry="8" fill="#FFF6D8" animate={{ ry: [8, 9.5, 7.5, 8] }} transition={{ duration: 1.6, repeat: Infinity }} />}
+        {lit && <motion.ellipse cx="23" cy="36" rx="5" ry="8" fill="#FFF6D8" animate={{ scaleY: [1, 1.18, 0.92, 1] }} transition={{ duration: 1.6, repeat: Infinity }} style={{ transformOrigin: '23px 44px', transformBox: 'view-box' }} />}
         <rect x="9" y="52" width="28" height="6" rx="3" fill="#8A7B5A" />
       </motion.svg>
       <span style={{ fontSize: 14, fontWeight: 700, color: lit ? '#FFE9B8' : '#7C7896', maxWidth: 96, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color .8s' }}>{name}</span>
