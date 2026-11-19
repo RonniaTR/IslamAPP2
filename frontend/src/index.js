@@ -11,8 +11,15 @@ root.render(<App />);
 // Learn more about service workers: https://cra.link/PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
     navigator.serviceWorker.register('/sw.js').then(registration => {
-      console.log('SW registered: ', registration);
+      registration.update().catch(() => {});
     }).catch(registrationError => {
       console.log('SW registration failed: ', registrationError);
     });
