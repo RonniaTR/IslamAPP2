@@ -1,27 +1,34 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Capacitor } from '@capacitor/core';
 import './index.css';
 import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
+// SERVİS ÇALIŞANI (çevrimdışı önbellek) — yalnız WEB sürümünde.
+// Telefon uygulamasında dosyalar zaten paketin içindedir; servis çalışanı orada eski sürümü önbellekten
+// sunup güncellemeleri gizleyebilirdi. Bu yüzden telefonda kaydedilmez, önceden kaydedilmişse kaldırılır.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
+  if (Capacitor.isNativePlatform()) {
+    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
+  } else {
+    window.addEventListener('load', () => {
+      // İlk kurulumda da "controllerchange" gelir; o anda sayfayı yenilemek açılış sahnesini yarıda kesiyordu.
+      // Yalnız GÜNCELLEMEDE (önceden bir servis çalışanı varken) yenilenir.
+      const hadController = !!navigator.serviceWorker.controller;
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController || refreshing) return;
         refreshing = true;
         window.location.reload();
-      }
+      });
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        registration.update().catch(() => {});
+      }).catch((registrationError) => {
+        console.log('SW registration failed: ', registrationError);
+      });
     });
-    navigator.serviceWorker.register('/sw.js').then(registration => {
-      registration.update().catch(() => {});
-    }).catch(registrationError => {
-      console.log('SW registration failed: ', registrationError);
-    });
-  });
+  }
 }

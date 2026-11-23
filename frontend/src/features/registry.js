@@ -50,6 +50,7 @@ export const FEATURES = [
   { id: 'kandil', route: '/kandil', title: 'Kandil Işık Haritası', desc: 'Mübarek gecede il il anonim ışıklar', emoji: '🕯️', group: 'ibadet' },
   { id: 'ramadan', route: '/ramadan', title: 'Ramazan', desc: 'Ramazan rehberi', emoji: '🌙', group: 'ibadet' },
   { id: 'fiqh', route: '/fiqh', title: 'İbadet Rehberi', desc: 'Abdest, namaz, oruç', emoji: '🕌', group: 'ibadet' },
+  { id: 'musluman', route: '/musluman-olmak', title: 'Müslüman Olmak', desc: 'Kitap ve Hikmet Mecmuası: ahlak, ilim, bilim', emoji: '📗', group: 'ilim', home: true },
   { id: 'rehber', route: '/rehber', title: 'Rehber', desc: 'Kaynaklı yapay zekâ: sor, doğrula, anlat', emoji: '📚', group: 'ilim', flag: 'rehber', home: true },
   { id: 'hadith', route: '/hadith', title: 'Hadis', desc: 'Kaynaklı hadisler', emoji: '📜', group: 'ilim' },
   { id: 'siyer', route: '/siyer', title: 'Siyer-i Nebî', desc: 'Efendimizin hayatı', emoji: '🌟', group: 'ilim' },

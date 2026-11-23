@@ -1,183 +1,131 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogIn, Loader2, Sparkles } from 'lucide-react';
+import { User, LogIn, Loader2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { useAppMode } from '../contexts/AppModeContext';
+import { canApple, platform } from '../services/authNative';
+import { APP_NAME, TAGLINE } from '../config/brand';
+import { NurKemer, Yildizlar, GECE } from '../components/giris/giriSahne';
+
+// 🔑 GİRİŞ — kapıdan geçen kişiyi karşılayan ilk oda.
+// Google (her yerde), Apple (iPhone/iPad ve web; Apple'ın 4.8 kuralı), Misafir (hesapsız, veri yalnız cihazda).
+// Gizlilik politikası her zaman bir dokunuş uzakta (mağaza şartı).
+
+const isAppleDevice = () => platform() === 'ios' || /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { theme } = useTheme();
-  
-  const { loginAsGuest, loginWithGoogle } = useAuth(); 
+  const { loginAsGuest, loginWithGoogle, loginWithApple } = useAuth();
   const { resetOnboarding } = useAppMode();
+  const apple = useMemo(canApple, []);
 
   const [showNameInput, setShowNameInput] = useState(false);
   const [guestName, setGuestName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [busy, setBusy] = useState(null); // 'google' | 'apple' | 'guest'
+  const [error, setError] = useState('');
 
-  const handleGuestClick = async () => {
-    const savedGuestId = localStorage.getItem('islamapp_guest_id');
-    
-    if (savedGuestId) {
-      setLoading(true);
-      try {
-        const user = await loginAsGuest();
-        if (user) navigate('/', { replace: true });
-      } catch (error) {
-        console.error("Misafir girişi başarısız:", error);
-        setShowNameInput(true);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setShowNameInput(true);
+  const run = async (kind, fn) => {
+    setBusy(kind); setError('');
+    try {
+      const u = await fn();
+      if (u) navigate('/', { replace: true });
+    } catch (e) {
+      const code = String((e && e.code) || '');
+      setError(/network/i.test(code)
+        ? 'İnternet bağlantısı yok gibi görünüyor. Misafir olarak devam edebilirsin.'
+        : 'Giriş tamamlanamadı. Bir daha dener misin?');
+    } finally {
+      setBusy(null);
     }
   };
 
-  const submitGuestName = async () => {
-    if (!guestName.trim()) {
-        alert("Lütfen liderlik tablosu için bir isim giriniz.");
-        return;
-    }
-    setLoading(true);
-    try {
-      const user = await loginAsGuest(guestName.trim());
-      if (user) {
-        resetOnboarding();
-        navigate('/', { replace: true });
-      }
-    } catch (error) {
-      console.error("İsimle giriş başarısız:", error);
-      alert("Bağlantı hatası oluştu. Lütfen tekrar deneyin.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const submitGuestName = () => run('guest', async () => {
+    const u = await loginAsGuest(guestName.trim() || 'Misafir');
+    resetOnboarding();
+    return u;
+  });
 
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    try {
-      if (loginWithGoogle) {
-         const user = await loginWithGoogle();
-         if (user) navigate('/', { replace: true });
-      } else {
-         alert("Google girişi şu an aktif değil.");
-      }
-    } catch (error) {
-      console.error("Google login hatası:", error);
-    } finally {
-      setGoogleLoading(false);
-    }
+  const btn = {
+    width: '100%', minHeight: 56, borderRadius: 18, fontWeight: 800, fontSize: 16,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer',
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden" style={{ background: theme.bg }}>
-      {/* Background Effects */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-         <div className="w-[300px] h-[300px] rounded-full blur-[120px] opacity-10 animate-pulse" style={{ background: theme.gold }} />
-      </div>
+    <div data-testid="login-page" style={{ minHeight: '100vh', background: GECE.bg, color: GECE.ink, position: 'relative', overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 22px' }}>
+      <Yildizlar count={36} />
+      <div aria-hidden style={{ position: 'absolute', top: '-10%', left: '50%', width: 520, height: 520, transform: 'translateX(-50%)',
+        background: `radial-gradient(circle, ${GECE.glow} 0%, transparent 62%)`, pointerEvents: 'none' }} />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, type: "spring" }}
-        className="z-10 w-full max-w-md"
-      >
-        {/* Logo / Header */}
-        <div className="text-center mb-10">
-          <motion.div 
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }}
-            className="w-20 h-20 mx-auto rounded-2xl flex items-center justify-center shadow-2xl mb-6 transform rotate-3"
-            style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight || theme.gold})`, boxShadow: `0 0 30px ${theme.gold}40` }}
-          >
-            <Sparkles style={{ color: theme.bg }} size={40} />
-          </motion.div>
-          <h1 className="text-4xl font-black mb-2 tracking-tight" style={{ color: theme.gold, fontFamily: 'Playfair Display, serif' }}>İslamApp</h1>
-          <p className="text-sm font-semibold tracking-wide" style={{ color: theme.textSecondary }}>İlim ve İbadet Yolculuğunuz</p>
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        style={{ width: '100%', maxWidth: 400, position: 'relative', zIndex: 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 26 }}>
+          <NurKemer size={96} />
+          <h1 style={{ fontFamily: 'var(--font-heading, "Fraunces", serif)', fontSize: 38, fontWeight: 800, margin: '14px 0 4px', color: GECE.gold, letterSpacing: 0.5 }}>{APP_NAME}</h1>
+          <p style={{ margin: 0, color: GECE.soft, fontSize: 15 }}>{TAGLINE}</p>
         </div>
 
-        {/* Login Card */}
-        <div className="backdrop-blur-xl p-8 rounded-[32px] shadow-2xl" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-          
-          <div className="space-y-5">
-            
-            {/* Google Login */}
-            <motion.button
-              whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={handleGoogleLogin}
-              disabled={googleLoading || loading}
-              className="w-full bg-white text-gray-800 py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 shadow-md disabled:opacity-70 transition-all"
-            >
-              {googleLoading ? <Loader2 className="animate-spin text-gray-600" size={20} /> : (
-                <>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                  Google ile Giriş Yap
-                </>
+        <div style={{ background: 'rgba(255,255,255,0.045)', border: `1px solid ${GECE.line}`, borderRadius: 28, padding: 20, backdropFilter: 'blur(14px)',
+          display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <motion.button type="button" whileTap={{ scale: 0.98 }} onClick={() => run('google', loginWithGoogle)} disabled={!!busy}
+            data-testid="login-google" style={{ ...btn, background: '#FFFFFF', color: '#1F2937', border: 'none' }}>
+            {busy === 'google' ? <Loader2 className="animate-spin" size={20} /> : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Google ile devam et
+              </>
+            )}
+          </motion.button>
+
+          {apple && (
+            <motion.button type="button" whileTap={{ scale: 0.98 }} onClick={() => run('apple', loginWithApple)} disabled={!!busy}
+              data-testid="login-apple" style={{ ...btn, background: '#000000', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.22)' }}>
+              {busy === 'apple' ? <Loader2 className="animate-spin" size={20} /> : (
+                <>{isAppleDevice() && <span aria-hidden style={{ fontSize: 20, lineHeight: 1, marginTop: -3 }}>{''}</span>}Apple ile devam et</>
               )}
             </motion.button>
+          )}
 
-            <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t" style={{ borderColor: theme.cardBorder }}></div>
-              <span className="flex-shrink-0 mx-4 text-xs" style={{ color: theme.textSecondary }}>veya</span>
-              <div className="flex-grow border-t" style={{ borderColor: theme.cardBorder }}></div>
-            </div>
-
-            {/* Guest Login */}
-            <AnimatePresence mode="wait">
-              {showNameInput ? (
-                <motion.div 
-                  key="name-input"
-                  initial={{ opacity: 0, height: 0 }} 
-                  animate={{ opacity: 1, height: 'auto' }} 
-                  exit={{ opacity: 0, height: 0 }}
-                  className="w-full space-y-3 overflow-hidden"
-                >
-                  <input 
-                    type="text" 
-                    placeholder="Liderlik tablosu için adınız?" 
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && submitGuestName()}
-                    className="w-full font-bold rounded-2xl p-4 outline-none text-center transition-colors"
-                    style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }}
-                    autoFocus
-                  />
-                  <button 
-                    onClick={submitGuestName} 
-                    disabled={loading}
-                    className="w-full py-4 rounded-2xl font-black shadow-lg flex justify-center items-center gap-2 transition-all active:scale-95 disabled:opacity-70" 
-                    style={{ background: `linear-gradient(135deg, ${theme.gold}, ${theme.goldLight || theme.gold})`, color: theme.bg }}
-                  >
-                    {loading ? <Loader2 className="animate-spin" size={20}/> : (
-                      <>Maceraya Başla <LogIn size={20} /></>
-                    )}
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.button
-                  key="guest-button"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={handleGuestClick}
-                  disabled={loading || googleLoading}
-                  className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl transition-all duration-300 disabled:opacity-60 border font-bold"
-                  style={{ background: `${theme.gold}10`, borderColor: `${theme.gold}30`, color: theme.gold }}
-                >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : (
-                    <>
-                      <User size={20} />
-                      Misafir Olarak Devam Et
-                    </>
-                  )}
-                </motion.button>
-              )}
-            </AnimatePresence>
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
+            <span style={{ flex: 1, height: 1, background: GECE.line }} />
+            <span style={{ fontSize: 12, color: GECE.soft }}>ya da</span>
+            <span style={{ flex: 1, height: 1, background: GECE.line }} />
           </div>
+
+          <AnimatePresence mode="wait">
+            {showNameInput ? (
+              <motion.div key="name" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                style={{ display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden' }}>
+                <input type="text" placeholder="Sana nasıl seslenelim?" value={guestName} maxLength={40} autoFocus
+                  onChange={(e) => setGuestName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submitGuestName()}
+                  data-testid="guest-name"
+                  style={{ minHeight: 54, borderRadius: 16, textAlign: 'center', fontWeight: 700, fontSize: 16, outline: 'none',
+                    background: 'rgba(255,255,255,0.06)', border: `1px solid ${GECE.line}`, color: GECE.ink }} />
+                <button type="button" onClick={submitGuestName} disabled={!!busy} data-testid="guest-go"
+                  style={{ ...btn, background: `linear-gradient(135deg, ${GECE.gold}, #E9CF8C)`, color: '#11281F', border: 'none' }}>
+                  {busy === 'guest' ? <Loader2 className="animate-spin" size={20} /> : <>Yola çık <LogIn size={19} /></>}
+                </button>
+              </motion.div>
+            ) : (
+              <motion.button key="guest" type="button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} whileTap={{ scale: 0.98 }}
+                onClick={() => setShowNameInput(true)} disabled={!!busy} data-testid="login-guest"
+                style={{ ...btn, background: 'transparent', color: GECE.gold, border: `1px solid ${GECE.gold}55` }}>
+                <User size={19} /> Misafir olarak devam et
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {error && <p role="alert" style={{ margin: 0, color: '#FCA5A5', fontSize: 13, textAlign: 'center' }}>{error}</p>}
         </div>
+
+        <p style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12, lineHeight: 1.5, color: GECE.soft, margin: '16px 6px 0' }}>
+          <ShieldCheck size={16} style={{ flexShrink: 0, marginTop: 1, color: GECE.gold }} />
+          <span>
+            Misafir girişinde hiçbir bilgin sunucuya gitmez. Hesapla girersen ilerlemen yedeklenir; dilediğin an silebilirsin.{' '}
+            <button type="button" onClick={() => navigate('/gizlilik')} style={{ color: GECE.gold, textDecoration: 'underline', fontWeight: 700 }}>Gizlilik politikası</button>
+          </span>
+        </p>
       </motion.div>
     </div>
   );

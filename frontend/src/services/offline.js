@@ -74,7 +74,7 @@ export async function packSurah(key, n) {
   const pack = await getPack(key);
   const rows = pack && pack.s && pack.s[n - 1];
   if (!rows) return null;
-  return { ayahs: rows.map((r, i) => ({ aya: i + 1, text: r[0], footnotes: r[1] || '' })), version: (pack.edition && pack.edition.version) || '' };
+  return { ayahs: rows.map((r, i) => ({ aya: i + 1, text: r[0], footnotes: r[1] || '' })), version: (pack.edition && pack.edition.version) || '', etiket: (pack.edition && pack.edition.etiket) || '' };
 }
 
 /** Mushaf sayfası (paket varsa): { page, ayahs:[{text,n,surah,surahName,juz,sajda}] } ya da null. */

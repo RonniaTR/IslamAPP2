@@ -100,11 +100,18 @@ function ProfileHero({ profile }) {
     >
       <div className="relative">
         <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-[#10b981] to-[#f59e0b]">
-          <img 
-            src={profile.avatarUrl} 
-            alt="Profile" 
-            className="w-full h-full rounded-full border-4 border-[color:var(--bg-primary)] object-cover bg-gray-800"
-          />
+          {profile.avatarUrl ? (
+            <img
+              src={profile.avatarUrl}
+              alt="Profile"
+              referrerPolicy="no-referrer"
+              className="w-full h-full rounded-full border-4 border-[color:var(--bg-primary)] object-cover bg-gray-800"
+            />
+          ) : (
+            <div className="w-full h-full rounded-full border-4 border-[color:var(--bg-primary)] bg-gray-800 flex items-center justify-center text-4xl font-black" style={{ color: '#f59e0b' }} aria-hidden>
+              {(profile.name || '?').trim().charAt(0).toLocaleUpperCase('tr')}
+            </div>
+          )}
         </div>
         <div className="absolute -bottom-2 -right-2 bg-[#f59e0b] text-black font-bold px-3 py-1 rounded-full text-sm border-2 border-[color:var(--bg-primary)] shadow-lg shadow-amber-500/20">
           Seviye {profile.level}

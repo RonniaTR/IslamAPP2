@@ -1789,6 +1789,19 @@ const EN = {
   "Zilhicce": "Dhu al-Hijjah",
   "Ravza": "Rawdah",
   "Zarif": "Elegant",
+  "Giriş": "Signed in",
+  "Gizlilik politikası": "Privacy policy",
+  "Hesabımı sil": "Delete my account",
+  "Hesap ve gizlilik": "Account & privacy",
+  "Hesap ve veriler": "Account & data",
+  "Misafir olarak kullanıyorsun; verilerin yalnız bu cihazda.": "You're using guest mode; your data stays on this device.",
+  "Verilerimi sil": "Delete my data",
+  "Yetişkin moduna geçiş": "Switch to adult mode",
+  "Müslüman Olmak": "Being Muslim",
+  "Kitap ve Hikmet Mecmuası: ahlak, ilim, bilim": "Book & Wisdom Magazine: character, knowledge, science",
+  "Henüz gelmedi.": "Not yet arrived.",
+  "işaretli": "marked",
+  "İşaret yok; bu senin defterin, puan yok.": "No marks yet; this is your personal log, no points.",
 };
 
 export default EN;

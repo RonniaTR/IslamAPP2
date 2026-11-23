@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MapPin, Bell, Palette, Type, Globe, Volume2, User, Baby, Info, BookOpen, Check, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Bell, Palette, Type, Globe, Volume2, User, Baby, Info, BookOpen, Check, Loader2, ShieldCheck, LogOut } from 'lucide-react';
 import { useTheme, TEXT_SCALES } from '../contexts/ThemeContext';
 import { useAppMode } from '../contexts/AppModeContext';
 import { useLang } from '../contexts/LangContext';
@@ -12,6 +12,10 @@ import { VAKIT_MAKAM, MAKAM_NAMES } from '../services/donusAudio';
 import sound from '../services/sound';
 import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
 import { HUSU_KEY, loadHusu } from '../components/HusuPerdesi';
+import { useAuth } from '../contexts/AuthContext';
+import HesapSilKarti from '../components/hesap/HesapSilKarti';
+import ParentGate from '../components/kids/ParentGate';
+import ModGecisi from '../components/giris/ModGecisi';
 
 // ⚙️ AYARLAR v2 (docs/YENI_OZELLIKLER.md Faz 1–2)
 // Tek sayfa, altı bölüm: Görünüm · Yazı · Konum · Bildirimler · Dil ve ses · Diğer.
@@ -33,6 +37,10 @@ export default function SettingsPage() {
   const { city, changeCity, locate, timings } = usePrayerTimes();
   const navigate = useNavigate();
   const tt = useTx();
+  const { user, firebaseUser, logout } = useAuth();
+  const [gate, setGate] = useState(null);       // çocuk modundan çıkış / hesap işlemleri için ebeveyn sorusu
+  const [hesapAcik, setHesapAcik] = useState(false);
+  const [gecis, setGecis] = useState(null);     // mod değişiminde kapı geçişi: 'adult' | 'child'
 
   const [showReading, setShowReading] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -255,16 +263,52 @@ export default function SettingsPage() {
           <p style={{ color: theme.textMuted, fontSize: 11, marginTop: 6 }}>{tt('Sesler cihazda üretilir; kayıt içermez.')}</p>
         </section>
 
+        {/* HESAP VE GİZLİLİK — mağaza şartı: gizlilik politikası ve uygulama içinden hesap silme */}
+        <section style={card} data-testid="hesap-gizlilik">
+          <H icon={ShieldCheck}>{tt('Hesap ve gizlilik')}</H>
+          <p style={{ color: theme.textSecondary, fontSize: 13, margin: '0 0 6px' }}>
+            {firebaseUser && !firebaseUser.isAnonymous
+              ? `${tt('Giriş')}: ${firebaseUser.email || firebaseUser.displayName || ''}`
+              : user && user.isGuest ? tt('Misafir olarak kullanıyorsun; verilerin yalnız bu cihazda.') : ''}
+          </p>
+          <Row icon={ShieldCheck} text={tt('Gizlilik politikası')} value="" onClick={() => navigate('/gizlilik')} />
+          {!isChild && <Row icon={User} text={tt('Profil')} value="" onClick={() => navigate('/profile')} />}
+          <button type="button" onClick={() => (isChild ? setGate('hesap') : setHesapAcik((v) => !v))} data-testid="hesap-sil-ac"
+            className="w-full flex items-center justify-between py-3" style={{ borderBottom: hesapAcik ? 'none' : `1px solid ${theme.cardBorder}` }}>
+            <span className="flex items-center gap-3"><Info size={18} style={{ color: '#DC2626' }} />
+              <span style={{ color: '#DC2626', fontSize: 14, fontWeight: 700 }}>{firebaseUser && !firebaseUser.isAnonymous ? tt('Hesabımı sil') : tt('Verilerimi sil')}</span></span>
+            <ChevronRight size={16} style={{ color: theme.textSecondary, transform: hesapAcik ? 'rotate(90deg)' : 'none', transition: 'transform .2s' }} />
+          </button>
+          {hesapAcik && (
+            <div style={{ padding: '8px 2px 12px', borderBottom: `1px solid ${theme.cardBorder}` }}>
+              <HesapSilKarti pal={{ text: theme.textPrimary, muted: theme.textSecondary, border: theme.cardBorder }} />
+            </div>
+          )}
+          {user && !isChild && (
+            <button type="button" onClick={async () => { await logout(); navigate('/login', { replace: true }); }}
+              className="w-full flex items-center gap-3 py-3" style={{ color: theme.textPrimary, fontSize: 14, fontWeight: 600 }}>
+              <LogOut size={18} style={{ color: theme.textSecondary }} /> {tt('Çıkış yap')}
+            </button>
+          )}
+        </section>
+
         {/* DİĞER */}
         <section style={{ ...card, paddingTop: 4, paddingBottom: 4 }}>
-          <Row icon={User} text={tt('Hesap')} value="" onClick={() => navigate('/profile')} />
           <Row icon={Baby} text={isChild ? tt('Yetişkin Moduna Geç') : tt('Çocuk Moduna Geç')} value={isChild ? tt('Çocuk') : tt('Yetişkin')}
-            onClick={() => { const m = isChild ? 'adult' : 'child'; setAppMode(m); navigate(m === 'child' ? '/kids' : '/'); }} />
+            onClick={() => (isChild ? setGate('mod') : setGecis('child'))} />
           <Row icon={Info} text={tt('Kaynaklar ve lisanslar')} value="" onClick={() => navigate(isChild ? '/kids/licenses' : '/licenses')} />
         </section>
       </div>
 
       <ReadingSettingsSheet open={showReading} onClose={() => setShowReading(false)} />
+      {gate && (
+        <ParentGate modal title={gate === 'mod' ? tt('Yetişkin moduna geçiş') : tt('Hesap ve veriler')}
+          onCancel={() => setGate(null)}
+          onOpen={() => { const g = gate; setGate(null); if (g === 'mod') setGecis('adult'); else setHesapAcik(true); }} />
+      )}
+      {gecis && (
+        <ModGecisi to={gecis} onDone={() => { const m = gecis; setAppMode(m); navigate(m === 'child' ? '/kids' : '/', { replace: true }); }} />
+      )}
     </div>
   );
 }

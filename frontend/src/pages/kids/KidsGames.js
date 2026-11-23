@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,8 +9,15 @@ import WordGame from '../games/WordGame';
 import OrderGame from '../games/OrderGame';
 import sfx from '../../services/sfx';
 import { addStars, getStars } from '../../services/kidsFamily';
+import BilgiYarisi from './oyun/BilgiYarisi';
+import YildizYolu, { yolOku, durakGec, DURAK_SAYISI } from './oyun/YildizYolu';
+import RehberOklar, { rehberGorulduMu } from './oyun/RehberOklar';
+import ModKartlari from './oyun/ModKartlari';
 
-// 🌳 OYUN BAHÇESİ — çocuk bölümünün oyunları.
+// 🌳 OYUN BAHÇESİ — çocuk bölümünün oyunları (14. tur: Yıldız Yolu).
+// Üstte üç kemer kart (Yıldız Yolu · Ailece · Bilgi Yarışı), altında durak durak ilerlenen Yıldız Yolu.
+// İlk açılışta altın oklar ekranı tanıtır. Bilgi Yarışı'nda üç joker var. Ailece mod aynı telefonda sırayla oynanır
+// (çocuk bölümünde internet üzerinden yabancılarla eşleşme yok).
 // Dört oyun, dördü de çalışır (önceden kartlar boştu). Süre yok, ceza yok, can yok; doğru cevap yıldız getirir.
 // Yıldızlar yalnız bu cihazda tutulur (kids_stars). Sorular çocuk paketinden gelir (data/kidsQuestions.js).
 const K = COLORS.kids;
@@ -27,6 +34,22 @@ const GAMES = [
   { id: 'word', title: 'Kelime Avı', sub: 'Harfleri bul', color: '#4A90D9', bg: '#E1EEFB', Comp: WordGame },
   { id: 'order', title: 'Sıraya Koy', sub: 'Hangisi önce?', color: '#9B59B6', bg: '#F1E4F7', Comp: OrderGame },
 ];
+
+// Yol durakları: dört oyun ve Bilgi Yarışı sırayla döner.
+const DURAKLAR = [
+  { oyun: 'cark', ad: 'Bilgi Çarkı', kisa: 'Çark', renk: '#2D8A4E', golge: '#1E6538' },
+  { oyun: 'match', ad: 'Eşini Bul', kisa: 'Eşle', renk: '#FF9F43', golge: '#C9741E' },
+  { oyun: 'yarisma', ad: 'Bilgi Yarışı', kisa: 'Yarış', renk: '#E08A1E', golge: '#A9650F' },
+  { oyun: 'word', ad: 'Kelime Avı', kisa: 'Kelime', renk: '#4A90D9', golge: '#2F69A8' },
+  { oyun: 'order', ad: 'Sıraya Koy', kisa: 'Sırala', renk: '#9B59B6', golge: '#6F3B85' },
+];
+const REHBER_ADIMLARI = [
+  { hedef: 'modlar', metin: 'Üç yolun var: Yıldız Yolu, Ailece oyun ve jokerli Bilgi Yarışı. Birine dokun!', bosluk: 6 },
+  { hedef: 'ok', metin: 'Altın ok sıradaki durağı gösterir. Her durak bir oyun; bitirince durak yıldıza döner.', bosluk: 14 },
+  { hedef: 'mod-yarisma', metin: "Bilgi Yarışı'nda üç jokerin var: Yarısı, Fener ve İkinci Şans.", bosluk: 6, okYonu: 'sol', okX: 0.4 },
+  { hedef: 'yildiz', metin: 'Her doğru cevap bir yıldız. Yıldızların burada birikir.', bosluk: 6 },
+];
+const REHBER_ANAHTAR = 'kids_oyun_rehber_v1';
 
 
 /** Gündüz bahçesi: güneş, bulutlar, tepeler, küçük cami. */
@@ -59,66 +82,143 @@ function Garden() {
 
 export default function KidsGames() {
   const navigate = useNavigate();
+  const [ekran, setEkran] = useState('ana'); // ana | oyun | yarisma | aile-kur | aile
   const [active, setActive] = useState(null);
+  const [durak, setDurak] = useState(null);      // yoldan girildiyse durak no
   const [stars, setStars] = useState(getStars);
   const [pop, setPop] = useState(0);
+  const [yol, setYol] = useState(yolOku);
+  const [kutlama, setKutlama] = useState(null);
+  const [rehber, setRehber] = useState(() => !rehberGorulduMu(REHBER_ANAHTAR));
+  const [aile, setAile] = useState(['Ben', 'Anne']);
+  const [kazanc, setKazanc] = useState(0);   // bu oyunda kazanılan yıldız
+
+  useEffect(() => { window.scrollTo(0, 0); }, [ekran]);
 
   const onXP = (amount) => {
     const add = Math.max(1, Math.round(amount / 5));
+    setKazanc((k) => k + add);
     setStars(addStars(add));
     setPop((p) => p + 1);
   };
+  const yildiz = (n) => { setKazanc((k) => k + n); setStars(addStars(n)); setPop((p) => p + 1); };
+
+  const durakBitir = () => {
+    const y = durakGec();
+    setYol(y.son ? { yol: y.yol, adim: 0 } : y);
+    setKutlama(y.son ? `${y.yol - 1}. yol tamam! Yeni yol başlıyor.` : `${durak + 1}. durak geçildi!`);
+    setTimeout(() => setKutlama(null), 2200);
+    sfx.levelUp?.();
+    geri();
+  };
+  const geri = () => { setEkran('ana'); setActive(null); setDurak(null); setKazanc(0); };
+
+  const durakAc = (dk, i) => {
+    if (i !== yol.adim) { if (i < yol.adim) { sfx.tick?.(); } else return; }
+    sfx.claim(); setKazanc(0);
+    setDurak(i === yol.adim ? i : null);
+    if (dk.oyun === 'yarisma') setEkran('yarisma');
+    else { setActive(dk.oyun); setEkran('oyun'); }
+  };
+  const modSec = (id) => {
+    sfx.claim();
+    if (id === 'yol') { document.querySelector('[data-rehber="ok"]')?.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    if (id === 'aile') { setEkran('aile-kur'); return; }
+    setKazanc(0); setDurak(null); setEkran('yarisma');
+  };
+
   const game = GAMES.find((g) => g.id === active);
   const font = { fontFamily: "'Nunito', 'Noto Sans', sans-serif" };
+  const baslik = ekran === 'oyun' && game ? game.title : ekran === 'yarisma' ? 'Bilgi Yarışı' : ekran.startsWith('aile') ? 'Ailece' : 'Oyun Bahçesi';
 
   return (
-    <div style={{ background: KIDS.bg, minHeight: '100vh', paddingBottom: 110, color: KIDS.textPrimary, ...font }}>
+    <div style={{ background: KIDS.bg, minHeight: '100vh', paddingBottom: 130, color: KIDS.textPrimary, ...font }}>
       <div style={{ position: 'relative' }}>
         <Garden />
         <div style={{ position: 'absolute', insetInline: 16, top: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={() => (active ? setActive(null) : navigate('/kids'))} aria-label="Geri"
+          <button onClick={() => (ekran !== 'ana' ? geri() : navigate('/kids'))} aria-label="Geri"
             style={{ width: 46, height: 46, borderRadius: 23, background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
             <ChevronLeft size={26} color={K.text} />
           </button>
-          <motion.div key={pop} initial={{ scale: 1 }} animate={{ scale: pop ? [1, 1.3, 1] : 1 }} transition={{ duration: 0.5 }}
+          <motion.div data-rehber="yildiz" key={pop} initial={{ scale: 1 }} animate={{ scale: pop ? [1, 1.3, 1] : 1 }} transition={{ duration: 0.5 }}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 22, background: '#FFFFFF', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontWeight: 900, fontSize: 18 }}>
             <Star size={20} fill="#FFD93D" color="#F2B33D" /> {stars}
           </motion.div>
         </div>
-        <h1 style={{ position: 'absolute', insetInlineStart: 20, bottom: 54, margin: 0, fontSize: 30, fontWeight: 900, color: '#1B4D2E', textShadow: '0 2px 0 #fff' }}>
-          {game ? game.title : 'Oyun Bahçesi'}
-        </h1>
+        <h1 style={{ position: 'absolute', insetInlineStart: 20, bottom: 54, margin: 0, fontSize: 30, fontWeight: 900, color: '#1B4D2E', textShadow: '0 2px 0 #fff' }}>{baslik}</h1>
       </div>
 
       <AnimatePresence mode="wait">
-        {!game ? (
-          <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14, padding: '6px 16px 0', marginTop: -26, position: 'relative' }}>
-            {GAMES.map((g, i) => (
-              <motion.button key={g.id} type="button" onClick={() => { sfx.claim(); setActive(g.id); }}
-                initial={{ opacity: 0, y: 30, rotate: i % 2 ? 3 : -3 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ delay: i * 0.09, type: 'spring', bounce: 0.45 }}
-                whileTap={{ scale: 0.93 }}
-                style={{ minHeight: 168, borderRadius: 30, padding: 16, background: '#FFFFFF', border: `3px solid ${g.bg}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: `0 10px 0 ${g.bg}`, cursor: 'pointer' }}>
-                <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 2 + i * 0.3, repeat: Infinity }}
-                  style={{ width: 76, height: 76, borderRadius: 38, background: g.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden>
-                    {g.id === 'cark' && [0, 1, 2, 3, 4, 5].map((k) => <path key={k} d={`M22 22 L${22 + 20 * Math.cos((k * 60 - 90) * Math.PI / 180)} ${22 + 20 * Math.sin((k * 60 - 90) * Math.PI / 180)} A20 20 0 0 1 ${22 + 20 * Math.cos(((k + 1) * 60 - 90) * Math.PI / 180)} ${22 + 20 * Math.sin(((k + 1) * 60 - 90) * Math.PI / 180)}Z`} fill={['#2F8F6B', '#D9902F', '#C4553E', '#3B7BC4', '#8A5BC4', '#E2B85A'][k]} />)}
-                    {g.id === 'match' && <><rect x="5" y="9" width="16" height="24" rx="4" fill={g.color} /><rect x="23" y="11" width="16" height="24" rx="4" fill="#FFD93D" transform="rotate(8 31 23)" /></>}
-                    {g.id === 'word' && <><rect x="4" y="12" width="11" height="20" rx="3" fill={g.color} /><rect x="17" y="12" width="11" height="20" rx="3" fill="#FFD93D" /><rect x="30" y="12" width="11" height="20" rx="3" fill={g.color} /></>}
-                    {g.id === 'order' && [0, 1, 2].map((k) => <rect key={k} x="8" y={6 + k * 12} width={28 - k * 7} height="9" rx="4.5" fill={k === 0 ? g.color : k === 1 ? '#FFD93D' : '#FF6B8A'} />)}
-                  </svg>
-                </motion.span>
-                <span style={{ fontSize: 18, fontWeight: 900, color: g.color }}>{g.title}</span>
-                <span style={{ fontSize: 13, color: K.textSecondary, fontWeight: 700 }}>{g.sub}</span>
-              </motion.button>
-            ))}
+        {ekran === 'ana' && (
+          <motion.div key="ana" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ padding: '0 16px', marginTop: -30, position: 'relative', display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <ModKartlari onSec={modSec} />
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 4px' }}>
+              <h2 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: '#1B4D2E' }}>Yıldız Yolu</h2>
+              <span style={{ fontSize: 13, fontWeight: 800, color: '#2D8A4E' }}>{yol.yol}. yol · {yol.adim}/{DURAK_SAYISI} durak</span>
+            </div>
+            <YildizYolu duraklar={DURAKLAR} adim={yol.adim} yolNo={yol.yol} onDurak={durakAc} />
           </motion.div>
-        ) : (
+        )}
+
+        {ekran === 'oyun' && game && (
           <motion.div key={game.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ paddingTop: 10 }}>
             <game.Comp theme={KIDS} onXP={onXP} onEvent={() => {}} {...(game.props || {})} />
           </motion.div>
         )}
+
+        {ekran === 'yarisma' && (
+          <motion.div key="yarisma" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ paddingTop: 6 }}>
+            <BilgiYarisi oyuncular={['Ben']} soruSayisi={6} onYildiz={yildiz} onBitti={() => setKazanc((k) => Math.max(1, k))} />
+          </motion.div>
+        )}
+
+        {ekran === 'aile-kur' && (
+          <motion.div key="aile-kur" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p style={{ margin: 0, fontWeight: 800, color: '#5B7065' }}>Telefonu ortaya koyun, sırayla cevaplayın. Herkesin kendi üç jokeri var.</p>
+            {aile.map((ad, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ width: 36, height: 36, borderRadius: 18, background: ['#2D8A4E', '#4A90D9', '#FF9F43', '#9B59B6'][i], color: '#fff', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                <input value={ad} maxLength={12} aria-label={`${i + 1}. oyuncunun adı`} onChange={(e) => setAile((a) => a.map((x, j) => (j === i ? e.target.value : x)))}
+                  style={{ flex: 1, minHeight: 50, borderRadius: 16, border: '3px solid #E1EEFB', padding: '0 14px', fontSize: 17, fontWeight: 800, color: '#1B4D2E', fontFamily: 'inherit' }} />
+                {aile.length > 2 && <button type="button" aria-label="Çıkar" onClick={() => setAile((a) => a.filter((_, j) => j !== i))} style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: '#FDE5E0', color: '#C0503F', fontWeight: 900, fontSize: 18 }}>×</button>}
+              </div>
+            ))}
+            {aile.length < 4 && <button type="button" onClick={() => setAile((a) => [...a, ['Baba', 'Kardeş', 'Dede'][a.length - 2] || 'Oyuncu'])} style={{ minHeight: 48, borderRadius: 16, border: '3px dashed #C3DBF5', background: 'transparent', color: '#4A90D9', fontWeight: 900, fontSize: 15 }}>+ Oyuncu ekle</button>}
+            <button type="button" data-testid="aile-basla" disabled={aile.some((a) => !a.trim())} onClick={() => { sfx.claim(); setEkran('aile'); }}
+              style={{ minHeight: 56, borderRadius: 28, border: 'none', background: '#4A90D9', color: '#fff', fontWeight: 900, fontSize: 18, boxShadow: '0 5px 0 #2F69A8', marginTop: 6 }}>Masaya oturduk, başla!</button>
+          </motion.div>
+        )}
+
+        {ekran === 'aile' && (
+          <motion.div key="aile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ paddingTop: 6 }}>
+            <BilgiYarisi oyuncular={aile.map((a, i) => a.trim() || `Oyuncu ${i + 1}`)} soruSayisi={4} onYildiz={yildiz} />
+          </motion.div>
+        )}
       </AnimatePresence>
+
+      {/* Yoldan girilen oyunda: durağı bitirme şeridi */}
+      {durak != null && ekran !== 'ana' && (
+        <div style={{ position: 'fixed', insetInline: 12, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', zIndex: 60, display: 'flex', justifyContent: 'center' }}>
+          <motion.button type="button" data-testid="durak-bitir" onClick={durakBitir} disabled={kazanc < 1}
+            initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: kazanc < 1 ? 0.6 : 1 }}
+            style={{ minHeight: 52, padding: '0 22px', borderRadius: 26, border: '3px solid #fff', background: kazanc < 1 ? '#9CB7A4' : '#F2B33D', color: '#1B4D2E', fontWeight: 900, fontSize: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.18)' }}>
+            {kazanc < 1 ? `${durak + 1}. durak · bir yıldız topla` : `⭐ ${durak + 1}. durağı tamamla`}
+          </motion.button>
+        </div>
+      )}
+
+      <AnimatePresence>
+        {kutlama && (
+          <motion.div key="kutlama" initial={{ opacity: 0, scale: 0.6, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.8 }}
+            style={{ position: 'fixed', left: 0, right: 0, top: '38%', zIndex: 80, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+            <span style={{ padding: '16px 24px', borderRadius: 28, background: '#FFFFFF', boxShadow: '0 10px 0 #F2B33D, 0 20px 40px rgba(0,0,0,0.2)', fontSize: 20, fontWeight: 900, color: '#1B4D2E', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Star size={26} fill="#FFD93D" color="#F2B33D" /> {kutlama}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {rehber && ekran === 'ana' && <RehberOklar adimlar={REHBER_ADIMLARI} anahtar={REHBER_ANAHTAR} onBitti={() => setRehber(false)} />}
     </div>
   );
 }

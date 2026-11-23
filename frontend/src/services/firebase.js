@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, initializeAuth, indexedDBLocalPersistence, GoogleAuthProvider } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { getStorage } from 'firebase/storage';
@@ -20,7 +21,16 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Export services
-export const auth = getAuth(app);
+// TELEFON UYGULAMASI: giriş, yerel (native) Google/Apple penceresiyle yapılır ve kimlik web katmanına aktarılır
+// (services/authNative.js). Uygulama yeniden açıldığında oturumun sürmesi için kalıcılık IndexedDB'dir.
+// Web'de her şey eskisi gibi getAuth ile çalışır.
+function makeAuth() {
+  if (Capacitor.isNativePlatform()) {
+    try { return initializeAuth(app, { persistence: indexedDBLocalPersistence }); } catch (e) { return getAuth(app); }
+  }
+  return getAuth(app);
+}
+export const auth = makeAuth();
 // KÖTÜYE KULLANIM KORUMASI (App Check): anahtar verilmişse açılır. Firebase konsolunda reCAPTCHA v3 anahtarı
 // alınıp REACT_APP_APPCHECK_KEY olarak tanımlanır; ardından konsolda Firestore için "zorunlu kıl" açılır.
 // Anahtar yoksa uygulama eskisi gibi çalışır (koruma kapalı).

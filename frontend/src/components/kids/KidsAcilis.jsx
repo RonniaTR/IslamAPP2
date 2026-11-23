@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import KidsScene from './KidsScene';
 import { KIDS_AYETLER, MEAL_CREDIT } from '../../data/kidsAyetler';
 import sfx from '../../services/sfx';
+import { KemerliKapi, reducedMotion } from '../giris/giriSahne';
 
 // 🌅 ÇOCUK AÇILIŞI — çocuk modu her açıldığında (oturum başına bir kez):
 //   1) Besmele ve kısa bir hayır duası, kelime kelime belirir → çocuk "Âmin" der.
@@ -38,12 +39,32 @@ export default function KidsAcilis({ onDone }) {
   const dua = useMemo(() => DUALAR[pickFresh(DUALAR.length, 'dua')], []);
   const ayet = useMemo(() => KIDS_AYETLER[pickFresh(KIDS_AYETLER.length, 'ayet')], []);
   const [step, setStep] = useState(0);
+  // Açılışta bahçe kapısı aralanır ve dua arkasından belirir (bekletmez: kapı dokunuşu engellemez, 1,2 sn'de söner).
+  const [kapi, setKapi] = useState(() => !reducedMotion());
+  const [kapiAcik, setKapiAcik] = useState(false);
+  useEffect(() => {
+    if (!kapi) return undefined;
+    const a = setTimeout(() => setKapiAcik(true), 120);
+    const b = setTimeout(() => setKapi(false), 1500);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, [kapi]);
   const font = { fontFamily: "'Nunito', 'Noto Sans', sans-serif" };
   const finish = () => { try { sessionStorage.setItem('kids_acilis_gosterildi', '1'); } catch { /* yok */ } onDone(); };
   const words = dua.split(' ');
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 120, overflowY: 'auto', background: 'linear-gradient(180deg, #CDEBFF 0%, #F3FAF1 70%)', color: '#24364A', ...font }}>
+      <AnimatePresence>
+        {kapi && (
+          <motion.div key="bahce-kapisi" aria-hidden initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 3, pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg, #BDE6FF, #F4FBEF)' }}>
+            <motion.div animate={{ scale: kapiAcik ? 2.6 : 1 }} transition={{ duration: 1.25, delay: 0.25, ease: [0.55, 0, 0.3, 1] }}
+              style={{ width: 'min(56vw, 230px)', aspectRatio: '0.72' }}>
+              <KemerliKapi open={kapiAcik} tone="bahce" duration={0.95} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div style={{ maxWidth: 520, margin: '0 auto', minHeight: '100%', display: 'flex', flexDirection: 'column', padding: '28px 20px 32px' }}>
         <AnimatePresence mode="wait">
           {step === 0 ? (

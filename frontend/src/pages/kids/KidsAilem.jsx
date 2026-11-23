@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Star, Check } from 'lucide-react';
-import { loadFamily, saveFamily, GOALS, SECTIONS, weekCounts, getStars, loadKidsProgress, usedToday, extendToday, gateQuestion } from '../../services/kidsFamily';
+import { loadFamily, saveFamily, GOALS, SECTIONS, weekCounts, getStars, loadKidsProgress, usedToday, extendToday } from '../../services/kidsFamily';
 import sfx from '../../services/sfx';
+import ParentGate from '../../components/kids/ParentGate';
 
 // 👨‍👩‍👧 AİLEM — "Arkadaşlar" sekmesinin yerine.
 // ÇOCUK görür: ailesinin mesajı, bu haftanın hedefleri (kendiliğinden dolar), yıldızları.
@@ -13,28 +14,6 @@ const font = { fontFamily: "'Nunito', 'Noto Sans', sans-serif" };
 const card = { background: '#FFFFFF', borderRadius: 24, padding: 16, boxShadow: '0 6px 0 #E6EEE6' };
 const LIMITS = [[0, 'Sınırsız'], [15, '15 dk'], [30, '30 dk'], [45, '45 dk'], [60, '1 saat']];
 const STICKERS = ['🌟', '💚', '🏅', '🌈', '🤲', '🌙'];
-
-function Gate({ onOpen, onCancel }) {
-  const [q] = useState(gateQuestion);
-  const [v, setV] = useState('');
-  const [bad, setBad] = useState(false);
-  const check = () => { if (Number(v) === q.answer) onOpen(); else { setBad(true); setV(''); } };
-  return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ ...card, textAlign: 'center' }}>
-      <Lock size={30} color="#4A90D9" />
-      <h2 style={{ fontSize: 22, fontWeight: 900, margin: '8px 0 4px' }}>Ebeveyn bölümü</h2>
-      <p style={{ fontSize: 15, color: '#5B6B73', margin: '0 0 12px' }}>Devam etmek için soruyu cevaplayın:</p>
-      <p style={{ fontSize: 34, fontWeight: 900, margin: '0 0 10px' }}>{q.text}</p>
-      <input inputMode="numeric" value={v} onChange={(e) => { setV(e.target.value.replace(/\D/g, '')); setBad(false); }} onKeyDown={(e) => e.key === 'Enter' && check()} aria-label="Cevap"
-        style={{ width: 140, minHeight: 52, borderRadius: 16, border: `2px solid ${bad ? '#EF5350' : '#D6E0E6'}`, textAlign: 'center', fontSize: 24, fontWeight: 900 }} />
-      {bad && <p style={{ color: '#EF5350', fontWeight: 700, margin: '6px 0 0' }}>Yanlış, yeni bir soru için geri dönün.</p>}
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 14 }}>
-        <button type="button" onClick={onCancel} style={{ minHeight: 48, padding: '0 18px', borderRadius: 24, background: '#EEF2F5', fontWeight: 800 }}>Vazgeç</button>
-        <button type="button" onClick={check} style={{ minHeight: 48, padding: '0 22px', borderRadius: 24, background: '#4A90D9', color: '#fff', fontWeight: 900 }}>Aç</button>
-      </div>
-    </motion.div>
-  );
-}
 
 function Panel({ fam, setFam, onClose }) {
   const [msg, setMsg] = useState(fam.message ? fam.message.text : '');
@@ -94,7 +73,7 @@ export default function KidsAilem() {
           {view === 'cocuk' && <button type="button" onClick={() => setView('kapi')} aria-label="Ebeveyn bölümü" style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 42, padding: '0 14px', borderRadius: 21, background: '#FFFFFF', fontWeight: 800, fontSize: 13, color: '#5B6B73', boxShadow: '0 3px 0 #EADBCB' }}><Lock size={15} /> Büyükler</button>}
         </div>
         <AnimatePresence mode="wait">
-          {view === 'kapi' && <Gate key="g" onOpen={() => setView('panel')} onCancel={() => setView('cocuk')} />}
+          {view === 'kapi' && <ParentGate key="g" onOpen={() => setView('panel')} onCancel={() => setView('cocuk')} />}
           {view === 'panel' && <Panel key="p" fam={fam} setFam={setFam} onClose={() => setView('cocuk')} />}
           {view === 'cocuk' && (
             <motion.div key="c" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

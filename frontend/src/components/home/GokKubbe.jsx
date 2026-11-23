@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useTx } from '../../i18n';
 import { usePrayerTimes } from '../../hooks/usePrayerTimes';
 import { toHijri } from '../../services/islamicCalendar';
@@ -36,6 +36,34 @@ function period(timings, now = new Date()) {
   }
   const h = now.getHours();
   return h < 5 ? 'gece' : h < 7 ? 'seher' : h < 15 ? 'gunduz' : h < 18 ? 'ikindi' : h < 20 ? 'aksam' : 'gece';
+}
+
+const VAKIT_AD = { Fajr: 'Sabah', Sunrise: 'Güneş', Dhuhr: 'Öğle', Asr: 'İkindi', Maghrib: 'Akşam', Isha: 'Yatsı' };
+const VAKIT_YONELME = { Sabah: "Sabah'a", Güneş: "Güneş'e", Öğle: "Öğle'ye", İkindi: "İkindi'ye", Akşam: "Akşam'a", Yatsı: "Yatsı'ya" };
+const VARSAYILAN = { Fajr: '06:00', Sunrise: '07:30', Dhuhr: '12:45', Asr: '15:20', Maghrib: '17:45', Isha: '19:10' };
+
+/** Sıradaki vakit ve kalan dakika (vakitler henüz gelmediyse null). */
+function siradaki(timings, now) {
+  if (!timings) return null;
+  const m = now.getHours() * 60 + now.getMinutes();
+  for (const k of ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
+    const t = toMin(timings[k]);
+    if (t != null && t > m) return { ad: VAKIT_AD[k], kalan: t - m };
+  }
+  const f = toMin(timings.Fajr);
+  return f == null ? null : { ad: 'Sabah', kalan: 24 * 60 - m + f };
+}
+const sure = (dk) => (dk >= 60 ? `${Math.floor(dk / 60)} sa ${dk % 60} dk` : `${dk} dk`);
+
+/** Gök yayı üzerindeki konum 0..1: gündüz güneş doğuştan batışa, gece ay batıştan sabaha yürür. */
+function yayKonumu(timings, now) {
+  const T = timings || VARSAYILAN;
+  const m = now.getHours() * 60 + now.getMinutes();
+  const dogus = toMin(T.Sunrise); const batis = toMin(T.Maghrib); const sabah = toMin(T.Fajr);
+  if (m >= dogus && m < batis) return { gunduz: true, f: (m - dogus) / (batis - dogus) };
+  const gece = 24 * 60 - batis + sabah;
+  const gecen = m >= batis ? m - batis : 24 * 60 - batis + m;
+  return { gunduz: false, f: Math.min(1, Math.max(0, gecen / gece)) };
 }
 
 /** Ayın evresi 0..1 (0 = yeni ay, 0.5 = dolunay). Bilinen yeni ay: 6 Ocak 2000 18:14 UTC; sinodik ay 29,530588 gün. */
@@ -102,7 +130,11 @@ const key = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 export default function GokKubbe() {
   const tt = useTx();
   const { timings } = usePrayerTimes();
-  const now = new Date();
+  const [now, setNow] = useState(() => new Date());
+  const [secili, setSecili] = useState(null);
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 60000); return () => clearInterval(t); }, []);
+  const yay = yayKonumu(timings, now);
+  const sira = siradaki(timings, now);
   const p = period(timings, now);
   const sky = SKY[p];
   const phase = useMemo(() => moonPhase(now), [now.getDate()]);
@@ -117,7 +149,7 @@ export default function GokKubbe() {
     return GUN.map((g, i) => {
       const d = new Date(monday); d.setDate(monday.getDate() + i);
       const isToday = key(d) === key(now);
-      return { g, n: d.getDate(), marks: log[key(d)] || {}, today: isToday, future: d > now && !isToday };
+      return { g, n: d.getDate(), tarih: d, marks: log[key(d)] || {}, today: isToday, future: d > now && !isToday };
     });
   }, [now.getDate()]);
 
@@ -130,10 +162,28 @@ export default function GokKubbe() {
         <motion.span key={i} aria-hidden animate={{ opacity: [0.2 * sky.star, 0.9 * sky.star, 0.2 * sky.star] }} transition={{ duration: s.d, repeat: Infinity, delay: i * 0.13 }}
           style={{ position: 'absolute', left: `${s.x}%`, top: `${s.y}%`, width: s.s, height: s.s, borderRadius: 2, background: '#FFF8E6' }} />
       ))}
-      <div style={{ position: 'absolute', insetInlineEnd: 28, top: 26 }}>
-        {dark ? <Moon phase={phase} /> : <span aria-hidden style={{ display: 'block', width: 44, height: 44, borderRadius: 22, background: 'radial-gradient(circle, #FFF6D8 0%, #FFD98A 55%, rgba(255,217,138,0) 72%)' }} />}
-      </div>
+      {/* Gök yayı: güneş (gündüz) ya da ay (gece) vaktin ilerleyişine göre ufuktan ufka yürür, caminin ardından geçer */}
+      <svg aria-hidden viewBox="0 0 360 150" preserveAspectRatio="none" style={{ position: 'absolute', insetInline: 0, bottom: 0, width: '100%', height: 150 }}>
+        <path d="M14 140 Q180 -34 346 140" fill="none" stroke={dark ? 'rgba(255,241,204,0.22)' : 'rgba(255,255,255,0.55)'} strokeWidth="1" strokeDasharray="2 5" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <motion.div
+        aria-hidden
+        initial={false}
+        animate={{ left: `calc(${4 + yay.f * 92}% - 21px)`, bottom: 10 + Math.sin(Math.PI * yay.f) * 74 }}
+        transition={{ type: 'spring', stiffness: 40, damping: 16 }}
+        style={{ position: 'absolute', width: 42, height: 42 }}
+      >
+        {yay.gunduz
+          ? <span style={{ display: 'block', width: 42, height: 42, borderRadius: 21, background: 'radial-gradient(circle, #FFF6D8 0%, #FFD98A 50%, rgba(255,217,138,0) 72%)' }} />
+          : <Moon phase={phase} size={36} />}
+      </motion.div>
       <Silhouette lit={dark} tone={dark ? '#0A0F22' : 'rgba(30,42,51,0.55)'} />
+      {sira && (
+        <span style={{ position: 'absolute', insetInlineEnd: 18, top: 20, padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+          background: dark ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.45)', border: `1px solid ${dark ? 'rgba(240,196,106,0.35)' : 'rgba(30,42,51,0.12)'}`, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+          {tt(VAKIT_YONELME[sira.ad])} {sure(sira.kalan)}
+        </span>
+      )}
 
       <div style={{ position: 'relative', padding: '22px 22px 0' }}>
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: 'uppercase', opacity: 0.8 }}>{tt(sky.label)}</span>
@@ -146,15 +196,31 @@ export default function GokKubbe() {
         </div>
       </div>
 
-      <div role="list" aria-label={tt('Bu haftanın vakitleri')} style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', margin: '22px 14px 132px', padding: '10px 6px', borderRadius: 20, background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+      <div role="group" aria-label={tt('Bu haftanın vakitleri')} style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', margin: '22px 14px 132px', padding: '10px 6px', borderRadius: 20, background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.28)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
         {week.map((d) => (
-          <div role="listitem" key={d.g} aria-label={`${tt(d.g)} ${d.n}: ${Object.values(d.marks).filter(Boolean).length}/5`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, opacity: d.future ? 0.55 : 1 }}>
+          <button type="button" key={d.g} onClick={() => setSecili(secili === d.g ? null : d.g)} aria-pressed={secili === d.g}
+            aria-label={`${tt(d.g)} ${d.n}: ${Object.values(d.marks).filter(Boolean).length}/5`}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, opacity: d.future ? 0.55 : 1, background: secili === d.g ? 'rgba(240,196,106,0.16)' : 'transparent', border: 'none', borderRadius: 14, padding: '4px 2px', color: 'inherit', cursor: 'pointer', font: 'inherit' }}>
             <span style={{ fontSize: 11, fontWeight: d.today ? 700 : 500, color: d.today ? '#F0C46A' : 'inherit' }}>{tt(d.g)}</span>
             <Ring marks={d.marks} today={d.today} future={d.future} />
             <span style={{ fontSize: 12, fontWeight: d.today ? 700 : 500, fontVariantNumeric: 'tabular-nums' }}>{d.n}</span>
-          </div>
+          </button>
         ))}
       </div>
+      <AnimatePresence>
+        {secili && (() => {
+          const d = week.find((w) => w.g === secili);
+          const isaretli = VAKIT.filter((v) => d.marks[v]).map((v) => tt(VAKIT_AD[v]));
+          return (
+            <motion.p key={secili} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ position: 'relative', zIndex: 1, margin: '-124px 16px 96px', padding: '8px 12px', borderRadius: 14, fontSize: 12.5, lineHeight: 1.45, background: dark ? 'rgba(7,11,28,0.55)' : 'rgba(255,255,255,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+              <b>{d.tarih.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}</b>
+              {' · '}
+              {d.future ? tt('Henüz gelmedi.') : isaretli.length ? `${isaretli.join(', ')} ${tt('işaretli')}` : tt('İşaret yok; bu senin defterin, puan yok.')}
+            </motion.p>
+          );
+        })()}
+      </AnimatePresence>
     </section>
   );
 }

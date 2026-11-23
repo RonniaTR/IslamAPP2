@@ -16,6 +16,8 @@ import PageTransition from './components/PageTransition';
 import CompanionAI from './components/CompanionAI';
 import QuranGate, { ReviewRedirect } from './components/QuranGate';
 import HusuPerdesi from './components/HusuPerdesi';
+import GirisKapisi, { kapiGosterilsinMi } from './components/giris/GirisKapisi';
+import { Capacitor } from '@capacitor/core';
 import { SplashScreen as NativeSplash } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { initOfflineSync } from './services/offlineSync';
@@ -87,11 +89,15 @@ const ElifBaPage = lazy(() => import('./pages/ElifBaPage'));
 const JournalPage = lazy(() => import('./pages/JournalPage'));
 const GamesPage = lazy(() => import('./pages/GamesPage'));
 const SiyerPage = lazy(() => import('./pages/SiyerPage'));
+const MuslumanOlmakPage = lazy(() => import('./pages/musluman/MuslumanOlmakPage'));
 const ProphetsPage = lazy(() => import('./pages/ProphetsPage'));
 
 // --- GERİ DÖNÜŞ ODASI (KIRK PERDE) ---
 const DonusShell = lazy(() => import('./components/donus/DonusShell'));
 const OdaPage = lazy(() => import('./pages/oda/OdaPage'));
+// --- HERKESE AÇIK SAYFALAR (giriş istemez; mağaza formlarındaki web adresleri) ---
+const GizlilikPage = lazy(() => import('./pages/legal/GizlilikPage'));
+const HesapSilPage = lazy(() => import('./pages/legal/HesapSilPage'));
 const DonusHome = lazy(() => import('./pages/donus/DonusHome'));
 const DonusLesson = lazy(() => import('./pages/donus/DonusLesson'));
 const DonusPhase = lazy(() => import('./pages/donus/DonusPhase'));
@@ -214,6 +220,7 @@ function AdultRoutes() {
               <Route path="/journal" element={<PageTransition><JournalPage /></PageTransition>} />
               <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
               <Route path="/siyer" element={<PageTransition><SiyerPage /></PageTransition>} />
+              <Route path="/musluman-olmak" element={<MuslumanOlmakPage />} />
               <Route path="/prophets" element={<PageTransition><ProphetsPage /></PageTransition>} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
@@ -325,7 +332,9 @@ function LoginRoute() {
 function AppFlow() {
   const { user, loading } = useAuth();
   const { needsOnboarding, needsModeSelection, appMode, isChild, activeChildProfile } = useAppMode();
-  const [showSplash, setShowSplash] = useState(true);
+  // İlk kurulumda "Giriş Kapısı" sahnesi oynar (bir kez); sonraki açılışlarda yalnız ~0,9 sn'lik hızlı açılış.
+  const [showKapi, setShowKapi] = useState(kapiGosterilsinMi);
+  const [showSplash, setShowSplash] = useState(() => !kapiGosterilsinMi());
   const [showKidsWelcome, setShowKidsWelcome] = useState(false);
   const location = useLocation();
 
@@ -351,7 +360,23 @@ function AppFlow() {
     initNative();
   }, []);
 
-  // Oda (ekran paylaşımı / birlikte izleme): giriş ve mod seçimi istemez, menülerde yoktur; yalnız bağlantıyla açılır
+  // Gizlilik politikası ve hesap silme: herkese açık, giriş/açılış beklemeden açılır.
+  if (location.pathname === '/gizlilik' || location.pathname === '/hesap-sil') {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/gizlilik" element={<GizlilikPage />} />
+          <Route path="/hesap-sil" element={<HesapSilPage />} />
+        </Routes>
+      </Suspense>
+    );
+  }
+
+  // Oda (ekran paylaşımı / birlikte izleme): yalnız WEB sürümünde, bağlantıyla açılır. Mağaza uygulamasında yoktur
+  // (video paylaşan özellik mağazalarda şikâyet/engelleme gibi ek şartlar doğurur; kişisel kullanım için web yeterli).
+  if (location.pathname.startsWith('/oda') && Capacitor.isNativePlatform()) {
+    return <Navigate to="/" replace />;
+  }
   if (location.pathname.startsWith('/oda')) {
     return (
       <Suspense fallback={<PageLoader />}>
@@ -363,11 +388,21 @@ function AppFlow() {
     );
   }
 
-  // Splash Screen
-  if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} />;
+  // İlk açılış: kapı
+  if (showKapi) {
+    return <GirisKapisi onComplete={() => setShowKapi(false)} />;
   }
 
+  // Açılış (Mühür Açılışı) uygulamanın ÜSTÜNDE oynar: çıkışta kemer biçiminde açılan delikten alttaki ekran görünür.
+  const akis = akisSec();
+  return (
+    <>
+      {akis}
+      <AnimatePresence>{showSplash && <SplashScreen key="acilis" onComplete={handleSplashComplete} />}</AnimatePresence>
+    </>
+  );
+
+  function akisSec() {
   // Login
   if (!loading && !user) {
     return (
@@ -425,6 +460,7 @@ function AppFlow() {
 
   // 6. Yetişkin Modu Ana Ekranları
   return <AdultRoutes />;
+  }
 }
 
 export default function App() {

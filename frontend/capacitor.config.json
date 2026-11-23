@@ -1,5 +1,32 @@
 {
   "appId": "com.ronniatr.islamapp",
-  "appName": "IslamAPP",
-  "webDir": "build"
+  "appName": "İslamiApp",
+  "webDir": "build",
+  "android": {
+    "backgroundColor": "#08241B"
+  },
+  "ios": {
+    "backgroundColor": "#08241B",
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "launchAutoHide": true,
+      "backgroundColor": "#08241B",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#F5F5F0"
+    },
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": [
+        "google.com",
+        "apple.com"
+      ]
+    }
+  }
 }

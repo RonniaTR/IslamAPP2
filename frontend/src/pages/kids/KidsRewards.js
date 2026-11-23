@@ -26,7 +26,7 @@ export default function KidsRewards() {
   const navigate = useNavigate();
   const { activeChildProfile } = useAppMode();
   const [activeTab, setActiveTab] = useState('badges');
-  const profile = activeChildProfile || { name: 'Yusuf', xp: 1250, level: 7 };
+  const profile = activeChildProfile || { name: 'Dostum', xp: 0, level: 1 };
 
   const tabs = [
     { id: 'badges', label: 'Rozetler' },

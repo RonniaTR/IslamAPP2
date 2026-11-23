@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import OdaKodu, { KodGirisi } from '../components/oyun/OdaKodu';
 import { Users, Plus, Copy, Play, Trophy, Clock, ArrowLeft, Check, X, Loader, Share2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -20,6 +21,9 @@ export default function MultiplayerQuiz() {
   const [timer, setTimer] = useState(15);
   
   const [roomName, setRoomName] = useState('');
+  const [ozel, setOzel] = useState(true);            // yalnız kodu bilen katılır
+  const [params] = useSearchParams();
+  const [kod, setKod] = useState(() => (params.get('oda') || '').replace(/\D/g, '').slice(0, 5));
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -97,6 +101,7 @@ export default function MultiplayerQuiz() {
     try {
       await setDoc(doc(db, 'quiz_rooms', roomId), {
         name: roomName.trim(),
+        ozel,
         hostId: uid,
         state: 'waiting', // waiting, playing, finished
         currentQuestionIndex: 0,
@@ -118,6 +123,8 @@ export default function MultiplayerQuiz() {
           [`players.${uid}`]: { name: userName, score: 0 }
         });
         setCurrentRoom(roomId);
+      } else if (!d.exists()) {
+        setError('Bu kodla bir oda bulunamadı');
       } else {
         setError('Oda dolu veya başlamış');
       }
@@ -163,10 +170,24 @@ export default function MultiplayerQuiz() {
         {error && <div className="p-3 bg-red-500/20 text-red-400 rounded-xl text-sm font-semibold">{error}</div>}
         
         <div className="rounded-xl p-4 border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
+          <h3 className="text-sm font-semibold mb-3" style={{ color: theme.gold }}>Oda koduyla katıl</h3>
+          <KodGirisi deger={kod} onDegis={setKod} theme={theme} />
+          <button onClick={() => joinRoom('room_' + kod)} disabled={loading || kod.length !== 5} data-testid="kodla-katil"
+            className="w-full mt-3 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+            style={{ background: kod.length === 5 ? theme.gold : theme.inputBg, color: kod.length === 5 ? '#000' : theme.textSecondary }}>
+            Katıl
+          </button>
+        </div>
+
+        <div className="rounded-xl p-4 border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
           <h3 className="text-sm font-semibold mb-3" style={{ color: theme.gold }}>Yeni Oda Oluştur</h3>
           <input value={roomName} onChange={e => setRoomName(e.target.value)} placeholder="Oda adı..."
             className="w-full rounded-lg px-3 py-2 text-sm mb-3 outline-none"
             style={{ background: theme.inputBg, border: `1px solid ${theme.inputBorder}`, color: theme.textPrimary }} />
+          <label className="flex items-center gap-2 text-xs mb-3" style={{ color: theme.textSecondary, minHeight: 32 }}>
+            <input type="checkbox" checked={ozel} onChange={(e) => setOzel(e.target.checked)} />
+            Özel oda: listede görünmesin, yalnız kodu paylaştıklarım katılsın
+          </label>
           <button onClick={createRoom} disabled={loading}
             className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all"
             style={{ background: theme.gold, color: '#000' }}>
@@ -175,9 +196,9 @@ export default function MultiplayerQuiz() {
         </div>
 
         <h3 className="text-sm font-bold mt-6" style={{ color: theme.textSecondary }}>Açık Odalar</h3>
-        {rooms.length === 0 ? (
+        {rooms.filter((r) => !r.ozel).length === 0 ? (
           <p className="text-center text-sm py-8" style={{ color: theme.textSecondary }}>Henüz açık bir oda yok.</p>
-        ) : rooms.map(r => (
+        ) : rooms.filter((r) => !r.ozel).map(r => (
           <div key={r.id} className="flex items-center justify-between p-4 rounded-xl border" style={{ background: theme.cardBg, borderColor: theme.cardBorder }}>
             <div>
               <p className="font-bold text-sm" style={{ color: theme.textPrimary }}>{r.name}</p>
@@ -198,7 +219,7 @@ export default function MultiplayerQuiz() {
     <div className="min-h-screen flex flex-col p-6 items-center justify-center text-center" style={{ background: theme.bg }}>
       <Trophy size={64} className="mb-6 animate-pulse" style={{ color: theme.gold }} />
       <h2 className="text-2xl font-bold mb-2" style={{ color: theme.textPrimary }}>{roomData.name}</h2>
-      <p className="mb-8" style={{ color: theme.textSecondary }}>Oda Kodu: <span className="font-mono font-bold text-white">{currentRoom}</span></p>
+      <div className="mb-8 w-full max-w-sm"><OdaKodu kod={String(currentRoom).replace('room_', '')} oda={roomData.name} /></div>
 
       <div className="w-full max-w-sm bg-[var(--bg-surface)] rounded-2xl p-4 mb-8">
         <h3 className="font-bold text-sm mb-4" style={{ color: theme.gold }}>Katılan Oyuncular</h3>

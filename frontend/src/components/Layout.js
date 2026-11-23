@@ -5,6 +5,7 @@ import { useLang } from '../contexts/LangContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS, ADULT_NAV_TABS } from '../styles/designTokens';
 import OfflineIndicator from './OfflineIndicator';
+import MuhurMenu from './nav/MuhurMenu';
 
 const iconMap = { Home, Compass, Gamepad2, Calendar, User, BookOpen, Route };
 
@@ -161,7 +162,7 @@ const NavTab = memo(function NavTab({ icon: Icon, label, active, isCenter, theme
 });
 
 export default memo(function Layout({ children }) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const { t, lang } = useLang();
   const { theme } = useTheme();
@@ -174,7 +175,7 @@ export default memo(function Layout({ children }) {
   const onScroll = useCallback(() => {
     const y = mainRef.current ? mainRef.current.scrollTop : 0;
     if (Math.abs(y - lastY.current) < 12) return;
-    setCompact(y > lastY.current && y > 80);
+    setCompact(y > lastY.current && y > 120);
     lastY.current = y;
   }, []);
   useEffect(() => { setCompact(false); lastY.current = 0; }, [pathname]);
@@ -231,47 +232,15 @@ export default memo(function Layout({ children }) {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main ref={mainRef} onScroll={onScroll} className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-24 md:pb-0 ${!hideNav ? 'md:ml-[260px]' : ''}`}>
+      <main ref={mainRef} onScroll={onScroll} className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-[var(--alt-bosluk,96px)] md:pb-0 ${!hideNav ? 'md:ml-[260px]' : ''}`}>
         <div className="w-full h-full max-w-[1400px] mx-auto relative">
           {children || <Outlet />}
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAV — yüzen kapsül. Etkin sekme adıyla, ötekiler yalnız simgeyle; aşağı kaydırınca
-          kapsül incelir (etkin sekmenin adı da gizlenir), yukarı kaydırınca geri gelir. Etkin sekmenin üstünde
-          küçük bir kandil ışığı yanar. */}
+      {/* MOBILE: Mühür menü — kapsül + Devam Kemeri; aşağı kaydırınca tek bir mühre dönüşür (components/nav/MuhurMenu) */}
       {!hideNav && (
-        <nav className="md:hidden" data-testid="bottom-nav" aria-label="Ana menü"
-          style={{ position: 'fixed', insetInline: 0, bottom: 'max(10px, env(safe-area-inset-bottom))', zIndex: 50, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
-          <div style={{
-            pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: compact ? 2 : 4,
-            padding: compact ? 5 : 7, borderRadius: 999, maxWidth: 'calc(100% - 24px)',
-            background: theme.navBg, backdropFilter: 'blur(22px) saturate(1.4)', WebkitBackdropFilter: 'blur(22px) saturate(1.4)',
-            border: `1px solid ${theme.cardBorder}`,
-            boxShadow: theme.isDark ? '0 14px 34px -10px rgba(0,0,0,0.7)' : '0 14px 34px -14px rgba(20,40,30,0.35)',
-            transition: 'padding 0.28s cubic-bezier(0.2,0.8,0.2,1), gap 0.28s',
-          }}>
-            {tabs.map(({ id, path, icon: Icon, label }) => {
-              const active = path === '/' ? pathname === '/' : pathname.startsWith(path);
-              const showLabel = active && !compact;
-              return (
-                <button key={id} type="button" onClick={() => navigate(path)} aria-label={label} aria-current={active ? 'page' : undefined}
-                  style={{
-                    position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    height: compact ? 42 : 48, minWidth: compact ? 42 : 48, padding: showLabel ? '0 16px 0 13px' : 0,
-                    borderRadius: 999, border: 'none', cursor: 'pointer',
-                    background: active ? `${theme.primary}${theme.isDark ? '40' : '1F'}` : 'transparent',
-                    color: active ? (theme.isDark ? theme.goldLight || theme.gold : theme.primary) : theme.textSecondary,
-                    transition: 'all 0.28s cubic-bezier(0.2,0.8,0.2,1)',
-                  }}>
-                  {active && <span aria-hidden style={{ position: 'absolute', top: -3, insetInlineStart: '50%', width: 6, height: 6, marginInlineStart: -3, borderRadius: 3, background: theme.gold, boxShadow: `0 0 10px 2px ${theme.gold}` }} />}
-                  <Icon size={20} strokeWidth={active ? 2.3 : 1.9} aria-hidden />
-                  {showLabel && <span style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>{label}</span>}
-                </button>
-              );
-            })}
-          </div>
-        </nav>
+        <MuhurMenu tabs={tabs} pathname={pathname} search={search} navigate={navigate} theme={theme} kapali={compact} setKapali={setCompact} />
       )}
     </div>
   );

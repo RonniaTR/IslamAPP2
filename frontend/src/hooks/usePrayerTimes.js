@@ -55,7 +55,9 @@ export function usePrayerTimes() {
   const fetchByCoords = async (lat, lon) => {
     setLoading(true);
     try {
-      const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=13`);
+      // Gizlilik: tam konum yerine ~1 km hassasiyet gönderilir; vakit hesabı için fazlasıyla yeterli.
+      const r2 = (n) => Math.round(Number(n) * 100) / 100;
+      const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${r2(lat)}&longitude=${r2(lon)}&method=13`);
       const data = await res.json();
       if (data && data.data) { setTimings(data.data.timings); calculateNextPrayer(data.data.timings); }
     } catch (err) { console.error('Ezan vakitleri alınamadı', err); } finally { setLoading(false); }

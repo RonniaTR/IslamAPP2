@@ -91,6 +91,7 @@ export default function MushafPage() {
     setData(null); setError(false); setSel(null); setDetail(null);
     loadPage(page).then((d) => { if (alive) setData(d); }).catch(() => { if (alive) setError(true); });
     write(LAST, page);
+    write('mushaf_last_ts', Date.now());
     // komşu sayfaları sessizce önbelleğe al
     if (page < TOTAL_PAGES) loadPage(page + 1).catch(() => {});
     return () => { alive = false; };

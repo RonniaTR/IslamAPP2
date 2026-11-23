@@ -9,7 +9,8 @@ const VAPID_KEY = process.env.REACT_APP_VAPID_KEY || '';
 
 class NotificationManager {
   constructor() {
-    this.permission = Notification?.permission || 'default';
+    // Android/iOS uygulama içi web görünümünde `Notification` tanımsızdır; doğrudan okumak açılışta uygulamayı çökertir.
+    this.permission = (typeof Notification !== 'undefined' && Notification.permission) || 'default';
     this.subscription = null;
   }
 

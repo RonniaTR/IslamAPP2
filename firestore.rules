@@ -44,47 +44,47 @@ service cloud.firestore {
     }
 
     // User-Specific Collections
+    // Hesap silme (Apple 5.1.1(v), Google Play): sahibi kendi belgesini silebilir.
     match /users/{userId} {
-      allow read, create, update: if isOwner(userId);
-      allow delete: if false;
+      allow read, create, update, delete: if isOwner(userId);
     }
 
     match /history/{docId} {
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
       allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if signedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-      allow delete: if false;
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
 
     match /bookmarks/{docId} {
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
       allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if signedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-      allow delete: if false;
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
 
     match /recommendations/{userId} {
       allow read: if isOwner(userId) || userId == 'anonymous';
       allow create, update: if isOwner(userId);
-      allow delete: if false;
+      allow delete: if isOwner(userId);
     }
 
     match /goals/{docId} {
       allow read: if signedIn() && resource.data.userId == request.auth.uid;
       allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if signedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-      allow delete: if false;
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
 
     // Legacy Collections
     match /Users/{userId} {
       allow read, create, update: if isOwner(userId);
-      allow delete: if false;
+      allow delete: if isOwner(userId);
     }
 
     match /UserProgress/{userId} {
       allow read, create, update: if isOwner(userId);
-      allow delete: if false;
+      allow delete: if isOwner(userId);
     }
 
     // Kandil ışık haritası: il başına ANONİM sayaç. Yalnız `n` alanı, yalnız +1. Silme ve başka alan yok.
@@ -94,6 +94,18 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == 1;
       allow update: if request.resource.data.keys().hasOnly(['n']) && request.resource.data.n == resource.data.n + 1;
       allow delete: if false;
+    }
+
+    // Yapay zekâ cevabı bildirimi (services/aiReports.js): kimliksiz, yalnız oluşturma; okuma ve silme kapalı.
+    // Alanlar ve boyutlar sınırlı; konsoldan (yönetici erişimi) okunur.
+    match /ai_reports/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['q', 'a', 'reason', 'platform', 'at'])
+        && request.resource.data.q is string && request.resource.data.q.size() <= 1000
+        && request.resource.data.a is string && request.resource.data.a.size() <= 4000
+        && request.resource.data.reason in ['yanlis', 'uygunsuz', 'kaynak', 'diger']
+        && request.resource.data.platform is string && request.resource.data.platform.size() <= 12
+        && request.resource.data.at == request.time;
+      allow read, update, delete: if false;
     }
 
     match /{document=**} {

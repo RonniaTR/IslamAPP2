@@ -1,7 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, googleProvider } from '../services/firebase';
-import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { auth } from '../services/firebase';
+import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { UserService } from '../services/UserService';
+import { signIn, signOutEverywhere, isCancel } from '../services/authNative';
+import { deleteAccount as deleteAccountFlow, clearDeviceData } from '../services/accountService';
 
 const AuthContext = createContext(null);
 const GUEST_KEY = 'islamapp_guest';
@@ -12,16 +14,17 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Firebase Auth State Listener
+    // Yönlendirmeli girişten dönüldüyse (açılır pencere engelli tarayıcı) sonucu al; hata sessiz geçer.
+    getRedirectResult(auth).catch(() => {});
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setFirebaseUser(currentUser);
-      // Anonim oturum yalnız Oda içindir (services/oda/rtc.js); uygulamada giriş sayılmaz.
+      // Anonim oturum uygulamada giriş sayılmaz.
       if (currentUser && !currentUser.isAnonymous) {
         // Kullanıcı giriş yaptıysa, Firestore'da users dokümanını yarat veya getir
         const firestoreUser = await UserService.createOrUpdateUser(currentUser);
-        setUser(firestoreUser);
+        // Firestore'a ulaşılamasa da (çevrimdışı) kullanıcı içeri alınır.
+        setUser(firestoreUser || { id: currentUser.uid, name: currentUser.displayName || 'Yolcu', email: currentUser.email });
       } else {
-        // Misafir oturumu sayfa yenilenince düşüyordu (kullanıcı her seferinde giriş ekranına dönüyordu).
         // Misafir kaydı cihazda tutulur; çıkış yapılınca silinir.
         let guest = null;
         try { guest = JSON.parse(localStorage.getItem(GUEST_KEY)); } catch { guest = null; }
@@ -33,22 +36,22 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  const loginWithGoogle = async () => {
+  const loginWith = useCallback(async (provider) => {
     try {
-      setLoading(true);
-      const result = await signInWithPopup(auth, googleProvider);
       // onAuthStateChanged tetiklenecek ve UserService.createOrUpdateUser çalışacak
-      return result.user;
+      return await signIn(provider);
     } catch (error) {
-      console.error("Google login failed", error);
+      if (isCancel(error)) return null;
+      console.error(`${provider} login failed`, error);
       throw error;
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
-  const loginAsGuest = async () => {
-    const guest = { id: 'anonymous', name: 'Misafir Kullanıcı', isGuest: true, xp: 0, level: 1 };
+  const loginWithGoogle = useCallback(() => loginWith('google'), [loginWith]);
+  const loginWithApple = useCallback(() => loginWith('apple'), [loginWith]);
+
+  const loginAsGuest = async (name) => {
+    const guest = { id: 'anonymous', name: (name && String(name).slice(0, 40)) || 'Misafir Kullanıcı', isGuest: true, xp: 0, level: 1 };
     try { localStorage.setItem(GUEST_KEY, JSON.stringify(guest)); } catch { /* kota */ }
     setUser(guest);
     return guest;
@@ -57,15 +60,30 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       try { localStorage.removeItem(GUEST_KEY); } catch { /* ignore */ }
-      await signOut(auth);
+      await signOutEverywhere();
       setUser(null);
     } catch (error) {
       console.error("Logout failed", error);
     }
   };
 
+  /**
+   * Hesabı ve sunucudaki bütün verisini kalıcı olarak siler (Apple 5.1.1(v), Google Play hesap silme).
+   * Misafirde sunucuda veri yoktur: yalnız bu cihazdaki veriler silinir.
+   */
+  const deleteAccount = async (o = {}) => {
+    if (!firebaseUser || firebaseUser.isAnonymous) {
+      await clearDeviceData();
+      setUser(null);
+      return;
+    }
+    await deleteAccountFlow(firebaseUser, o);
+    setFirebaseUser(null);
+    setUser(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, loginWithGoogle, loginAsGuest, logout }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, loginWithGoogle, loginWithApple, loginAsGuest, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

@@ -188,7 +188,7 @@ export default function KidsDashboard() {
   const navigate = useNavigate();
   const { activeChildProfile, setAppMode } = useAppMode();
 
-  const profile = activeChildProfile || { name: 'Yusuf', avatar: '👦', level: 4, xp: 450 };
+  const profile = activeChildProfile || { name: 'Dostum', avatar: '⭐', level: 1, xp: 0 };
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative', overflowX: 'hidden' }}>

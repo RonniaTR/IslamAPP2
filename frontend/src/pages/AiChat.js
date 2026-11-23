@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, User, RefreshCw, ChevronLeft, Bot, Mic, MicOff, Volume2, Square } from 'lucide-react';
+import { Send, Sparkles, User, ChevronLeft, Bot, Mic, MicOff, Volume2, Square, Flag, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '../components/ui/Typography';
 import { aiResponses, getAiResponse } from '../data/aiResponses';
-import { useAuth } from '../contexts/AuthContext';
+import { reportAnswer, deviceSessionId, REPORT_REASONS } from '../services/aiReports';
+import HalPusulasi from '../components/ai/HalPusulasi';
 
 export default function AiChat() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const userId = user?.uid || 'anonymous';
+  // Asistana hesap kimliği gönderilmez; yalnız bu cihaza ait rastgele bir oturum anahtarı (gizlilik metni 2. bölüm).
+  const userId = deviceSessionId();
+  const [reporting, setReporting] = useState(null);   // bildirilen mesajın id'si
+  const [reported, setReported] = useState({});        // id → true
 
   const [messages, setMessages] = useState([
     {
@@ -100,17 +103,18 @@ export default function AiChat() {
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 1 || isTyping) scrollToBottom();   // açılışta en üstte kal: hoş geldin + Hâl Pusulası görünsün
   }, [messages, isTyping]);
 
-  const handleSend = async () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async (hazirMetin, hal) => {
+    const metin = typeof hazirMetin === 'string' ? hazirMetin : inputValue;
+    if (!metin.trim()) return;
     if (isListening) {
       recognitionRef.current?.stop();
       setIsListening(false);
     }
 
-    const userMsg = { id: Date.now(), sender: 'user', text: inputValue };
+    const userMsg = { id: Date.now(), sender: 'user', text: metin, hal: hal ? hal.ad : undefined };
     setMessages(prev => [...prev, userMsg]);
     setInputValue("");
     setIsTyping(true);
@@ -118,7 +122,7 @@ export default function AiChat() {
     const responseText = await getAiResponse(userMsg.text, userId);
     
     const aiMsgId = Date.now();
-    setMessages(prev => [...prev, { id: aiMsgId, sender: 'ai', text: responseText }]);
+    setMessages(prev => [...prev, { id: aiMsgId, sender: 'ai', text: responseText, question: userMsg.text }]);
     setIsTyping(false);
 
     // Optional: auto-play the response
@@ -136,7 +140,8 @@ export default function AiChat() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column' }}>
+    // Sohbet her temada koyu zeminde durur: mesaj yazıları beyaz olduğu için açık temada okunmuyordu.
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #072A20 0%, #04170F 100%)', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <div style={{ padding: '16px 24px', background: 'rgba(5, 42, 30, 0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '16px', position: 'sticky', top: 0, zIndex: 10 }}>
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}>
@@ -152,26 +157,11 @@ export default function AiChat() {
       </div>
 
       {/* Chat Area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 120px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <p data-testid="ai-disclaimer" style={{ margin: 0, padding: '10px 14px', borderRadius: 14, background: 'rgba(205,164,52,0.1)', border: '1px solid rgba(205,164,52,0.25)', color: 'rgba(255,255,255,0.75)', fontSize: 12, lineHeight: 1.5 }}>
+          Cevaplar yapay zekâ ile üretilir ve yanlış olabilir; fetva yerine geçmez. Önemli dinî konularda Diyanet'e (Alo 190) ya da bir hocaya danış. Kişisel bilgilerini yazma.
+        </p>
         
-        {messages.length === 1 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-            {aiResponses.prompts.map((prompt, index) => (
-              <button 
-                key={index}
-                onClick={() => handlePromptClick(prompt)}
-                style={{
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '100px', padding: '8px 16px', color: '#FFF', fontSize: '12px',
-                  cursor: 'pointer', transition: 'all 0.2s', textAlign: 'start'
-                }}
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        )}
-
         {messages.map((msg) => {
           const isAi = msg.sender === 'ai';
           return (
@@ -190,10 +180,37 @@ export default function AiChat() {
                 borderRadius: isAi ? '0 20px 20px 20px' : '20px 0 20px 20px',
                 padding: '16px', maxWidth: '80%', position: 'relative'
               }}>
+                {msg.hal && <span style={{ display: 'inline-block', marginBottom: 6, fontSize: 10.5, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', color: '#D8B76A' }}>✦ {msg.hal}</span>}
                 <Typography variant="bodySmall" style={{ color: '#FFF', fontSize: '14px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                   {msg.text.split('**').map((part, i) => i % 2 !== 0 ? <strong key={i} style={{ color: '#CDA434' }}>{part}</strong> : part)}
                 </Typography>
                 
+                {isAi && msg.question && (
+                  <div style={{ marginTop: 10 }}>
+                    {reported[msg.id] ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#2ECC71', fontWeight: 600 }}>
+                        <Check size={14} /> Bildirildi, teşekkürler.
+                      </span>
+                    ) : reporting === msg.id ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} data-testid="ai-report-reasons">
+                        {REPORT_REASONS.map((r) => (
+                          <button key={r.id} type="button"
+                            onClick={async () => { await reportAnswer({ question: msg.question, answer: msg.text, reason: r.id }); setReported((m) => ({ ...m, [msg.id]: true })); setReporting(null); }}
+                            style={{ minHeight: 34, padding: '0 12px', borderRadius: 17, fontSize: 12, fontWeight: 600, color: '#FFF', background: 'rgba(231,76,60,0.18)', border: '1px solid rgba(231,76,60,0.45)', cursor: 'pointer' }}>
+                            {r.label}
+                          </button>
+                        ))}
+                        <button type="button" onClick={() => setReporting(null)} style={{ minHeight: 34, padding: '0 10px', fontSize: 12, color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}>Vazgeç</button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setReporting(msg.id)} data-testid="ai-report"
+                        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, padding: 0 }}>
+                        <Flag size={13} /> Bu cevabı bildir
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {isAi && (
                   <button 
                     onClick={() => playTTS(msg.id, msg.text)}
@@ -210,6 +227,26 @@ export default function AiChat() {
             </div>
           );
         })}
+
+        {messages.length === 1 && <HalPusulasi onSor={(q, hal) => handleSend(q, hal)} />}
+
+        {messages.length === 1 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+            {aiResponses.prompts.map((prompt, index) => (
+              <button 
+                key={index}
+                onClick={() => handlePromptClick(prompt)}
+                style={{
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '100px', padding: '8px 16px', color: '#FFF', fontSize: '12px',
+                  cursor: 'pointer', transition: 'all 0.2s', textAlign: 'start'
+                }}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
 
         {isTyping && (
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
@@ -235,7 +272,7 @@ export default function AiChat() {
       </div>
 
       {/* Input Area */}
-      <div style={{ padding: '24px', background: 'rgba(5, 42, 30, 0.95)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="md:left-[260px]" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 20, padding: '16px 20px calc(104px + env(safe-area-inset-bottom))', background: '#05261B', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           
           <button 

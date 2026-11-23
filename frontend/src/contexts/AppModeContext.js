@@ -9,15 +9,16 @@ const STORAGE_KEYS = {
   childProfiles: 'nur_child_profiles',
 };
 
-// Varsayılan çocuk profilleri
-const DEFAULT_CHILD_PROFILES = [
-  { id: 'child_1', name: 'Yusuf', avatar: '👦', level: 7, xp: 1250, color: '#4A90D9' },
-  { id: 'child_2', name: 'Zeynep', avatar: '👧', level: 5, xp: 890, color: '#FF6B8A' },
-  { id: 'child_3', name: 'Elif', avatar: '👧', level: 3, xp: 450, color: '#9B59B6' },
-];
+// Çocuk profilleri yalnız bu cihazda tutulur ve çocuk karşılamasında (KidsWelcome) oluşturulur.
+// Eski sürüm sahte hazır profillerle (Yusuf/Zeynep/Elif, uydurma seviye ve puan) açılıyordu; kaldırıldı.
+const FAKE_IDS = ['child_1', 'child_2', 'child_3'];
+const DEFAULT_CHILD_PROFILES = [];
 
 export function AppModeProvider({ children }) {
-  const [appMode, setAppModeState] = useState(() => localStorage.getItem(STORAGE_KEYS.mode) || null);
+  const [appMode, setAppModeState] = useState(() => {
+    const m = localStorage.getItem(STORAGE_KEYS.mode);
+    return m === 'adult' || m === 'child' ? m : null;
+  });
   const [hasCompletedOnboarding, setHasCompletedOnboardingState] = useState(
     () => localStorage.getItem(STORAGE_KEYS.onboarding) === 'true'
   );
@@ -30,13 +31,15 @@ export function AppModeProvider({ children }) {
   const [childProfiles, setChildProfilesState] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.childProfiles);
-      return stored ? JSON.parse(stored) : DEFAULT_CHILD_PROFILES;
+      const list = stored ? JSON.parse(stored) : DEFAULT_CHILD_PROFILES;
+      return Array.isArray(list) ? list.filter((p) => p && !FAKE_IDS.includes(p.id)) : DEFAULT_CHILD_PROFILES;
     } catch { return DEFAULT_CHILD_PROFILES; }
   });
 
   const setAppMode = useCallback((mode) => {
-    setAppModeState(mode);
-    localStorage.setItem(STORAGE_KEYS.mode, mode);
+    setAppModeState(mode || null);
+    // null kaydedilirse "null" metni olarak saklanıp sonraki açılışta mod seçili sanılıyordu.
+    try { if (mode) localStorage.setItem(STORAGE_KEYS.mode, mode); else localStorage.removeItem(STORAGE_KEYS.mode); } catch { /* kota */ }
   }, []);
 
   const completeOnboarding = useCallback(() => {
@@ -66,11 +69,13 @@ export function AppModeProvider({ children }) {
   }, []);
 
   const addChildProfile = useCallback((profile) => {
+    const created = { level: 1, xp: 0, ...profile, id: `child_${Date.now()}` };
     setChildProfilesState(prev => {
-      const updated = [...prev, { ...profile, id: `child_${Date.now()}`, level: 1, xp: 0 }];
-      localStorage.setItem(STORAGE_KEYS.childProfiles, JSON.stringify(updated));
+      const updated = [...prev, created];
+      try { localStorage.setItem(STORAGE_KEYS.childProfiles, JSON.stringify(updated)); } catch { /* kota */ }
       return updated;
     });
+    return created;
   }, []);
 
   const isChild = appMode === 'child';

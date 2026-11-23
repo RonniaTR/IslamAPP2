@@ -13,7 +13,8 @@ export class UserServiceClass {
       const userData = {
         name: firebaseUser.displayName || 'Yeni Kullanıcı',
         email: firebaseUser.email,
-        avatarUrl: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.uid}`,
+        // Fotoğraf yoksa boş kalır: kimlik numarası üçüncü taraf avatar servisine gönderilmez (gizlilik).
+        avatarUrl: firebaseUser.photoURL || '',
         lastLogin: new Date().toISOString(),
       };
 

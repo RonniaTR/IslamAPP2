@@ -309,6 +309,50 @@ Kıble açısı denetlendi: İstanbul 151,6°, Londra 119,0° (bilinen değerler
 **Sınırlar:** iPhone/iPad'den dosya YAYINLANAMAZ (Safari izin vermez; izlemek ve "İkimizde de var" çalışır) · telefondan ekran paylaşılamaz · Netflix gibi korumalı yayınlar siyah görünür · Firefox'ta yayınlanan videonun sesi yayınlayan tarafta kısılır · PeerJS'in ücretsiz genel sunucusu kullanılıyor (yoğunlukta yavaşlayabilir; kendi sunucun için `REACT_APP_PEER_HOST`).
 **Kurulum:** `package.json`'a `peerjs` eklendi, `frontend/.npmrc` `legacy-peer-deps=true` (projede önceden de olan bağımlılık çakışması yüzünden). Eski Firebase'li sürüm `_to_delete/rtc.js`.
 
+#### On ikinci tur (23.11.2026) — Mağazaya hazırlık + yeni açılış (kapı)
+**Mağaza şartları (kodda):**
+- Telefonda Google/Apple ile giriş: `services/authNative.js`. Web'de açılır pencere (engellenirse yönlendirme); telefonda
+  `@capacitor-firebase/authentication` ile yerel pencere → `signInWithCredential` (Firebase JS SDK aynen kullanılır).
+  Telefonda oturum kalıcılığı IndexedDB (`services/firebase.js`). Apple ile Giriş yalnız iOS ve web'de görünür.
+- Hesap silme: Ayarlar → Hesap ve gizlilik → Hesabımı sil (`components/hesap/HesapSilKarti.jsx`, `services/accountService.js`).
+  Silinen: users, Users, UserProgress, recommendations (kendi belgesi) + history/bookmarks/goals (userId == uid) + Auth kaydı.
+  Gerekirse önce kimlik tazelenir. Misafirde yalnız cihaz verisi silinir. Web adresi: `/hesap-sil` (Google Play formu).
+- Gizlilik politikası + KVKK aydınlatma: `/gizlilik` (`pages/legal/GizlilikPage.jsx`). Metin, kodun bugün yaptığını anlatır;
+  yeni veri akışı eklenirse aynı değişiklikte güncellenir. Avukata okutulması önerilir.
+- `firestore.rules`: sahibine silme izni (users, history, bookmarks, goals, recommendations, Users, UserProgress);
+  `ai_reports` yalnız oluşturma, alan ve boyut sınırlı, okuma/silme kapalı.
+- Yapay zekâ sohbeti: "Bu cevabı bildir" (`services/aiReports.js`, kimliksiz), üstte "fetva yerine geçmez" notu, hesap kimliği
+  yerine cihaz oturum anahtarı. Sohbet her temada koyu zeminde (açık temada beyaz yazı okunmuyordu). Çocuk modunda sohbet yok.
+- Oda yalnız web'de: telefon uygulamasında `/oda` ana sayfaya döner.
+- Ebeveyn kapısı ortak bileşen: `components/kids/ParentGate.jsx`. Çocuk modundan çıkış ve çocuk ayarlarındaki hesap işlemleri bunun arkasında.
+- Sahte çocuk profilleri (Yusuf/Zeynep/Elif, uydurma puan) kaldırıldı; çocuk kendi adını ve simgesini seçer, yalnız cihazda saklanır.
+- Gizlilik: profil fotoğrafı yoksa kimlik numarası üçüncü taraf avatar servisine gönderilmiyor; vakit için konum ~1 km'ye yuvarlanıyor.
+**Bulunan hatalar (düzeltildi):**
+- `services/notifications.js` açılışta `Notification` okuyordu; Android/iOS web görünümünde bu tanımsızdır → uygulama açılışta çökerdi.
+- Servis çalışanı ilk kurulumda sayfayı yeniliyordu (açılış sahnesi yarıda kesiliyordu); artık yalnız güncellemede. Telefonda servis
+  çalışanı hiç kaydedilmez (paketteki dosyaları eski önbellekle gölgeleyebilirdi).
+- `setAppMode(null)` localStorage'a "null" metni yazıyordu; sonraki açılışta mod seçili sanılıyordu.
+**Açılış ve tasarım:**
+- İlk kurulumda **Giriş Kapısı** (`components/giris/GirisKapisi.jsx`): besmele, ahşap kemerli kapı, dokununca gıcırtı + ney,
+  kanatlar açılır, kamera içeri yürür, ışıkta "Hoş geldin". "Geç" her an var. Sonraki açılışlarda 0,9 sn'lik hızlı açılış (dokununca geçer).
+- Giriş ekranı, mod seçimi (iki kapı: mihrap/bahçe, seçilen açılır), 2 adımlı ilk karşılama (eskiden 13 adım) aynı gece paletinde
+  (`components/giris/giriSahne.jsx`). Mod değişiminde kapı geçişi (`ModGecisi.jsx`). Çocuk açılışında bahçe kapısı aralanır.
+- Marka tek yerde: `config/brand.js` (ad, slogan, destek e-postası `REACT_APP_SUPPORT_EMAIL`, gizlilik/hesap silme adresleri).
+**Kurulum (Antigravity / Samet):**
+1. `cd frontend && npm install` (yeni paket `@capacitor-firebase/authentication`), `npm run build`, deploy (Hosting + `firestore.rules`).
+2. `frontend/.env`: `REACT_APP_SUPPORT_EMAIL=...` (gizlilik sayfasında iletişim olarak görünür).
+3. Firebase konsolu → Authentication → Sign-in method: Google açık; Apple'ı aç (Apple Developer hesabında Services ID + anahtar gerekir).
+4. Firebase konsolu → Proje ayarları → Android uygulaması ekle (`com.ronniatr.islamapp` ya da seçilecek yeni kimlik) → SHA-1 parmak
+   izlerini ekle (hata ayıklama anahtarı + yükleme anahtarı + Play Console'daki "uygulama imzalama" anahtarı) → `google-services.json`
+   dosyasını `frontend/android/app/` içine koy. `android/variables.gradle` içinde `rgcfaIncludeGoogle = true` eklendi.
+5. `npx cap sync android`. iOS için (Mac/bulut): `npx cap add ios`, `GoogleService-Info.plist`, Xcode'da "Sign in with Apple" yeteneği,
+   URL Types'a REVERSED_CLIENT_ID, Podfile'a `CapacitorFirebaseAuthentication/Google`.
+**Denendi:** iki tarayıcı boyutunda (telefon 390×844): kapı → giriş → misafir → yetişkin kapısı → karşılama → ana sayfa; çocuk kapısı →
+profil oluşturma → bahçe kapılı açılış; ebeveyn sorusu → mod geçişi; ayarlarda veri silme; /gizlilik, /hesap-sil; sohbet + bildir.
+Lint 0, derleme başarılı, ölü dosya 0, kırık rota 0, çeviri eksiği 0.
+**Denenmedi:** gerçek Google/Apple girişi ve hesap silme (test ortamında Google'a erişim yok), telefonda yerel giriş penceresi,
+Firestore kuralları (emülatörde çalıştırılmadı). İlk gerçek denemede bunlar sırayla kontrol edilmeli.
+
 ### 0.7 Kur'an, meal, tefsir ve siyeri uygulamaya koymanın yolu
 
 | İçerik | Kaynak | Şart | Durum |
@@ -813,6 +857,121 @@ Yapılacak: her biri için "bizde var / eksik / plan" tablosu `docs/rakip-karsil
 - Geri bildirim dili: "Yaklaştın, dil ucunu biraz daha..." gibi; puan ve yüzde yok.
 - İlk sürüm yalnız karışan harf çiftleri: س/ص, ت/ط, ذ/ز/ظ, ح/ه, ع/ء, ق/ك.
 - Başarısızlık durumunda özellik gizlenir; yanlış "doğru" demek, hiç dememekten kötüdür.
+
+---
+
+## 13. TUR — "Müslüman Olmak" sekmesi (Kitap + Hikmet Mecmuası)
+
+**Adres:** `/musluman-olmak` · kayıt: `features/registry.js` (`id: 'musluman'`, grup İlim, ana ekran kısayolu).
+
+### Açılış: Bahçe Kapısı (`components/musluman/CennetKapisi.jsx`)
+- Şafak gökyüzü, ışık huzmeleri, dağlar, selviler, lâleler; dört sis katmanı, düşen çiçek yaprakları, yükselen nur zerreleri.
+- Dua kartı: *Bismillâhirrahmânirrahîm* · **Rabbi zidnî ilmâ** — "Rabbim, ilmimi artır." (Tâhâ 114'ten). Latin harfli; Arapça Kur'an metni yok.
+- "Âmin" → kafesli altın kapı 3B açılır, sis aralanır, kamera ışığın içinden geçer (~4 sn). Oturumda bir kez; "Geç" ile atlanır;
+  "hareketi azalt" tercihinde kısa geçiş. Hub'da "Bahçe kapısını yeniden aç".
+- Ses (`services/bahceSesi.js`, tamamen üretilmiş, telifsiz): dere, rüzgâr, kuşlar, alçak dem; kapıda ney + çan; sayfa hışırtısı.
+  Giriş sesleri kapalıysa varsayılan kapalı; tercih `mo_bahce_sesi`.
+
+### Okuyucu (`pages/musluman/KitapOkuyucu.jsx`)
+- Sayfa sabit 400×640 dizilir, ekrana ölçeklenir → her cihazda aynı sayfa, aynı numara. Telefonda tek sayfa, geniş ekranda açık kitap.
+- Dizgi (`dizgi.js`): blok yükseklikleri gerçek yazı tipiyle ölçülür; paragraflar kelime sınırından bölünür, kartlar bölünmez,
+  başlık sayfa dibinde yalnız kalmaz, çizimler gerekirse bir sonraki sayfanın başına "yüzer".
+- Çevirme: kenara dokunma, sürükleme (yaprak parmağı izler), ok tuşları, ±1/±5/±10 düğmeleri, kaydırıcı.
+  Çok sayfa: tek tek hızlı çevrilir (12'den fazlaysa 8 hızlı yaprak).
+- Komutlar (`komut.js`): sesle (Web Speech, tr-TR) ya da yazarak — "geç", "beş sayfa geç", "on sayfa geri", "40. sayfa",
+  "başa dön", "içindekiler", "oku", "dur". Sesli okuma (speechSynthesis) sayfa bitince kendiliğinden çevirir.
+- Kaldığın sayfa, ayraçlar, "Bugün sen" işaretleri cihazda (`mo:*`).
+- Yazı tipleri pakete gömülü: `@fontsource/literata`, `@fontsource/fraunces` (çevrimdışı da aynı görünüm).
+
+### İçerik
+- **Kitap** (`data/muslumanOlmak/kitap.js`): Başlarken + 8 bâb (Kalp, Dil, El, Ev, Toplum, İlim, Tabiat, Güç) + Hadis Sanılan Sözler
+  + Kaynaklar. Her bâb: âyet, sahih hadis(ler), Asr-ı Saadet sahnesi, infografik, "Bugün sen", "Düşün".
+- **Hikmet Mecmuası, Sayı 1 — Işık ve Ölçü** (`mecmua.js`): Bîrûnî, İbnü'l-Heysem, Harezmî, Cezerî, Uluğ Bey, İdrîsî ve Pîrî Reis,
+  Mimar Sinan ve geometri, Karaviyyîn, tefekkür sayfası; "Sen de dene" deneyleri.
+- 16 SVG infografik (`infografik.jsx`); sayı veren her çizimin altında kaynağı yazar.
+
+### Kaynak kuralları (değiştirmeden önce)
+- Âyet bloklarında yalnız sure:âyet durur; meal **meal paketinden değiştirilmeden** gelir (QuranEnc şartı), sürümü kartta yazar.
+  Paket yoksa kart "paketi indir" der. Arka arkaya aynı metni taşıyan âyetler tek satırda gösterilir.
+- Hadisler: yalnız sahih / hasen-sahih; numaralar sunnah.com. Kullanılanlar: Buhârî 1, 3, 10, 13, 69, 101, 676, 1975, 2047, 2049, 2072,
+  5997, 6018, 6038, 6114, 6464; Müslim 40, 45, 47, 223, 783, 1631, 1907, 2309, 2318, 2564, 2609, 2664, 2699; Tirmizî 3895; Nesâî 3104;
+  el-Edebü'l-Müfred 479.
+- Hadis olmayan sözler ayrı bölümde: "İlim Çin'de de olsa…", "Vatan sevgisi imandandır", "Hiç ölmeyecekmiş gibi…".
+- "Bilimsel mucize" iddiası yok. Rakamlar yayından önce TDV İslâm Ansiklopedisi ile yeniden karşılaştırılacak.
+- **Bütün metinler yayından önce Diyanet'in ilgili kurulunun incelemesine sunulacak.**
+
+### 13.1 — Derinleştirme ve tasarım (23 Kasım 2026, akşam)
+- **Yeni bâb: "İslam, İman, İhsan"** (Temel) — Cibril hadisi (Müslim 8 · Buhârî 50): beyaz elbiseli yolcu sahnesi,
+  üç soru-üç cevap, "Dinin üç katı" infografiği. Kitap 58 → 66 sayfa.
+- **Kavram kartları** (her bâbda bir, `t: 'kavram'`): İslâm s-l-m, Îmân e-m-n, Gıybet ğ-y-b, İtkân t-k-n, Rahmet r-h-m,
+  Ümmet ʾ-m-m, İlim ʿ-l-m, Âyet, Sabır s-b-r — kelime, kök harfleri, aynı kökten kelimeler, kısa açıklama.
+- Listelerde `*vurgu*` artık işleniyor.
+- **Kapı sahnesi:** imleç/telefon eğimiyle derinlik (paralaks: manzara, kapı, sis farklı hızlarda), kapalıyken nefes alan
+  hâle, dua kartında dönen sekiz köşeli süs ve altın çizgiler, "Âmin" düğmesinde parıltı geçişi.
+- **Kütüphane:** kartlar sırayla yükselerek gelir, başlıkta altın parıltı, dönen yıldız deseni, rafta nefes alan ışık,
+  3B kitap imleci takip ederek eğilir.
+- **Okuyucu:** açılışta kitap yumuşakça öne gelir.
+
+---
+
+## 14. TUR — Kendi tarzımız: Mühür (23 Kasım 2026, gece)
+Referans videolardaki fikirler (devam hapı, açılış geçişi, gün ekranı, duygu düğmeleri, yarışma modları) alındı;
+şekil, renk, ikon ve hareket tamamen İslamiApp'in kendi dili: **sekiz köşeli yıldız, sivri kemer, zümrüt ve altın.**
+Hiçbir marka logosu, yazı tipi ya da çizimi kopyalanmadı.
+
+### 14.1 Devam Kemeri ve Mühür menü
+- `services/devam.js`: kaldığın yerleri (Kur'an `quran_last`, Mushaf `mushaf_last_page/ts`, kitap ve mecmua `mo:<id>:*`)
+  toplar, en yenisini seçer. Kur'an adayları yalnız `QURAN_PUBLIC` açıkken. Okuma ekranlarında, sohbette ve canlı yarışmada çıkmaz.
+- `components/nav/MuhurMenu.jsx`: alt menünün üstünde krem kart, kart kenarından taşan zümrüt madalyonun içinde altın yıldız,
+  çevresinde ilerleme halkası. Aşağı kaydırınca kapanır; X bu oturum için kapatır.
+- Kaydırınca menü ve kart tek bir **Mühür**e dönüşür: dönen yıldız çerçeve, ortada etkin sekmenin ikonu, ilerleme halkası.
+  Dokununca açılır. İçerik alt boşluğu `--alt-bosluk` değişkeniyle karta göre ayarlanır.
+
+### 14.2 Mühür Açılışı
+- İlk kare telefonun açılış ekranı (`resources/splash.png`), `public/index.html` ve React'te **birebir aynı**: `#08241B` zemin,
+  ortada altın sekiz köşeli yıldız. Kesinti görünmez.
+- Yıldızın uçlarından kenarlara girih çizgileri uzanır → yıldız döner, küçülür, yerinde kemer amblemi çizilir →
+  "İslamiApp" harfleri tek tek yükselir, üzerinden altın ışık geçer → ekranın ortasında **sivri kemer biçiminde pencere**
+  açılır ve uygulama o kemerin içinden görünür.
+- Günün ilk açılışında tam (~2 sn), sonra kısa (~0,9 sn); dokunan geçer; hareket azaltma açıksa hemen biter.
+- Telefon tarafı: `npx @capacitor/assets generate --android` (resources/splash.png kullanılır). Uygulama ikonu bu turda değişmedi.
+
+### 14.3 Bugün (Gök Kubbe derinleştirme)
+- Güneş (gündüz) ya da ay (gece, gerçek evresiyle) vakte göre **ufuktan ufka bir yay üzerinde yürür**, caminin ardından geçer.
+- Sağ üstte "Akşam'a 1 sa 12 dk" gibi sıradaki vakit (vakitler geldiyse). Dakikada bir güncellenir.
+- Hafta şeridindeki günlere dokununca o günün işaretli vakitleri yazılır (puan, ceza yok).
+
+### 14.4 Hâl Pusulası (sohbet)
+- `components/ai/HalPusulasi.jsx`: sohbet açılışında sekiz köşeli yıldızın çevresinde sekiz hâl
+  (Daraldım, Kaygılıyım, Yalnızım, Öfkeliyim, Pişmanım, Şükür doluyum, Yorgunum, Merak ediyorum).
+- Seçilen hâlin rengi ortadaki mühre geçer; altına o hâle uygun üç hazır soru açılır (dokununca sorulur, mesajda ✦ hâl etiketi).
+- "Önce bir ayet oku": cihazdaki meal paketinden, kaynağıyla tek ayet (internetsiz, yapay zekâsız).
+- Not satırı: asistan hüküm vermez; zor durumda bir yakına, hocaya ya da uzmana yönlendirir.
+
+### 14.5 Çocuk Oyun Bahçesi: Yıldız Yolu
+- **Kemer kartlar** (`pages/kids/oyun/ModKartlari.jsx`): Yıldız Yolu · Ailece · Bilgi Yarışı. Üstü kemer, içinde çini şeridi.
+- **Yıldız Yolu** (`YildizYolu.jsx`): kıvrılan patikada 12 durak (çark, eşleştirme, yarışma, kelime, sıralama sırayla).
+  Sıradaki durağın üstünde zıplayan altın ok ve "Buradan devam!" balonu; geçilen durak altın yıldıza döner, altın iz ilerler.
+  Oyunda bir yıldız toplayınca "durağı tamamla" şeridi çıkar. 12 durak bitince yeni yol. Kayıt: `kids_yol_v1`.
+- **Rehber oklar** (`RehberOklar.jsx`): ilk açılışta 4 adımlı tanıtım; hedef çerçeveye alınır, balondan hedefe kıvrık
+  kesik çizgili ok. Bir kez gösterilir (`kids_oyun_rehber_v1`), "Atla" her zaman var.
+- **Bilgi Yarışı + jokerler** (`BilgiYarisi.jsx`): ½ Yarısı (iki yanlışı kaldırır), Fener (doğru şıkkı bir an aydınlatır),
+  İkinci Şans (yanılırsan bir daha dene). Süre, can, ceza yok. Üstte fenerin yürüdüğü soru yolu.
+- **Ailece**: 2–4 kişi aynı telefonda sırayla, herkesin kendi jokerleri; sonunda kemer biçimli sütunlar.
+  Çocuk bölümünde internet üzerinden yabancılarla eşleşme **yok** (bilinçli karar).
+
+### 14.6 İlim Arenası: oda kodu
+- `components/oyun/OdaKodu.jsx`: bekleme odasında beş haneli kod, her rakam kemer biçimli bir taşta; Kopyala / Davet et.
+- Lobide "Oda koduyla katıl" (beş kutu, yapıştırma destekli). `/multiplayer?oda=12345` bağlantısı kodu doldurur.
+- "Özel oda" (varsayılan açık): listede görünmez, yalnız kodu bilen katılır. Firestore kuralı değişmedi.
+
+### 14.7 Diğer
+- Sohbetin yazı çubuğu artık ekranın altına sabit; açılışta en alta kaymıyor (hoş geldin + pusula görünür).
+
+### Bilinen sınırlar
+- Mağaza uygulamasında (Android WebView) `SpeechRecognition` yok: mikrofon düğmesi görünmez, yazılı komut çalışır.
+  Sesli komut için `@capacitor-community/speech-recognition` eklentisi sonraki tur.
+- Sesli okuma cihazın Türkçe sesine bağlıdır; yoksa düğme görünmez.
 
 ---
 

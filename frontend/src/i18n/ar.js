@@ -1306,6 +1306,19 @@ const AR = {
   "Zilhicce": "ذو الحجة",
   "Ravza": "روضة",
   "Zarif": "أنيق",
+  "Giriş": "تسجيل الدخول",
+  "Gizlilik politikası": "سياسة الخصوصية",
+  "Hesabımı sil": "حذف حسابي",
+  "Hesap ve gizlilik": "الحساب والخصوصية",
+  "Hesap ve veriler": "الحساب والبيانات",
+  "Misafir olarak kullanıyorsun; verilerin yalnız bu cihazda.": "أنت تستخدم وضع الضيف؛ بياناتك تبقى على هذا الجهاز فقط.",
+  "Verilerimi sil": "حذف بياناتي",
+  "Yetişkin moduna geçiş": "الانتقال إلى وضع البالغين",
+  "Müslüman Olmak": "أن تكون مسلمًا",
+  "Kitap ve Hikmet Mecmuası: ahlak, ilim, bilim": "كتاب ومجلة الحكمة: أخلاق وعلم ومعرفة",
+  "Henüz gelmedi.": "لم يحن بعد.",
+  "işaretli": "مُسجَّل",
+  "İşaret yok; bu senin defterin, puan yok.": "لا توجد علامات؛ هذا دفترك الشخصي بلا نقاط.",
 };
 
 export default AR;
