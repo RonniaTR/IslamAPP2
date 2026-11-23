@@ -80,12 +80,12 @@ export default function KidsAcilis({ onDone }) {
               <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} style={{ fontSize: 24, fontWeight: 900, color: '#2D8A4E', margin: 0 }}>Bismillâhirrahmânirrahîm</motion.p>
               <p style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.4, margin: 0, maxWidth: 360 }}>
                 {words.map((w, i) => (
-                  <motion.span key={i} initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ delay: 1 + i * 0.22 }} style={{ display: 'inline-block', marginInlineEnd: 8 }}>{w}</motion.span>
+                  <motion.span key={i} initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ delay: 0.4 + i * 0.14 }} style={{ display: 'inline-block', marginInlineEnd: 8 }}>{w}</motion.span>
                 ))}
               </p>
-              <motion.button type="button" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.4 + words.length * 0.22, type: 'spring' }}
+              <motion.button type="button" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4, type: 'spring' }}
                 whileTap={{ scale: 0.92 }} onClick={() => { sfx.claim(); setStep(1); }}
-                style={{ minHeight: 64, padding: '0 46px', borderRadius: 32, background: '#2D8A4E', color: '#fff', fontSize: 24, fontWeight: 900, boxShadow: '0 10px 0 #1B6B3A' }}>
+                style={{ minHeight: 64, padding: '0 46px', borderRadius: 32, background: '#2D8A4E', color: '#fff', fontSize: 24, fontWeight: 900, border: 'none', cursor: 'pointer', boxShadow: '0 10px 0 #1B6B3A' }}>
                 Âmin
               </motion.button>
             </motion.div>

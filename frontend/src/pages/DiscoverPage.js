@@ -8,10 +8,12 @@ import { useDiscoverContent } from '../hooks/useDiscoverContent';
 import { getDailyHadith } from '../data/dailyHadith';
 import { getHistory } from '../services/pathEngine';
 import { getCachedStats } from '../services/gamification';
+import { useTheme } from '../contexts/ThemeContext';
+import { useAppMode } from '../contexts/AppModeContext';
 import { 
   Loader2, PenTool, BookOpen, Gamepad2, Moon, Library, 
   Compass, Route, ChevronRight, Sparkles, ArrowRight,
-  Trophy, Star, Zap, Volume2, Pause, Share2, Check, Scroll
+  Trophy, Star, Zap, Volume2, Pause, Share2, Check, Scroll, Baby
 } from 'lucide-react';
 
 /* ─── Stagger animation helper ─── */
@@ -96,6 +98,7 @@ const FEATURED_MODULES = [
 
 /* ─── Quick Access Grid ─── */
 const QUICK_ACCESS = [
+  { path: '/kids', icon: Baby, title: 'Çocuk Modu', desc: 'Bahçe, hikâye ve oyun', color: '#2D8A4E', isKids: true },
   { path: '/hazine', icon: Compass, title: 'Nur Hazinesi', desc: 'Dualar ve sırlar', color: '#F59E0B' },
   { path: '/yol', icon: Route, title: 'Nur Yolu', desc: 'Kişisel gelişim', color: '#10B981' },
   { path: '/night', icon: Moon, title: 'Gece Modu', desc: 'Uyku öncesi', color: '#6366F1' },
@@ -114,6 +117,8 @@ const GAME_PREVIEWS = [
 
 export default function DiscoverPage() {
   useDiscoverContent();
+  const { theme } = useTheme();
+  const { setAppMode } = useAppMode();
   // Başlıktaki sayılar gerçek veridir: yolda geçen gün (cihaz) ve seviye (oyunlaştırma önbelleği).
   const activeDays = Object.values(getHistory()).filter((h) => h.done > 0).length;
   const liveStats = getCachedStats();
@@ -123,6 +128,7 @@ export default function DiscoverPage() {
   const [copiedHadith, setCopiedHadith] = useState(false);
 
   const dailyHadith = getDailyHadith();
+  const linkColor = theme.isDark ? theme.gold : theme.primary;
 
   useEffect(() => { setLoaded(true); }, []);
 
@@ -161,12 +167,22 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="min-h-screen pb-28 bg-[var(--bg-primary)] text-white relative font-sans overflow-x-hidden">
-      {/* Background gradient */}
-      <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#072F21] via-[#0A1F15] to-[#0A1A12] z-0 pointer-events-none" />
+    <div
+      className="min-h-screen pb-28 relative font-sans overflow-x-hidden transition-colors duration-300"
+      style={{ background: theme.bg, color: theme.textPrimary }}
+    >
+      {/* Background gradient — dynamically adapts to active theme */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[560px] z-0 pointer-events-none transition-all duration-300"
+        style={{
+          background: theme.isDark
+            ? `linear-gradient(180deg, ${theme.surfaceLight} 0%, ${theme.surface} 55%, ${theme.bg} 100%)`
+            : `linear-gradient(180deg, ${theme.primary}18 0%, ${theme.gold}10 52%, ${theme.bg} 100%)`,
+        }}
+      />
       
       {/* Subtle pattern */}
-      <div className="absolute top-0 left-0 right-0 h-[600px] opacity-[0.03] pointer-events-none z-[1]" 
+      <div className="absolute top-0 left-0 right-0 h-[560px] opacity-[0.03] pointer-events-none z-[1]" 
         style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/arabesque.png")' }} />
 
       {/* Content */}
@@ -184,45 +200,61 @@ export default function DiscoverPage() {
 
         {/* ── Günün Hadis-i Şerifi (YENİ & SÜPER) ── */}
         <FadeIn delay={150} className="px-4 mt-6">
-          <div className="bg-gradient-to-br from-[#132A1D] to-[#0D2418] border border-[color:var(--bg-surface-light)] rounded-[28px] p-5 relative overflow-hidden shadow-xl">
+          <div
+            className="rounded-[28px] p-5 relative overflow-hidden shadow-xl transition-colors duration-300"
+            style={{
+              background: theme.isDark
+                ? `linear-gradient(145deg, ${theme.surfaceLight} 0%, ${theme.surface} 100%)`
+                : theme.cardBg,
+              border: `1px solid ${theme.cardBorder}`,
+            }}
+          >
             <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2 bg-[#d97706]/10 text-[#d97706] border border-[#d97706]/20 px-3 py-1 rounded-full text-xs font-bold">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold"
+                style={{ background: `${theme.gold}18`, color: theme.gold, border: `1px solid ${theme.gold}35` }}>
                 <Scroll size={14} />
                 <span>Günün Hadis-i Şerifi</span>
               </div>
-              <span className="text-[10px] font-bold text-gray-400 bg-white/5 px-2.5 py-0.5 rounded-md">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md"
+                style={{ background: theme.surfaceLight, color: theme.textSecondary }}>
                 Ravi: {dailyHadith.narrator}
               </span>
             </div>
 
             {/* Arabic Text */}
-            <div className="text-right text-2xl text-[color:var(--gold)] font-arabic leading-relaxed mb-3 dir-rtl" style={{ textShadow: '0 2px 8px rgba(205,164,52,0.15)' }}>
+            <div className="text-right text-2xl font-arabic leading-relaxed mb-3 dir-rtl"
+              style={{ color: theme.gold, textShadow: `0 2px 8px ${theme.gold}22` }}>
               {dailyHadith.arabic}
             </div>
 
             {/* Turkish Translation */}
-            <p className="text-gray-200 text-xs md:text-sm leading-relaxed mb-3 italic font-medium">
+            <p className="text-xs md:text-sm leading-relaxed mb-3 italic font-medium"
+              style={{ color: theme.textPrimary }}>
               "{dailyHadith.turkish}"
             </p>
 
             {/* Source & Actions */}
-            <div className="flex justify-between items-center pt-3 border-t border-white/5">
-              <span className="text-[11px] text-[#d97706] font-semibold">{dailyHadith.source}</span>
+            <div className="flex justify-between items-center pt-3" style={{ borderTop: `1px solid ${theme.cardBorder}` }}>
+              <span className="text-[11px] font-semibold" style={{ color: theme.gold }}>{dailyHadith.source}</span>
 
               <div className="flex gap-2">
                 <button
                   onClick={toggleHadithAudio}
-                  className={`px-3 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1 ${isPlayingHadith ? 'bg-[#d97706] text-stone-950 border-[#d97706]' : 'bg-[var(--bg-primary)] text-gray-300 border-[color:var(--bg-surface-light)] hover:border-[#d97706]'}`}
+                  className="px-3 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1"
+                  style={isPlayingHadith
+                    ? { background: theme.gold, color: '#1A1A1A', borderColor: theme.gold }
+                    : { background: theme.surface, color: theme.textPrimary, borderColor: theme.cardBorder }}
                 >
-                  {isPlayingHadith ? <Pause size={12} /> : <Volume2 size={12} className="text-[#d97706]" />}
+                  {isPlayingHadith ? <Pause size={12} /> : <Volume2 size={12} style={{ color: theme.gold }} />}
                   <span>{isPlayingHadith ? 'Durdur' : 'Sesli Oku'}</span>
                 </button>
 
                 <button
                   onClick={handleCopyHadith}
-                  className="px-3 py-1.5 rounded-full border bg-[var(--bg-primary)] border-[color:var(--bg-surface-light)] text-gray-300 hover:text-white text-xs font-bold transition-all flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1"
+                  style={{ background: theme.surface, color: theme.textPrimary, borderColor: theme.cardBorder }}
                 >
-                  {copiedHadith ? <Check size={12} className="text-green-400" /> : <Share2 size={12} className="text-gray-400" />}
+                  {copiedHadith ? <Check size={12} className="text-green-500" /> : <Share2 size={12} style={{ color: theme.textSecondary }} />}
                   <span>{copiedHadith ? 'Kopyalandı' : 'Paylaş'}</span>
                 </button>
               </div>
@@ -239,8 +271,8 @@ export default function DiscoverPage() {
         <FadeIn delay={300} className="mt-10 px-4">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <Sparkles size={18} className="text-[#f59e0b]" />
-              <h2 className="text-xl font-bold text-white tracking-wide">Öne Çıkan İlim Modülleri</h2>
+              <Sparkles size={18} style={{ color: theme.gold }} />
+              <h2 className="text-xl font-bold tracking-wide" style={{ color: theme.textPrimary }}>Öne Çıkan İlim Modülleri</h2>
             </div>
           </div>
 
@@ -291,7 +323,7 @@ export default function DiscoverPage() {
         {/* ── Hızlı Erişim Grid ── */}
         <FadeIn delay={600} className="mt-10 px-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white tracking-wide">Hızlı Erişim</h2>
+            <h2 className="text-xl font-bold tracking-wide" style={{ color: theme.textPrimary }}>Hızlı Erişim</h2>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -300,8 +332,19 @@ export default function DiscoverPage() {
               return (
                 <FadeIn key={mod.path} delay={650 + i * 60}>
                   <button
-                    onClick={() => navigate(mod.path)}
-                    className="flex items-center gap-3 bg-[#0D2418] border border-white/5 p-3.5 rounded-2xl text-start hover:bg-[#123121] hover:border-white/10 transition-all group w-full"
+                    onClick={() => {
+                      if (mod.isKids) {
+                        setAppMode('child');
+                        navigate('/kids');
+                      } else {
+                        navigate(mod.path);
+                      }
+                    }}
+                    className="flex items-center gap-3 p-3.5 rounded-2xl text-start transition-all group w-full shadow-sm"
+                    style={{
+                      background: theme.cardBg,
+                      border: `1px solid ${theme.cardBorder}`,
+                    }}
                   >
                     <div 
                       className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 group-hover:rotate-3"
@@ -310,10 +353,10 @@ export default function DiscoverPage() {
                       <Icon size={22} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-white truncate">{mod.title}</p>
-                      <p className="text-[11px] text-gray-400 truncate">{mod.desc}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: theme.textPrimary }}>{mod.title}</p>
+                      <p className="text-[11px] truncate" style={{ color: theme.textSecondary }}>{mod.desc}</p>
                     </div>
-                    <ChevronRight size={14} className="text-gray-500 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ChevronRight size={14} className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: theme.textSecondary }} />
                   </button>
                 </FadeIn>
               );
@@ -325,12 +368,13 @@ export default function DiscoverPage() {
         <FadeIn delay={850} className="mt-10">
           <div className="flex items-center justify-between px-4 mb-4">
             <div className="flex items-center gap-2">
-              <Gamepad2 size={18} className="text-[#84CC16]" />
-              <h2 className="text-xl font-bold text-white tracking-wide">Oyun Dünyası</h2>
+              <Gamepad2 size={18} style={{ color: theme.gold }} />
+              <h2 className="text-xl font-bold tracking-wide" style={{ color: theme.textPrimary }}>Oyun Dünyası</h2>
             </div>
             <button 
               onClick={() => navigate('/games')} 
-              className="text-xs text-[#10b981] font-medium flex items-center gap-1 hover:text-[#059669] transition-colors"
+              className="text-xs font-bold flex items-center gap-1 transition-colors"
+              style={{ color: linkColor }}
             >
               Tümü <ChevronRight size={14} />
             </button>
@@ -341,12 +385,15 @@ export default function DiscoverPage() {
               <FadeIn key={game.id} delay={900 + idx * 60}>
                 <button
                   onClick={() => navigate('/games')}
-                  className="relative min-w-[150px] w-[150px] h-[190px] rounded-[24px] overflow-hidden snap-start shrink-0 cursor-pointer group shadow-xl text-start"
-                  style={{ backgroundColor: game.color + '15' }}
+                  className="relative min-w-[150px] w-[150px] h-[190px] rounded-[24px] overflow-hidden snap-start shrink-0 cursor-pointer group shadow-lg text-start transition-colors duration-300"
+                  style={{
+                    background: theme.isDark
+                      ? `linear-gradient(155deg, ${game.color}28 0%, ${theme.surface} 100%)`
+                      : `linear-gradient(155deg, ${game.color}18 0%, ${theme.cardBg} 100%)`,
+                    border: `1px solid ${theme.cardBorder}`,
+                  }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0A1A12]/90 pointer-events-none" />
-                  
-                  <div className="absolute top-4 right-3 text-5xl opacity-30 group-hover:opacity-50 group-hover:scale-110 transition-all duration-500">
+                  <div className="absolute top-4 right-3 text-5xl opacity-25 group-hover:opacity-45 group-hover:scale-110 transition-all duration-500">
                     {game.emoji}
                   </div>
                   
@@ -358,14 +405,14 @@ export default function DiscoverPage() {
                       >
                         {game.emoji}
                       </div>
-                      <h3 className="text-white text-sm font-bold leading-tight">{game.title}</h3>
-                      <p className="text-gray-400 text-[10px] mt-1">{game.desc}</p>
+                      <h3 className="text-sm font-bold leading-tight" style={{ color: theme.textPrimary }}>{game.title}</h3>
+                      <p className="text-[10px] mt-1" style={{ color: theme.textSecondary }}>{game.desc}</p>
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
-                        <Zap size={10} className="text-[#f59e0b]" />
-                        <span className="text-[9px] font-bold text-[#f59e0b]">{game.xp} XP</span>
+                        <Zap size={10} style={{ color: theme.gold }} />
+                        <span className="text-[9px] font-bold" style={{ color: theme.gold }}>{game.xp} XP</span>
                       </div>
                       <div 
                         className="w-6 h-6 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform"

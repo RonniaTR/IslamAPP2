@@ -7,11 +7,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function QuestionCard({ q, color = '#B0893C', state, picked, hidden = [], onPick, kids = false, theme }) {
   const big = kids ? 1.12 : 1;
   const ink = theme?.textPrimary || '#17261F';
+  const qCardBg = theme ? (theme.isDark ? theme.surfaceLight : theme.surface) : '#FBF8F0';
+  const qCardInk = theme?.textPrimary || '#1A1A1A';
   return (
     <AnimatePresence mode="wait">
       <motion.div key={q.id} initial={{ opacity: 0, y: 36, rotateX: -12 }} animate={{ opacity: 1, y: 0, rotateX: 0 }} exit={{ opacity: 0, y: -24, scale: 0.97 }}
         transition={{ type: 'spring', stiffness: 220, damping: 24 }} style={{ display: 'flex', flexDirection: 'column', gap: 10, perspective: 800 }}>
-        <div style={{ background: '#FBF8F0', color: '#1A1A1A', borderRadius: 24, padding: '20px 18px', border: `1px solid ${color}55`, boxShadow: `0 12px 30px -16px ${color}`, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: qCardBg, color: qCardInk, borderRadius: 24, padding: '20px 18px', border: `1px solid ${color}55`, boxShadow: `0 12px 30px -16px ${color}`, position: 'relative', overflow: 'hidden' }}>
           <span aria-hidden style={{ position: 'absolute', insetInlineStart: 0, top: 0, bottom: 0, width: 5, background: color }} />
           <p style={{ fontFamily: 'var(--font-heading)', fontSize: 19 * big, lineHeight: 1.45, fontWeight: 600, margin: 0 }}>{q.question}</p>
         </div>

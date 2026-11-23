@@ -45,13 +45,13 @@ export default function ParentSettings() {
               Yetişkin
             </button>
             <button
-              onClick={() => setAppMode('kids')}
+              onClick={() => { setAppMode('child'); navigate('/kids'); }}
               style={{
                 flex: 1, padding: '12px', borderRadius: RADIUS.lg,
-                background: appMode === 'kids' ? '#10B981' : 'transparent',
-                color: appMode === 'kids' ? '#FFFFFF' : '#6B7280',
+                background: appMode === 'child' ? '#10B981' : 'transparent',
+                color: appMode === 'child' ? '#FFFFFF' : '#6B7280',
                 border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, fontFamily: TYPOGRAPHY.fonts.primary,
-                boxShadow: appMode === 'kids' ? '0 4px 10px rgba(16, 185, 129, 0.3)' : 'none', transition: 'all 0.2s ease'
+                boxShadow: appMode === 'child' ? '0 4px 10px rgba(16, 185, 129, 0.3)' : 'none', transition: 'all 0.2s ease'
               }}
             >
               Çocuk

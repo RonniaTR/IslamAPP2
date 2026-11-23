@@ -1,9 +1,11 @@
 import React from 'react';
 import { ChevronRight, BookOpen, Heart, Star, Moon, Book, Scale, Sun, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export function QuickCategories() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const categories = [
     { id: 'quran', title: "Kur'an", icon: BookOpen, color: 'bg-[#10b981]', path: '/quran' },
@@ -19,10 +21,11 @@ export function QuickCategories() {
   return (
     <div className="flex flex-col font-sans">
       <div className="flex justify-between items-center px-4 mb-4">
-        <h2 className="text-xl font-bold text-white tracking-wide">Hızlı Kategoriler</h2>
+        <h2 className="text-xl font-bold tracking-wide" style={{ color: theme.textPrimary }}>Hızlı Kategoriler</h2>
         <button 
           onClick={() => navigate('/library')}
-          className="text-xs text-[#10b981] font-medium flex items-center gap-1 hover:text-[#059669] transition-colors"
+          className="text-xs font-bold flex items-center gap-1 transition-colors"
+          style={{ color: theme.isDark ? theme.gold : theme.primary }}
         >
           Tümü <ChevronRight size={14} />
         </button>
@@ -41,7 +44,7 @@ export function QuickCategories() {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
                 <Icon size={32} className="text-white drop-shadow-md z-10" />
               </div>
-              <span className="text-[11px] font-bold text-gray-300 group-hover:text-white transition-colors text-center w-full truncate px-1">
+              <span className="text-[11px] font-bold transition-colors text-center w-full truncate px-1" style={{ color: theme.textPrimary }}>
                 {cat.title}
               </span>
             </div>

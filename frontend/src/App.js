@@ -150,6 +150,12 @@ function PageLoader() {
   return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F5F0' }} />;
 }
 
+function KidsModeSwitch() {
+  const { setAppMode } = useAppMode();
+  useEffect(() => { setAppMode('child'); }, [setAppMode]);
+  return <PageLoader />;
+}
+
 // --- Yetişkin Router ---
 function AdultRoutes() {
   const location = useLocation();
@@ -222,6 +228,8 @@ function AdultRoutes() {
               <Route path="/siyer" element={<PageTransition><SiyerPage /></PageTransition>} />
               <Route path="/musluman-olmak" element={<MuslumanOlmakPage />} />
               <Route path="/prophets" element={<PageTransition><ProphetsPage /></PageTransition>} />
+              <Route path="/kids" element={<KidsModeSwitch />} />
+              <Route path="/kids/*" element={<KidsModeSwitch />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </AnimatePresence>

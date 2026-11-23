@@ -307,7 +307,7 @@ export default function SettingsPage() {
           onOpen={() => { const g = gate; setGate(null); if (g === 'mod') setGecis('adult'); else setHesapAcik(true); }} />
       )}
       {gecis && (
-        <ModGecisi to={gecis} onDone={() => { const m = gecis; setAppMode(m); navigate(m === 'child' ? '/kids' : '/', { replace: true }); }} />
+        <ModGecisi to={gecis} onDone={() => { const m = gecis; setGecis(null); setAppMode(m); navigate(m === 'child' ? '/kids' : '/', { replace: true }); }} />
       )}
     </div>
   );

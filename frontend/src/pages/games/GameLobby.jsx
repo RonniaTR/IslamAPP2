@@ -82,7 +82,7 @@ export default function GameLobby({ game, meta = {}, leaderboard = [], theme, on
       <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}
         onClick={onStart} whileTap={{ scale: 0.97 }}
         className="w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 mb-3"
-        style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: '#fff', boxShadow: '0 8px 30px #10B98140' }}>
+        style={{ background: theme.primaryGradient || `linear-gradient(135deg, ${theme.primary}, ${theme.primaryLight || theme.primary})`, color: '#fff', boxShadow: `0 8px 30px ${theme.primary}40` }}>
         <Play size={18} fill="#fff" /> Oyuna Başla
       </motion.button>
     </div>

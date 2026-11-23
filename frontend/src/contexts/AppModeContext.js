@@ -22,18 +22,23 @@ export function AppModeProvider({ children }) {
   const [hasCompletedOnboarding, setHasCompletedOnboardingState] = useState(
     () => localStorage.getItem(STORAGE_KEYS.onboarding) === 'true'
   );
-  const [activeChildProfile, setActiveChildProfileState] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.childProfile);
-      return stored ? JSON.parse(stored) : null;
-    } catch { return null; }
-  });
   const [childProfiles, setChildProfilesState] = useState(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.childProfiles);
       const list = stored ? JSON.parse(stored) : DEFAULT_CHILD_PROFILES;
       return Array.isArray(list) ? list.filter((p) => p && !FAKE_IDS.includes(p.id)) : DEFAULT_CHILD_PROFILES;
     } catch { return DEFAULT_CHILD_PROFILES; }
+  });
+  const [activeChildProfile, setActiveChildProfileState] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.childProfile);
+      const parsed = stored ? JSON.parse(stored) : null;
+      if (parsed && !FAKE_IDS.includes(parsed.id) && parsed.name) return parsed;
+      const listStored = localStorage.getItem(STORAGE_KEYS.childProfiles);
+      const list = listStored ? JSON.parse(listStored) : [];
+      const valid = Array.isArray(list) ? list.filter((p) => p && !FAKE_IDS.includes(p.id) && p.name) : [];
+      return valid[0] || null;
+    } catch { return null; }
   });
 
   const setAppMode = useCallback((mode) => {

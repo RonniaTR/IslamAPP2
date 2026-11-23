@@ -147,15 +147,17 @@ function DailyQuestion({ theme, onXP, onEvent }) {
     if (ok) onXP(30, 'game_quiz', 'Günün Sorusu');
   };
 
+  const accentColor = theme.isDark ? theme.gold : theme.primary;
+
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}
-      className="mx-5 mb-3 rounded-2xl p-4 relative overflow-hidden"
-      style={{ background: `linear-gradient(150deg, #10B98112, ${theme.surface})`, border: '1.5px solid #10B98140' }}>
+      className="mb-3 rounded-2xl p-4 relative overflow-hidden transition-colors duration-300"
+      style={{ background: `linear-gradient(150deg, ${theme.primary}14, ${theme.cardBg})`, border: `1.5px solid ${theme.cardBorder}` }}>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#10B981' }}>
+        <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: accentColor }}>
           📌 Günün Sorusu · +30 XP
         </p>
-        {streak > 0 && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: '#F59E0B18', color: '#F59E0B' }}>🔁 {streak} gün</span>}
+        {streak > 0 && <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: `${theme.gold}22`, color: theme.gold }}>🔁 {streak} gün</span>}
       </div>
       <p className="text-sm font-bold mb-3" style={{ color: theme.textPrimary }}>{q.question}</p>
       <div className="grid grid-cols-2 gap-2">
@@ -166,7 +168,7 @@ function DailyQuestion({ theme, onXP, onEvent }) {
             <button key={i} onClick={() => answer(i)} disabled={!!answered}
               className="p-2.5 rounded-xl text-[11px] font-semibold text-start transition-all active:scale-95"
               style={{
-                background: isRight ? '#10B98122' : chosen ? '#EF444422' : `${theme.textSecondary}0d`,
+                background: isRight ? '#10B98122' : chosen ? '#EF444422' : theme.surface,
                 border: `1px solid ${isRight ? '#10B981' : chosen ? '#EF4444' : theme.cardBorder}`,
                 color: theme.textPrimary,
               }}>
@@ -176,7 +178,7 @@ function DailyQuestion({ theme, onXP, onEvent }) {
         })}
       </div>
       {answered && (
-        <p className="text-[10px] mt-2.5 leading-relaxed" style={{ color: answered.ok ? '#10B981' : theme.textSecondary }}>
+        <p className="text-[10px] mt-2.5 leading-relaxed" style={{ color: answered.ok ? accentColor : theme.textSecondary }}>
           {answered.ok ? '✅ Doğru! Yarın yeni soru seni bekliyor.' : `❌ Doğrusu: ${q.options[q.correct_index]}.`} {q.explanation}
         </p>
       )}
@@ -520,7 +522,7 @@ export default function GamesPage() {
     </div>
   );
   const serif = { fontFamily: 'var(--font-heading)', fontWeight: 600, letterSpacing: -0.4 };
-  const goldBtn = { minHeight: 50, padding: '0 26px', borderRadius: 25, background: '#E2B85A', color: '#2A1E05', fontWeight: 800, fontSize: 15, display: 'inline-flex', alignItems: 'center', gap: 8 };
+  const goldBtn = { minHeight: 50, padding: '0 26px', borderRadius: 25, background: theme.gold, color: '#1A1A1A', fontWeight: 800, fontSize: 15, display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer' };
 
   if (stage === 'module' && module) {
     const best = Math.max(0, ...module.rounds.map((id) => (gameMeta[id] && gameMeta[id].best) || 0));
@@ -579,48 +581,60 @@ export default function GamesPage() {
   const dailyGame = modeOf(dailyGameId);
   const initial = (username || '?').trim().charAt(0).toLocaleUpperCase('tr');
   const C = 2 * Math.PI * 27;
+  const headerAccent = theme.isDark ? theme.gold : theme.primary;
   return (
-    <div className="min-h-screen pb-28" style={{ background: theme.bg, color: theme.textPrimary }}>
+    <div className="min-h-screen pb-28 transition-colors duration-300" style={{ background: theme.bg, color: theme.textPrimary }}>
       {levelUpOverlay}{xpBar}
 
-      {/* GECE BAŞLIĞI */}
-      <header style={{ position: 'relative', overflow: 'hidden', borderRadius: '0 0 34px 34px', color: '#F6EFDD', padding: '22px 20px 26px',
-        background: 'linear-gradient(180deg, #0A1024 0%, #15214A 70%, #22305E 100%)' }}>
-        <svg viewBox="0 0 360 160" preserveAspectRatio="xMidYMid slice" aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-          {Array.from({ length: 30 }, (_, i) => (
-            <motion.circle key={i} cx={(i * 53) % 360} cy={(i * 37) % 120} r={0.6 + (i % 3) * 0.5} fill="#FFF8E6" animate={{ opacity: [0.15, 0.9, 0.15] }} transition={{ duration: 2 + (i % 5), repeat: Infinity, delay: i * 0.17 }} />
-          ))}
-        </svg>
+      {/* TEMAYA DUYARLI BAŞLIK */}
+      <header style={{
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: '0 0 34px 34px',
+        color: theme.textPrimary,
+        padding: '22px 20px 26px',
+        background: theme.isDark
+          ? `linear-gradient(180deg, ${theme.surfaceLight} 0%, ${theme.surface} 68%, ${theme.bg} 100%)`
+          : `linear-gradient(165deg, ${theme.surfaceLight} 0%, ${theme.surface} 62%, ${theme.bg} 100%)`,
+        borderBottom: `1px solid ${theme.cardBorder}`,
+      }}>
+        {theme.isDark && (
+          <svg viewBox="0 0 360 160" preserveAspectRatio="xMidYMid slice" aria-hidden style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+            {Array.from({ length: 30 }, (_, i) => (
+              <motion.circle key={i} cx={(i * 53) % 360} cy={(i * 37) % 120} r={0.6 + (i % 3) * 0.5} fill={theme.goldLight || '#FFF8E6'} animate={{ opacity: [0.15, 0.85, 0.15] }} transition={{ duration: 2 + (i % 5), repeat: Infinity, delay: i * 0.17 }} />
+            ))}
+          </svg>
+        )}
         <div style={{ position: 'relative', maxWidth: 560, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.4, color: '#E2B85A' }}>BİLGİ MEYDANI</span>
+            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2.4, color: headerAccent }}>BİLGİ MEYDANI</span>
             <button type="button" onClick={() => { const v = !sfxOn; setSfxOn(v); setSfxEnabled(v); }} aria-label={sfxOn ? 'Sesi kapat' : 'Sesi aç'}
-              style={{ minHeight: 34, padding: '0 12px', borderRadius: 17, background: 'rgba(255,255,255,0.08)', color: '#F6EFDD', fontSize: 12, fontWeight: 600 }}>{sfxOn ? '♪ Ses açık' : '♪ Ses kapalı'}</button>
+              style={{ minHeight: 34, padding: '0 12px', borderRadius: 17, background: theme.cardBg, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{sfxOn ? '♪ Ses açık' : '♪ Ses kapalı'}</button>
           </div>
-          <h1 style={{ ...serif, fontSize: 34, margin: '10px 0 16px', lineHeight: 1.1 }}>Bil, yüksel,<br />ışığını yak.</h1>
+          <h1 style={{ ...serif, fontSize: 34, margin: '10px 0 16px', lineHeight: 1.1, color: theme.textPrimary }}>Bil, yüksel,<br />ışığını yak.</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ position: 'relative', width: 64, height: 64, flexShrink: 0 }}>
               <svg width="64" height="64" viewBox="0 0 64 64" style={{ transform: 'rotate(-90deg)' }} aria-hidden>
-                <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="5" />
-                <motion.circle cx="32" cy="32" r="27" fill="none" stroke="#E2B85A" strokeWidth="5" strokeLinecap="round" strokeDasharray={C}
+                <circle cx="32" cy="32" r="27" fill="none" stroke={theme.cardBorder} strokeWidth="5" />
+                <motion.circle cx="32" cy="32" r="27" fill="none" stroke={theme.gold} strokeWidth="5" strokeLinecap="round" strokeDasharray={C}
                   initial={{ strokeDashoffset: C }} animate={{ strokeDashoffset: C * (1 - pct / 100) }} transition={{ duration: 1.2, ease: 'easeOut' }} />
               </svg>
-              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', ...serif, fontSize: 24 }}>{initial}</span>
+              <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', ...serif, fontSize: 24, color: theme.textPrimary }}>{initial}</span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{levelTitle} · {lvl}. seviye</p>
-              <p style={{ margin: '2px 0 0', fontSize: 13, color: '#BFC6DD' }}>{totalXP.toLocaleString('tr-TR')} / {next.toLocaleString('tr-TR')} XP</p>
+              <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: theme.textPrimary }}>{levelTitle} · {lvl}. seviye</p>
+              <p style={{ margin: '2px 0 0', fontSize: 13, color: theme.textSecondary }}>{totalXP.toLocaleString('tr-TR')} / {next.toLocaleString('tr-TR')} XP</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <LeagueEmblem color={league.cur.color} size={40} />
-              <span style={{ fontSize: 10, color: '#BFC6DD', marginTop: 2 }}>{league.cur.name}</span>
+              <span style={{ fontSize: 10, color: theme.textSecondary, marginTop: 2 }}>{league.cur.name}</span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             {[[`🔥 ${streak}`, 'gün seri'], [`${totals.correct}`, 'doğru'], [`${Math.min(week.xp, WEEK_GOAL)}/${WEEK_GOAL}`, 'haftalık hedef']].map(([v, l]) => (
-              <div key={l} style={{ flex: 1, borderRadius: 16, padding: '10px 8px', background: 'rgba(255,255,255,0.07)', textAlign: 'center' }}>
-                <p style={{ margin: 0, fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{v}</p>
-                <p style={{ margin: 0, fontSize: 10, color: '#BFC6DD' }}>{l}</p>
+              <div key={l} style={{ flex: 1, borderRadius: 16, padding: '10px 8px', background: theme.cardBg, border: `1px solid ${theme.cardBorder}`, textAlign: 'center' }}>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums', color: theme.textPrimary }}>{v}</p>
+                <p style={{ margin: 0, fontSize: 10, color: theme.textSecondary }}>{l}</p>
               </div>
             ))}
           </div>
@@ -640,20 +654,27 @@ export default function GamesPage() {
           </motion.button>
         )}
 
-        {/* MODÜLLER */}
+        {/* MODÜLLER — temaya duyarlı kart yapısı */}
         {MODULES.map((m, i) => (
           <motion.article key={m.id} layoutId={`mod-${m.id}`} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 * i, type: 'spring', stiffness: 160, damping: 22 }}
-            style={{ position: 'relative', borderRadius: 30, overflow: 'hidden', boxShadow: '0 22px 40px -24px rgba(8,10,25,0.9)' }}>
-            <button type="button" onClick={() => openModule(m)} aria-label={m.title} style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none' }}>
-              <ModuleScene id={m.id} height={i === 0 ? 230 : 190} />
+            style={{
+              position: 'relative',
+              borderRadius: 28,
+              overflow: 'hidden',
+              background: theme.cardBg,
+              border: `1.5px solid ${theme.cardBorder}`,
+              boxShadow: theme.isDark ? '0 18px 36px -20px rgba(0,0,0,0.75)' : '0 10px 28px -14px rgba(0,0,0,0.12)',
+            }}>
+            <button type="button" onClick={() => openModule(m)} aria-label={m.title} style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none', cursor: 'pointer', position: 'relative' }}>
+              <ModuleScene id={m.id} height={i === 0 ? 175 : 148} />
             </button>
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(5,6,14,0.88) 100%)' }} />
-            <div style={{ position: 'absolute', insetInline: 18, bottom: 16, color: '#F6EFDD', display: 'flex', alignItems: 'flex-end', gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.8, color: m.accent, textTransform: 'uppercase' }}>{m.tag}</span>
-                <h2 style={{ ...serif, fontSize: i === 0 ? 32 : 26, margin: '2px 0 0', lineHeight: 1.1 }}>{m.title}</h2>
+            <div style={{ padding: '14px 18px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, background: theme.cardBg }}>
+              <div onClick={() => openModule(m)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.8, color: headerAccent, textTransform: 'uppercase' }}>{m.tag}</span>
+                <h2 style={{ ...serif, fontSize: i === 0 ? 26 : 22, margin: '2px 0 4px', lineHeight: 1.15, color: theme.textPrimary }}>{m.title}</h2>
+                <p style={{ margin: 0, fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.4 }}>{m.desc}</p>
               </div>
-              <motion.button type="button" whileTap={{ scale: 0.93 }} onClick={() => playModule(m)} style={{ ...goldBtn, minHeight: 46, padding: '0 20px' }}>▶ Oyna</motion.button>
+              <motion.button type="button" whileTap={{ scale: 0.93 }} onClick={() => playModule(m)} style={{ ...goldBtn, minHeight: 46, padding: '0 20px', flexShrink: 0 }}>▶ Oyna</motion.button>
             </div>
           </motion.article>
         ))}
