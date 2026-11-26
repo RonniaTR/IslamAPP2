@@ -4,7 +4,18 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800;900&family=Amiri:wght@400;700&family=Nunito:wght@400;500;600;700;800;900&display=swap');
 
+/* OKUMA HARFİ — kitap, kıssa, makale ve meal okurken kullanılan yazı tipi.
+   Della Respira (SIL OFL 1.1) temel alınarak Türkçe harfler (ş Ş ğ Ğ İ) eklendi; OFL gereği farklı adla: src/assets/fonts/ */
+@font-face {
+  font-family: 'Okuma Harfi';
+  src: url('./assets/fonts/okuma-harfi.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
+  --font-okuma: 'Okuma Harfi', 'Literata', Georgia, serif;
   --bg-primary: #F5F5F0;
   --bg-surface: #FFFFFF;
   --bg-surface-light: #F0EBE3;
@@ -607,3 +618,6 @@ button:active:not(:disabled), a:active { transform: scale(0.97); filter: brightn
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Okuma yüzeyleri: kıssa ve makale gövdesi Okuma Harfi ile */
+.article-body, .article-body p { font-family: var(--font-okuma); line-height: 1.75; }

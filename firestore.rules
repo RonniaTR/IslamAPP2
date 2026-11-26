@@ -96,6 +96,17 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Ortak salavat (services/salavat.js): gün başına 10 parçalı ANONİM sayaç. Yalnız `n` alanı; her yazma 1–100 artış.
+    // Kimlik, konum, saat yok. Kötüye kullanım için App Check açılmalıdır.
+    match /salavat/{gun}/parca/{parca} {
+      allow read: if true;
+      allow create: if parca.matches('p[0-9]') && request.resource.data.keys().hasOnly(['n'])
+        && request.resource.data.n is int && request.resource.data.n >= 1 && request.resource.data.n <= 100;
+      allow update: if request.resource.data.keys().hasOnly(['n']) && request.resource.data.n is int
+        && request.resource.data.n > resource.data.n && request.resource.data.n <= resource.data.n + 100;
+      allow delete: if false;
+    }
+
     // Yapay zekâ cevabı bildirimi (services/aiReports.js): kimliksiz, yalnız oluşturma; okuma ve silme kapalı.
     // Alanlar ve boyutlar sınırlı; konsoldan (yönetici erişimi) okunur.
     match /ai_reports/{id} {

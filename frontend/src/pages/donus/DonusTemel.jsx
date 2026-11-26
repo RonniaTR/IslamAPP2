@@ -362,7 +362,7 @@ export default function DonusTemel() {
                           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                           transition={{ delay: 0.15 }}
                           className="text-[12px] sm:text-[12.5px] italic leading-relaxed" {...dirProps}
-                          style={{ fontFamily: 'Georgia, serif', color: p.text, opacity: 0.85, ...dirStyle }}>
+                          style={{ fontFamily: 'var(--font-okuma)', color: p.text, opacity: 0.85, ...dirStyle }}>
                           "{it.tr}"
                         </motion.p>
                       )}

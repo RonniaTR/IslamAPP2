@@ -98,12 +98,15 @@ const FEATURED_MODULES = [
 
 /* ─── Quick Access Grid ─── */
 const QUICK_ACCESS = [
+  { path: '/ayet-tablosu', icon: PenTool, title: 'Ayet Tablosu', desc: 'Çini, Gece, Bahar, Kemer', color: '#D8B76A' },
+  { path: '/salavat', icon: Sparkles, title: 'Ortak Salavat', desc: 'Bugün hep birlikte', color: '#14B8A6' },
+  { path: '/sevap-points', icon: Star, title: 'Sevap Points', desc: 'Yıldız haritan ve ağacın', color: '#10B981' },
+  { path: '/musluman-olmak', icon: BookOpen, title: 'Müslüman Olmak', desc: 'Kitap ve Hikmet Mecmuası', color: '#D97706' },
   { path: '/kids', icon: Baby, title: 'Çocuk Modu', desc: 'Bahçe, hikâye ve oyun', color: '#2D8A4E', isKids: true },
   { path: '/hazine', icon: Compass, title: 'Nur Hazinesi', desc: 'Dualar ve sırlar', color: '#F59E0B' },
   { path: '/yol', icon: Route, title: 'Nur Yolu', desc: 'Kişisel gelişim', color: '#10B981' },
   { path: '/night', icon: Moon, title: 'Gece Modu', desc: 'Uyku öncesi', color: '#6366F1' },
   { path: '/library', icon: Library, title: 'Kütüphane', desc: 'Makaleler', color: '#EC4899' },
-  { path: '/hifz', icon: BookOpen, title: 'Ezber Asistanı', desc: 'Sure ezberi', color: '#3B82F6' },
   { path: '/journal', icon: BookOpen, title: 'Amel Defteri', desc: 'Günlük muhasebe', color: '#F97316' },
 ];
 

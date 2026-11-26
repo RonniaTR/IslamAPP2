@@ -14,38 +14,37 @@
 
 Üniversiteler Mah. Dumlupınar Bulv. No: 147/A, 06800 Çankaya / ANKARA
 
-**Konu:** Dijital eser onayı ve Kur'an-ı Kerim meali kullanım izni talebi
+**Konu:** "İslamiApp" mobil ve web uygulaması için dijital eser (Mushaf/Kur'an-ı Kerim) inceleme, onay ve meal kullanım izni talebi
 
-Geliştiricisi olduğum **[uygulamanın yayın adı]** adlı mobil ve web uygulaması, kullanıcılarına ücretsiz ve
-reklamsız olarak sunulmak üzere hazırlanmış bir İslami yaşam uygulamasıdır. Uygulamada Kur'an-ı Kerim'in Arapça
-metni, meali ve tilaveti yer almaktadır.
+Geliştiricisi olduğum **İslamiApp** (`com.ronniatr.islamapp`) adlı mobil (Android/iOS) ve web (PWA) uygulaması, kullanıcılarına tamamen **ücretsiz, reklamsız ve uygulama içi satın alma olmaksızın** sunulmak üzere hazırlanmış bir İslami yaşam ve ilim rehberidir. Uygulama bünyesinde Kur'an-ı Kerim'in Arapça metni (Mushaf ve sure görünümü), Türkçe/İngilizce meali, muhtasar tefsiri ve sesli tilaveti yer almaktadır.
 
-633 sayılı Diyanet İşleri Başkanlığı Kuruluş ve Görevleri Hakkında Kanun ile Kur'an-ı Kerim Basım ve Yayım
-Kriterleri Hakkında Yönetmelik uyarınca;
+633 sayılı Diyanet İşleri Başkanlığı Kuruluş ve Görevleri Hakkında Kanun (7549 sayılı Kanun değişiklikleri dâhil) ile Kur'an-ı Kerim Basım ve Yayım Kriterleri Hakkında Yönetmelik hükümleri uyarınca;
 
-1. Uygulamanın Kur'an-ı Kerim içeren bölümlerinin **dijital eser** olarak incelenmesini ve uygun bulunması hâlinde
-   onaylanmasını,
-2. Başkanlığınızca hazırlanan **Kur'an-ı Kerim Meali**'nin, kaynak gösterilerek ve metne hiçbir değişiklik
-   yapılmadan, uygulamada ücretsiz olarak kullanılmasına izin verilmesini,
-3. Uygulamada Kur'an metni için kullanılması uygun görülen **yazı tipinin** tarafıma bildirilmesini
+1. Uygulamanın Kur'an-ı Kerim içeren bölümlerinin (`/mushaf`, `/quran`, `/hifz`, `/meal-audio`, `/kids/quran`) **dijital eser** kapsamında incelenmesini ve uygun bulunması hâlinde **dijital yayım onayının (mührünün)** verilmesini,
+2. Başkanlığınızca hazırlanan **Kur'an-ı Kerim Türkçe Meali**'nin, kaynak açıkça belirtilerek ve metne hiçbir müdahalede bulunulmadan uygulamamızda ücretsiz olarak kullanılmasına izin verilmesini,
+3. Dijital Mushaf ve sure okuma ekranlarımızda Kur'an-ı Kerim metni için kullanılması Kurulunuzca uygun görülen **Arapça hat/yazı tipinin** tarafıma bildirilmesini
 
-arz ederim.
+saygılarımla arz ve talep ederim.
 
-Uygulama henüz halka açık olarak yayımlanmamıştır; Kur'an-ı Kerim içeren bölümler onayınız alınana kadar kapalı
-tutulmaktadır. İncelemeniz için hazırlanan kapalı erişim bağlantısı ve içerik bilgileri ektedir. Kurulunuzun
-bildireceği her düzeltme yapılacak; Kur'an metni, yazı tipi veya mealde sonradan yapılacak her değişiklik için
-yeniden başvurulacaktır.
+Uygulamamızın genel erişime açık sürümünde (`https://islamapp-5942a.web.app`), Kur'an-ı Kerim içeren tüm bölümler Kurulunuzun resmi onayı alınana kadar teknik olarak kapalı tutulmaktadır (`"Diyanet onay sürecinde"` bilgilendirme perdesi). Yalnızca Kurul üyelerinizin incelemesi amacıyla oluşturulan **şifresiz, 30 gün geçerli özel inceleme bağlantısı** aşağıda ve ekte sunulmuştur:
 
-Gereğini saygılarımla arz ederim.
+- **Kurul İnceleme Bağlantısı:** `https://islamapp-5942a--kurul-inceleme-s9d7a4aa.web.app/?inceleme=1`
+- **Genel (Kur'an Bölümleri Kapalı) Adres:** `https://islamapp-5942a.web.app`
 
-[Tarih]
+Kurulunuzun inceleme neticesinde bildireceği her türlü tashih ve düzenleme derhâl yerine getirilecek; onay sonrasında Kur'an-ı Kerim metni, yazı tipi, sayfa tertibi veya mealde yapılacak her değişiklik için Kurulunuza yeniden başvurulacaktır.
 
-[Ad Soyad]
-[T.C. kimlik numarası — yalnız kâğıt nüshaya elle yazılır, bu dosyaya yazılmaz]
-[Adres]
-[Telefon] · [E-posta]
+Gereğini tensiplerinize arz ederim.
 
-[İmza]
+**Tarih:** … / … / 2026
+
+**Ad Soyad:** [Adınız Soyadınız]  
+**T.C. Kimlik No:** [Yalnızca ıslak imzalı basılı nüshaya elle yazınız]  
+**Adres:** [Açık Tebligat Adresiniz]  
+**Telefon:** [05XX XXX XX XX]  
+**E-posta:** [E-posta Adresiniz]  
+
+**İmza:**  
+*(Islak İmza)*
 
 **Ekler:**
 1. Uygulama künyesi (`kunye.md`)

@@ -16,7 +16,7 @@ import '@fontsource/fraunces/latin-ext-800.css';
 export const SAYFA = { w: 400, h: 640, pad: 30 };
 
 export const FONT = {
-  govde: "'Literata', Georgia, 'Times New Roman', serif",
+  govde: "var(--font-okuma)",
   baslik: "'Fraunces', 'Literata', Georgia, serif",
   arayuz: "'Noto Sans', system-ui, sans-serif",
 };

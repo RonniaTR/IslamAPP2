@@ -106,7 +106,7 @@ export default function DonusMektup() {
               border: `1.5px solid ${p.borderSoft}`, 
               color: p.text,
               backdropFilter: 'blur(4px)',
-              fontFamily: 'Georgia, serif',
+              fontFamily: 'var(--font-okuma)',
             }} />
 
           <div className="flex items-center justify-between mt-2">
@@ -185,7 +185,7 @@ export default function DonusMektup() {
             {new Date(letter.writtenAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
           <p className="text-[14px] leading-[1.95] whitespace-pre-wrap"
-            style={{ fontFamily: 'Georgia, serif', color: p.text }}>
+            style={{ fontFamily: 'var(--font-okuma)', color: p.text }}>
             {letter.text}
           </p>
           <div className="mt-6 pt-4 text-center" style={{ borderTop: `1px solid ${p.borderSoft}` }}>

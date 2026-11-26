@@ -2,12 +2,13 @@
 
 | | |
 |---|---|
-| Yayın adı | [karar verilecek — kodda "IslamAPP"] |
+| Yayın adı | İslamiApp (Bir Kapı) |
 | Tür | İslami yaşam uygulaması (Kur'an, namaz vakitleri, dua, ilim içerikleri) |
 | Platformlar | Web (PWA), Android, iOS |
 | Paket kimliği | `com.ronniatr.islamapp` |
 | Sürüm | 1.0.0 |
 | Web adresi | https://islamapp-5942a.web.app |
+| Kurul inceleme adresi | https://islamapp-5942a--kurul-inceleme-s9d7a4aa.web.app/?inceleme=1 |
 | Geliştirici | [Ad Soyad] — gerçek kişi |
 | İletişim | [e-posta] · [telefon] |
 | Ücret | Ücretsiz. Uygulama içi satın alma ve abonelik yoktur. |

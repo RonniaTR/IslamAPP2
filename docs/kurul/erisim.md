@@ -12,7 +12,7 @@ firebase hosting:channel:deploy kurul-inceleme --expires 30d
 
 Çıkan adresin sonuna `/?inceleme=1` eklenir ve Kurul'a o verilir:
 
-    https://islamapp-5942a--kurul-inceleme-XXXXXXXX.web.app/?inceleme=1    ← [kanal açılınca yazılacak]
+    https://islamapp-5942a--kurul-inceleme-s9d7a4aa.web.app/?inceleme=1
 
 **İnceleyen kişi için adımlar**
 1. Bağlantıyı açın.

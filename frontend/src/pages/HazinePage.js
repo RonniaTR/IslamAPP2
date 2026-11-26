@@ -420,7 +420,7 @@ function DualarSection({ theme, onBack }) {
                 {isOpen && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                     <p className="text-[11px] mt-2 italic" style={{ color: theme.textSecondary }}>{d.read}</p>
-                    <p className="text-[13.5px] mt-2.5 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>"{d.tr}"</p>
+                    <p className="text-[13.5px] mt-2.5 leading-relaxed" style={{ fontFamily: 'var(--font-okuma)', color: theme.textPrimary }}>"{d.tr}"</p>
                     <p className="text-[11px] mt-2.5 leading-relaxed ps-2.5" style={{ borderInlineStart: `2px solid ${theme.gold}50`, color: theme.textSecondary }}>{d.note}</p>
                     <span onClick={(e) => copy(d, e)} role="button"
                       className="inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-xl text-[10px] font-black active:scale-95"
@@ -631,7 +631,7 @@ function TarihSection({ theme, user, onBack }) {
                   <TarihArt type={it.art} color={color} />
                   <p className="text-center text-[8px] font-black uppercase tracking-[0.2em] pb-2" style={{ color }}>{tt('Ne ile uğraştı?')}</p>
                 </div>
-                <p className="text-[11px] mt-2.5 leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{it.detail}</p>
+                <p className="text-[11px] mt-2.5 leading-[1.75]" style={{ fontFamily: 'var(--font-okuma)', color: `${theme.textPrimary}ee` }}>{it.detail}</p>
                 <span className="flex items-center gap-2 mt-2.5">
                   <span role="button" onClick={(e) => { e.stopPropagation(); shareText(`💡 Biliyor muydun?\n${it.year} — ${it.title}\n\n${it.desc}\n\n${it.detail}\n\n🏛️ Dünya Tarihinde Müslümanlar · İslami Yaşam Asistanı`); }}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black active:scale-95"
@@ -774,7 +774,7 @@ function MucizelerSection({ theme, user, onBack }) {
                 {isOpen && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                     <div className="px-4 pb-4">
-                      <p className="text-[12.5px] italic leading-relaxed ps-2.5" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary, borderInlineStart: `2px solid ${m.color}` }}>
+                      <p className="text-[12.5px] italic leading-relaxed ps-2.5" style={{ fontFamily: 'var(--font-okuma)', color: theme.textPrimary, borderInlineStart: `2px solid ${m.color}` }}>
                         {m.verse}
                       </p>
                       <div className="rounded-xl p-3 mt-3" style={{ background: `${m.color}0c`, border: `1px solid ${m.color}25` }}>
@@ -938,7 +938,7 @@ function EsmaSection({ theme, user, onBack }) {
               <p className="text-xs mt-1 relative" style={{ color: theme.textSecondary }}>{active.mean}</p>
               <div className="rounded-2xl p-3.5 mt-4 text-start relative" style={{ background: `${theme.gold}0c`, border: `1px solid ${theme.gold}30` }}>
                 <p className="text-[9px] font-black uppercase tracking-wider mb-1.5" style={{ color: theme.gold }}>{tt('💭 Tefekkür')}</p>
-                <p className="text-[12px] leading-[1.75]" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{active.tef}</p>
+                <p className="text-[12px] leading-[1.75]" style={{ fontFamily: 'var(--font-okuma)', color: theme.textPrimary }}>{active.tef}</p>
               </div>
               <div className="flex gap-2 mt-4 relative">
                 <button onClick={() => { const i = ESMA.findIndex(x => x.n === active.n); openEsma(ESMA[(i - 1 + ESMA.length) % ESMA.length]); }}

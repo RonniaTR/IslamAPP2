@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Volume2, Pause, Loader, Sparkles, Check, Star, ChevronRight, ChevronDown, Lightbulb, Moon, Gem, HeartHandshake, Type } from 'lucide-react';
+import { ArrowLeft, Volume2, Pause, Loader, Sparkles, Check, ChevronRight, ChevronDown, Lightbulb, Moon, Gem, HeartHandshake, Type } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTTS } from '../hooks/useShared';
@@ -10,6 +10,7 @@ import { useReadingSettings } from '../services/readingSettings';
 import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
 import { STORIES, STORY_CATEGORIES, STORY_GEMS, STORY_APPLY } from '../data/stories';
 import Confetti from './games/Confetti';
+import KissaListe, { KissaKapak } from './kissa/KissaListe';
 
 // 🕯️ İBRETLİK HİKAYELER — kıssa → düşündürücü soru → hikmet.
 // 🌌 Katmanlı kıssalar: paragraflar checkpoint duraklarıyla adım adım açılır;
@@ -18,15 +19,6 @@ import Confetti from './games/Confetti';
 // 🤲 "Hayata Taşı": kıssanın bugün yapılabilir küçük amel önerisi (+8 XP).
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* quota */ } };
-
-function Cover({ s, h = 120 }) {
-  return (
-    <div className="w-full rounded-t-2xl relative overflow-hidden flex items-center justify-center" style={{ height: h, background: `linear-gradient(140deg, ${s.grad[0]}, ${s.grad[1]})` }}>
-      <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-25" style={{ background: 'radial-gradient(circle, #ffd36960, transparent 65%)' }} />
-      <span className="text-5xl" style={{ filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.45))' }}>{s.emoji}</span>
-    </div>
-  );
-}
 
 // ─── Checkpoint durağı: soru → iç görü → devam ───
 function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
@@ -37,7 +29,7 @@ function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
       <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-1.5" style={{ color: '#818CF8' }}>
         <Sparkles size={12} /> Durak {idx + 1} · Birlikte düşünelim
       </p>
-      <p className="text-[15px] font-bold mb-3" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{cp.q}</p>
+      <p className="text-[15px] font-bold mb-3" style={{ fontFamily: 'var(--font-okuma)', color: theme.textPrimary }}>{cp.q}</p>
       {!answered ? (
         <div className="space-y-2">
           {cp.choices.map((c, i) => (
@@ -70,7 +62,7 @@ function Checkpoint({ cp, idx, answered, picked, onPick, onContinue, theme }) {
             <p className="text-[10px] font-black uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: '#818CF8' }}>
               <Lightbulb size={11} /> İç görü
             </p>
-            <p className="text-[13.5px] leading-[1.7]" style={{ fontFamily: 'Georgia, serif', color: `${theme.textPrimary}ee` }}>{cp.insight}</p>
+            <p className="text-[13.5px] leading-[1.7]" style={{ fontFamily: 'var(--font-okuma)', color: `${theme.textPrimary}ee` }}>{cp.insight}</p>
           </div>
           <button onClick={onContinue}
             className="w-full py-3 rounded-xl text-sm font-black flex items-center justify-center gap-1.5 active:scale-98"
@@ -181,18 +173,17 @@ export default function StoriesPage() {
     return (
       <div ref={scrollRef} className="min-h-screen pb-28" style={{ background: rrt.bg }}>
         {celebrate && <Confetti count={26} />}
-        {/* Kapak */}
-        <div className="relative overflow-hidden flex items-center justify-center" style={{ height: 130, background: `linear-gradient(140deg, ${story.grad[0]}, ${story.grad[1]})` }}>
-          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-25" style={{ background: 'radial-gradient(circle, #ffd36960, transparent 65%)' }} />
-          <span className="text-6xl" style={{ filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.4))' }}>{story.emoji}</span>
-          <button onClick={closeStory} className="absolute top-4 left-4 w-9 h-9 rounded-xl flex items-center justify-center active:scale-90" style={{ background: 'rgba(0,0,0,0.35)' }} aria-label="Geri">
+        {/* Kapak: kıssaya özgü kemer kapak, kemer biçiminde açılır */}
+        <motion.div initial={{ clipPath: 'inset(0 0 100% 0)' }} animate={{ clipPath: 'inset(0 0 0% 0)' }} transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} className="relative">
+          <KissaKapak s={story} h={200} yuvarlak="0" />
+          <button onClick={closeStory} className="absolute top-4 left-4 w-10 h-10 rounded-xl flex items-center justify-center active:scale-90" style={{ background: 'rgba(0,0,0,0.35)' }} aria-label="Geri">
             <ArrowLeft size={18} style={{ color: '#f7e6ae' }} />
           </button>
-          <button onClick={listenAtNight} className="absolute top-4 right-4 h-9 px-3 rounded-xl flex items-center gap-1.5 active:scale-90" style={{ background: 'rgba(0,0,0,0.35)' }} aria-label="Gece modunda dinle">
+          <button onClick={listenAtNight} className="absolute top-4 right-4 h-10 px-3 rounded-xl flex items-center gap-1.5 active:scale-90" style={{ background: 'rgba(0,0,0,0.35)' }} aria-label="Gece modunda dinle">
             <Moon size={14} style={{ color: '#f7e6ae' }} />
-            <span className="text-[10px] font-black" style={{ color: '#f7e6ae' }}>Gece</span>
+            <span className="text-[11px] font-black" style={{ color: '#f7e6ae' }}>Gece</span>
           </button>
-        </div>
+        </motion.div>
 
         {/* Başlık */}
         <div className="px-6 pt-6 pb-2 text-center max-w-[42rem] mx-auto">
@@ -250,7 +241,7 @@ export default function StoriesPage() {
                 <p className="text-[10px] font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: theme.gold }}>
                   <Sparkles size={12} /> Sen ne düşünürsün?
                 </p>
-                <p className="text-base font-bold mb-4" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{story.question}</p>
+                <p className="text-base font-bold mb-4" style={{ fontFamily: 'var(--font-okuma)', color: theme.textPrimary }}>{story.question}</p>
                 <div className="space-y-2.5">
                   {story.choices.map((c, i) => {
                     const chosen = picked === i;
@@ -280,7 +271,7 @@ export default function StoriesPage() {
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2.5 flex items-center gap-1.5 relative" style={{ color: theme.gold }}>
                   <Lightbulb size={13} /> Hikmet
                 </p>
-                <p className="text-[15px] leading-[1.8] relative" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{story.lesson}</p>
+                <p className="text-[15px] leading-[1.8] relative" style={{ fontFamily: 'var(--font-okuma)', color: theme.textPrimary }}>{story.lesson}</p>
                 {story.verse && (
                   <div className="mt-4 pt-3 relative" style={{ borderTop: `1px solid ${theme.gold}25` }}>
                     <p className="text-sm italic leading-relaxed" style={{ color: `${theme.textPrimary}dd` }}>{story.verse.text}</p>
@@ -324,7 +315,7 @@ export default function StoriesPage() {
               <p className="text-[10px] font-black uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#10B981' }}>
                 <HeartHandshake size={12} /> Hayata Taşı · Bugünün küçük ameli
               </p>
-              <p className="text-[13.5px] leading-[1.7] mb-3" style={{ fontFamily: 'Georgia, serif', color: theme.textPrimary }}>{applyText}</p>
+              <p className="text-[13.5px] leading-[1.7] mb-3" style={{ fontFamily: 'var(--font-okuma)', color: theme.textPrimary }}>{applyText}</p>
               <button onClick={applyTask} disabled={applied}
                 className="w-full py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 active:scale-98"
                 style={applied
@@ -374,100 +365,9 @@ export default function StoriesPage() {
     );
   }
 
-  // ═══ HİKAYE LİSTESİ ═══
+  // ═══ HİKAYE LİSTESİ (16. tur: kemer kapaklar, kategori yolu) ═══
   return (
-    <div className="min-h-screen pb-24 max-w-4xl mx-auto" style={{ background: theme.bg }}>
-      <div className="px-5 pt-6 pb-3">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-2xl">🕯️</span>
-          <h1 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>İbretlik Hikayeler</h1>
-        </div>
-        <p className="text-xs" style={{ color: theme.textSecondary }}>Bir kıssa, bir soru, bir hikmet · {readIds.length}/{STORIES.length} okundu</p>
-      </div>
-
-      {/* 💎 Cevher rafı */}
-      <div className="px-5 mb-5">
-        <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #312E8118, ${theme.surface})`, border: `1px solid ${theme.cardBorder}` }}>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-black flex items-center gap-1.5" style={{ color: theme.textPrimary }}>
-              <Gem size={13} style={{ color: '#818CF8' }} /> Hikmet Cevherlerin
-            </p>
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: '#818CF818', color: '#818CF8' }}>
-              {gemCount}/{Object.keys(STORY_GEMS).length}
-            </span>
-          </div>
-          {gemCount === 0 ? (
-            <p className="text-[11px]" style={{ color: theme.textSecondary }}>Her tamamlanan kıssa bir cevher kazandırır. İlk cevherin seni bekliyor ✨</p>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {Object.entries(STORY_GEMS).map(([sid, g]) => {
-                const owned = !!gems[sid];
-                return (
-                  <span key={sid} title={owned ? g.name : '???'} className="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
-                    style={{
-                      background: owned ? `${g.hue}18` : `${theme.textSecondary}0a`,
-                      border: `1px solid ${owned ? `${g.hue}55` : theme.cardBorder}`,
-                      filter: owned ? 'none' : 'grayscale(1) opacity(0.35)',
-                    }}>{g.emoji}</span>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 🌙 Gece Modu girişi */}
-      <div className="px-5 mb-6">
-        <button onClick={() => { save('night_preset', null); navigate('/night'); }}
-          className="w-full flex items-center gap-3 p-4 rounded-2xl text-start active:scale-98 transition-transform relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #0F0D2E, #1E1B4B, #312E81)', border: '1px solid #6366F145' }}>
-          <span className="absolute top-2 right-8 text-[8px]" style={{ color: '#C7D2FE' }}>✦</span>
-          <span className="absolute top-5 right-16 text-[6px]" style={{ color: '#A5B4FC' }}>✦</span>
-          <span className="absolute bottom-3 right-24 text-[7px]" style={{ color: '#818CF8' }}>✦</span>
-          <span className="text-3xl">🌙</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-black" style={{ color: '#E0E7FF' }}>Gece Modu</p>
-            <p className="text-[11px]" style={{ color: '#A5B4FC' }}>Ney sesi · sesli kıssa okuma · uyku zamanlayıcısı</p>
-          </div>
-          <ChevronRight size={16} style={{ color: '#A5B4FC' }} />
-        </button>
-      </div>
-
-      {STORY_CATEGORIES.map((cat, ci) => {
-        const items = STORIES.filter(s => s.cat === cat.id);
-        if (!items.length) return null;
-        const isDeepCat = cat.id === 'derin';
-        return (
-          <motion.div key={cat.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: ci * 0.06 }} className="mb-6">
-            <div className="px-5 flex items-center gap-2 mb-2.5">
-              <p className="text-sm font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>{cat.emoji} {cat.title}</p>
-              {isDeepCat && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider" style={{ background: '#818CF820', color: '#818CF8' }}>Duraklı okuma</span>}
-            </div>
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1 md:grid md:grid-cols-3 md:overflow-visible">
-              {items.map(s => {
-                const isRead = readIds.includes(s.id);
-                return (
-                  <button key={s.id} onClick={() => openStory(s.id)}
-                    className="shrink-0 w-48 md:w-auto rounded-2xl overflow-hidden text-start active:scale-97 transition-transform relative"
-                    style={{ background: theme.surface, border: `1px solid ${s.deep ? '#6366F140' : theme.cardBorder}` }}>
-                    <Cover s={s} />
-                    {isRead && <span className="absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#10B981' }}><Check size={13} color="#fff" /></span>}
-                    {gems[s.id] && STORY_GEMS[s.id] && (
-                      <span className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: 'rgba(0,0,0,0.4)' }}>{STORY_GEMS[s.id].emoji}</span>
-                    )}
-                    <div className="p-3">
-                      <p className="text-xs font-black leading-snug mb-1" style={{ color: theme.textPrimary }}>{s.title}</p>
-                      <p className="text-[10px] flex items-center gap-1" style={{ color: theme.textSecondary }}>
-                        <Star size={9} style={{ color: theme.gold }} /> {s.read} dk · {s.deep ? `${(s.checkpoints || []).length} durak` : 'düşündüren son'}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
+    <KissaListe STORIES={STORIES} STORY_CATEGORIES={STORY_CATEGORIES} STORY_GEMS={STORY_GEMS} readIds={readIds} gems={gems}
+      openStory={openStory} onNight={() => { save('night_preset', null); navigate('/night'); }} />
   );
 }

@@ -295,7 +295,7 @@ export default function NightPage() {
                   {TRACKS.find(t => t.id === trackId)?.icon} {TRACKS.find(t => t.id === trackId)?.name}
                 </p>
                 {contentType !== 'ambient' && selected && (
-                  <p className="text-sm font-bold mt-1.5" style={{ fontFamily: 'Georgia, serif', color: NIGHT.text }}>
+                  <p className="text-sm font-bold mt-1.5" style={{ fontFamily: 'var(--font-okuma)', color: NIGHT.text }}>
                     {selected.emoji} {selected.title}
                     {tts.loading && <span className="text-[10px] font-normal ms-1.5" style={{ color: NIGHT.dim }}>{tt('(ses hazırlanıyor...)')}</span>}
                   </p>
@@ -330,7 +330,7 @@ export default function NightPage() {
               </p>
               <p className="mt-3 text-sm italic" style={{ color: NIGHT.text }}>{SLEEP_DUA.read}</p>
               <div className="mt-5 rounded-2xl p-4 max-w-sm" style={{ background: NIGHT.card, border: `1px solid ${NIGHT.border}` }}>
-                <p className="text-[13px] leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: NIGHT.text }}>
+                <p className="text-[13px] leading-relaxed" style={{ fontFamily: 'var(--font-okuma)', color: NIGHT.text }}>
                   "{SLEEP_DUA.meal}"
                 </p>
                 <p className="text-[10px] mt-2 font-bold" style={{ color: NIGHT.accent }}>— {SLEEP_DUA.source}</p>

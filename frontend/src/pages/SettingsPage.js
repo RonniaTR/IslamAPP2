@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import TemaPencereleri from '../components/tema/TemaPencereleri';
+import MenuBicimSecici from '../components/nav/MenuBicimSecici';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MapPin, Bell, Palette, Type, Globe, Volume2, User, Baby, Info, BookOpen, Check, Loader2, ShieldCheck, LogOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Bell, Palette, Type, Globe, Volume2, User, Baby, Info, BookOpen, Loader2, ShieldCheck, LogOut, Compass } from 'lucide-react';
 import { useTheme, TEXT_SCALES } from '../contexts/ThemeContext';
 import { useAppMode } from '../contexts/AppModeContext';
 import { useLang } from '../contexts/LangContext';
@@ -110,7 +112,7 @@ export default function SettingsPage() {
     </button>
   );
 
-  const themeList = ['dark', 'isilti', 'husu', 'sevgi', 'sukun', 'bereket', 'light', 'emerald'].filter((id) => themes[id]);
+  const themeList = ['revza', 'dark', 'isilti', 'husu', 'sevgi', 'sukun', 'bereket', 'light', 'emerald'].filter((id) => themes[id]);
 
   return (
     <div className="min-h-screen pb-28" style={{ background: theme.bg }} data-testid="settings-page">
@@ -126,28 +128,16 @@ export default function SettingsPage() {
         {/* GÖRÜNÜM */}
         <section style={card} data-testid="theme-studio">
           <H icon={Palette}>{tt('Tema')}</H>
-          <div className="grid grid-cols-2 gap-3">
-            {themeList.map((id) => {
-              const t = themes[id]; const on = id === themeId;
-              return (
-                <button key={id} onClick={() => setTheme(id)} aria-pressed={on}
-                  style={{ borderRadius: 18, padding: 12, textAlign: 'start', cursor: 'pointer', background: t.bg, border: `2px solid ${on ? t.gold : 'transparent'}`, boxShadow: '0 2px 10px rgba(0,0,0,0.12)' }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span style={{ fontSize: 20 }}>{t.icon}</span>
-                    {on && <span style={{ width: 22, height: 22, borderRadius: 11, background: t.gold, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={14} color="#1A1A1A" /></span>}
-                  </div>
-                  <div style={{ color: t.textPrimary, fontWeight: 700, fontSize: 14 }}>{tt(t.name)}</div>
-                  <div style={{ color: t.textSecondary, fontSize: 11, minHeight: 28, lineHeight: 1.3 }}>{t.mood ? tt(t.mood) : ''}</div>
-                  <div className="flex gap-1 mt-2">
-                    {[t.primary, t.gold, t.surface, t.textPrimary].map((c, i) => (
-                      <span key={i} style={{ width: 16, height: 16, borderRadius: 8, background: c, border: '1px solid rgba(128,128,128,0.25)' }} />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+          <div style={{ color: theme.textPrimary }}>
+            <TemaPencereleri themes={themes} themeList={themeList} themeId={themeId} setTheme={setTheme} tt={tt} />
           </div>
           <p style={{ color: theme.textMuted, fontSize: 11, marginTop: 10 }}>{tt("Mushaf sayfası temadan etkilenmez; Kur'an metni her zaman aynı kâğıt üzerinde görünür.")}</p>
+        </section>
+
+        {/* MENÜ BİÇİMİ */}
+        <section style={card} data-testid="menu-bicimi">
+          <H icon={Compass}>{tt('Menü biçimi')}</H>
+          <MenuBicimSecici theme={theme} tt={tt} />
         </section>
 
         {/* YAZI */}
@@ -243,6 +233,9 @@ export default function SettingsPage() {
             </div>
           </div>
           <p style={{ color: theme.textMuted, fontSize: 11, marginTop: 10 }}>{tt('Hatırlatmalar davettir; kaçırdığın vakit için uyarı gönderilmez.')}</p>
+          <button type="button" onClick={() => navigate('/bildirimler')} className="mt-3 flex items-center gap-2" style={{ color: theme.gold, fontSize: 13, fontWeight: 700 }}>
+            <Bell size={15} /> {tt('Akıllı bildirim tercihleri (İlim saati, Salavat zinciri, Akşam âyeti)')}
+          </button>
         </section>
 
         {/* DİL VE SES */}

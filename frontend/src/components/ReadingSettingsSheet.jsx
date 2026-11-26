@@ -2,10 +2,11 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Palette, Type } from 'lucide-react';
 import {
-  READING_THEMES, FONT_MIN, FONT_MAX, AR_MIN, AR_MAX,
+  FONT_MIN, FONT_MAX, AR_MIN, AR_MAX,
   useReadingSettings,
 } from '../services/readingSettings';
 import { useTx } from '../i18n';
+import VakitKagitlari from './okuma/VakitKagitlari';
 
 // 📖 OKUMA AYARLARI SAYFASI (alt sayfa/bottom-sheet)
 // Yapı: [Önizleme] → [Tema listesi: her satır kendi paletiyle boyanır ve
@@ -47,7 +48,7 @@ export default function ReadingSettingsSheet({ open, onClose }) {
             {/* Önizleme */}
             <div className="rounded-2xl p-4 mb-5 text-center" style={{ background: rt.bg, border: `1px solid ${rt.border}` }}>
               <p className="text-[9px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: rt.secondary }}>{tt('Önizleme')}</p>
-              <p style={{ fontSize: settings.fontSize, fontFamily: 'Georgia, serif', color: rt.text, lineHeight: 1.7 }}>
+              <p style={{ fontSize: settings.fontSize, fontFamily: 'var(--font-okuma)', color: rt.text, lineHeight: 1.7 }}>
                 {tt("Rahmân ve Rahîm olan Allah'ın adıyla")}
               </p>
               <p dir="rtl" className="mt-1" style={{ fontSize: arabicSize, fontFamily: "'Amiri', 'Scheherazade New', serif", color: rt.accent, lineHeight: 1.9 }}>
@@ -55,27 +56,9 @@ export default function ReadingSettingsSheet({ open, onClose }) {
               </p>
             </div>
 
-            {/* Tema listesi */}
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: rt.secondary }}>{tt('Okuma Teması')}</p>
-            <div className="rounded-2xl overflow-hidden mb-5" style={{ border: `1px solid ${rt.border}` }}>
-              {READING_THEMES.map(t => {
-                const selected = settings.themeId === t.id;
-                return (
-                  <button key={t.id} onClick={() => set({ themeId: t.id })}
-                    className="w-full py-3.5 px-4 text-center transition-all active:opacity-80 relative"
-                    style={{ background: t.bg, borderBottom: `1px solid ${t.border}` }}>
-                    {selected && (
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
-                        style={{ background: t.accent, color: t.dark ? '#111' : '#fff' }}>✓</span>
-                    )}
-                    <p className="text-[15px] font-bold" style={{ fontFamily: 'Georgia, serif', color: t.text }}>{tt(t.name)}</p>
-                    <p className="text-[11.5px] italic" style={{ fontFamily: 'Georgia, serif', color: t.secondary }}>
-                      {tt('Bu')} <span style={{ color: t.accent }}>{tt('örnek')}</span> {tt('bir')} <span style={{ color: t.accent }}>{tt('metindir')}</span>.
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
+            {/* Vakit kâğıtları: okuma teması (components/okuma/VakitKagitlari) */}
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2" style={{ color: rt.secondary }}>{tt('Vakit kâğıdı')}</p>
+            <VakitKagitlari settings={settings} set={set} rt={rt} />
 
             {/* Metin boyutu */}
             <div className="rounded-2xl p-4 mb-4" style={{ background: rt.bg, border: `1px solid ${rt.border}` }}>

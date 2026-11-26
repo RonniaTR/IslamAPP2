@@ -106,12 +106,12 @@ export default function DonusLesson() {
           <OpenBook size={100} color={p.accent} opacity={0.06} />
         </div>
         <span className="absolute -top-5 -right-3 text-6xl select-none pointer-events-none"
-          style={{ color: p.accent, opacity: 0.14, fontFamily: 'Georgia, serif' }} aria-hidden>“</span>
+          style={{ color: p.accent, opacity: 0.14, fontFamily: 'var(--font-okuma)' }} aria-hidden>“</span>
         <p className="text-[9px] font-black uppercase tracking-[0.26em] mb-2.5 relative" style={{ color: p.accent }}>
           {tt('Günün kaynağı')}
         </p>
         <p className="text-[14.5px] italic leading-[1.85] relative" {...dirProps}
-          style={{ fontFamily: 'Georgia, serif', color: p.text, ...dirStyle }}>
+          style={{ fontFamily: 'var(--font-okuma)', color: p.text, ...dirStyle }}>
           {lesson.source.text}
         </p>
         <p className="text-[10.5px] mt-3 font-black relative" {...dirProps} style={{ color: p.accent, ...dirStyle }}>
@@ -138,7 +138,7 @@ export default function DonusLesson() {
           {lesson.dua.ar}
         </motion.p>
         <p className="text-[12.5px] italic mt-3 leading-relaxed relative" {...dirProps}
-          style={{ fontFamily: 'Georgia, serif', color: p.text, opacity: 0.88, textAlign: 'center' }}>
+          style={{ fontFamily: 'var(--font-okuma)', color: p.text, opacity: 0.88, textAlign: 'center' }}>
           {lesson.dua.tr}
         </p>
         <p className="text-[9.5px] mt-2 font-bold relative" {...dirProps} style={{ color: p.dim, textAlign: 'center' }}>

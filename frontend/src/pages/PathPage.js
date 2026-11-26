@@ -342,7 +342,7 @@ export default function PathPage() {
             </button>
           </div>
           <div className="mt-3 mb-4 ps-3" style={{ borderInlineStart: `2px solid ${NUR.gold}` }}>
-            <p className="text-[12.5px] italic leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd` }}>
+            <p className="text-[12.5px] italic leading-relaxed" style={{ fontFamily: 'var(--font-okuma)', color: `${NUR.text}dd` }}>
               "{tt(quote.text)}"
             </p>
             <p className="text-[10px] mt-1 font-bold" style={{ color: NUR.gold }}>— {tt(quote.by)}</p>
@@ -505,7 +505,7 @@ export default function PathPage() {
                     {weekTheme.emoji} {tt(weekTheme.title)}
                   </p>
                   <p className="text-[11px] mt-1" style={{ color: NUR.dim }}>{tt(weekTheme.desc)}</p>
-                  <p className="text-[11.5px] italic mt-2 leading-relaxed" style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}cc` }}>
+                  <p className="text-[11.5px] italic mt-2 leading-relaxed" style={{ fontFamily: 'var(--font-okuma)', color: `${NUR.text}cc` }}>
                     {tt(weekTheme.verse)} <span className="not-italic font-bold" style={{ color: NUR.gold }}>· {tt(weekTheme.source)}</span>
                   </p>
                   {TASK_POOL[weekTheme.focus] && (
@@ -665,7 +665,7 @@ export default function PathPage() {
                 </p>
                 {lang !== 'ar' && (
                   <p className="text-[12px] italic mt-2 leading-relaxed" dir={lang === 'ar' ? 'ltr' : undefined}
-                    style={{ fontFamily: 'Georgia, serif', color: `${NUR.text}dd`, textAlign: 'center' }}>
+                    style={{ fontFamily: 'var(--font-okuma)', color: `${NUR.text}dd`, textAlign: 'center' }}>
                     "{lesson ? lesson.dua.tr : tt(dua.tr)}"
                   </p>
                 )}

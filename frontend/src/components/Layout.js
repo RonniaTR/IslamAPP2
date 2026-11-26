@@ -6,6 +6,9 @@ import { useTheme } from '../contexts/ThemeContext';
 import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS, ADULT_NAV_TABS } from '../styles/designTokens';
 import OfflineIndicator from './OfflineIndicator';
 import MuhurMenu from './nav/MuhurMenu';
+import GunKarti from './nav/GunKarti';
+import { yolDegisti, gunuIsaretle } from '../services/kazanim';
+import { bildirimleriKur } from '../services/bildirim';
 
 const iconMap = { Home, Compass, Gamepad2, Calendar, User, BookOpen, Route };
 
@@ -179,6 +182,15 @@ export default memo(function Layout({ children }) {
     lastY.current = y;
   }, []);
   useEffect(() => { setCompact(false); lastY.current = 0; }, [pathname]);
+  // Kazanım kaydı (yalnız cihazda): hangi bölümde ne kadar kalındığı + gün çetelesi. Bkz. services/kazanim.js
+  useEffect(() => { yolDegisti(`${pathname}${search || ''}`); }, [pathname, search]);
+  useEffect(() => {
+    gunuIsaretle();
+    bildirimleriKur();
+    const gorunurluk = () => yolDegisti(document.hidden ? null : `${window.location.pathname}${window.location.search}`);
+    document.addEventListener('visibilitychange', gorunurluk);
+    return () => document.removeEventListener('visibilitychange', gorunurluk);
+  }, []);
 
   const safeT = t || {};
   const tabs = useMemo(() => ADULT_NAV_TABS.map(tab => ({
@@ -195,6 +207,7 @@ export default memo(function Layout({ children }) {
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <OfflineIndicator />
+      <GunKarti />
       
       {/* DESKTOP SIDEBAR */}
       {!hideNav && (

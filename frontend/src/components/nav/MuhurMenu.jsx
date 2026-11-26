@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, X } from 'lucide-react';
 import { devamSec, devamKapat } from '../../services/devam';
 import { FONT } from '../../pages/musluman/tema';
+import { useMenuBicimi } from '../../services/menuBicimi';
+import { YelpazeMuhur, KandilRafi, CiniKusak, RevakMenu, HilalKizagi, Kapsul } from './MenuBicimleri';
+
+const BICIM_BILESEN = { kandil: KandilRafi, cini: CiniKusak, revak: RevakMenu, hilal: HilalKizagi, kapsul: Kapsul, tesbih: TesbihDizisi };
 
 // 🔰 MÜHÜR MENÜ — İslamiApp'e özgü alt gezinme.
 //
@@ -130,14 +134,95 @@ function Muhur({ etkin, kayit, theme, onAc }) {
   );
 }
 
+
+// 📿 TESBİH DİZİSİ — alt menü bir tesbih gibi: ince bir ipe dizilmiş kehribar taneler, ortada püsküllü imame.
+// Taneler ipin hafif sarkıntısını izler; aralarında küçük ara taneler var. Etkin tane büyür, altına döner,
+// üstünden altın ışık geçer ve adı altında belirir. İmame (ortadaki uzun tane) Yol sekmesidir; püskülü hafifçe sallanır.
+const KEHRIBAR = ['#F6C774', '#C9862E', '#7A4310'];
+function Tane({ Icon, active, label, onClick, imame, x, y, theme }) {
+  const w = imame ? 44 : active ? 54 : 44; const h = imame ? 62 : w;
+  const renk = active ? ['#FFF1C2', theme.gold || '#D8B76A', '#8C6A22'] : KEHRIBAR;
+  return (
+    <motion.button type="button" onClick={onClick} aria-label={label} aria-current={active ? 'page' : undefined}
+      data-testid={`tane-${label}`}
+      animate={{ x: x - w / 2, y: y - h / 2, width: w, height: h, rotate: active ? 360 : 0 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      whileTap={{ scale: 0.88 }}
+      style={{ position: 'absolute', left: 0, top: 0, padding: 0, border: 'none', cursor: 'pointer', borderRadius: imame ? '22px 22px 22px 22px / 30px 30px 30px 30px' : '50%',
+        background: `radial-gradient(circle at 32% 28%, ${renk[0]} 0%, ${renk[1]} 48%, ${renk[2]} 100%)`,
+        boxShadow: active ? `0 0 0 2px ${theme.isDark ? 'rgba(255,241,194,0.5)' : 'rgba(140,106,34,0.35)'}, 0 8px 20px -6px rgba(201,134,46,0.75)` : '0 6px 14px -6px rgba(0,0,0,0.5), inset 0 -3px 6px rgba(0,0,0,0.25)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', color: active ? '#3A2508' : '#FFF4DC' }}>
+      <motion.span animate={{ rotate: active ? -360 : 0 }} transition={{ type: 'spring', stiffness: 260, damping: 22 }} style={{ display: 'flex' }}>
+        <Icon size={active ? 22 : 19} strokeWidth={2.1} aria-hidden />
+      </motion.span>
+      {/* parlama */}
+      <span aria-hidden style={{ position: 'absolute', top: '12%', left: '22%', width: '28%', height: '18%', borderRadius: '50%', background: 'rgba(255,255,255,0.55)', filter: 'blur(1px)' }} />
+    </motion.button>
+  );
+}
+
+function TesbihDizisi({ tabs, pathname, navigate, theme }) {
+  const W = 340; const SARKI = 12; const UST = 40;
+  const n = tabs.length; const aralik = (W - 60) / (n - 1);
+  const yAt = (x) => UST + SARKI * (1 - Math.pow((x - W / 2) / (W / 2), 2));
+  const merkezIdx = Math.max(0, tabs.findIndex((t) => t.isCenter));
+  const etkinIdx = tabs.findIndex(({ path }) => (path === '/' ? pathname === '/' : pathname.startsWith(path)));
+  const xs = tabs.map((_, i) => 30 + i * aralik);
+  const ara = [];
+  for (let i = 0; i < n - 1; i += 1) for (let k = 1; k <= 3; k += 1) { const x = xs[i] + (aralik * k) / 4; ara.push([x, yAt(x)]); }
+  const etkin = tabs[etkinIdx];
+  return (
+    <motion.div key="tesbih" data-testid="tesbih-menu"
+      initial={{ opacity: 0, y: 16, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.9 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+      style={{ position: 'absolute', left: 0, right: 0, margin: '0 auto', bottom: 0, pointerEvents: 'auto', width: W, maxWidth: 'calc(100% - 16px)', height: 92 }}>
+      {/* buzlu zemin: tesbihin yattığı kadife */}
+      <div aria-hidden style={{ position: 'absolute', inset: '6px 0 4px', borderRadius: 34, background: theme.navBg, backdropFilter: 'blur(20px) saturate(1.3)', WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
+        border: `1px solid ${theme.cardBorder}`, boxShadow: theme.isDark ? '0 14px 34px -10px rgba(0,0,0,0.7)' : '0 14px 34px -14px rgba(20,40,30,0.35)' }} />
+      <svg width={W} height="92" viewBox={`0 0 ${W} 92`} aria-hidden style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
+        <path d={`M8 ${UST - 4} Q${W / 2} ${UST + 2 * SARKI + 4} ${W - 8} ${UST - 4}`} fill="none" stroke={theme.isDark ? 'rgba(224,196,122,0.55)' : 'rgba(122,67,16,0.45)'} strokeWidth="1.4" />
+        {ara.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="4.2" fill={i % 3 === 1 ? '#C9862E' : '#9A5A1C'} opacity="0.9" />)}
+        {/* imame püskülü */}
+        <motion.g animate={{ rotate: [-6, 6, -6] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }} style={{ transformOrigin: `${xs[merkezIdx]}px ${yAt(xs[merkezIdx]) + 30}px` }}>
+          {[-5, -2.5, 0, 2.5, 5].map((dx) => (
+            <line key={dx} x1={xs[merkezIdx]} y1={yAt(xs[merkezIdx]) + 30} x2={xs[merkezIdx] + dx} y2={yAt(xs[merkezIdx]) + 46} stroke={theme.gold || '#D8B76A'} strokeWidth="1.4" strokeLinecap="round" />
+          ))}
+          <circle cx={xs[merkezIdx]} cy={yAt(xs[merkezIdx]) + 31} r="3" fill={theme.gold || '#D8B76A'} />
+        </motion.g>
+      </svg>
+      {tabs.map(({ id, path, icon: Icon, label, isCenter }, i) => (
+        <Tane key={id} Icon={Icon} label={label} active={i === etkinIdx} imame={!!isCenter} x={xs[i]} y={yAt(xs[i])} theme={theme} onClick={() => navigate(path)} />
+      ))}
+      <AnimatePresence mode="wait">
+        {etkin && (
+          <motion.span key={etkin.id} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ position: 'absolute', top: yAt(xs[etkinIdx]) - (etkin.isCenter ? 50 : 42), left: xs[etkinIdx] - 60, width: 120, textAlign: 'center', fontSize: 11, fontWeight: 800, letterSpacing: 0.4, whiteSpace: 'nowrap', textShadow: theme.isDark ? '0 1px 6px rgba(0,0,0,0.6)' : '0 1px 6px rgba(255,255,255,0.9)',
+              color: theme.isDark ? (theme.goldLight || theme.gold) : theme.primary, pointerEvents: 'none' }}>
+            {etkin.label}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function Secili({ bicim, ...p }) {
+  const B = BICIM_BILESEN[bicim] || TesbihDizisi;
+  return <B {...p} />;
+}
+
 export default function MuhurMenu({ tabs, pathname, search, navigate, theme, kapali, setKapali }) {
   const [kayit, setKayit] = useState(null);
+  const bicim = useMenuBicimi();
+  const [yelpazeAcik, setYelpazeAcik] = useState(false);
+  const yelpaze = bicim === 'yelpaze';
   useEffect(() => { setKayit(devamSec({ pathname, search })); }, [pathname, search]);
   // İçerik alanının alt boşluğu: devam kartı açıkken kart kadar fazla (Layout main bunu okur)
   useEffect(() => {
     const kart = kayit && !kapali;
-    document.documentElement.style.setProperty('--alt-bosluk', kart ? '176px' : '96px');
-  }, [kayit, kapali]);
+    const taban = yelpaze ? 100 : 126;
+    document.documentElement.style.setProperty('--alt-bosluk', `${kart ? taban + 80 : taban}px`);
+  }, [kayit, kapali, yelpaze]);
   useEffect(() => {
     const yenile = () => setKayit(devamSec({ pathname: window.location.pathname, search: window.location.search }));
     window.addEventListener('focus', yenile);
@@ -153,60 +238,23 @@ export default function MuhurMenu({ tabs, pathname, search, navigate, theme, kap
       className="md:hidden"
       data-testid="bottom-nav"
       aria-label="Ana menü"
-      style={{ position: 'fixed', insetInline: 0, bottom: 'max(10px, env(safe-area-inset-bottom))', zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, pointerEvents: 'none' }}
+      style={{ position: 'fixed', insetInline: 0, bottom: 'max(10px, env(safe-area-inset-bottom))', zIndex: yelpaze && yelpazeAcik ? 120 : 50, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, pointerEvents: 'none' }}
     >
       <AnimatePresence>
         {kayit && !kapali && <DevamKemeri kayit={kayit} theme={theme} onAc={() => navigate(kayit.yol)} onKapat={kapat} />}
       </AnimatePresence>
-      <div style={{ position: 'relative', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-        <AnimatePresence initial={false}>
-          {kapali ? (
-            <Muhur key="muhur" etkin={etkin} kayit={kayit} theme={theme} onAc={() => setKapali(false)} />
-          ) : (
-            <motion.div
-              key="kapsul"
-              initial={{ scaleX: 0.2, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              exit={{ scaleX: 0.2, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-              style={{
-                position: 'absolute', pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 4,
-                padding: 7, borderRadius: 999, maxWidth: 'calc(100% - 24px)',
-                background: theme.navBg, backdropFilter: 'blur(22px) saturate(1.4)', WebkitBackdropFilter: 'blur(22px) saturate(1.4)',
-                border: `1px solid ${theme.cardBorder}`,
-                boxShadow: theme.isDark ? '0 14px 34px -10px rgba(0,0,0,0.7)' : '0 14px 34px -14px rgba(20,40,30,0.35)',
-              }}
-            >
-              {tabs.map(({ id, path, icon: Icon, label }) => {
-                const active = path === '/' ? pathname === '/' : pathname.startsWith(path);
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => navigate(path)}
-                    aria-label={label}
-                    aria-current={active ? 'page' : undefined}
-                    style={{
-                      position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                      height: 48, minWidth: 48, padding: active ? '0 16px 0 13px' : 0, borderRadius: 999, border: 'none', cursor: 'pointer',
-                      background: active ? `${theme.primary}${theme.isDark ? '40' : '1F'}` : 'transparent',
-                      color: active ? (theme.isDark ? theme.goldLight || theme.gold : theme.primary) : theme.textSecondary,
-                      transition: 'all 0.28s cubic-bezier(0.2,0.8,0.2,1)',
-                    }}
-                  >
-                    {active && (
-                      <motion.span layoutId="muhur-isik" aria-hidden style={{ position: 'absolute', top: -5, insetInlineStart: '50%', marginInlineStart: -6 }}>
-                        <Yildiz boyut={12} renk={theme.gold} dolgu={theme.gold} kalinlik={0.5} />
-                      </motion.span>
-                    )}
-                    <Icon size={20} strokeWidth={active ? 2.3 : 1.9} aria-hidden />
-                    {active && <span style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>{label}</span>}
-                  </button>
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div style={{ position: 'relative', height: yelpaze ? 72 : (kapali ? 64 : 92), display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+        {yelpaze ? (
+          <YelpazeMuhur tabs={tabs} pathname={pathname} navigate={navigate} theme={theme} onAcik={setYelpazeAcik} />
+        ) : (
+          <AnimatePresence initial={false}>
+            {kapali ? (
+              <Muhur key="muhur" etkin={etkin} kayit={kayit} theme={theme} onAc={() => setKapali(false)} />
+            ) : (
+              <Secili key={bicim} bicim={bicim} tabs={tabs} pathname={pathname} navigate={navigate} theme={theme} />
+            )}
+          </AnimatePresence>
+        )}
       </div>
     </nav>
   );

@@ -18,6 +18,8 @@ import { useTx } from '../i18n';
 import PrayerCard from '../components/home/PrayerCard';
 import GokKubbe from '../components/home/GokKubbe';
 import KalbindenGecen from '../components/home/KalbindenGecen';
+import OneCikanAyet from '../components/home/OneCikanAyet';
+import BildirimIzni from '../components/bildirim/BildirimIzni';
 import SessizDavet from '../components/SessizDavet';
 
 const PAPER = { bg: '#FBF8F0', ink: '#1A1A1A', soft: '#5C4B2A', line: '#D9CDAE' };
@@ -90,6 +92,7 @@ export default function Dashboard() {
 
   return (
     <div data-testid="dashboard" style={{ minHeight: '100vh', background: theme.bg, color: theme.textPrimary, paddingBottom: 110 }}>
+      <BildirimIzni />
       <div className="stagger" style={{ maxWidth: 560, margin: '0 auto', padding: '18px 20px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <header style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -97,13 +100,14 @@ export default function Dashboard() {
             <span style={{ fontSize: 13, color: theme.textSecondary }}>{tt('Esselâmü aleyküm')}</span>
             <span style={{ fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700, letterSpacing: -0.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || tt('Hoş geldin')}</span>
           </div>
-          <button type="button" aria-label={tt('Bildirim ayarları')} onClick={() => navigate('/settings')} style={{ width: 44, height: 44, borderRadius: 22, background: theme.surface, border: `1px solid ${theme.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button type="button" aria-label={tt('Bildirim ayarları')} onClick={() => navigate('/bildirimler')} style={{ width: 44, height: 44, borderRadius: 22, background: theme.surface, border: `1px solid ${theme.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Bell size={18} color={theme.textSecondary} />
           </button>
           <button type="button" aria-label={tt('Profil')} onClick={() => navigate('/profile')} style={{ width: 44, height: 44, borderRadius: 22, background: theme.surface, border: `2px solid ${theme.gold}`, color: theme.gold, fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>{initial}</button>
         </header>
 
         <GokKubbe />
+        <OneCikanAyet />
         <PrayerCard />
         <SessizDavet />
 

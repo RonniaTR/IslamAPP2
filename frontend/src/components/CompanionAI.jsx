@@ -92,7 +92,7 @@ export default function CompanionAI() {
               <h4 className="text-[12px] font-black tracking-wider uppercase mb-1" style={{ color: '#C8A55A' }}>
                 Yol Arkadaşın
               </h4>
-              <p className="text-[14px] leading-relaxed" style={{ color: '#EAF5EE', fontFamily: 'Georgia, serif' }}>
+              <p className="text-[14px] leading-relaxed" style={{ color: '#EAF5EE', fontFamily: 'var(--font-okuma)' }}>
                 {message}
               </p>
             </div>

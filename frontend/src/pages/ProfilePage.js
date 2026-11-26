@@ -1,4 +1,5 @@
 import React from 'react';
+import ProfilKisisel from '../components/profil/ProfilKisisel';
 import { motion } from 'framer-motion';
 import { Settings, Flame, Trophy, Star, CheckCircle2, Circle, Play, Bookmark, Award, ChevronRight, Target, Sparkles, Calendar, BookOpen, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -73,13 +74,13 @@ export default function ProfilePage() {
 
       <main className="px-4 py-6 space-y-8 max-w-4xl mx-auto">
         <ProfileHero profile={profile} />
+        <ProfilKisisel />
         {/* Sabit/sahte veriyle çizilen bölümler kaldırıldı (Bugünkü Durum, Rozet Galerisi, Kişisel Hedefler,
             AI Analizi, Bilgi Haritası, 2025 tarihli Yaklaşan Günler). Gerçek veri kaynakları bağlandıkça
             geri eklenecek — bkz. docs/YENI_OZELLIKLER.md 0.3. */}
         <UpcomingSpecialDays />
         <LearningJourney journey={learningJourney} navigate={navigate} />
         <WorshipStats stats={worshipStats} />
-        <StreakCalendar />
         <RecentAudio audios={recentAudio} navigate={navigate} />
         <SavedItems saved={savedItems} navigate={navigate} />
       </main>
@@ -290,6 +291,8 @@ function WorshipStats({ stats = [] }) {
 }
 
 // 5. Günlük Seri (Heatmap Placeholder)
+// Eski seri takvimi; yerini ProfilKisisel içindeki Gün çetelesi aldı (16. tur).
+// eslint-disable-next-line no-unused-vars
 function StreakCalendar() {
   const hist = getHistory(); // { 'YYYY-MM-DD': { done, total } } — cihazdaki gerçek kayıt
   const activeCount = Object.values(hist).filter(h => h.done > 0).length;

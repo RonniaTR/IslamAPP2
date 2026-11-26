@@ -215,7 +215,7 @@ export default function JournalPage() {
           <textarea value={answers[i]} onChange={e => setAnswers(prev => prev.map((a, j) => (j === i ? e.target.value : a)))}
             rows={2} maxLength={500} placeholder="Birkaç kelime yeter..."
             className="w-full bg-transparent outline-none text-sm resize-none rounded-xl p-3"
-            style={{ color: theme.textPrimary, background: `${theme.textSecondary}08`, border: `1px solid ${theme.cardBorder}`, fontFamily: 'Georgia, serif' }} />
+            style={{ color: theme.textPrimary, background: `${theme.textSecondary}08`, border: `1px solid ${theme.cardBorder}`, fontFamily: 'var(--font-okuma)' }} />
         </div>
       ))}
 

@@ -968,6 +968,85 @@ Hiçbir marka logosu, yazı tipi ya da çizimi kopyalanmadı.
 ### 14.7 Diğer
 - Sohbetin yazı çubuğu artık ekranın altına sabit; açılışta en alta kaymıyor (hoş geldin + pusula görünür).
 
+## 15. TUR — Ayet Tablosu ve Ortak Salavat (26 Kasım 2026)
+
+### 15.1 Ayet Tablosu (`/ayet-tablosu`, `pages/ayet/`)
+- Âyet seç (10 seçkin âyet ya da sure + 1–3 âyet), stil seç (**Çini · Gece · Bahar · Kemer**), boyut seç (4:5, 9:16, kare); PNG indir ya da paylaş.
+- Çizim tamamen tuvalde ve özgün (`tabloCiz.js`); başka hesap ya da uygulamadan görsel alınmadı.
+- Meal paketten **değiştirilmeden ve tam âyet** gelir; kısaltma yok, sığmazsa yazı küçülür, yine sığmazsa indirme kapanır ve uyarı çıkar.
+  Altta sure·âyet ve meal kaynağı yazar. Arapça metin Kurul onayına kadar yok.
+- Diyanet, meal ve Kur'an içeriklerinin yeniden yayımına izin vermediğini yazılı bildirdi (25.11.2026): tablolarda Diyanet meali **kullanılmaz**.
+
+### 15.2 Ortak Salavat (`/salavat`, `services/salavat.js`)
+- Günlük ortak sayaç (hedef 100.000), altın halkalı mühür, geniş dokunma alanı, titreşim, "+1" kıvılcımı.
+- Firestore: `/salavat/{YYYY-MM-DD}/parca/{p0..p9}` → `{n}`; dokunuşlar 2 sn'de bir, en çok 100'lük artışla gider. Çevrimdışı katkı cihazda bekler.
+- Kural (`firestore.rules`): yalnız `n`, yalnız 1–100 artış, silme yok. Kimlik, konum, saat gönderilmez; sıralama yok.
+- **Yayından önce:** `firebase deploy --only firestore:rules` ve App Check açılmalı.
+
+## 16. TUR — Kişisel katman: Sevap Points, bildirimler, gün kartı, kıssalar (26 Kasım 2026)
+
+### 16.1 Kazanım kaydı (`services/kazanim.js`)
+- Hangi bölümde ne kadar kalındığını (dakika, ziyaret başına en çok 10 dk) ve birkaç olayı (salavat) 8 alana yazar:
+  İman, İbadet, Ahlak, İlim, Kur'an, Fen, Sabır, Toplum. Yol → alan eşlemesi dosyanın başında.
+- **Yalnız cihazda** (`kazanim_v1`). Sunucuya gitmez, karşılaştırılmaz. Gün çetelesi ve bildirim önceliği de buradan okunur.
+
+### 16.2 Sevap Points (`/sevap-points`, `pages/sevap/`)
+- Sayan toplam, sekiz kollu **yıldız haritası** (merkezden açılan çokgen, dokunulan alanın kartı ve "Devam et"),
+  büyüyen **hayat ağacı** (kök: iman; yedi dal; her yaprak ≈ 20 puan), gün çetelesi.
+- Altta sabit not: **"Bu puan bir dindarlık ölçüsü değildir… Sevabı yalnız Allah bilir."** Sıralama yok.
+- **Amblem ve tema** (`SevapAmblem.jsx`): dönen 32 ışınlı hâle, altın sekiz köşeli yıldız, zümrüt sekizgen, nur damlası, altın parıltı geçişi;
+  "SEVAP / POINTS" yazısı, girih desenli zemin, altın köşe süslü çerçeveler, Bugün / Bu hafta / En güçlü kartları. Profil kartında da aynı amblem.
+
+### 16.3 Bildirimler (`services/bildirim.js`, `components/bildirim/BildirimIzni.jsx`, `/bildirimler`)
+- Ana ekranda 9 sn sonra kibar **ön izin kartı**; "Şimdi değil" 7 gün sonra yeniden sorar. Zil düğmesi `/bildirimler`'e gider.
+- Türler: namaz vakti (aladhan, Diyanet yöntemi 13), ilim saati (metni en çok kullanılan alana göre), salavat zinciri,
+  akşam **"Günün nasıl geçti?"** (Yorgunum / Daraldım / Huzurluyum / Şükür doluyum düğmeleri → o hâle uygun âyet ikinci bildirim olarak gelir;
+  meal paketten değiştirilmeden). Sıralama kullanım önceliğine göre; veri cihazda.
+- Capacitor `LocalNotifications`: Android/iOS'ta tam; web'de yalnız sayfa açıkken. Uygulama her açıldığında 2 günlük plan yenilenir.
+- **iOS için:** bildirim düğmeleri (action types) için ek ayar gerekmez; Android 13+ için `POST_NOTIFICATIONS` izni manifestte olmalı.
+
+### 16.4 Gün kartı (`components/nav/GunKarti.jsx`)
+- Oturum başına bir kez, açılıştan sonra ekranın tepesinden siyah kapsül iner, karta genişler: tarih, hicri tarih,
+  sıradaki vakit, "Seninle N. gün", seri. ~5 sn sonra kapsüle döner. Dokununca kapanır.
+- Not: telefonun kendi bildirim kutusunun görünüşü değiştirilemez; bu kart uygulama içidir.
+
+### 16.5 Öne çıkan âyet ve Benim âyetim
+- Ana ekranda her oturumda farklı âyet (36 seçkin âyet), "Başka" ve **"Tablo yap"** (`/ayet-tablosu?s=&a=`).
+- Ayet Tablosu'nda "Bu âyeti profilime koy" → profilde **Benim âyetim** kartı.
+
+### 16.6 Profil
+- Sevap Points özeti (mini yıldız), Benim âyetim, **gün çetelesi** (ilk girilen günden beri; "Seninle N. gün", girilen gün, üst üste).
+  Eski seri takviminin yerini aldı.
+
+### 16.7 Kıssalar yeniden (`pages/kissa/KissaListe.jsx`)
+- Emoji kapakların yerine her kıssaya özgü **kemer kapak** (yıldızlar, kemer pencere, motif, baş harf, tepeler).
+- "Bugünün kıssası" (okunmamışlardan, günlük döner) kemer biçiminde açılır, altın parıltı geçer.
+- Kategoriler soldaki dikey **yol** üzerinde duraklar; kartlar yana kayar; okunanlarda altın mühür.
+- Okuma ekranının kapağı da aynı kapak; hareketler 0,25–0,45 sn.
+
+## 17. TUR — Özgün tema dili: Revak, Vakit kâğıtları, Kemer pencereler (26 Kasım 2026)
+Referans uygulamalara benzeyen üç yer kendi dilimizle yeniden yapıldı.
+
+- **Bugün kartı (`components/home/GokKubbe.jsx`):** hafta şeridi ve yuvarlak halkalar kaldırıldı.
+  Üstte **tesbih yayı**: 33 küçük tane, beş vakit büyük tane (işaretlenen vakit altın ve nefes alır), güneş gün içinde yay boyunca yürür,
+  gece ay sağ üstte. Tarih yayın altında. Altta **revak**: haftanın yedi günü yedi kemer; işaretlenen vakit kadar kemerin içi ışıkla dolar,
+  bugünün kemerinde kandil asılı, eşikte beş vakit tanesi. Kemere dokununca o günün özeti.
+- **Okuma teması → Vakit kâğıtları (`components/okuma/VakitKagitlari.jsx`, `services/readingSettings.js`):**
+  temalar Seher, Kuşluk, Öğle, İkindi, Akşam, Yatsı, Teheccüd; her kart üstte o vaktin göğü, altta kâğıdın kendisi.
+  **"Vakte göre"** anahtarı: kâğıt saate göre kendiliğinden değişir (`otomatik`). Eski satır listesi kaldırıldı.
+- **Uygulama teması → Kemer pencereler (`components/tema/TemaPencereleri.jsx`, Ayarlar):** her tema içinde kendi manzarası olan
+  kafesli bir kemer pencere; seçilince kanatlar açılır, içeriden ışık vurur. Emoji ve renk noktaları kaldırıldı.
+
+## 18. TUR — Okuma Harfi, Tesbih menü (26 Kasım 2026, gece)
+- **Okuma Harfi** (`src/assets/fonts/okuma-harfi.woff2`, `--font-okuma`): kitap gövdesi, kıssa ve makale metni (`.article-body`),
+  öne çıkan âyet, Benim âyetim, okuma önizlemesi ve eski Georgia kullanan okuma ekranları.
+  Della Respira (SIL OFL 1.1) temel alındı; yazı tipinde olmayan **ş Ş ğ Ğ İ** bileşik glif olarak eklendi.
+  OFL gereği değiştirilmiş sürüm Ayrılmış Ad'ı taşımaz: aile adı "Okuma Harfi". Lisans: `assets/fonts/OFL-okuma-harfi.txt`.
+  Kitap yeniden dizildi (64 sayfa), taşma testi temiz.
+- **Tesbih menü** (`components/nav/MuhurMenu.jsx` → `TesbihDizisi`): alt menü ince bir ipe dizilmiş kehribar taneler; aralarda ara taneler,
+  ortada püsküllü **imame** (Yol). Etkin tane büyüyüp altına döner, adı üstünde belirir. Kaydırınca yine Mühür'e dönüşür.
+- 17. turdaki Bugün kartı (tesbih yayı + revak) istek üzerine **eski hâline** döndürüldü.
+
 ### Bilinen sınırlar
 - Mağaza uygulamasında (Android WebView) `SpeechRecognition` yok: mikrofon düğmesi görünmez, yazılı komut çalışır.
   Sesli komut için `@capacitor-community/speech-recognition` eklentisi sonraki tur.
@@ -984,3 +1063,10 @@ Hiçbir marka logosu, yazı tipi ya da çizimi kopyalanmadı.
 Bu dosyadaki telif değerlendirmeleri hukuki görüş değildir. Şüpheli her kaynak için hak sahibinden yazılı izin alınır.
 Diyanet onayı (0.4) için Kurul'un kendi cevabı esastır; bu dosyadaki usul, yönetmelik ve kanun metninden çıkarılmıştır.
 Gelir modeline geçilirse (şu an yok, bkz. 0.5) önce bir fikri mülkiyet avukatına danışılır.
+
+## 19. Alt menü biçimleri (Açılan mühür varsayılan)
+
+- **Varsayılan: Açılan mühür (yelpaze).** Ekranın altında yalnız sekiz köşeli altın bir mühür durur; içinde etkin sekmenin simgesi. Dokununca beş sekme üst yarım daire üzerinde yelpaze gibi açılır, arka plan kararıp bulanıklaşır; seçince ya da boşluğa dokununca kapanır. İlk açılışta bir kez kendiliğinden açılıp kapanarak kendini tanıtır (`yelpaze_tanitim`).
+- **Ayarlar > Menü biçimi:** Açılan mühür, Kandil rafı, Çini kuşak, Revak, Hilal kızağı, Tesbih, Sade kapsül. Seçim anında uygulanır, `menu_bicimi_v1` anahtarında saklanır.
+- Yelpaze dışındaki biçimlerde aşağı kaydırınca menü yine Mühür'e dönüşür; Devam Kemeri tüm biçimlerde aynen çalışır.
+- Dosyalar: `services/menuBicimi.js`, `components/nav/MenuBicimleri.jsx`, `components/nav/MenuBicimSecici.jsx`, `MuhurMenu.jsx`, `SettingsPage.js`.

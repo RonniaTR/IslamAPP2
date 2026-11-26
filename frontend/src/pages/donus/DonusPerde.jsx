@@ -212,7 +212,7 @@ export default function DonusPerde() {
               }}
               style={{
                 color: state === 'now' ? p.text : p.dim,
-                fontFamily: 'Georgia, serif',
+                fontFamily: 'var(--font-okuma)',
                 textShadow: state === 'now' ? `0 0 24px ${alpha(p.accentGlow, 0.25)}` : 'none',
                 borderInlineStart: state === 'now' ? `3px solid ${p.accent}` : '3px solid transparent',
                 paddingInlineStart: 14,

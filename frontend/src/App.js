@@ -90,6 +90,10 @@ const JournalPage = lazy(() => import('./pages/JournalPage'));
 const GamesPage = lazy(() => import('./pages/GamesPage'));
 const SiyerPage = lazy(() => import('./pages/SiyerPage'));
 const MuslumanOlmakPage = lazy(() => import('./pages/musluman/MuslumanOlmakPage'));
+const AyetTablosuPage = lazy(() => import('./pages/ayet/AyetTablosuPage'));
+const OrtakSalavatPage = lazy(() => import('./pages/salavat/OrtakSalavatPage'));
+const SevapPointsPage = lazy(() => import('./pages/sevap/SevapPointsPage'));
+const BildirimlerPage = lazy(() => import('./pages/BildirimlerPage'));
 const ProphetsPage = lazy(() => import('./pages/ProphetsPage'));
 
 // --- GERİ DÖNÜŞ ODASI (KIRK PERDE) ---
@@ -227,6 +231,10 @@ function AdultRoutes() {
               <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
               <Route path="/siyer" element={<PageTransition><SiyerPage /></PageTransition>} />
               <Route path="/musluman-olmak" element={<MuslumanOlmakPage />} />
+              <Route path="/ayet-tablosu" element={<PageTransition><AyetTablosuPage /></PageTransition>} />
+              <Route path="/salavat" element={<PageTransition><OrtakSalavatPage /></PageTransition>} />
+              <Route path="/sevap-points" element={<PageTransition><SevapPointsPage /></PageTransition>} />
+              <Route path="/bildirimler" element={<PageTransition><BildirimlerPage /></PageTransition>} />
               <Route path="/prophets" element={<PageTransition><ProphetsPage /></PageTransition>} />
               <Route path="/kids" element={<KidsModeSwitch />} />
               <Route path="/kids/*" element={<KidsModeSwitch />} />
