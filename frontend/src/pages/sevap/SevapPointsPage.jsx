@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, animate, motion } from 'framer-motion';
 import { ChevronLeft, Info, ArrowRight } from 'lucide-react';
-import { ALANLAR, alanPuanlari, toplamPuan, cetele, kazanimDinle, gunAnahtari, donemPuani } from '../../services/kazanim';
+import { ALANLAR, alanPuanlari, toplamPuan, cetele, kazanimDinle, gunAnahtari, donemPuani, bulutaSimdiYaz } from '../../services/kazanim';
 import { SevapIsaret, SevapYazi, GirihZemin, SusluCerceve } from './SevapAmblem';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ✨ SEVAP POINTS — uygulamadaki çabanın haritası.
 // Üstte sekiz kollu YILDIZ HARİTASI (sekiz alan: İman, İbadet, Ahlak, İlim, Kur'an, Fen, Sabır, Toplum),
@@ -186,8 +187,12 @@ export function GunCetelesi({ haftalar = 6, koyu = true }) {
 
 export default function SevapPointsPage() {
   const navigate = useNavigate();
+  const { user, firebaseUser } = useAuth();
   const [, setSurum] = useState(0);   // kazanım değişince yeniden çiz
-  useEffect(() => kazanimDinle(() => setSurum((s) => s + 1)), []);
+  useEffect(() => {
+    bulutaSimdiYaz();
+    return kazanimDinle(() => setSurum((s) => s + 1));
+  }, []);
   const alanlar = alanPuanlari();
   const toplam = toplamPuan();
   const bugun = donemPuani(1);
@@ -215,6 +220,11 @@ export default function SevapPointsPage() {
           <SayacSayi deger={toplam} />
         </div>
         <div style={{ fontSize: 12.5, color: 'rgba(244,239,227,0.6)', marginTop: 4 }}>uygulamadaki çabanın toplamı</div>
+        <div style={{ fontSize: 11.5, color: '#7FD6B0', marginTop: 4, fontWeight: 700 }}>
+          {firebaseUser && !firebaseUser.isAnonymous
+            ? `✓ Hesabına (${firebaseUser.email || user?.name || 'Gmail'}) otomatik kaydediliyor`
+            : 'Cihazında kayıtlı · Gmail ile giriş yaparsan hesabına da yedeklenir'}
+        </div>
       </motion.div>
 
       <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, margin: '18px 16px 0' }}>

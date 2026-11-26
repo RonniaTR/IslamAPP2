@@ -25,7 +25,7 @@ const UST = 56;
 const ALT = 78;
 const W = SAYFA.w;
 const H = SAYFA.h;
-const SUREK = { normal: 0.62, hizli: 0.24 };
+const SUREK = { normal: 0.22, hizli: 0.10 };
 
 const anahtar = (id, ne) => `mo:${id}:${ne}`;
 const oku = (k, v) => { try { const x = localStorage.getItem(k); return x === null ? v : JSON.parse(x); } catch { return v; } };
@@ -35,7 +35,7 @@ async function fontlarHazir() {
   if (typeof document === 'undefined' || !document.fonts) return;
   const liste = ['400 14px Literata', 'italic 400 14px Literata', '600 14px Literata', '600 16px Fraunces', '800 16px Fraunces', '400 12px "Noto Sans"', '700 12px "Noto Sans"'];
   const bekle = Promise.all(liste.map((f) => document.fonts.load(f).catch(() => null))).then(() => document.fonts.ready);
-  await Promise.race([bekle, new Promise((r) => setTimeout(r, 3500))]);
+  await Promise.race([bekle, new Promise((r) => setTimeout(r, 350))]);
 }
 
 /* ——— Ölçüm: blokları görünmez biçimde çizip yüksekliklerini okur, sonra dizgiyi kurar ——— */

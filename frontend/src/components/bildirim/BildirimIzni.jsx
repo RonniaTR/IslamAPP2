@@ -40,12 +40,13 @@ export function TurListesi({ tercih, setTercih, saatler = false, acik = true }) 
 }
 
 export default function BildirimIzni() {
+  // Otomatik açılır bildirim penceresi kullanıcıyı rahatsız etmemesi için kapalıdır;
+  // bildirim izin ve tercihleri yalnız kullanıcı sağ üstteki zil simgesine veya Ayarlar > Bildirimler'e girdiğinde açılır.
   const [goster, setGoster] = useState(false);
   const [tercih, setTercih] = useState(tercihOku);
   useEffect(() => {
     if (!izinSorulsunMu()) return undefined;
-    const t = setTimeout(() => setGoster(true), 9000); // açılış ve gün kartı bittikten sonra
-    return () => clearTimeout(t);
+    return undefined;
   }, []);
   const ver = async () => { tercihYaz({ ...tercihOku(), ...tercih }); await izinIste(); setGoster(false); };
   const sonra = () => { sonraSor(); setGoster(false); };

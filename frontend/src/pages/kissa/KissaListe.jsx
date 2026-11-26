@@ -84,13 +84,9 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
 
       {/* Bugünün kıssası */}
       {gunun && (
-        <motion.button type="button" data-testid="gunun-kissasi" onClick={() => openStory(gunun.id)}
-          initial={{ clipPath: 'inset(100% 0 0 0 round 90px 90px 24px 24px)' }} animate={{ clipPath: 'inset(0% 0 0 0 round 90px 90px 24px 24px)' }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} whileTap={{ scale: 0.98 }}
+        <button type="button" data-testid="gunun-kissasi" onClick={() => openStory(gunun.id)}
           style={{ display: 'block', width: 'calc(100% - 32px)', margin: '8px 16px 0', padding: 0, border: `1px solid ${ALTIN}`, borderRadius: '90px 90px 24px 24px', overflow: 'hidden', background: '#0B241B', textAlign: 'start', cursor: 'pointer', position: 'relative' }}>
           <KissaKapak s={gunun} h={190} yuvarlak="0" />
-          <motion.span aria-hidden initial={{ x: '-120%' }} animate={{ x: '220%' }} transition={{ duration: 1.1, delay: 0.5, ease: 'easeInOut' }}
-            style={{ position: 'absolute', top: 0, bottom: 0, width: '40%', background: 'linear-gradient(100deg, transparent, rgba(255,233,168,0.22), transparent)', pointerEvents: 'none' }} />
           <span style={{ display: 'block', padding: '14px 18px 16px' }}>
             <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.8, color: ALTIN }}>BUGÜNÜN KISSASI</span>
             <span style={{ display: 'block', fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 800, color: KREM, marginTop: 2 }}>{gunun.title}</span>
@@ -100,7 +96,7 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
               <span style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 4, color: ALTIN, fontWeight: 800 }}><BookOpen size={14} /> Oku</span>
             </span>
           </span>
-        </motion.button>
+        </button>
       )}
 
       {/* Cevher ve Gece */}

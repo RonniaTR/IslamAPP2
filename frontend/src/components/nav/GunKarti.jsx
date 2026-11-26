@@ -14,7 +14,8 @@ const ANAHTAR = 'gun_karti_gosterildi';
 const ALTIN = '#D8B76A';
 
 function gosterilsinMi() {
-  try { if (sessionStorage.getItem(ANAHTAR)) return false; sessionStorage.setItem(ANAHTAR, '1'); return true; } catch { return false; }
+  // Kullanıcıyı sık sık ekran üstü açılır kartlarla rahatsız etmemek için kendiliğinden açılmaz.
+  return false;
 }
 
 export default function GunKarti() {

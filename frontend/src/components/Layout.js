@@ -171,17 +171,9 @@ export default memo(function Layout({ children }) {
   const { theme } = useTheme();
   const hideNav = pathname.match(/\/quran\/\d+/) || pathname.startsWith('/mushaf');
   const isRtl = lang === 'ar';
-  // Kaydırma yönüne göre alt menüyü incelt
+  // Kaydırma sırasında alt menü kapanmaz; telefon ve tablette her zaman tek dokunuşla geçişe hazır kalır.
   const mainRef = useRef(null);
-  const lastY = useRef(0);
   const [compact, setCompact] = useState(false);
-  const onScroll = useCallback(() => {
-    const y = mainRef.current ? mainRef.current.scrollTop : 0;
-    if (Math.abs(y - lastY.current) < 12) return;
-    setCompact(y > lastY.current && y > 120);
-    lastY.current = y;
-  }, []);
-  useEffect(() => { setCompact(false); lastY.current = 0; }, [pathname]);
   // Kazanım kaydı (yalnız cihazda): hangi bölümde ne kadar kalındığı + gün çetelesi. Bkz. services/kazanim.js
   useEffect(() => { yolDegisti(`${pathname}${search || ''}`); }, [pathname, search]);
   useEffect(() => {
@@ -245,7 +237,7 @@ export default memo(function Layout({ children }) {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <main ref={mainRef} onScroll={onScroll} className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-[var(--alt-bosluk,96px)] md:pb-0 ${!hideNav ? 'md:ml-[260px]' : ''}`}>
+      <main ref={mainRef} className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide pb-[var(--alt-bosluk,96px)] md:pb-0 ${!hideNav ? 'md:ml-[260px]' : ''}`}>
         <div className="w-full h-full max-w-[1400px] mx-auto relative">
           {children || <Outlet />}
         </div>

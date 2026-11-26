@@ -11,8 +11,11 @@ const KREM = '#F4EFE3';
 const ZUMRUT = '#0F5C46';
 export const etkinMi = (path, pathname) => (path === '/' ? pathname === '/' : pathname.startsWith(path));
 const kabuk = (theme) => ({
-  background: theme.navBg, backdropFilter: 'blur(20px) saturate(1.3)', WebkitBackdropFilter: 'blur(20px) saturate(1.3)',
-  border: `1px solid ${theme.cardBorder}`, boxShadow: theme.isDark ? '0 14px 34px -10px rgba(0,0,0,0.7)' : '0 14px 34px -14px rgba(20,40,30,0.35)',
+  background: theme.navBg,
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: `1px solid ${theme.cardBorder}`,
+  boxShadow: theme.isDark ? '0 10px 26px -8px rgba(0,0,0,0.65)' : '0 10px 26px -10px rgba(20,40,30,0.28)',
 });
 
 function SekizYildiz({ boyut, renk, ic }) {
@@ -31,64 +34,52 @@ export function YelpazeMuhur({ tabs, pathname, navigate, theme, onAcik }) {
   const [acik, setAcik] = useState(false);
   useEffect(() => { if (onAcik) onAcik(acik); }, [acik, onAcik]);
   const etkin = tabs.find((t) => etkinMi(t.path, pathname));
-  const R = 124; const n = tabs.length;
+  const R = 120; const n = tabs.length;
   useEffect(() => { setAcik(false); }, [pathname]);
-  useEffect(() => {
-    let k = null; try { k = localStorage.getItem('yelpaze_tanitim'); } catch { /* yok */ }
-    if (k) return undefined;
-    const t1 = setTimeout(() => setAcik(true), 3200); const t2 = setTimeout(() => { setAcik(false); try { localStorage.setItem('yelpaze_tanitim', '1'); } catch { /* kota */ } }, 5600);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
   const EtkinIcon = etkin ? etkin.icon : null;
   return (
     <>
-      <AnimatePresence>
-        {acik && (
-          <motion.div key="perde" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAcik(false)}
-            style={{ position: 'fixed', inset: 0, pointerEvents: 'auto', background: theme.isDark ? 'rgba(2,8,6,0.68)' : 'rgba(8,28,20,0.58)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }} />
-        )}
-      </AnimatePresence>
+      {acik && (
+        <div onClick={() => setAcik(false)}
+          style={{ position: 'fixed', inset: 0, pointerEvents: 'auto', background: theme.isDark ? 'rgba(2,8,6,0.62)' : 'rgba(8,28,20,0.52)' }} />
+      )}
       <div data-testid="yelpaze-menu" style={{ position: 'relative', width: 64, height: 64, pointerEvents: 'auto' }}>
-        {/* yelpaze yayı */}
-        <AnimatePresence>
-          {acik && (
-            <motion.svg key="yay" width={2 * R + 80} height={R + 50} viewBox={`0 0 ${2 * R + 80} ${R + 50}`} aria-hidden
-              initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}
-              style={{ position: 'absolute', left: 32 - (R + 40), bottom: 32 - 10, transformOrigin: 'bottom center', pointerEvents: 'none' }}>
-              <path d={`M${40} ${R + 40} A${R} ${R} 0 0 1 ${2 * R + 40} ${R + 40}`} fill="none" stroke={ALTIN} strokeWidth="1" strokeDasharray="2 6" opacity="0.7" />
-            </motion.svg>
-          )}
-        </AnimatePresence>
+        {acik && (
+          <svg width={2 * R + 80} height={R + 50} viewBox={`0 0 ${2 * R + 80} ${R + 50}`} aria-hidden
+            style={{ position: 'absolute', left: 32 - (R + 40), bottom: 32 - 10, transformOrigin: 'bottom center', pointerEvents: 'none' }}>
+            <path d={`M${40} ${R + 40} A${R} ${R} 0 0 1 ${2 * R + 40} ${R + 40}`} fill="none" stroke={ALTIN} strokeWidth="1" strokeDasharray="2 6" opacity="0.7" />
+          </svg>
+        )}
         {tabs.map((t, i) => {
-          const aci = Math.PI + (i / (n - 1)) * Math.PI; // 180° → 360° (üst yarım daire)
+          const aci = Math.PI + (i / (n - 1)) * Math.PI;
           const x = Math.cos(aci) * R; const y = Math.sin(aci) * R;
           const on = etkin && etkin.id === t.id; const Icon = t.icon;
           return (
-            <motion.button key={t.id} type="button" data-testid={`yelpaze-${t.id}`} aria-label={t.label} aria-current={on ? 'page' : undefined}
+            <button key={t.id} type="button" data-testid={`yelpaze-${t.id}`} aria-label={t.label} aria-current={on ? 'page' : undefined}
               onClick={() => { setAcik(false); navigate(t.path); }} tabIndex={acik ? 0 : -1}
-              initial={false}
-              animate={acik ? { x, y, scale: 1, opacity: 1 } : { x: 0, y: 0, scale: 0.3, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 22, delay: acik ? 0.03 * i : 0 }}
-              style={{ position: 'absolute', left: 32 - 27, top: 32 - 27, width: 54, height: 54, borderRadius: '50%', border: on ? `2px solid ${KREM}` : `1px solid ${ALTIN}`, cursor: 'pointer', pointerEvents: acik ? 'auto' : 'none',
-                background: on ? ALTIN : KREM, color: on ? '#2A1E05' : ZUMRUT, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 22px -8px rgba(0,0,0,0.55)' }}>
-              <Icon size={22} strokeWidth={2.1} aria-hidden />
-              <span style={{ position: 'absolute', top: 58, left: -23, width: 100, textAlign: 'center', fontSize: 12, fontWeight: 800, color: KREM, textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>{t.label}</span>
-            </motion.button>
+              style={{
+                position: 'absolute', left: 32 - 26, top: 32 - 26, width: 52, height: 52, borderRadius: '50%',
+                border: on ? `2px solid ${KREM}` : `1px solid ${ALTIN}`, cursor: 'pointer',
+                pointerEvents: acik ? 'auto' : 'none',
+                opacity: acik ? 1 : 0,
+                transform: acik ? `translate3d(${x}px, ${y}px, 0) scale(1)` : 'translate3d(0, 0, 0) scale(0.4)',
+                transition: 'transform 0.16s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.14s ease',
+                background: on ? ALTIN : KREM, color: on ? '#2A1E05' : ZUMRUT,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 18px -6px rgba(0,0,0,0.5)',
+              }}>
+              <Icon size={21} strokeWidth={2.1} aria-hidden />
+              <span style={{ position: 'absolute', top: 55, left: -24, width: 100, textAlign: 'center', fontSize: 11.5, fontWeight: 800, color: KREM, textShadow: '0 1px 6px rgba(0,0,0,0.9)' }}>{t.label}</span>
+            </button>
           );
         })}
-        {/* mühür */}
-        <motion.button type="button" data-testid="yelpaze-muhur" aria-label={acik ? 'Menüyü kapat' : `Menüyü aç · ${etkin ? etkin.label : ''}`} aria-expanded={acik}
-          onClick={() => setAcik(!acik)} whileTap={{ scale: 0.9 }}
-          animate={{ rotate: acik ? 45 : 0 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-          style={{ position: 'absolute', inset: -4, width: 72, height: 72, padding: 0, border: 'none', background: 'none', cursor: 'pointer', filter: 'drop-shadow(0 10px 16px rgba(0,0,0,0.45))' }}>
-          <motion.span aria-hidden animate={{ rotate: 360 }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} style={{ position: 'absolute', inset: -8, display: 'block' }}>
-            <svg width="88" height="88" viewBox="0 0 88 88"><rect x="16" y="16" width="56" height="56" fill="none" stroke={ALTIN} strokeWidth="0.7" opacity="0.6" /><rect x="16" y="16" width="56" height="56" fill="none" stroke={ALTIN} strokeWidth="0.7" opacity="0.6" transform="rotate(45 44 44)" /></svg>
-          </motion.span>
+        <button type="button" data-testid="yelpaze-muhur" aria-label={acik ? 'Menüyü kapat' : `Menüyü aç · ${etkin ? etkin.label : ''}`} aria-expanded={acik}
+          onClick={() => setAcik(!acik)}
+          style={{ position: 'absolute', inset: -4, width: 72, height: 72, padding: 0, border: 'none', background: 'none', cursor: 'pointer', filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.4))' }}>
           <SekizYildiz boyut={72} renk={ALTIN} ic={ZUMRUT} />
-          <motion.span animate={{ rotate: acik ? -45 : 0 }} style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: KREM }}>
+          <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: KREM }}>
             {acik ? <X size={22} strokeWidth={2.4} /> : EtkinIcon ? <EtkinIcon size={22} strokeWidth={2.2} /> : <LayoutGrid size={20} strokeWidth={2.2} />}
-          </motion.span>
-        </motion.button>
+          </span>
+        </button>
       </div>
     </>
   );
@@ -212,24 +203,65 @@ export function HilalKizagi({ tabs, pathname, navigate, theme }) {
   );
 }
 
-// ───────────── SADE KAPSÜL ─────────────
+// ───────────── SADE KAPSÜL (Varsayılan — Telefon & Tablet Ergonomik 1-Dokunuş Menü) ─────────────
 export function Kapsul({ tabs, pathname, navigate, theme }) {
   return (
-    <motion.div data-testid="kapsul-menu" initial={{ scaleX: 0.2, opacity: 0 }} animate={{ scaleX: 1, opacity: 1 }} exit={{ scaleX: 0.2, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-      style={{ position: 'absolute', bottom: 12, pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 4, padding: 7, borderRadius: 999, maxWidth: 'calc(100% - 24px)', ...kabuk(theme) }}>
+    <div data-testid="kapsul-menu"
+      style={{
+        position: 'absolute',
+        bottom: 6,
+        left: 0,
+        right: 0,
+        margin: '0 auto',
+        pointerEvents: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 4,
+        padding: '6px 8px',
+        borderRadius: 26,
+        width: 'min(480px, calc(100vw - 20px))',
+        ...kabuk(theme),
+      }}>
       {tabs.map(({ id, path, icon: Icon, label }) => {
         const active = etkinMi(path, pathname);
+        const activeColor = theme.isDark ? (theme.goldLight || theme.gold) : theme.primary;
         return (
           <button key={id} type="button" onClick={() => navigate(path)} aria-label={label} aria-current={active ? 'page' : undefined}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, height: 48, minWidth: 48, padding: active ? '0 16px 0 13px' : 0, borderRadius: 999, border: 'none', cursor: 'pointer',
-              background: active ? `${theme.primary}${theme.isDark ? '40' : '1F'}` : 'transparent', color: active ? (theme.isDark ? theme.goldLight || theme.gold : theme.primary) : theme.textSecondary, transition: 'all 0.28s cubic-bezier(0.2,0.8,0.2,1)' }}>
-            <Icon size={20} strokeWidth={active ? 2.3 : 1.9} aria-hidden />
-            {active && <span style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>{label}</span>}
+            style={{
+              flex: '1 1 0',
+              minWidth: 0,
+              height: 54,
+              padding: '4px 2px',
+              borderRadius: 20,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+              background: active ? `${theme.primary}${theme.isDark ? '38' : '16'}` : 'transparent',
+              color: active ? activeColor : theme.textSecondary,
+              transition: 'background 0.12s ease, color 0.12s ease',
+              WebkitTapHighlightColor: 'transparent',
+            }}>
+            <Icon size={21} strokeWidth={active ? 2.4 : 1.9} aria-hidden />
+            <span style={{
+              fontSize: 11,
+              fontWeight: active ? 800 : 600,
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap',
+              maxWidth: '100%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
+              {label}
+            </span>
           </button>
         );
       })}
-    </motion.div>
+    </div>
   );
 }
 

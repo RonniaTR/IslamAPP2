@@ -2,16 +2,16 @@
 import { useSyncExternalStore } from 'react';
 
 export const MENU_BICIMLERI = [
+  { id: 'kapsul', ad: 'Sade kapsül', alt: 'En yalın hâli' },
   { id: 'yelpaze', ad: 'Açılan mühür', alt: 'Tek yıldız; dokununca yelpaze gibi açılır' },
   { id: 'kandil', ad: 'Kandil rafı', alt: 'Asılı kandiller; seçilen yanar' },
   { id: 'cini', ad: 'Çini kuşak', alt: 'Seçilen çini döner, altın yüzü çıkar' },
   { id: 'revak', ad: 'Revak', alt: 'Seçilen kemer yükselir, altınla dolar' },
   { id: 'hilal', ad: 'Hilal kızağı', alt: 'Hilal seçilen sekmeye kayar' },
   { id: 'tesbih', ad: 'Tesbih', alt: 'İpe dizili taneler, ortada imame' },
-  { id: 'kapsul', ad: 'Sade kapsül', alt: 'En yalın hâli' },
 ];
-const ANAHTAR = 'menu_bicimi_v1';
-let deger = (() => { try { const v = localStorage.getItem(ANAHTAR); return MENU_BICIMLERI.some((b) => b.id === v) ? v : 'yelpaze'; } catch { return 'yelpaze'; } })();
+const ANAHTAR = 'menu_bicimi_v2';
+let deger = (() => { try { const v = localStorage.getItem(ANAHTAR); return MENU_BICIMLERI.some((b) => b.id === v) ? v : 'kapsul'; } catch { return 'kapsul'; } })();
 const dinleyiciler = new Set();
 export function menuBicimi() { return deger; }
 export function menuBicimiSec(id) {

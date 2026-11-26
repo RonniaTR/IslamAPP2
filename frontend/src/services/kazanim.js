@@ -1,8 +1,10 @@
 // ✨ KAZANIM KAYDI — Sevap Points, gün çetelesi ve kişisel bildirim önceliğinin ortak veri katmanı.
 //
 // Ne kaydedilir: hangi bölümde ne kadar vakit geçirildiği (dakika) ve birkaç açık olay (salavat, kitap sayfası, doğru cevap).
-// Nerede durur: YALNIZ bu cihazda (localStorage). Sunucuya gitmez, kimseyle karşılaştırılmaz.
+// Nerede durur: Cihazda (localStorage) + Gmail/Apple ile giriş yapılmışsa Firestore `users/{uid}` belgesinde gerçek zamanlı yedeklenir.
 // Ne DEĞİLDİR: bir dindarlık, iman ya da sevap ölçüsü. Sevabı yalnız Allah bilir; bu sayı uygulamadaki çabanı gösterir.
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
 
 export const ALANLAR = [
   { id: 'iman', ad: 'İman', renk: '#D8B76A' },
@@ -43,10 +45,98 @@ function oku() {
   try { const v = JSON.parse(localStorage.getItem(ANAHTAR)); if (v && v.alanlar) return v; } catch { /* bozuk */ }
   return { alanlar: {}, gunler: {}, ilk: gunAnahtari() };
 }
-function yaz(v) { try { localStorage.setItem(ANAHTAR, JSON.stringify(v)); } catch { /* kota */ } }
+function yaz(v) {
+  try { localStorage.setItem(ANAHTAR, JSON.stringify(v)); } catch { /* kota */ }
+  bulutaYedeklePlanla();
+}
 const dinleyiciler = new Set();
 function bildir() { dinleyiciler.forEach((f) => f()); }
 export function kazanimDinle(f) { dinleyiciler.add(f); return () => dinleyiciler.delete(f); }
+
+// ---- Firestore Bulut Senkronizasyonu (Gmail / Apple hesabı ile giriş yapanlar için) ----
+let bulutZamanlayici = null;
+
+export async function bulutaSimdiYaz() {
+  const u = auth?.currentUser;
+  if (!u || u.isAnonymous) return;
+  try {
+    const v = oku();
+    const top = ALANLAR.reduce((t, a) => t + Math.round(v.alanlar[a.id] || 0), 0);
+    let benimAyetim = null;
+    try { benimAyetim = JSON.parse(localStorage.getItem('benim_ayetim')); } catch { benimAyetim = null; }
+    await setDoc(
+      doc(db, 'users', u.uid),
+      {
+        kazanim: v,
+        sevapPoints: top,
+        ...(benimAyetim ? { benimAyetim } : {}),
+        kazanimUpdatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+  } catch { /* çevrimdışıysa bir sonraki değişimde tekrar dener */ }
+}
+
+function bulutaYedeklePlanla() {
+  if (bulutZamanlayici) clearTimeout(bulutZamanlayici);
+  bulutZamanlayici = setTimeout(() => {
+    bulutZamanlayici = null;
+    bulutaSimdiYaz();
+  }, 1200);
+}
+
+/** İki kazanım nesnesini hiçbir puan kaybolmayacak biçimde (alan ve gün bazında en yüksek değerle) birleştirir. */
+function kazanimBirlestir(yerel, uzak) {
+  if (!uzak || !uzak.alanlar) return yerel;
+  const birlesik = {
+    ilk: (!yerel.ilk || (uzak.ilk && uzak.ilk < yerel.ilk)) ? uzak.ilk : yerel.ilk,
+    alanlar: { ...yerel.alanlar },
+    gunler: { ...yerel.gunler },
+  };
+  Object.entries(uzak.alanlar || {}).forEach(([k, p]) => {
+    birlesik.alanlar[k] = Math.max(Number(birlesik.alanlar[k] || 0), Number(p || 0));
+  });
+  Object.entries(uzak.gunler || {}).forEach(([gun, harita]) => {
+    birlesik.gunler[gun] = { ...(birlesik.gunler[gun] || {}) };
+    Object.entries(harita || {}).forEach(([k, p]) => {
+      birlesik.gunler[gun][k] = Math.max(Number(birlesik.gunler[gun][k] || 0), Number(p || 0));
+    });
+  });
+  // Alan toplamları en az günlerin toplamı kadar olsun
+  const gunToplam = {};
+  Object.values(birlesik.gunler).forEach((harita) => {
+    Object.entries(harita || {}).forEach(([k, p]) => {
+      gunToplam[k] = (gunToplam[k] || 0) + Number(p || 0);
+    });
+  });
+  Object.entries(gunToplam).forEach(([k, p]) => {
+    birlesik.alanlar[k] = Math.max(Number(birlesik.alanlar[k] || 0), Math.round(p * 10) / 10);
+  });
+  return birlesik;
+}
+
+/** Gmail / Apple ile giriş yapıldığında Firestore'daki Sevap Points verisini çeker, yerelle birleştirir ve kaydeder. */
+export async function buluttanSenkronla(uid) {
+  if (!uid || uid === 'anonymous') return;
+  try {
+    const ref = doc(db, 'users', uid);
+    const snap = await getDoc(ref);
+    const yerel = oku();
+    const veri = snap.exists() ? snap.data() : null;
+    const birlesik = veri?.kazanim ? kazanimBirlestir(yerel, veri.kazanim) : yerel;
+    try { localStorage.setItem(ANAHTAR, JSON.stringify(birlesik)); } catch { /* kota */ }
+    if (veri?.benimAyetim && !localStorage.getItem('benim_ayetim')) {
+      try { localStorage.setItem('benim_ayetim', JSON.stringify(veri.benimAyetim)); } catch { /* kota */ }
+    }
+    bildir();
+    const top = ALANLAR.reduce((t, a) => t + Math.round(birlesik.alanlar[a.id] || 0), 0);
+    await setDoc(ref, { kazanim: birlesik, sevapPoints: top, kazanimUpdatedAt: new Date().toISOString() }, { merge: true });
+  } catch { /* çevrimdışı */ }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => { bulutaSimdiYaz(); });
+}
 
 /** Bir alana puan ekler. */
 export function puanEkle(alan, puan, d = new Date()) {

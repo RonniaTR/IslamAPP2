@@ -1,8 +1,9 @@
 import { db } from './firebase';
-import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { buluttanSenkronla, toplamPuan } from './kazanim';
 
 export class UserServiceClass {
-  // Veritabanında kullanıcıyı yaratır veya bilgilerini günceller
+  // Veritabanında kullanıcıyı yaratır veya bilgilerini günceller (Gmail/Apple giriş kaydı + Sevap Points senkronu)
   async createOrUpdateUser(firebaseUser) {
     if (!firebaseUser) return null;
     
@@ -11,28 +12,34 @@ export class UserServiceClass {
       const userSnap = await getDoc(userRef);
       
       const userData = {
-        name: firebaseUser.displayName || 'Yeni Kullanıcı',
-        email: firebaseUser.email,
+        uid: firebaseUser.uid,
+        name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'Yeni Kullanıcı'),
+        email: firebaseUser.email || '',
+        provider: (firebaseUser.providerData && firebaseUser.providerData[0]?.providerId) || 'google.com',
         // Fotoğraf yoksa boş kalır: kimlik numarası üçüncü taraf avatar servisine gönderilmez (gizlilik).
         avatarUrl: firebaseUser.photoURL || '',
         lastLogin: new Date().toISOString(),
       };
 
+      let result;
       if (!userSnap.exists()) {
-        // Yeni kayıt, default XP ve statlar
+        // Yeni kayıt, default XP ve statlar + mevcut Sevap Points
         userData.title = 'İlim Yolcusu';
         userData.xp = 0;
         userData.level = 1;
         userData.streak = 0;
         userData.totalBadges = 0;
+        userData.sevapPoints = toplamPuan();
         userData.createdAt = new Date().toISOString();
-        await setDoc(userRef, userData);
-        return { id: firebaseUser.uid, ...userData };
+        await setDoc(userRef, userData, { merge: true });
+        result = { id: firebaseUser.uid, ...userData };
       } else {
-        // Eski kayıt, sadece bilgileri (son giriş vs) güncelle
-        await updateDoc(userRef, userData);
-        return { id: firebaseUser.uid, ...userSnap.data(), ...userData };
+        // Eski kayıt, bilgileri (son giriş vs) güncelle
+        await setDoc(userRef, userData, { merge: true });
+        result = { id: firebaseUser.uid, ...userSnap.data(), ...userData };
       }
+      await buluttanSenkronla(firebaseUser.uid);
+      return result;
     } catch (error) {
       console.error('Error in createOrUpdateUser:', error);
       return null;

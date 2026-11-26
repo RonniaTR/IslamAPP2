@@ -162,85 +162,82 @@ function KidsModeSwitch() {
 
 // --- Yetişkin Router ---
 function AdultRoutes() {
-  const location = useLocation();
   return (
     <ProtectedRoute>
       <Layout>
         <Suspense fallback={<PageLoader />}>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
-              <Route path="/quran" element={<PageTransition><QuranGate><QuranList /></QuranGate></PageTransition>} />
-              <Route path="/quran/:surahNumber" element={<PageTransition><QuranGate><SurahDetail /></QuranGate></PageTransition>} />
-              <Route path="/mushaf" element={<QuranGate><MushafPage /></QuranGate>} />
-              <Route path="/mushaf/:page" element={<QuranGate><MushafPage /></QuranGate>} />
-              <Route path="/hadith" element={<PageTransition><HadithPage /></PageTransition>} />
-              <Route path="/chat" element={<PageTransition><AiChat /></PageTransition>} />
-              <Route path="/scholars" element={<PageTransition><ScholarsPage /></PageTransition>} />
-              <Route path="/qibla" element={<PageTransition><QiblaPage /></PageTransition>} />
-              <Route path="/meal-audio" element={<PageTransition><QuranGate><MealAudioPage /></QuranGate></PageTransition>} />
-              <Route path="/journey" element={<PageTransition><JourneyTracker /></PageTransition>} />
-              <Route path="/content/:type/:slug" element={<PageTransition><ContentDetail /></PageTransition>} />
-              <Route path="/seed" element={<PageTransition><SeedData /></PageTransition>} />
-              <Route path="/quiz" element={<PageTransition><QuizEngine /></PageTransition>} />
-              <Route path="/success" element={<PageTransition><SuccessScreen /></PageTransition>} />
-              <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
-              <Route path="/halvet" element={<PageTransition><HalvetMode /></PageTransition>} />
-              <Route path="/admin" element={<PageTransition><AdminPage /></PageTransition>} />
-              <Route path="/profile/knowledge" element={<PageTransition><KnowledgeProfile /></PageTransition>} />
-              <Route path="/ramadan" element={<PageTransition><RamadanPage /></PageTransition>} />
-              <Route path="/knowledge/:cardId" element={<PageTransition><KnowledgeDetail /></PageTransition>} />
-              <Route path="/notes" element={<PageTransition><NotesPage /></PageTransition>} />
-              <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
-              <Route path="/licenses" element={<PageTransition><LicensesPage /></PageTransition>} />
-              <Route path="/rehber" element={<PageTransition><RehberPage /></PageTransition>} />
-              <Route path="/ozellikler" element={<PageTransition><OzelliklerPage /></PageTransition>} />
-              <Route path="/kelime" element={<PageTransition><KelimePage /></PageTransition>} />
-              <Route path="/sofra" element={<PageTransition><SofraPage /></PageTransition>} />
-              <Route path="/hatim-plani" element={<PageTransition><HatimPlanPage /></PageTransition>} />
-              <Route path="/kaza" element={<PageTransition><KazaPage /></PageTransition>} />
-              <Route path="/kandil" element={<PageTransition><KandilPage /></PageTransition>} />
-              <Route path="/mahrec" element={<PageTransition><MahrecPage /></PageTransition>} />
-              <Route path="/defter" element={<PageTransition><DefterPage /></PageTransition>} />
-              <Route path="/tesbihat" element={<TesbihatPage />} />
-              <Route path="/rahmet" element={<PageTransition><RahmetPage /></PageTransition>} />
-              <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
-              <Route path="/fiqh" element={<PageTransition><FiqhPage /></PageTransition>} />
-              <Route path="/dhikr" element={<PageTransition><DhikrPage /></PageTransition>} />
-              <Route path="/multiplayer" element={<PageTransition><MultiplayerQuiz /></PageTransition>} />
-              <Route path="/comparative" element={<PageTransition><ComparativePage /></PageTransition>} />
-              <Route path="/pomodoro" element={<PageTransition><PomodoroPage /></PageTransition>} />
-              <Route path="/bookmarks" element={<PageTransition><BookmarksPage /></PageTransition>} />
-              <Route path="/discover" element={<PageTransition><DiscoverPage /></PageTransition>} />
-              <Route path="/premium" element={<PageTransition><PremiumPage /></PageTransition>} />
-              <Route path="/achievements" element={<PageTransition><GamificationPage /></PageTransition>} />
-              <Route path="/offline-packs" element={<PageTransition><OfflinePacksPage /></PageTransition>} />
-              <Route path="/hatim" element={<PageTransition><HatimPage /></PageTransition>} />
-              {/* YENİ ENTEGRE MODÜLLER */}
-              <Route path="/yol" element={<PageTransition><PathPage /></PageTransition>} />
-              <Route path="/yol/gun" element={<Navigate to="/donus/gun" replace />} />
-              <Route path="/yol/gun/:day" element={<Navigate to="/donus" replace />} />
-              <Route path="/hifz" element={<PageTransition><QuranGate><HifzPage /></QuranGate></PageTransition>} />
-              <Route path="/hazine" element={<PageTransition><HazinePage /></PageTransition>} />
-              <Route path="/hazine/:section" element={<PageTransition><HazinePage /></PageTransition>} />
-              <Route path="/stories" element={<PageTransition><StoriesPage /></PageTransition>} />
-              <Route path="/night" element={<PageTransition><NightPage /></PageTransition>} />
-              <Route path="/library" element={<PageTransition><LibraryPage /></PageTransition>} />
-              <Route path="/elifba" element={<PageTransition><ElifBaPage /></PageTransition>} />
-              <Route path="/journal" element={<PageTransition><JournalPage /></PageTransition>} />
-              <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
-              <Route path="/siyer" element={<PageTransition><SiyerPage /></PageTransition>} />
-              <Route path="/musluman-olmak" element={<MuslumanOlmakPage />} />
-              <Route path="/ayet-tablosu" element={<PageTransition><AyetTablosuPage /></PageTransition>} />
-              <Route path="/salavat" element={<PageTransition><OrtakSalavatPage /></PageTransition>} />
-              <Route path="/sevap-points" element={<PageTransition><SevapPointsPage /></PageTransition>} />
-              <Route path="/bildirimler" element={<PageTransition><BildirimlerPage /></PageTransition>} />
-              <Route path="/prophets" element={<PageTransition><ProphetsPage /></PageTransition>} />
-              <Route path="/kids" element={<KidsModeSwitch />} />
-              <Route path="/kids/*" element={<KidsModeSwitch />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </AnimatePresence>
+          <Routes>
+            <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
+            <Route path="/quran" element={<PageTransition><QuranGate><QuranList /></QuranGate></PageTransition>} />
+            <Route path="/quran/:surahNumber" element={<PageTransition><QuranGate><SurahDetail /></QuranGate></PageTransition>} />
+            <Route path="/mushaf" element={<QuranGate><MushafPage /></QuranGate>} />
+            <Route path="/mushaf/:page" element={<QuranGate><MushafPage /></QuranGate>} />
+            <Route path="/hadith" element={<PageTransition><HadithPage /></PageTransition>} />
+            <Route path="/chat" element={<PageTransition><AiChat /></PageTransition>} />
+            <Route path="/scholars" element={<PageTransition><ScholarsPage /></PageTransition>} />
+            <Route path="/qibla" element={<PageTransition><QiblaPage /></PageTransition>} />
+            <Route path="/meal-audio" element={<PageTransition><QuranGate><MealAudioPage /></QuranGate></PageTransition>} />
+            <Route path="/journey" element={<PageTransition><JourneyTracker /></PageTransition>} />
+            <Route path="/content/:type/:slug" element={<PageTransition><ContentDetail /></PageTransition>} />
+            <Route path="/seed" element={<PageTransition><SeedData /></PageTransition>} />
+            <Route path="/quiz" element={<PageTransition><QuizEngine /></PageTransition>} />
+            <Route path="/success" element={<PageTransition><SuccessScreen /></PageTransition>} />
+            <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
+            <Route path="/halvet" element={<PageTransition><HalvetMode /></PageTransition>} />
+            <Route path="/admin" element={<PageTransition><AdminPage /></PageTransition>} />
+            <Route path="/profile/knowledge" element={<PageTransition><KnowledgeProfile /></PageTransition>} />
+            <Route path="/ramadan" element={<PageTransition><RamadanPage /></PageTransition>} />
+            <Route path="/knowledge/:cardId" element={<PageTransition><KnowledgeDetail /></PageTransition>} />
+            <Route path="/notes" element={<PageTransition><NotesPage /></PageTransition>} />
+            <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+            <Route path="/licenses" element={<PageTransition><LicensesPage /></PageTransition>} />
+            <Route path="/rehber" element={<PageTransition><RehberPage /></PageTransition>} />
+            <Route path="/ozellikler" element={<PageTransition><OzelliklerPage /></PageTransition>} />
+            <Route path="/kelime" element={<PageTransition><KelimePage /></PageTransition>} />
+            <Route path="/sofra" element={<PageTransition><SofraPage /></PageTransition>} />
+            <Route path="/hatim-plani" element={<PageTransition><HatimPlanPage /></PageTransition>} />
+            <Route path="/kaza" element={<PageTransition><KazaPage /></PageTransition>} />
+            <Route path="/kandil" element={<PageTransition><KandilPage /></PageTransition>} />
+            <Route path="/mahrec" element={<PageTransition><MahrecPage /></PageTransition>} />
+            <Route path="/defter" element={<PageTransition><DefterPage /></PageTransition>} />
+            <Route path="/tesbihat" element={<TesbihatPage />} />
+            <Route path="/rahmet" element={<PageTransition><RahmetPage /></PageTransition>} />
+            <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+            <Route path="/fiqh" element={<PageTransition><FiqhPage /></PageTransition>} />
+            <Route path="/dhikr" element={<PageTransition><DhikrPage /></PageTransition>} />
+            <Route path="/multiplayer" element={<PageTransition><MultiplayerQuiz /></PageTransition>} />
+            <Route path="/comparative" element={<PageTransition><ComparativePage /></PageTransition>} />
+            <Route path="/pomodoro" element={<PageTransition><PomodoroPage /></PageTransition>} />
+            <Route path="/bookmarks" element={<PageTransition><BookmarksPage /></PageTransition>} />
+            <Route path="/discover" element={<PageTransition><DiscoverPage /></PageTransition>} />
+            <Route path="/premium" element={<PageTransition><PremiumPage /></PageTransition>} />
+            <Route path="/achievements" element={<PageTransition><GamificationPage /></PageTransition>} />
+            <Route path="/offline-packs" element={<PageTransition><OfflinePacksPage /></PageTransition>} />
+            <Route path="/hatim" element={<PageTransition><HatimPage /></PageTransition>} />
+            {/* YENİ ENTEGRE MODÜLLER */}
+            <Route path="/yol" element={<PageTransition><PathPage /></PageTransition>} />
+            <Route path="/yol/gun" element={<Navigate to="/donus/gun" replace />} />
+            <Route path="/yol/gun/:day" element={<Navigate to="/donus" replace />} />
+            <Route path="/hifz" element={<PageTransition><QuranGate><HifzPage /></QuranGate></PageTransition>} />
+            <Route path="/hazine" element={<PageTransition><HazinePage /></PageTransition>} />
+            <Route path="/hazine/:section" element={<PageTransition><HazinePage /></PageTransition>} />
+            <Route path="/stories" element={<PageTransition><StoriesPage /></PageTransition>} />
+            <Route path="/night" element={<PageTransition><NightPage /></PageTransition>} />
+            <Route path="/library" element={<PageTransition><LibraryPage /></PageTransition>} />
+            <Route path="/elifba" element={<PageTransition><ElifBaPage /></PageTransition>} />
+            <Route path="/journal" element={<PageTransition><JournalPage /></PageTransition>} />
+            <Route path="/games" element={<PageTransition><GamesPage /></PageTransition>} />
+            <Route path="/siyer" element={<PageTransition><SiyerPage /></PageTransition>} />
+            <Route path="/musluman-olmak" element={<MuslumanOlmakPage />} />
+            <Route path="/ayet-tablosu" element={<PageTransition><AyetTablosuPage /></PageTransition>} />
+            <Route path="/salavat" element={<PageTransition><OrtakSalavatPage /></PageTransition>} />
+            <Route path="/sevap-points" element={<PageTransition><SevapPointsPage /></PageTransition>} />
+            <Route path="/bildirimler" element={<PageTransition><BildirimlerPage /></PageTransition>} />
+            <Route path="/prophets" element={<PageTransition><ProphetsPage /></PageTransition>} />
+            <Route path="/kids" element={<KidsModeSwitch />} />
+            <Route path="/kids/*" element={<KidsModeSwitch />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
         </Suspense>
       </Layout>
     </ProtectedRoute>
@@ -249,39 +246,36 @@ function AdultRoutes() {
 
 // --- Çocuk Router ---
 function KidsRoutes() {
-  const location = useLocation();
   return (
     <ProtectedRoute>
       <KidsLayout>
         <Suspense fallback={<PageLoader />}>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/kids" element={<PageTransition><KidsDashboard /></PageTransition>} />
-              <Route path="/kids/stories" element={<PageTransition><KidsStories /></PageTransition>} />
-              <Route path="/kids/story/:id" element={<PageTransition><KidsStoryPlayer /></PageTransition>} />
-              <Route path="/kids/dua" element={<PageTransition><KidsDuaList /></PageTransition>} />
-              <Route path="/kids/tasks" element={<PageTransition><KidsTasks /></PageTransition>} />
-              <Route path="/kids/games" element={<PageTransition><KidsGames /></PageTransition>} />
-              <Route path="/kids/rewards" element={<PageTransition><KidsRewards /></PageTransition>} />
-              <Route path="/kids/friends" element={<Navigate to="/kids/ailem" replace />} />
-              <Route path="/kids/ailem" element={<PageTransition><KidsAilem /></PageTransition>} />
-              <Route path="/kids/namaz" element={<PageTransition><KidsNamaz /></PageTransition>} />
-              <Route path="/kids/kible" element={<PageTransition><KidsKible /></PageTransition>} />
-              <Route path="/kids/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
-              <Route path="/kids/licenses" element={<PageTransition><LicensesPage /></PageTransition>} />
-              <Route path="/kids/elifba" element={<PageTransition><KidsElifba /></PageTransition>} />
-              <Route path="/kids/quran" element={<PageTransition><QuranGate><KidsQuranList /></QuranGate></PageTransition>} />
-              <Route path="/kids/surah/:id" element={<PageTransition><QuranGate><KidsSurahPlayer /></QuranGate></PageTransition>} />
-              <Route path="/kids/dhikr" element={<PageTransition><KidsDhikr /></PageTransition>} />
-              <Route path="/kids/badges" element={<PageTransition><KidsBadges /></PageTransition>} />
-              <Route path="/kids/progress" element={<PageTransition><KidsProgress /></PageTransition>} />
-              <Route path="/kids/coloring" element={<PageTransition><KidsColoring /></PageTransition>} />
-              <Route path="/kids/prayer" element={<Navigate to="/kids/namaz" replace />} />
-              <Route path="/kids/prophets" element={<PageTransition><KidsStories /></PageTransition>} />
-              <Route path="/kids/quiz" element={<PageTransition><KidsGames /></PageTransition>} />
-              <Route path="*" element={<Navigate to="/kids" />} />
-            </Routes>
-          </AnimatePresence>
+          <Routes>
+            <Route path="/kids" element={<PageTransition><KidsDashboard /></PageTransition>} />
+            <Route path="/kids/stories" element={<PageTransition><KidsStories /></PageTransition>} />
+            <Route path="/kids/story/:id" element={<PageTransition><KidsStoryPlayer /></PageTransition>} />
+            <Route path="/kids/dua" element={<PageTransition><KidsDuaList /></PageTransition>} />
+            <Route path="/kids/tasks" element={<PageTransition><KidsTasks /></PageTransition>} />
+            <Route path="/kids/games" element={<PageTransition><KidsGames /></PageTransition>} />
+            <Route path="/kids/rewards" element={<PageTransition><KidsRewards /></PageTransition>} />
+            <Route path="/kids/friends" element={<Navigate to="/kids/ailem" replace />} />
+            <Route path="/kids/ailem" element={<PageTransition><KidsAilem /></PageTransition>} />
+            <Route path="/kids/namaz" element={<PageTransition><KidsNamaz /></PageTransition>} />
+            <Route path="/kids/kible" element={<PageTransition><KidsKible /></PageTransition>} />
+            <Route path="/kids/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+            <Route path="/kids/licenses" element={<PageTransition><LicensesPage /></PageTransition>} />
+            <Route path="/kids/elifba" element={<PageTransition><KidsElifba /></PageTransition>} />
+            <Route path="/kids/quran" element={<PageTransition><QuranGate><KidsQuranList /></QuranGate></PageTransition>} />
+            <Route path="/kids/surah/:id" element={<PageTransition><QuranGate><KidsSurahPlayer /></QuranGate></PageTransition>} />
+            <Route path="/kids/dhikr" element={<PageTransition><KidsDhikr /></PageTransition>} />
+            <Route path="/kids/badges" element={<PageTransition><KidsBadges /></PageTransition>} />
+            <Route path="/kids/progress" element={<PageTransition><KidsProgress /></PageTransition>} />
+            <Route path="/kids/coloring" element={<PageTransition><KidsColoring /></PageTransition>} />
+            <Route path="/kids/prayer" element={<Navigate to="/kids/namaz" replace />} />
+            <Route path="/kids/prophets" element={<PageTransition><KidsStories /></PageTransition>} />
+            <Route path="/kids/quiz" element={<PageTransition><KidsGames /></PageTransition>} />
+            <Route path="*" element={<Navigate to="/kids" />} />
+          </Routes>
         </Suspense>
       </KidsLayout>
     </ProtectedRoute>
@@ -290,48 +284,42 @@ function KidsRoutes() {
 
 // --- Ebeveyn Router ---
 function ParentRoutes() {
-  const location = useLocation();
   return (
     <Suspense fallback={<PageLoader />}>
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route element={<ProtectedRoute><ParentLayout /></ProtectedRoute>}>
-            <Route path="/parent/profiles" element={<PageTransition><ParentProfiles /></PageTransition>} />
-            <Route path="/parent/limits" element={<PageTransition><ParentLimits /></PageTransition>} />
-            <Route path="/parent/activity" element={<PageTransition><ParentActivity /></PageTransition>} />
-            <Route path="/parent/content" element={<PageTransition><ParentContentControl /></PageTransition>} />
-          </Route>
-          <Route path="/parent/add-profile" element={<PageTransition><ParentAddProfile /></PageTransition>} />
-          <Route path="/parent/settings" element={<PageTransition><ParentSettings /></PageTransition>} />
-          <Route path="*" element={<Navigate to="/parent/profiles" />} />
-        </Routes>
-      </AnimatePresence>
+      <Routes>
+        <Route element={<ProtectedRoute><ParentLayout /></ProtectedRoute>}>
+          <Route path="/parent/profiles" element={<PageTransition><ParentProfiles /></PageTransition>} />
+          <Route path="/parent/limits" element={<PageTransition><ParentLimits /></PageTransition>} />
+          <Route path="/parent/activity" element={<PageTransition><ParentActivity /></PageTransition>} />
+          <Route path="/parent/content" element={<PageTransition><ParentContentControl /></PageTransition>} />
+        </Route>
+        <Route path="/parent/add-profile" element={<PageTransition><ParentAddProfile /></PageTransition>} />
+        <Route path="/parent/settings" element={<PageTransition><ParentSettings /></PageTransition>} />
+        <Route path="*" element={<Navigate to="/parent/profiles" />} />
+      </Routes>
     </Suspense>
   );
 }
 
 // --- Geri Dönüş Odası Router (Kırk Perde) ---
 function DonusRoutes() {
-  const location = useLocation();
   return (
     <ProtectedRoute>
       <Suspense fallback={<PageLoader />}>
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route element={<DonusShell />}>
-              <Route path="/donus" element={<DonusHome />} />
-              <Route path="/donus/gun" element={<DonusLesson />} />
-              <Route path="/donus/gun/:day" element={<DonusLesson />} />
-              <Route path="/donus/bolum/:id" element={<DonusPhase />} />
-              <Route path="/donus/temeller/:id" element={<DonusTemel />} />
-              <Route path="/donus/emanet" element={<DonusMektup />} />
-              <Route path="/donus/yoldas" element={<DonusYoldas />} />
-              <Route path="/donus/perde" element={<DonusPerde />} />
-              <Route path="/donus/perde/:day" element={<DonusPerde />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/donus" />} />
-          </Routes>
-        </AnimatePresence>
+        <Routes>
+          <Route element={<DonusShell />}>
+            <Route path="/donus" element={<DonusHome />} />
+            <Route path="/donus/gun" element={<DonusLesson />} />
+            <Route path="/donus/gun/:day" element={<DonusLesson />} />
+            <Route path="/donus/bolum/:id" element={<DonusPhase />} />
+            <Route path="/donus/temeller/:id" element={<DonusTemel />} />
+            <Route path="/donus/emanet" element={<DonusMektup />} />
+            <Route path="/donus/yoldas" element={<DonusYoldas />} />
+            <Route path="/donus/perde" element={<DonusPerde />} />
+            <Route path="/donus/perde/:day" element={<DonusPerde />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/donus" />} />
+        </Routes>
       </Suspense>
     </ProtectedRoute>
   );

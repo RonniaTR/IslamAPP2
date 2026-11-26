@@ -12,8 +12,8 @@
 // Geliştirme ortamında (npm start) bayrak tanımsızsa bölümler AÇIKTIR; aksi halde geliştirme yapılamaz.
 const raw = process.env.REACT_APP_QURAN_PUBLIC;
 
-export const QURAN_PUBLIC =
-  raw === 'true' || (raw === undefined && process.env.NODE_ENV !== 'production');
+// Kurul incelemesi ve genel erişim için Mushaf ve Kur'an bölümleri serbest bırakıldı (yalnız açıkça 'false' verilirse kapanır).
+export const QURAN_PUBLIC = raw !== 'false';
 
 // Kurul'a verilen bağlantı: …/?inceleme=1 → doğrudan Kur'an listesine gider.
 export const REVIEW_PARAM = 'inceleme';

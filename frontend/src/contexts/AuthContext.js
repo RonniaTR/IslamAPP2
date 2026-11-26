@@ -7,9 +7,17 @@ import { deleteAccount as deleteAccountFlow, clearDeviceData } from '../services
 
 const AuthContext = createContext(null);
 const GUEST_KEY = 'islamapp_guest';
+const AUTH_CACHE_KEY = 'islamapp_auth_user';
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // Firestore'dan çekilen zenginletilmiş user
+  const [user, setUser] = useState(() => {
+    try {
+      const cachedAuth = JSON.parse(localStorage.getItem(AUTH_CACHE_KEY));
+      if (cachedAuth && cachedAuth.id) return cachedAuth;
+      const guest = JSON.parse(localStorage.getItem(GUEST_KEY));
+      return guest && guest.isGuest ? guest : null;
+    } catch { return null; }
+  });
   const [firebaseUser, setFirebaseUser] = useState(null); // Sadece auth user
   const [loading, setLoading] = useState(true);
 
@@ -20,11 +28,23 @@ export function AuthProvider({ children }) {
       setFirebaseUser(currentUser);
       // Anonim oturum uygulamada giriş sayılmaz.
       if (currentUser && !currentUser.isAnonymous) {
-        // Kullanıcı giriş yaptıysa, Firestore'da users dokümanını yarat veya getir
+        const fallback = {
+          id: currentUser.uid,
+          uid: currentUser.uid,
+          name: currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Yolcu'),
+          email: currentUser.email || '',
+          avatarUrl: currentUser.photoURL || '',
+        };
+        // Kullanıcı giriş yaptıysa, Firestore'da users dokümanını yarat veya getir + Sevap Points senkronla
         const firestoreUser = await UserService.createOrUpdateUser(currentUser);
-        // Firestore'a ulaşılamasa da (çevrimdışı) kullanıcı içeri alınır.
-        setUser(firestoreUser || { id: currentUser.uid, name: currentUser.displayName || 'Yolcu', email: currentUser.email });
+        const finalUser = firestoreUser || fallback;
+        try {
+          localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(finalUser));
+          localStorage.removeItem(GUEST_KEY);
+        } catch { /* kota */ }
+        setUser(finalUser);
       } else {
+        try { localStorage.removeItem(AUTH_CACHE_KEY); } catch { /* ignore */ }
         // Misafir kaydı cihazda tutulur; çıkış yapılınca silinir.
         let guest = null;
         try { guest = JSON.parse(localStorage.getItem(GUEST_KEY)); } catch { guest = null; }
@@ -59,7 +79,10 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      try { localStorage.removeItem(GUEST_KEY); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem(GUEST_KEY);
+        localStorage.removeItem(AUTH_CACHE_KEY);
+      } catch { /* ignore */ }
       await signOutEverywhere();
       setUser(null);
     } catch (error) {

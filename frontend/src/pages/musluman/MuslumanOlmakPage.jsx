@@ -24,23 +24,14 @@ function ilerlemeOku(id) {
 
 const gunNo = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
 
-/** Rafta duran üç boyutlu kitap: dokununca kapağı açılır. */
+/** Rafta duran üç boyutlu kitap: dokununca gecikmesiz açılır (ağır animasyon ve pointermove gecikmesi yok). */
 function UcBoyutluKitap({ onAc }) {
-  const [aciliyor, setAciliyor] = useState(false);
-  const [egim, setEgim] = useState({ x: 0, y: 0 });
-  const ac = () => { if (aciliyor) return; setAciliyor(true); setTimeout(() => { onAc(); setAciliyor(false); }, 700); };
-  const egil = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    setEgim({ x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5 });
-  };
   const W = 122; const Hh = 195; const D = 26;
   const yuz = { position: 'absolute', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' };
   return (
-    <button type="button" onClick={ac} onPointerMove={egil} onPointerLeave={() => setEgim({ x: 0, y: 0 })} aria-label={`${kitap.baslik} kitabını aç`} style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', perspective: 1000, display: 'block', margin: '0 auto' }}>
-      <motion.div
-        animate={{ y: [0, -5, 0], rotateY: aciliyor ? 6 : 28 + egim.x * 24, rotateX: -6 - egim.y * 12 }}
-        transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, rotateY: { type: 'spring', stiffness: 120, damping: 16 }, rotateX: { type: 'spring', stiffness: 120, damping: 16 } }}
-        style={{ position: 'relative', width: W, height: Hh, transformStyle: 'preserve-3d' }}
+    <button type="button" onClick={onAc} aria-label={`${kitap.baslik} kitabını aç`} style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', perspective: 1000, display: 'block', margin: '0 auto' }}>
+      <div
+        style={{ position: 'relative', width: W, height: Hh, transformStyle: 'preserve-3d', transform: 'rotateY(24deg) rotateX(-5deg)' }}
       >
         <div style={{ ...yuz, inset: 0, transform: `rotateY(180deg) translateZ(${D / 2}px)`, background: '#072219', borderRadius: '6px 2px 2px 6px' }} />
         <div style={{ ...yuz, top: 3, height: Hh - 6, left: (W - D) / 2, width: D, transform: `rotateY(90deg) translateZ(${W / 2 - 3}px)`, background: 'repeating-linear-gradient(90deg, #F8F2E4 0 1.6px, #DCCBA6 1.6px 3px)' }} />
@@ -52,10 +43,8 @@ function UcBoyutluKitap({ onAc }) {
           <Yildiz8 r={11} renk={KITAP.altin} />
           <span style={{ fontFamily: FONT.baslik, fontStyle: 'italic', fontWeight: 600, fontSize: 12, color: KITAP.zumrut }}>Rabbi zidnî ilmâ</span>
         </div>
-        <motion.div
-          animate={{ rotateY: aciliyor ? -160 : 0 }}
-          transition={{ duration: 0.65, ease: [0.4, 0, 0.2, 1] }}
-          style={{ position: 'absolute', inset: 0, z: D / 2, transformOrigin: 'left center', transformStyle: 'preserve-3d' }}
+        <div
+          style={{ position: 'absolute', inset: 0, transform: `translateZ(${D / 2}px)`, transformOrigin: 'left center', transformStyle: 'preserve-3d' }}
         >
           <div style={{ ...yuz, inset: 0, borderRadius: '2px 6px 6px 2px', overflow: 'hidden', boxShadow: '10px 16px 30px rgba(0,0,0,.32)' }}>
             <div style={{ width: 400, height: 640, transform: `scale(${W / 400})`, transformOrigin: '0 0', position: 'relative' }}>
@@ -63,8 +52,8 @@ function UcBoyutluKitap({ onAc }) {
             </div>
           </div>
           <div style={{ ...yuz, inset: 0, transform: 'rotateY(180deg)', background: `linear-gradient(90deg, ${KITAP.kagitKoyu}, ${KITAP.kagit})`, borderRadius: '6px 2px 2px 6px' }} />
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </button>
   );
 }
@@ -228,11 +217,11 @@ function KavramAtlasi({ kavramlar, onBabAc }) {
   );
 }
 
-const KAP = { gizli: {}, acik: { transition: { staggerChildren: 0.09, delayChildren: 0.12 } } };
-const OGE = { gizli: { opacity: 0, y: 24, scale: 0.985 }, acik: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } } };
+const KAP = { gizli: {}, acik: {} };
+const OGE = { gizli: { opacity: 1, y: 0 }, acik: { opacity: 1, y: 0 } };
 
 function Kart({ children, style }) {
-  return <motion.div variants={OGE} style={{ background: '#FFFDF7', borderRadius: 20, border: `1px solid ${KITAP.kenar}`, boxShadow: '0 6px 20px rgba(80,60,20,.06)', padding: 16, ...style }}>{children}</motion.div>;
+  return <div style={{ background: '#FFFDF7', borderRadius: 20, border: `1px solid ${KITAP.kenar}`, boxShadow: '0 6px 20px rgba(80,60,20,.06)', padding: 16, ...style }}>{children}</div>;
 }
 
 function Etiket({ children, renk = KITAP.altin }) {
@@ -243,7 +232,8 @@ export default function MuslumanOlmakPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [params, setParams] = useSearchParams();
-  const [kapi, setKapi] = useState(() => kapiGosterilsinMi() && !params.get('oku'));
+  // Kütüphane gecikmesiz açılır; bahçe kapısı yalnız kullanıcı isterse ("Bahçe kapısını yeniden aç") açılır.
+  const [kapi, setKapi] = useState(() => false && kapiGosterilsinMi() && !params.get('oku'));
   const [ses, setSes] = useState(false);
   const [aktifSayi, setAktifSayi] = useState('mecmua');
   const [, yenile] = useState(0);
