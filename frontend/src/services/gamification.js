@@ -54,39 +54,64 @@ export function subscribeStats(fn) {
 // ─── Okuma ───
 export async function fetchStats(user) {
   const uid = getUserId(user);
+  const local = getCachedStats();
   try {
     const { data } = await api.get(`/gamification/stats/${uid}`);
     if (data && typeof data === 'object' && !Array.isArray(data)) {
-      setCachedStats(data);
-      return data;
+      const mergedPoints = Math.max(local?.total_points || 0, data.total_points || 0);
+      const merged = {
+        ...local,
+        ...data,
+        total_points: mergedPoints,
+        level: computeLevel(mergedPoints),
+      };
+      setCachedStats(merged);
+      return merged;
     }
   } catch { /* çevrimdışı → cache */ }
-  return getCachedStats();
+  return local;
 }
 
 // ─── XP verme ───
+const LEVEL_THRESHOLDS = [0, 50, 150, 300, 500, 750, 1000, 1500, 2000, 3000];
+export function computeLevel(points = 0) {
+  let lvl = 1;
+  for (let i = 0; i < LEVEL_THRESHOLDS.length; i += 1) {
+    if (points >= LEVEL_THRESHOLDS[i]) lvl = i + 1;
+  }
+  return lvl;
+}
+
 export async function awardXP(user, activityType, { points, details = '' } = {}) {
   const uid = getUserId(user);
   const username = getUsername(user);
-  const payload = { user_id: uid, activity_type: activityType, details, username };
-  if (typeof points === 'number' && points > 0) payload.points = Math.round(points);
+  const addPts = typeof points === 'number' && points > 0 ? Math.round(points) : 10;
+  const payload = { user_id: uid, activity_type: activityType, details, username, points: addPts };
+
+  // Anında yerel önbelleği güncelle (çevrimdışı veya sunucu uyanırken de seviye/XP kesintisiz çalışsın)
+  const prev = getCachedStats() || { total_points: 0, level: 1, current_streak: 0 };
+  const optimisticPoints = (prev.total_points || 0) + addPts;
+  const optimisticStats = {
+    ...prev,
+    total_points: optimisticPoints,
+    level: computeLevel(optimisticPoints),
+  };
+  setCachedStats(optimisticStats);
 
   try {
     const { data } = await api.post('/gamification/activity', payload);
     if (data && typeof data.total_points === 'number') {
-      const prev = getCachedStats() || {};
+      const mergedPoints = Math.max(optimisticPoints, data.total_points);
       setCachedStats({
-        ...prev,
-        total_points: data.total_points,
-        level: data.level ?? prev.level,
-        current_streak: data.current_streak ?? prev.current_streak,
+        ...optimisticStats,
+        total_points: mergedPoints,
+        level: computeLevel(mergedPoints),
+        current_streak: data.current_streak ?? optimisticStats.current_streak,
       });
-      // Tam istatistikleri (sayaçlar/rozetler) arka planda tazele
-      fetchStats(user);
       return data;
     }
-  } catch { /* çevrimdışı → sessiz geç */ }
-  return null;
+  } catch { /* çevrimdışı → yerel önbellek zaten güncellendi */ }
+  return optimisticStats;
 }
 
 /**

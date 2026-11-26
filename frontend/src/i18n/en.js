@@ -1827,6 +1827,11 @@ const EN = {
   "Ortak Salavat": "Shared Salawat",
   "Bugün hep birlikte; tek sayaç, sıralama yok": "All together today; one counter, no leaderboard",
   "Akıllı bildirim tercihleri (İlim saati, Salavat zinciri, Akşam âyeti)": "Smart notification preferences (Study hour, Salawat chain, Evening verse)",
+  "Bildirimleri tamamen kapat": "Turn off all notifications completely",
+  "Kapalı — hiçbir bildirim veya izin penceresi çıkmaz": "Off — no notifications or permission popups will appear",
+  "Açıldığında tüm bildirimler kalıcı olarak susturulur": "When enabled, all notifications are permanently silenced",
+  "Hâl & Âyet Bildirimini Şimdi Gör": "Preview Mood & Verse Notification Now",
+  "Akıllı bildirim tercihleri": "Smart notification preferences",
 };
 
 export default EN;

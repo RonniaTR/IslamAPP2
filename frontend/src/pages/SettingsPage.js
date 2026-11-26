@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import TemaPencereleri from '../components/tema/TemaPencereleri';
 import MenuBicimSecici from '../components/nav/MenuBicimSecici';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MapPin, Bell, Palette, Type, Globe, Volume2, User, Baby, Info, BookOpen, Loader2, ShieldCheck, LogOut, Compass } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Bell, BellOff, Sparkles, Palette, Type, Globe, Volume2, User, Baby, Info, BookOpen, Loader2, ShieldCheck, LogOut, Compass } from 'lucide-react';
 import { useTheme, TEXT_SCALES } from '../contexts/ThemeContext';
 import { useAppMode } from '../contexts/AppModeContext';
 import { useLang } from '../contexts/LangContext';
@@ -10,6 +10,8 @@ import { useTx } from '../i18n';
 import { usePrayerTimes, TURKISH_CITIES } from '../hooks/usePrayerTimes';
 import ambient from '../services/ambient';
 import notifications from '../services/notifications';
+import { tercihOku, bildirimleriTamamenKapat, denemeGonder } from '../services/bildirim';
+import BildirimIzni from '../components/bildirim/BildirimIzni';
 import { VAKIT_MAKAM, MAKAM_NAMES } from '../services/donusAudio';
 import sound from '../services/sound';
 import ReadingSettingsSheet from '../components/ReadingSettingsSheet';
@@ -49,6 +51,7 @@ export default function SettingsPage() {
   const [locMsg, setLocMsg] = useState('');
   const [notif, setNotif] = useState(loadNotif);
   const [notifMsg, setNotifMsg] = useState('');
+  const [akilliTercih, setAkilliTercih] = useState(tercihOku);
   const timers = useRef([]);
   const [husu, setHusuState] = useState(loadHusu);
   const setHusu = (v) => { setHusuState(v); try { localStorage.setItem(HUSU_KEY, JSON.stringify(v)); } catch { /* kota */ } };
@@ -186,7 +189,30 @@ export default function SettingsPage() {
 
         {/* BİLDİRİMLER */}
         <section style={card}>
+          <BildirimIzni sadeceCanli />
           <H icon={Bell}>{tt('Bildirimler')}</H>
+          {/* Bildirimleri Tamamen Kapatma Ana Şalteri */}
+          <div className="flex items-center justify-between gap-3 mb-3 pb-3" style={{ borderBottom: `1px solid ${theme.cardBorder}` }}>
+            <span style={{ color: theme.textPrimary, fontSize: 14, fontWeight: 700 }}>
+              <span className="flex items-center gap-1.5"><BellOff size={15} style={{ color: akilliTercih.tamamenKapali ? '#EF4444' : theme.gold }} /> {tt('Bildirimleri tamamen kapat')}</span>
+              <span style={{ display: 'block', color: theme.textSecondary, fontSize: 11, fontWeight: 400 }}>
+                {akilliTercih.tamamenKapali ? tt('Kapalı — hiçbir bildirim veya izin penceresi çıkmaz') : tt('Açıldığında tüm bildirimler kalıcı olarak susturulur')}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={async () => {
+                const yeni = !akilliTercih.tamamenKapali;
+                const t = await bildirimleriTamamenKapat(yeni);
+                setAkilliTercih(t);
+                if (yeni) setNotif({ ...notif, enabled: false });
+              }}
+              role="switch"
+              aria-checked={!!akilliTercih.tamamenKapali}
+              style={{ flexShrink: 0, width: 52, height: 30, borderRadius: 15, background: akilliTercih.tamamenKapali ? '#EF4444' : theme.surfaceLight, position: 'relative', cursor: 'pointer', border: `1px solid ${theme.cardBorder}` }}>
+              <span style={{ position: 'absolute', top: 3, left: akilliTercih.tamamenKapali ? 25 : 3, width: 22, height: 22, borderRadius: 11, background: '#FFF', transition: 'left 160ms' }} />
+            </button>
+          </div>
           <div className="flex items-center justify-between mb-3">
             <span style={{ color: theme.textPrimary, fontSize: 14, fontWeight: 600 }}>{tt('Namaz vakti hatırlatması')}</span>
             <button onClick={toggleNotif} role="switch" aria-checked={notif.enabled}
@@ -233,9 +259,14 @@ export default function SettingsPage() {
             </div>
           </div>
           <p style={{ color: theme.textMuted, fontSize: 11, marginTop: 10 }}>{tt('Hatırlatmalar davettir; kaçırdığın vakit için uyarı gönderilmez.')}</p>
-          <button type="button" onClick={() => navigate('/bildirimler')} className="mt-3 flex items-center gap-2" style={{ color: theme.gold, fontSize: 13, fontWeight: 700 }}>
-            <Bell size={15} /> {tt('Akıllı bildirim tercihleri (İlim saati, Salavat zinciri, Akşam âyeti)')}
-          </button>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <button type="button" onClick={() => denemeGonder('hal')} className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: `${theme.gold}18`, border: `1px solid ${theme.gold}50`, color: theme.textPrimary, fontSize: 12.5, fontWeight: 700 }}>
+              <Sparkles size={14} style={{ color: theme.gold }} /> {tt('Hâl & Âyet Bildirimini Şimdi Gör')}
+            </button>
+            <button type="button" onClick={() => navigate('/bildirimler')} className="flex items-center gap-1.5 px-3 py-2 rounded-xl" style={{ background: theme.surfaceLight, border: `1px solid ${theme.cardBorder}`, color: theme.gold, fontSize: 12.5, fontWeight: 700 }}>
+              <Bell size={14} /> {tt('Akıllı bildirim tercihleri')}
+            </button>
+          </div>
         </section>
 
         {/* DİL VE SES */}

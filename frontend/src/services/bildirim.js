@@ -12,27 +12,82 @@ import sources from '../data/sources.json';
 import { SURAHS } from '../data/surahData';
 
 const ANAHTAR = 'bildirim_tercih_v1';
+const GUNLUK_KAPAT_ANAHTAR = 'bildirim_gunluk_kapat_v1';
 export const VARSAYILAN = {
   izin: 'sorulmadi',     // sorulmadi | verildi | reddedildi | sonra
+  tamamenKapali: false,  // true ise hiçbir bildirim veya izin kartı çıkmaz
   sonraTarih: 0,
   namaz: true, ilim: true, salavat: true, aksam: true,
   ilimSaat: '21:00', salavatSaat: '20:30', aksamSaat: '21:45',
 };
 export const TURLER = [
-  { id: 'namaz', ad: 'Namaz vakitleri', alt: 'Her vakit girerken kısa bir hatırlatma', alan: 'ibadet' },
-  { id: 'ilim', ad: 'İlim saati', alt: 'Günde bir kez, en çok sevdiğin bölümden', alan: 'ilim', saat: 'ilimSaat' },
+  { id: 'namaz', ad: 'Namaz vakitleri', alt: 'Her vakit girerken temalı ve huzurlu bir hatırlatma', alan: 'ibadet' },
+  { id: 'aksam', ad: 'Günün nasıl geçti?', alt: 'Düşünceni ve hâlini sorar, sana uygun bir âyet çıkarır', alan: 'sabir', saat: 'aksamSaat' },
+  { id: 'ilim', ad: 'İlim saati', alt: 'Günde bir kez, en çok sevdiğin bölümden davet', alan: 'ilim', saat: 'ilimSaat' },
   { id: 'salavat', ad: 'Salavat zinciri', alt: 'Akşam, ortak zincire bir halka', alan: 'toplum', saat: 'salavatSaat' },
-  { id: 'aksam', ad: 'Günün nasıl geçti?', alt: 'Hâlini seç, sana bir âyet gelsin', alan: 'sabir', saat: 'aksamSaat' },
 ];
+
+const canliDinleyiciler = new Set();
+export function canliBildirimDinle(fn) {
+  canliDinleyiciler.add(fn);
+  return () => canliDinleyiciler.delete(fn);
+}
+export function canliBildirimGoster(tip = 'hal', ek = {}) {
+  canliDinleyiciler.forEach((fn) => { try { fn({ tip, ...ek, ts: Date.now() }); } catch { /* ignore */ } });
+}
+
+function bugunAnahtar() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function gunlukBildirimKapatildiMi(slot = 'genel') {
+  try {
+    const k = JSON.parse(localStorage.getItem(GUNLUK_KAPAT_ANAHTAR) || '{}');
+    return k[`${bugunAnahtar()}_${slot}`] === true;
+  } catch { return false; }
+}
+
+export function gunlukBildirimKapat(slot = 'genel') {
+  try {
+    const k = JSON.parse(localStorage.getItem(GUNLUK_KAPAT_ANAHTAR) || '{}');
+    k[`${bugunAnahtar()}_${slot}`] = true;
+    localStorage.setItem(GUNLUK_KAPAT_ANAHTAR, JSON.stringify(k));
+  } catch { /* kota */ }
+}
 
 export function tercihOku() { try { return { ...VARSAYILAN, ...JSON.parse(localStorage.getItem(ANAHTAR)) }; } catch { return { ...VARSAYILAN }; } }
 export function tercihYaz(t) { try { localStorage.setItem(ANAHTAR, JSON.stringify(t)); } catch { /* kota */ } return t; }
 
-/** Ön izin ekranı gösterilsin mi? (hiç sorulmadıysa ya da "şimdi değil"den 7 gün geçtiyse) */
+/** Bildirimleri tamamen kapatır veya yeniden açar. Kapatıldığında hiçbir bildirim/pencere bir daha çıkmaz. */
+export async function bildirimleriTamamenKapat(kapali = true) {
+  const mevcut = tercihOku();
+  const yeni = tercihYaz({
+    ...mevcut,
+    tamamenKapali: kapali,
+    izin: kapali ? 'reddedildi' : (mevcut.izin === 'reddedildi' ? 'sorulmadi' : mevcut.izin),
+  });
+  if (kapali) {
+    gunlukBildirimKapat('izin');
+    gunlukBildirimKapat('hal');
+    gunlukBildirimKapat('namaz');
+    try {
+      const bekleyen = await LocalNotifications.getPending();
+      if (bekleyen.notifications.length) {
+        await LocalNotifications.cancel({ notifications: bekleyen.notifications.map((n) => ({ id: n.id })) });
+      }
+    } catch { /* web */ }
+  }
+  return yeni;
+}
+
+/** Ön izin ekranı gösterilsin mi? (tamamen kapalı değilse, bugün kapatılmadıysa ve hiç sorulmadıysa) */
 export function izinSorulsunMu() {
   const t = tercihOku();
+  if (t.tamamenKapali || t.izin === 'reddedildi' || t.izin === 'verildi') return false;
+  if (gunlukBildirimKapatildiMi('izin')) return false;
   if (t.izin === 'sorulmadi') return true;
-  return t.izin === 'sonra' && Date.now() - t.sonraTarih > 7 * 864e5;
+  return t.izin === 'sonra' && Date.now() - t.sonraTarih > 14 * 864e5;
 }
 
 /** Türleri kullanım önceliğine göre sıralar (en çok vakit geçirilen alan önde). */
@@ -45,31 +100,59 @@ export function sirali() {
 export async function izinIste() {
   let verildi = false;
   try { const p = await LocalNotifications.requestPermissions(); verildi = p.display === 'granted'; } catch { verildi = false; }
-  const t = tercihYaz({ ...tercihOku(), izin: verildi ? 'verildi' : 'reddedildi' });
-  if (verildi) await bildirimleriKur(true);
+  if (!verildi && typeof window !== 'undefined' && 'Notification' in window) {
+    try {
+      const perm = await window.Notification.requestPermission();
+      verildi = perm === 'granted';
+    } catch { verildi = false; }
+  }
+  // Web veya yerel ortamda kullanıcı uygulama içi akıllı bildirimlere izin verdiyse etkinleştir
+  const t = tercihYaz({ ...tercihOku(), tamamenKapali: false, izin: 'verildi', sistemIzni: verildi });
+  gunlukBildirimKapat('izin');
+  await bildirimleriKur(true);
   return t;
 }
-export function sonraSor() { return tercihYaz({ ...tercihOku(), izin: 'sonra', sonraTarih: Date.now() }); }
+export function sonraSor() {
+  gunlukBildirimKapat('izin');
+  return tercihYaz({ ...tercihOku(), izin: 'sonra', sonraTarih: Date.now() });
+}
 
 // ---------- Âyet seçimi (hâle göre) ----------
 const HAL_AYET = {
-  yorgun: [[2, 286], [94, 6], [29, 69]],
-  daral: [[94, 5], [65, 3], [2, 155]],
-  huzur: [[13, 28], [89, 27], [48, 4]],
-  sukur: [[14, 7], [2, 152], [93, 11]],
+  yorgun: [
+    [2, 286, 'Allah hiçbir kimseye gücünün yettiğinden başkasını yüklemez.'],
+    [94, 6, 'Şüphesiz güçlükle beraber bir kolaylık vardır.'],
+    [29, 69, 'Ama bizim uğrumuzda cihad edenleri biz elbette yollarımıza eriştireceğiz. Şüphesiz Allah iyi davrananlarla beraberdir.'],
+  ],
+  daral: [
+    [94, 5, 'Elbette zorluğun yanında bir kolaylık vardır.'],
+    [65, 3, 'Kim Allah’a tevekkül ederse O, ona yeter.'],
+    [2, 155, 'Sabredenleri müjdele!'],
+  ],
+  huzur: [
+    [13, 28, 'Biliniz ki, kalpler ancak Allah’ı anmakla huzur bulur.'],
+    [89, 27, 'Ey huzura kavuşmuş insan! Sen O’ndan hoşnut, O da senden hoşnut olarak Rabbine dön.'],
+    [48, 4, 'İmanlarına iman katsınlar diye müminlerin kalplerine huzur indiren O’dur.'],
+  ],
+  sukur: [
+    [14, 7, 'Andolsun, eğer şükrederseniz elbette size nimetimi artırırım.'],
+    [2, 152, 'Öyle ise siz beni anın ki ben de sizi anayım. Bana şükredin, sakın bana nankörlük etmeyin.'],
+    [93, 11, 'Rabbinin nimetine gelince; işte onu anlat da anlat.'],
+  ],
 };
 export const HAL_DUGMELER = [
-  { id: 'yorgun', title: 'Yorgunum' },
-  { id: 'daral', title: 'Daraldım' },
-  { id: 'huzur', title: 'Huzurluyum' },
-  { id: 'sukur', title: 'Şükür doluyum' },
+  { id: 'yorgun', title: 'Yorgunum', emoji: '🌙', renk: '#818CF8' },
+  { id: 'daral', title: 'Daraldım', emoji: '🤲', renk: '#38BDF8' },
+  { id: 'huzur', title: 'Huzurluyum', emoji: '🌿', renk: '#34D399' },
+  { id: 'sukur', title: 'Şükür doluyum', emoji: '✨', renk: '#FBBF24' },
 ];
 export async function halAyeti(hal) {
   const liste = HAL_AYET[hal] || HAL_AYET.huzur;
-  const [s, a] = liste[Math.floor(Math.random() * liste.length)];
+  const [s, a, yedekMeal] = liste[Math.floor(Math.random() * liste.length)];
   let meal = '';
   try { const r = await packSurah(sources.translations.tr.key, s); meal = r && r.ayahs[a - 1] ? r.ayahs[a - 1].text : ''; } catch { meal = ''; }
-  return { s, a, meal, ref: `${SURAHS[s - 1].name} Sûresi · ${a}` };
+  if (!meal) meal = yedekMeal;
+  return { s, a, meal, ref: `${SURAHS[s - 1].name} Sûresi · ${a}. Âyet` };
 }
 
 // ---------- Planlama ----------
@@ -102,12 +185,12 @@ let dinleyici = null;
 /** İzin verildiyse önümüzdeki 2 günün bildirimlerini yeniden planlar. Uygulama her açıldığında çağrılır. */
 export async function bildirimleriKur(zorla = false) {
   const t = tercihOku();
-  if (t.izin !== 'verildi') return;
+  if (t.tamamenKapali || t.izin !== 'verildi') return;
   if (kuruldu && !zorla) return;
   kuruldu = true;
   try {
     const p = await LocalNotifications.checkPermissions();
-    if (p.display !== 'granted') { tercihYaz({ ...t, izin: 'reddedildi' }); return; }
+    if (p.display !== 'granted') return;
     await LocalNotifications.registerActionTypes({ types: [{ id: 'HAL', actions: HAL_DUGMELER }] }).catch(() => null);
     if (!dinleyici) {
       dinleyici = await LocalNotifications.addListener('localNotificationActionPerformed', async (e) => {
@@ -150,8 +233,11 @@ export async function bildirimleriKur(zorla = false) {
   } catch { kuruldu = false; }
 }
 
-/** Ayarlardan "deneme" için: 3 sn sonra akşam bildiriminin bir örneği. */
-export async function denemeGonder() {
-  await LocalNotifications.registerActionTypes({ types: [{ id: 'HAL', actions: HAL_DUGMELER }] }).catch(() => null);
-  await LocalNotifications.schedule({ notifications: [{ id: 8999, title: 'Günün nasıl geçti?', body: 'Hâlini seç; sana bir âyet gelsin.', actionTypeId: 'HAL', schedule: { at: new Date(Date.now() + 3000) } }] });
+/** Ayarlardan veya canlı önizlemeden: hem temalı animasyonlu hâl/âyet bildirimini ekranda açar hem de cihaz bildirimi planlar. */
+export async function denemeGonder(tip = 'hal') {
+  canliBildirimGoster(tip);
+  try {
+    await LocalNotifications.registerActionTypes({ types: [{ id: 'HAL', actions: HAL_DUGMELER }] }).catch(() => null);
+    await LocalNotifications.schedule({ notifications: [{ id: 8999, title: 'Günün nasıl geçti?', body: 'Hâlini seç; sana bir âyet gelsin.', actionTypeId: 'HAL', schedule: { at: new Date(Date.now() + 2500) } }] });
+  } catch { /* web ortamında canlı bildirim kartı gösterilir */ }
 }

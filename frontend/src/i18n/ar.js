@@ -1344,6 +1344,11 @@ const AR = {
   "Ortak Salavat": "الصلوات المشتركة",
   "Bugün hep birlikte; tek sayaç, sıralama yok": "اليوم معًا؛ عدّاد واحد بلا ترتيب",
   "Akıllı bildirim tercihleri (İlim saati, Salavat zinciri, Akşam âyeti)": "تفضيلات الإشعارات الذكية (ساعة العلم، سلسلة الصلوات، آية المساء)",
+  "Bildirimleri tamamen kapat": "إيقاف جميع الإشعارات تمامًا",
+  "Kapalı — hiçbir bildirim veya izin penceresi çıkmaz": "مغلق — لن تظهر أي إشعارات أو نوافذ أذونات",
+  "Açıldığında tüm bildirimler kalıcı olarak susturulur": "عند التفعيل يتم كتم جميع الإشعارات بشكل دائم",
+  "Hâl & Âyet Bildirimini Şimdi Gör": "معاينة إشعار الحال والآية الآن",
+  "Akıllı bildirim tercihleri": "تفضيلات الإشعارات الذكية",
 };
 
 export default AR;

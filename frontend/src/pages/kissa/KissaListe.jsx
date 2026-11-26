@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Gem, Moon, Clock, ChevronRight, BookOpen } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // 🕯️ KISSALAR — yeni liste görünümü (16. tur).
 // Emoji kapaklar yerine her kıssaya özgü, koddan üretilen KEMER KAPAK (gökyüzü, tepeler, kemer pencere, baş harf).
@@ -58,6 +59,8 @@ function Halka({ oran }) {
 }
 
 export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, readIds, gems, openStory, onNight }) {
+  const { theme } = useTheme();
+  const altin = theme.gold || ALTIN;
   const gunun = useMemo(() => {
     const okunmamis = STORIES.filter((s) => !readIds.includes(s.id));
     const havuz = okunmamis.length ? okunmamis : STORIES;
@@ -68,32 +71,32 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
   const KATEGORI_ALT = { derin: 'Duraklarla, adım adım', ahlak: 'Karakteri inceleten', sabir: 'Bekleyişin içindeki hikmet', hikmet: 'Bakışı değiştiren' };
 
   return (
-    <div data-testid="kissa-liste" style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0B2E23 0%, #061A13 60%, #04110C 100%)', color: KREM, paddingBottom: 130 }}>
+    <div data-testid="kissa-liste" style={{ minHeight: '100vh', background: theme.bg, color: theme.textPrimary, paddingBottom: 130 }}>
       {/* Başlık */}
       <motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
         style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '22px 20px 8px' }}>
         <div style={{ flex: 1 }}>
-          <h1 style={{ margin: 0, fontFamily: '"Fraunces", serif', fontSize: 30, fontWeight: 800, letterSpacing: -0.3 }}>Kıssalar</h1>
-          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'rgba(244,239,227,0.65)' }}>Bir kıssa, bir durak, bir hikmet</p>
+          <h1 style={{ margin: 0, fontFamily: '"Fraunces", serif', fontSize: 30, fontWeight: 800, letterSpacing: -0.3, color: theme.textPrimary }}>Kıssalar</h1>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: theme.textSecondary }}>Bir kıssa, bir durak, bir hikmet</p>
         </div>
         <div style={{ position: 'relative' }}>
           <Halka oran={readIds.length / Math.max(1, STORIES.length)} />
-          <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 800 }}>{readIds.length}/{STORIES.length}</span>
+          <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12.5, fontWeight: 800, color: theme.textPrimary }}>{readIds.length}/{STORIES.length}</span>
         </div>
       </motion.header>
 
       {/* Bugünün kıssası */}
       {gunun && (
         <button type="button" data-testid="gunun-kissasi" onClick={() => openStory(gunun.id)}
-          style={{ display: 'block', width: 'calc(100% - 32px)', margin: '8px 16px 0', padding: 0, border: `1px solid ${ALTIN}`, borderRadius: '90px 90px 24px 24px', overflow: 'hidden', background: '#0B241B', textAlign: 'start', cursor: 'pointer', position: 'relative' }}>
+          style={{ display: 'block', width: 'calc(100% - 32px)', margin: '8px 16px 0', padding: 0, border: `1.5px solid ${altin}`, borderRadius: '90px 90px 24px 24px', overflow: 'hidden', background: theme.surface, textAlign: 'start', cursor: 'pointer', position: 'relative', boxShadow: '0 10px 28px -12px rgba(0,0,0,0.18)' }}>
           <KissaKapak s={gunun} h={190} yuvarlak="0" />
           <span style={{ display: 'block', padding: '14px 18px 16px' }}>
-            <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.8, color: ALTIN }}>BUGÜNÜN KISSASI</span>
-            <span style={{ display: 'block', fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 800, color: KREM, marginTop: 2 }}>{gunun.title}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, fontSize: 12.5, color: 'rgba(244,239,227,0.65)' }}>
+            <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.8, color: altin }}>BUGÜNÜN KISSASI</span>
+            <span style={{ display: 'block', fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 800, color: theme.textPrimary, marginTop: 2 }}>{gunun.title}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, fontSize: 12.5, color: theme.textSecondary }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={13} /> {gunun.read} dk</span>
               <span>{gunun.deep ? `${(gunun.checkpoints || []).length} durak` : 'düşündüren son'}</span>
-              <span style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 4, color: ALTIN, fontWeight: 800 }}><BookOpen size={14} /> Oku</span>
+              <span style={{ marginInlineStart: 'auto', display: 'flex', alignItems: 'center', gap: 4, color: altin, fontWeight: 800 }}><BookOpen size={14} /> Oku</span>
             </span>
           </span>
         </button>
@@ -101,9 +104,9 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
 
       {/* Cevher ve Gece */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '14px 16px 0' }}>
-        <div style={{ padding: '12px 14px', borderRadius: 18, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(216,183,106,0.2)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: 1.2, color: ALTIN, fontWeight: 800 }}><Gem size={13} /> CEVHERLER</span>
-          <span style={{ display: 'block', fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 800 }}>{gemSay}<span style={{ fontSize: 13, color: 'rgba(244,239,227,0.5)' }}> / {Object.keys(STORY_GEMS).length}</span></span>
+        <div style={{ padding: '12px 14px', borderRadius: 18, background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: 1.2, color: altin, fontWeight: 800 }}><Gem size={13} /> CEVHERLER</span>
+          <span style={{ display: 'block', fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 800, color: theme.textPrimary }}>{gemSay}<span style={{ fontSize: 13, color: theme.textSecondary }}> / {Object.keys(STORY_GEMS).length}</span></span>
         </div>
         <button type="button" onClick={onNight} style={{ padding: '12px 14px', borderRadius: 18, background: 'linear-gradient(135deg, #0F0D2E, #1E1B4B)', border: '1px solid rgba(165,180,252,0.3)', color: '#E0E7FF', textAlign: 'start', cursor: 'pointer' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, letterSpacing: 1.2, color: '#A5B4FC', fontWeight: 800 }}><Moon size={13} /> GECE MODU</span>
@@ -114,7 +117,7 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
       {/* Kategori yolu */}
       <div style={{ position: 'relative', margin: '22px 0 0' }}>
         <motion.span aria-hidden initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.6, delay: 0.2 }}
-          style={{ position: 'absolute', left: 27, top: 10, bottom: 10, width: 2, background: `linear-gradient(${ALTIN}, rgba(216,183,106,0.1))`, transformOrigin: 'top' }} />
+          style={{ position: 'absolute', left: 27, top: 10, bottom: 10, width: 2, background: `linear-gradient(${altin}, rgba(216,183,106,0.1))`, transformOrigin: 'top' }} />
         {STORY_CATEGORIES.map((cat, ci) => {
           const items = STORIES.filter((s) => s.cat === cat.id);
           if (!items.length) return null;
@@ -123,13 +126,13 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
             <motion.section key={cat.id} initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.15 + ci * 0.07 }} style={{ marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px 10px 18px' }}>
                 <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden style={{ flexShrink: 0, position: 'relative', zIndex: 1 }}>
-                  <rect x="4" y="4" width="12" height="12" fill="#0B2E23" stroke={ALTIN} strokeWidth="1.5" />
-                  <rect x="4" y="4" width="12" height="12" fill="#0B2E23" stroke={ALTIN} strokeWidth="1.5" transform="rotate(45 10 10)" />
-                  <circle cx="10" cy="10" r="2.5" fill={okunan === items.length ? ALTIN : 'rgba(216,183,106,0.35)'} />
+                  <rect x="4" y="4" width="12" height="12" fill={theme.surface} stroke={altin} strokeWidth="1.5" />
+                  <rect x="4" y="4" width="12" height="12" fill={theme.surface} stroke={altin} strokeWidth="1.5" transform="rotate(45 10 10)" />
+                  <circle cx="10" cy="10" r="2.5" fill={okunan === items.length ? altin : 'rgba(216,183,106,0.35)'} />
                 </svg>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: '"Fraunces", serif', fontSize: 18, fontWeight: 800 }}>{cat.title.replace(' · Katmanlı', '')}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(244,239,227,0.55)' }}>{KATEGORI_ALT[cat.id] || ''} · {okunan}/{items.length}</div>
+                  <div style={{ fontFamily: '"Fraunces", serif', fontSize: 18, fontWeight: 800, color: theme.textPrimary }}>{cat.title.replace(' · Katmanlı', '')}</div>
+                  <div style={{ fontSize: 12, color: theme.textSecondary }}>{KATEGORI_ALT[cat.id] || ''} · {okunan}/{items.length}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 12, overflowX: 'auto', padding: '0 16px 4px 50px', scrollbarWidth: 'none' }}>
@@ -139,7 +142,7 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
                     <motion.button key={s.id} type="button" data-testid={`kissa-${s.id}`} onClick={() => openStory(s.id)}
                       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.25 + ci * 0.07 + i * 0.04 }}
                       whileTap={{ scale: 0.96 }}
-                      style={{ flexShrink: 0, width: 150, padding: 0, borderRadius: '75px 75px 18px 18px', overflow: 'hidden', border: `1px solid ${okundu ? ALTIN : 'rgba(255,255,255,0.12)'}`, background: 'rgba(255,255,255,0.04)', textAlign: 'start', cursor: 'pointer', position: 'relative' }}>
+                      style={{ flexShrink: 0, width: 150, padding: 0, borderRadius: '75px 75px 18px 18px', overflow: 'hidden', border: `1.5px solid ${okundu ? altin : theme.cardBorder}`, background: theme.surface, textAlign: 'start', cursor: 'pointer', position: 'relative', boxShadow: '0 6px 18px -8px rgba(0,0,0,0.14)' }}>
                       <KissaKapak s={s} h={150} yuvarlak="75px 75px 0 0" />
                       {okundu && (
                         <span aria-label="Okundu" style={{ position: 'absolute', top: 58, right: 8, width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -148,9 +151,9 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
                       )}
                       {gems[s.id] && STORY_GEMS[s.id] && <span style={{ position: 'absolute', top: 60, left: 10, fontSize: 14 }} aria-hidden>{STORY_GEMS[s.id].emoji}</span>}
                       <span style={{ display: 'block', padding: '10px 12px 12px' }}>
-                        <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: KREM, lineHeight: 1.25 }}>{s.title}</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'rgba(244,239,227,0.55)', marginTop: 4 }}>
-                          <Clock size={11} /> {s.read} dk {s.deep && <span style={{ color: '#A5B4FC' }}>· {(s.checkpoints || []).length} durak</span>}
+                        <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: theme.textPrimary, lineHeight: 1.25 }}>{s.title}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: theme.textSecondary, marginTop: 4 }}>
+                          <Clock size={11} /> {s.read} dk {s.deep && <span style={{ color: theme.isDark ? '#A5B4FC' : '#4F46E5', fontWeight: 700 }}>· {(s.checkpoints || []).length} durak</span>}
                         </span>
                       </span>
                     </motion.button>
@@ -162,7 +165,7 @@ export default function KissaListe({ STORIES, STORY_CATEGORIES, STORY_GEMS, read
           );
         })}
       </div>
-      <p style={{ margin: '0 20px', fontSize: 11.5, color: 'rgba(244,239,227,0.45)', display: 'flex', alignItems: 'center', gap: 4 }}>
+      <p style={{ margin: '0 20px', fontSize: 11.5, color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: 4 }}>
         <ChevronRight size={12} /> Kartları yana kaydır
       </p>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, Star, Volume2, Pause, Loader, BookOpen, Check, Share2, ChevronRight, Type } from 'lucide-react';
+import { ArrowLeft, Search, Star, Volume2, Pause, Loader, BookOpen, Check, Share2, ChevronRight, Type, Moon, Sun } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTTS, shareOrCopy } from '../hooks/useShared';
@@ -37,7 +37,7 @@ export default function LibraryPage() {
   const [readIds, setReadIds] = useState(() => load('lib_read', []));
   const [progress, setProgress] = useState(0);
   // Okuma ayarları (tema + boyut) — Mushaf/Kıssa ile ortak
-  const { settings: rs, theme: rrt } = useReadingSettings();
+  const { settings: rs, theme: rrt, set: setRS } = useReadingSettings();
   const [showRS, setShowRS] = useState(false);
   const readerRef = useRef(null);
 
@@ -144,19 +144,25 @@ export default function LibraryPage() {
             style={{ background: `${rrt.secondary}10`, border: `1px solid ${rrt.border}` }} aria-label="Paylaş">
             <Share2 size={15} style={{ color: rrt.secondary }} />
           </button>
-          {/* Okuma ayarları: tema + boyut (Mushaf/Kıssa ile ortak) */}
+          {/* Hızlı kâğıt geçişi + Okuma ayarları */}
+          <button onClick={() => setRS({ themeId: rrt.dark ? 'sepya' : 'gece', otomatik: false })}
+            className="ms-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-black active:scale-95"
+            style={{ background: rrt.surface, border: `1px solid ${rrt.accent}55`, color: rrt.accent }} aria-label="Okuma kâğıdını değiştir">
+            {rrt.dark ? <Sun size={13} /> : <Moon size={13} />}
+            {rrt.dark ? 'Açık Kâğıt' : 'Gece'}
+          </button>
           <button onClick={() => setShowRS(true)}
-            className="ms-auto flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-black active:scale-95"
-            style={{ background: `${rrt.accent}14`, border: `1px solid ${rrt.accent}35`, color: rrt.accent }} aria-label="Okuma ayarları">
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-black active:scale-95"
+            style={{ background: rrt.surface, border: `1px solid ${rrt.accent}55`, color: rrt.accent }} aria-label="Okuma ayarları">
             <Type size={13} /> Görünüm
           </button>
         </div>
 
         {/* Metin — kitap tipografisi */}
-        <div className="px-6 pt-5 max-w-[44rem] mx-auto article-body"
-          style={{ fontSize: rs.fontSize, color: `${rrt.text}ee`, '--gold': rrt.accent }}>
+        <div className="px-6 pt-5 max-w-[44rem] mx-auto space-y-4 article-body"
+          style={{ fontSize: rs.fontSize, color: rrt.text, '--gold': rrt.accent }}>
           {article.paragraphs.map((p, i) => typeof p === 'string' ? (
-            <p key={i}>{p}</p>
+            <p key={i} style={{ color: rrt.text, lineHeight: 1.85 }}>{p}</p>
           ) : (
             <blockquote key={i} className="article-quote my-6 mx-2 py-4 px-5 rounded-2xl relative"
               style={{ background: `${rrt.accent}0a`, border: `1px solid ${rrt.accent}25` }}>

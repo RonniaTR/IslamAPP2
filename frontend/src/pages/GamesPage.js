@@ -263,20 +263,25 @@ export default function GamesPage() {
   }, []);
 
 
-  // Seviye atlama kutlaması — XP artınca seviye değiştiyse tam ekran kutla
+  // Seviye atlama kutlaması — XP artınca seviye değiştiyse tam ekran kutla (maks 3 sn kalır, tıklanınca anında kapanır)
   const totalXPNow = stats.total_points || 0;
   useEffect(() => {
     const { lvl: cur } = levelInfo(totalXPNow);
     if (prevLvl.current === null) { prevLvl.current = cur; return; }
     if (cur > prevLvl.current) {
-      setLevelUp(cur);
-      sfx.levelUp();
-      const t = setTimeout(() => setLevelUp(null), 3000);
       prevLvl.current = cur;
-      return () => clearTimeout(t);
+      setLevelUp(cur);
+      try { sfx.levelUp(); } catch { /* ignore */ }
+      return;
     }
     prevLvl.current = cur;
   }, [totalXPNow]);
+
+  useEffect(() => {
+    if (!levelUp) return undefined;
+    const t = setTimeout(() => setLevelUp(null), 2800);
+    return () => clearTimeout(t);
+  }, [levelUp]);
 
   // Oyunlardan gelen olaylar → görev/sandık/başarı ilerlemesi + ses
   const handleEvent = useCallback((type, data = {}) => {
@@ -375,7 +380,6 @@ export default function GamesPage() {
     const finalAmount = isDaily ? amount * 2 : amount;
     sessionXP.current += finalAmount;
     pushFloat(finalAmount, isDaily);
-    setStats(prev => ({ ...prev, total_points: (prev.total_points || 0) + finalAmount }));
     setDaily(prev => { const d = { ...prev, xp: prev.xp + finalAmount }; save(`gc_daily_${todayKey()}`, d); return d; });
     setWeek(prev => { const w = { ...prev, xp: prev.xp + finalAmount }; save(`gc_week_${weekKey()}`, w); return w; });
     if (active) {
@@ -395,7 +399,6 @@ export default function GamesPage() {
     setWeek(prev => { const w = { ...prev, claimed: true }; save(`gc_week_${weekKey()}`, w); return w; });
     sfx.claim();
     pushFloat(WEEK_BONUS, false);
-    setStats(prev => ({ ...prev, total_points: (prev.total_points || 0) + WEEK_BONUS }));
     await awardXP(user, 'game_quiz', { points: WEEK_BONUS, details: 'Haftalık Hedef Ödülü' });
   }, [week, user, pushFloat]);
 
@@ -410,14 +413,13 @@ export default function GamesPage() {
       return d;
     });
     pushFloat(xpReward, false);
-    setStats(prev => ({ ...prev, total_points: (prev.total_points || 0) + xpReward }));
     await awardXP(user, 'game_quiz', { points: xpReward, details: kind === 'task' ? 'Günlük Görev Ödülü' : 'Sandık Ödülü' });
   }, [user, pushFloat]);
 
   const totalXP = stats.total_points || 0;
   const { lvl, next, pct } = levelInfo(totalXP);
   const league = leagueInfo(totalXP);
-  const levelTitle = LEVEL_TITLES[Math.min((stats.level || lvl) - 1, LEVEL_TITLES.length - 1)];
+  const levelTitle = LEVEL_TITLES[Math.min(lvl - 1, LEVEL_TITLES.length - 1)];
   const activeGame = GAME_MODES.find(g => g.id === active);
 
   const TASKS = [
@@ -443,28 +445,69 @@ export default function GamesPage() {
   const streak = stats.current_streak || 0;
 
 
-  // ─── Seviye atlama kutlaması (her iki görünümde de gösterilir) ───
+  // ─── Seviye atlama kutlaması (maks 3 sn kalır, tıklanınca anında kapanır, her temada pırıl pırıl okunur) ───
   const levelUpOverlay = (
     <AnimatePresence>
       {levelUp && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[80] flex items-center justify-center p-6 pointer-events-none"
-          style={{ background: 'rgba(4, 12, 8, 0.82)', backdropFilter: 'blur(5px)' }}>
-          <motion.div initial={{ scale: 0.6, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: 'spring', bounce: 0.5 }}
-            className="relative w-full max-w-sm rounded-3xl p-8 text-center overflow-hidden"
-            style={{ background: `linear-gradient(170deg, ${theme.gold}20, ${theme.surface})`, border: `2px solid ${theme.gold}70`, boxShadow: `0 0 60px ${theme.gold}40` }}>
-            <Confetti count={30} />
-            <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ delay: 0.15, type: 'spring', bounce: 0.6 }}
-              className="w-24 h-24 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl font-black"
-              style={{ background: `${theme.gold}22`, border: `3px solid ${theme.gold}`, color: theme.gold }}>
-              {levelUp}
+        <motion.div
+          data-testid="level-up-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setLevelUp(null)}
+          className="fixed inset-0 z-[95] flex items-center justify-center p-6 cursor-pointer"
+          style={{ background: 'rgba(10, 26, 18, 0.65)', backdropFilter: 'blur(6px)' }}>
+          <motion.div
+            initial={{ scale: 0.75, y: 24 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.85, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+            onClick={() => setLevelUp(null)}
+            className="relative w-full max-w-sm rounded-3xl p-7 text-center overflow-hidden"
+            style={{
+              background: 'linear-gradient(165deg, #FFFDF7 0%, #FBF0D1 55%, #F3DFAB 100%)',
+              border: '2.5px solid #D4AF37',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(212, 175, 55, 0.45)',
+            }}>
+            <Confetti count={28} />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.22em] mb-3"
+              style={{ background: 'rgba(212, 175, 55, 0.22)', border: '1px solid rgba(180, 134, 24, 0.4)', color: '#7A5608' }}>
+              ✨ Yeni Seviye Rozeti ✨
+            </div>
+            <motion.div
+              initial={{ scale: 0, rotate: -15 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.08, type: 'spring', bounce: 0.55 }}
+              className="w-24 h-24 mx-auto mb-3.5 rounded-full flex flex-col items-center justify-center relative"
+              style={{
+                background: 'linear-gradient(145deg, #0D5C2F 0%, #083B1E 100%)',
+                border: '3.5px solid #D4AF37',
+                boxShadow: '0 10px 26px rgba(13, 92, 47, 0.35), inset 0 0 14px rgba(212, 175, 55, 0.3)',
+                color: '#FFE89E',
+              }}>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: '#E2BC5B' }}>SEVİYE</span>
+              <span className="text-4xl font-black leading-none" style={{ color: '#FFFDF5' }}>{levelUp}</span>
             </motion.div>
-            <p className="text-[11px] font-black uppercase tracking-[0.25em] mb-1" style={{ color: theme.gold }}>Seviye Atladın!</p>
-            <h2 className="text-2xl font-black" style={{ fontFamily: 'Playfair Display, serif', color: theme.textPrimary }}>
-              {LEVEL_TITLES[Math.min(levelUp - 1, LEVEL_TITLES.length - 1)]}
+            <h2 className="text-[26px] font-black leading-tight" style={{ fontFamily: 'Playfair Display, Georgia, serif', color: '#0F291E' }}>
+              {levelUp}. Seviye · {LEVEL_TITLES[Math.min(levelUp - 1, LEVEL_TITLES.length - 1)]}
             </h2>
-            <p className="text-xs mt-2" style={{ color: theme.textSecondary }}>İlim yolculuğun yükseliyor 🌙</p>
+            <p className="text-[13px] font-semibold mt-1.5" style={{ color: '#4A3B22' }}>
+              İlim yolculuğunda yeni bir mertebeye ulaştın! 🌙
+            </p>
+            <div className="mt-4 inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[11px] font-extrabold"
+              style={{ background: '#0D5C2F', color: '#FFFDF7' }}>
+              Devam etmek için dokun
+            </div>
+            {/* 2.8 saniyelik otomatik kapanış çubuğu */}
+            <div className="absolute bottom-0 left-0 right-0 h-1.5" style={{ background: 'rgba(212, 175, 55, 0.25)' }}>
+              <motion.div
+                initial={{ width: '100%' }}
+                animate={{ width: '0%' }}
+                transition={{ duration: 2.8, ease: 'linear' }}
+                className="h-full"
+                style={{ background: 'linear-gradient(90deg, #0D5C2F, #D4AF37)' }}
+              />
+            </div>
           </motion.div>
         </motion.div>
       )}
