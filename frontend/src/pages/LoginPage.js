@@ -52,7 +52,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div data-testid="login-page" style={{ minHeight: '100vh', background: GECE.bg, color: GECE.ink, position: 'relative', overflow: 'hidden',
+    <div data-testid="login-page" style={{ minHeight: '100vh', background: GECE.bg, color: GECE.ink, position: 'relative', overflowX: 'hidden', overflowY: 'auto',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 22px' }}>
       <Yildizlar count={36} />
       <div aria-hidden style={{ position: 'absolute', top: '-10%', left: '50%', width: 520, height: 520, transform: 'translateX(-50%)',

@@ -21,18 +21,11 @@ import KalbindenGecen from '../components/home/KalbindenGecen';
 import OneCikanAyet from '../components/home/OneCikanAyet';
 import BildirimIzni from '../components/bildirim/BildirimIzni';
 import SessizDavet from '../components/SessizDavet';
+import ModKartlari from '../components/home/ModKartlari';
 
 const PAPER = { bg: '#FBF8F0', ink: '#1A1A1A', soft: '#5C4B2A', line: '#D9CDAE' };
 const read = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
 
-const MODES = [
-  { n: '01', title: "Kur'an", desc: 'Oku · dinle · ezberle · hatim', route: '/mushaf' },
-  { n: '02', title: 'Hadis ve İlim', desc: 'Hadis · fıkıh · siyer · kütüphane', route: '/hadith' },
-  { n: '03', title: 'Yolculuk', desc: 'Nur Yolu · Kırk Perde · gece', route: '/yol' },
-  { n: '04', title: 'Oyun', desc: 'Oyunlar · lig · görevler', route: '/games' },
-  { n: '05', title: 'Günlük', desc: 'Zikir · kıble · kaza · defter', route: '/dhikr' },
-  { n: '06', title: 'Rehber', desc: 'Kaynaklı sor · doğrula · anlat', route: '/rehber' },
-];
 
 /** Günün vaktine göre tek öneri. Kur'an önerisi yalnız Kur'an bölümleri açıksa çıkar. */
 function suggestion(hour) {
@@ -160,18 +153,7 @@ export default function Dashboard() {
           </div>
         </>)}
 
-        <span style={label}>{tt('Modlar')}</span>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
-          {MODES.map((m) => (
-            <button key={m.n} type="button" onClick={() => navigate(m.route)} style={{ ...card, borderRadius: 18, minHeight: 92, padding: 14, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', textAlign: 'start', color: theme.textPrimary, cursor: 'pointer' }}>
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: 12, fontWeight: 700, color: theme.gold }}>{m.n}</span>
-              <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontSize: 15, fontWeight: 700 }}>{tt(m.title)}</span>
-                <span style={{ fontSize: 11, color: theme.textSecondary }}>{tt(m.desc)}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+        <ModKartlari />
 
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -20px', padding: '0 20px 2px' }}>
           {getHomeFeatures().map((f) => (

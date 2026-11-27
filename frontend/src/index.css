@@ -46,7 +46,10 @@ body {
   
   /* Native App Behaviors */
   width: 100%;
+  height: 100%;
+  height: 100vh;
   height: 100dvh;
+  min-height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden; /* Prevent body scrolling */
@@ -60,7 +63,10 @@ body {
 
 html {
   width: 100%;
+  height: 100%;
+  height: 100vh;
   height: 100dvh;
+  min-height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -69,8 +75,12 @@ html {
 
 #root {
   width: 100%;
+  height: 100%;
+  height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -621,3 +631,82 @@ button:active:not(:disabled), a:active { transform: scale(0.97); filter: brightn
 
 /* Okuma yüzeyleri: kıssa ve makale gövdesi Okuma Harfi ile */
 .article-body, .article-body p { font-family: var(--font-okuma); line-height: 1.75; }
+
+/* ═══════════ MÜHÜR AÇILIŞI (60 fps) — yalnız transform/opacity, zamanlama CSS'te ═══════════ */
+.acl { position: fixed; inset: 0; z-index: 3000; overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.acl-k { position: absolute; inset: 0; pointer-events: none; will-change: transform, opacity; backface-visibility: hidden; }
+.acl-dolgu { background: #08241B; animation: acl-gizle 1ms linear var(--T) forwards; }
+.acl-isik { background: radial-gradient(ellipse 60% 60% at 50% 45%, #14523F 0%, #08241B 55%, #04130E 100%); animation: acl-belir calc(0.5s * var(--k)) ease-out both; }
+.acl-ortu { transform-origin: var(--cx) var(--cy); animation: acl-ac 0.62s cubic-bezier(0.7, 0, 0.25, 1) var(--T) forwards; }
+.acl-kenar { transform-origin: var(--cx) var(--cy); opacity: 0; animation: acl-ac-kenar 0.62s cubic-bezier(0.7, 0, 0.25, 1) var(--T) forwards; }
+.acl-girih { transform-origin: var(--cx) var(--cy); animation: acl-girih-gir calc(0.75s * var(--k)) cubic-bezier(0.16, 1, 0.3, 1) calc(0.08s * var(--k)) both, acl-sonen 0.25s ease var(--T) forwards; }
+.acl-halka { transform-origin: var(--cx) var(--cy); animation: acl-halka-gir calc(0.9s * var(--k)) ease-out calc(0.25s * var(--k)) both, acl-sonen 0.25s ease var(--T) forwards; }
+.acl-orta { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; pointer-events: none; will-change: transform, opacity; animation: acl-orta-cik 0.3s ease var(--T) forwards; }
+.acl-yildiz { position: absolute; inset: 0; will-change: transform, opacity; animation: acl-yildiz calc(0.5s * var(--k)) cubic-bezier(0.5, 0, 0.3, 1) calc(0.32s * var(--k)) both; }
+.acl-amblem { position: absolute; left: 6px; top: -12px; will-change: transform, opacity; animation: acl-amblem calc(0.5s * var(--k)) cubic-bezier(0.22, 1, 0.36, 1) calc(0.42s * var(--k)) both; }
+.acl-ad { margin: 0; font-family: "Fraunces", "Playfair Display", serif; font-weight: 800; font-size: 36px; letter-spacing: 0.03em; display: flex; }
+.acl-harf { display: inline-block; will-change: transform, opacity; animation: acl-harf calc(0.4s * var(--k)) cubic-bezier(0.22, 1, 0.36, 1) calc((0.72s + var(--i) * 0.035s) * var(--k)) both; }
+.acl-cizgi { position: absolute; left: 8%; right: 8%; bottom: -6px; height: 1.5px; background: linear-gradient(90deg, transparent, #E9C77E 30%, #FFF4CF 50%, #E9C77E 70%, transparent); transform-origin: center; animation: acl-cizgi calc(0.6s * var(--k)) cubic-bezier(0.22, 1, 0.36, 1) calc(1s * var(--k)) both; }
+.acl-slogan { margin: 14px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.24em; font-weight: 700; animation: acl-slogan calc(0.6s * var(--k)) ease-out calc(1.05s * var(--k)) both; }
+.acl-az { animation: acl-sonen 0.25s ease 0.05s forwards; }
+/* Dokununca: bekleme olmadan çıkış */
+.acl-hemen .acl-ortu { animation: acl-ac-h 0.5s cubic-bezier(0.7, 0, 0.25, 1) forwards; }
+.acl-hemen .acl-kenar { animation: acl-ac-kenar-h 0.5s cubic-bezier(0.7, 0, 0.25, 1) forwards; }
+.acl-hemen .acl-dolgu { animation: acl-gizle-h 1ms linear forwards; }
+.acl-hemen .acl-girih, .acl-hemen .acl-halka { animation: acl-sonen-h 0.2s ease forwards; }
+.acl-hemen .acl-orta { animation: acl-orta-cik-h 0.22s ease forwards; }
+
+@keyframes acl-belir { from { opacity: 0; } to { opacity: 1; } }
+@keyframes acl-sonen { to { opacity: 0; } }
+@keyframes acl-sonen-h { to { opacity: 0; } }
+@keyframes acl-gizle { to { opacity: 0; } }
+@keyframes acl-gizle-h { to { opacity: 0; } }
+@keyframes acl-ac { 0% { transform: scale(1); opacity: 1; } 70% { opacity: 1; } 100% { transform: scale(var(--S)); opacity: 0; } }
+@keyframes acl-ac-h { 0% { transform: scale(1); opacity: 1; } 65% { opacity: 1; } 100% { transform: scale(var(--S)); opacity: 0; } }
+@keyframes acl-ac-kenar { 0% { transform: scale(1); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(var(--S)); opacity: 0; } }
+@keyframes acl-ac-kenar-h { 0% { transform: scale(1); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(var(--S)); opacity: 0; } }
+@keyframes acl-girih-gir { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: none; } }
+@keyframes acl-halka-gir { from { opacity: 0; transform: scale(0.82) rotate(-10deg); } to { opacity: 1; transform: none; } }
+@keyframes acl-orta-cik { to { opacity: 0; transform: scale(1.08); } }
+@keyframes acl-orta-cik-h { to { opacity: 0; transform: scale(1.08); } }
+@keyframes acl-yildiz { from { opacity: 1; transform: none; } to { opacity: 0; transform: rotate(45deg) scale(0.35); } }
+@keyframes acl-amblem { from { opacity: 0; transform: translateY(6px) scale(0.7); } to { opacity: 1; transform: none; } }
+@keyframes acl-harf { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes acl-cizgi { from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: scaleX(1); } }
+@keyframes acl-slogan { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ═══════════ YÜKLENİYOR — gecikmeli belirir, yavaş döner ═══════════ */
+.yuk-yildiz { opacity: 0; animation: acl-belir 0.3s ease 0.25s forwards, yuk-don 2.4s linear infinite; will-change: transform, opacity; }
+@keyframes yuk-don { to { transform: rotate(360deg); } }
+
+/* ═══════════ ORTAK GİRİŞ HAREKETLERİ (kartlar) ═══════════ */
+.gir-yukari { animation: gir-yukari 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--s, 0) * 55ms); will-change: transform, opacity; }
+@keyframes gir-yukari { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .gir-yukari { animation: none; } }
+
+/* ═══════════ MOD KARTLARI — çizimlerin küçük hareketleri ═══════════ */
+.mod-kart { transition: transform 0.18s ease; -webkit-tap-highlight-color: transparent; }
+.mod-kart:active { transform: scale(0.975); }
+.mod-alev { animation: mod-alev 1.6s ease-in-out infinite; }
+.mod-pirilti { animation: mod-pirilti 2.8s ease-in-out infinite; }
+.mod-yuzer { animation: mod-yuzer 3.2s ease-in-out infinite; }
+.mod-salla { animation: mod-salla 2.6s ease-in-out infinite; }
+.mod-ibre { animation: mod-ibre 4s ease-in-out infinite; }
+.mod-isin { animation: mod-isin 3.6s ease-in-out infinite; }
+@keyframes mod-alev { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.14) scaleX(0.94); } }
+@keyframes mod-pirilti { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes mod-yuzer { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(4deg); } }
+@keyframes mod-salla { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes mod-ibre { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(10deg); } }
+@keyframes mod-isin { 0%, 100% { opacity: 0.55; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) { .mod-alev, .mod-pirilti, .mod-yuzer, .mod-salla, .mod-ibre, .mod-isin { animation: none; } }
+
+/* ═══════════ İSKELET SATIRLARI (meal yüklenirken) ═══════════ */
+.yuk-satir { display: flex; flex-direction: column; gap: 8px; }
+.yuk-satir > span { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, rgba(139,105,20,0.10), rgba(139,105,20,0.22), rgba(139,105,20,0.10)); background-size: 200% 100%; animation: yuk-parilti 1.2s linear infinite; }
+@keyframes yuk-parilti { from { background-position: 200% 0; } to { background-position: 0 0; } }
+
+/* ═══════════ İLİM MODÜLLERİ — yavaş dönen yıldız ═══════════ */
+.ilim-yildiz { animation: ilim-don 40s linear infinite; will-change: transform; }
+@keyframes ilim-don { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ilim-yildiz { animation: none; } }

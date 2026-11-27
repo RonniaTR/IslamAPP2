@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Star, Diamond, Flame, Shield, Gift, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Star, Diamond, Flame, Shield, Gift, CheckCircle2, Lock } from 'lucide-react';
+import ParentGate from '../../components/kids/ParentGate';
+import ModGecisi from '../../components/giris/ModGecisi';
 import { COLORS, TYPOGRAPHY, RADIUS, SHADOWS, KIDS_CATEGORIES } from '../../styles/designTokens';
 import { useAppMode } from '../../contexts/AppModeContext';
 import { getStars, loadKidsProgress, sectionOn } from '../../services/kidsFamily';
@@ -187,6 +189,10 @@ function ScenicBackground() {
 export default function KidsDashboard() {
   const navigate = useNavigate();
   const { activeChildProfile, setAppMode } = useAppMode();
+  // Köşedeki düğme yetişkin moduna döner: önce ebeveyn sorusu (Kids/Families kuralı), sonra kapı geçişi.
+  // Eskiden modu yalnız siliyordu; adres /kids'te kaldığı için seçilen yetişkin modu hemen yine çocuğa dönüyordu.
+  const [kapi, setKapi] = useState(false);
+  const [gecis, setGecis] = useState(false);
 
   const profile = activeChildProfile || { name: 'Dostum', avatar: '⭐', level: 1, xp: 0 };
 
@@ -203,7 +209,10 @@ export default function KidsDashboard() {
           padding: '16px 20px 0',
         }}>
           <button
-            onClick={() => setAppMode(null)}
+            type="button"
+            data-testid="kids-yetiskin-don"
+            aria-label="Yetişkin moduna dön (ebeveyn sorusu sorulur)"
+            onClick={() => setKapi(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '8px 16px 8px 12px',
@@ -215,9 +224,17 @@ export default function KidsDashboard() {
           >
             <ChevronLeft size={18} color={COLORS.kids.text} />
             <span style={{ fontSize: '14px', fontWeight: 800, color: COLORS.kids.text, fontFamily: TYPOGRAPHY.fonts.kids }}>
-              Çocuk Modu
+              Yetişkin Modu
             </span>
+            <Lock size={13} color={COLORS.kids.text} style={{ opacity: 0.55 }} />
           </button>
+          {kapi && (
+            <ParentGate modal title="Yetişkin moduna geçiş" onCancel={() => setKapi(false)}
+              onOpen={() => { setKapi(false); setGecis(true); }} />
+          )}
+          {gecis && (
+            <ModGecisi to="adult" onDone={() => { setGecis(false); setAppMode('adult'); navigate('/', { replace: true }); }} />
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {/* Yıldız */}

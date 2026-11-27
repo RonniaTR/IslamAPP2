@@ -1070,3 +1070,93 @@ Gelir modeline geçilirse (şu an yok, bkz. 0.5) önce bir fikri mülkiyet avuka
 - **Ayarlar > Menü biçimi:** Açılan mühür, Kandil rafı, Çini kuşak, Revak, Hilal kızağı, Tesbih, Sade kapsül. Seçim anında uygulanır, `menu_bicimi_v1` anahtarında saklanır.
 - Yelpaze dışındaki biçimlerde aşağı kaydırınca menü yine Mühür'e dönüşür; Devam Kemeri tüm biçimlerde aynen çalışır.
 - Dosyalar: `services/menuBicimi.js`, `components/nav/MenuBicimleri.jsx`, `components/nav/MenuBicimSecici.jsx`, `MuhurMenu.jsx`, `SettingsPage.js`.
+
+## 20. Hata ayıklama turu: açılış, modlar, dua-zikir, hadis, Nur Yolu, Kur'an
+
+**20.1 Beyaz ekran ve 60 fps açılış**
+- `AuthContext`: Cihazda kayıtlı oturum (giriş ya da misafir) varsa uygulama beklemeden açılır. Firestore kullanıcı kaydı arka planda gelir; eskiden bu kayıt gelene kadar boş, açık renkli bir ekran görünüyordu. Firebase hiç cevap vermezse 4 saniyelik bir emniyet süresi var.
+- `components/Yukleniyor.jsx`: Bütün bekleme ekranları artık temanın kendi zemin rengindedir ve ortada yavaşça dönen bir yıldız vardır. Beyaz sayfa yok.
+- `services/lazyRetry.js`: Bir sayfa parçası yüklenemezse (yeni sürüm yayımlandıysa ya da bağlantı koptuysa) önce bir kez yeniden denenir, olmazsa sayfa bir kez yenilenir. `ErrorBoundary` de aynı durumda hata ekranı yerine yeniler. `App.js`'teki bütün `lazy(...)` çağrıları `lazyR(...)` oldu.
+- Açılış oynarken Ana sayfa, Keşfet, Yol, Oyun ve Profil parçaları boşta indirilir; açılış bitince ekran hazır olur.
+- `SplashScreen.js` (Mühür Açılışı) baştan yazıldı. Bütün hareketler CSS animasyonudur ve yalnız transform/opacity değişir, yani ekran kartında oynar. Bu yüzden arka planda JS işlenirken bile kare atlamaz. Zamanlama da CSS'tedir; bitiş `animationend` olayıyla bildirilir. Kemer penceresinin açılışı artık SVG maskesini büyütmüyor: delikli örtü katmanı tek parça olarak ölçekleniyor. CSS kodu `index.css` içinde `.acl-*` sınıflarıdır.
+
+**20.2 Modlar** (`components/home/ModKartlari.jsx`)
+- Ana ekrandaki altı mod kartı yenilendi. Her modun konusunu anlatan kendi çizimi var: Kur'an için rahle ve mushaf, Hadis için kandil ve kitap, Yolculuk için kemere giden yol, Oyun için girih taşları, Dua-Zikir için tesbih ve kıble, Rehber için soru ve kaynak mührü.
+- Bütün renkler aktif temadan türetilir (`styles/renk.js` içindeki `alfa`, `karistir`, `ustYazi` yardımcılarıyla).
+- Kur'an modu artık `/quran` merkezine gider; Mushaf doğrudan açılmaz.
+
+**20.3 Dua ve Zikir** (`pages/DhikrPage.js`, `pages/zikir/TesbihCek.jsx`, `data/zikirDua.js`)
+- Eski sayfa var olmayan `/dhikr/:id` adresine gidiyordu, bu yüzden içerikler açılmıyordu. Rota eklendi ve sayfa baştan yazıldı.
+- **Zikirler:** 10 zikir var (namaz tesbihatı çok bölümlü). Her biri Arapça, okunuş, anlam, hedef sayısı, fazilet ve kaynakla gelir.
+- **Dualar:** 7 kategoride 27 sünnet duası var. Dokununca alttan okuma kâğıdı açılır: Arapça (boyutu ayarlanabilir), okunuş, anlam, not ve kaynak. Kopyala, paylaş ve önceki/sonraki düğmeleri var.
+- **Tesbih çek:**
+  - Taneler parmakla aşağı çekilir ya da ekrana dokunulur.
+  - Her tanede hafif titreşim ve tık sesi; her 33. tane pul tanedir ve güçlü titreşim verir.
+  - Tesbihin başında imame durur.
+  - Beş tesbih türü seçilebilir: kehribar, oltu, sedef, zümrüt, kuka.
+  - Serbest tesbihte hedef seçilir: 33, 99, 100 ya da sınırsız.
+  - Sayım bir ref'te tutulur; hızlı dokunuşlarda sayı kaybolmaz.
+  - Sevap Points'te ibadet alanına tane başına 0,1 puan yazılır.
+- Yalnız hadis kaynaklı zikir ve dualar alındı; ayet duaları Kur'an onay süreci nedeniyle dışarıda kaldı.
+- ⚠️ **Yayından önce:** Arapça metinler ve okunuşlar bir hocaya son kez kontrol ettirilmeli.
+
+**20.4 Salavât Silsilesi**
+- "Ortak Salavat"ın adı "Salavât Silsilesi" oldu (silsile, Osmanlıcada "zincir" demektir). Ad; sayfa başlığında, kayıt defterinde, Keşfet'te ve bildirim türünde değişti.
+- Mühür halkasının altına 12 halkalık bir zincir eklendi; halkalar günlük hedefe göre altına döner.
+- Dokununca beliren "+1" yerine küçük bir halka uçuyor.
+
+**20.5 Hadis-i Şerifler** (`pages/HadithPage.js`, `pages/hadis/hadisMetni.js`)
+- **Kart düzeni:** Her kartta önce sade Türkçe söz yer alır, ardından kaynak ve sıhhat rozeti. Kartlar kategori renkleriyle ayrılır ve sayfa sayfa yüklenir (20'şer).
+- **Metin ayrıştırma:** `ayikla()` fonksiyonu Arapçayı sened ve metin olarak ayırır. Türkçeden de râvi girişini, asıl sözü ve tahrîc notunu ayırır. Kaynak veri değişmez.
+- **Okuma kâğıdı:** Dört sekmesi var:
+  - Anlam (yapay zekâ açıklaması isteğe bağlı)
+  - Arapça (tane tane kelime kipi ve kelime tahlili)
+  - Okunuş (harekeli metinden otomatik Latin harfli okunuş; Türkçe ya da uluslararası yazım, yaklaşık)
+  - Sened (râvi zinciri)
+- Okuma kâğıdında sağa-sola kaydırınca sonraki ya da önceki hadise geçilir.
+- Günün hadisi kartı çevrilir: önünde Türkçe, arkasında Arapça ve okunuş.
+
+**20.6 Nur Yolu**
+- Paleti temaya bağlandı (`nurPaleti(theme)`); eskiden sabit yeşil "Zümrüt Gece" teması kullanılıyordu. Bütün sabit renk kodları `NUR.*` değerlerine çevrildi.
+- **Dönüş Odası kapısı:** Eskiden 0,3 saniyeden uzun basıp bırakınca kapı geri kapanıyordu; kullanıcı "giriş yapmıyor" sanıyordu. Artık parmak ne zaman kalkarsa kalksın kapı açılır. Ayrıca bir "Kapıdan gir" düğmesi eklendi.
+
+**20.7 Kur'an**
+- `QuranList.js` Kur'an merkezi oldu:
+  - Mushaf kartı (kaldığın sayfadan açılır) ve son okunan sure kartı
+  - Hatim, hıfz, meal dinle ve kelime kısayolları
+  - Süzgeçler: Tümü, Sık okunan, Kısa sureler, Mekkî, Medenî
+  - 114 sure, cihazdaki tablodan (internet gerekmez); Arapça adlarıyla
+- Eski liste açık zemin üzerine beyaz yazı basıyordu ve dış kaynaklı bir desen resmi kullanıyordu; ikisi de kaldırıldı.
+- `SurahDetail.js` temaya bağlandı, Türkçe sure adlarını kullanıyor. Bağlantı yoksa sonsuz "Yükleniyor" yerine "Tekrar dene" ve "Mushaf'ı aç" seçenekleri çıkar.
+- Sevap Points ve bildirimlerdeki "kuran" kısayolu artık `/quran` adresine gider.
+
+**20.8 Not:** `config/quranAccess.js` bu turdan önce Antigravity tarafında `QURAN_PUBLIC = raw !== 'false'` olarak değiştirildi; Kur'an bölümleri varsayılan olarak açık. Kurul onayı gelmeden mağaza derlemesinde `REACT_APP_QURAN_PUBLIC=false` verilmeli.
+
+## 21. Çocuk modundan dönüş · Keşfet düzeni · Mushaf'ta ayet kartı
+
+**21.1 Çocuk modundan dönüş** (`pages/kids/KidsDashboard.js`, `App.js`)
+- **Hata:** Köşedeki düğme modu yalnız siliyordu. Adres `/kids` olarak kaldığı için, seçilen yetişkin modu yetişkin yönlendiricisindeki `/kids → çocuk moduna geç` kuralı yüzünden hemen yine çocuğa dönüyordu.
+- **Çözüm, düğme tarafı:** Düğmenin adı artık "Yetişkin Modu" ve yanında kilit var. Akış şöyle: ebeveyn sorusu (`ParentGate`), ardından kapı geçişi (`ModGecisi`), ardından `setAppMode('adult')` ve ana sayfaya (`/`) gitme.
+- **Çözüm, genel güvence:** `AppFlow` içinde mod çocuktan yetişkine geçtiğinde adres `/kids…` ise ana sayfaya alınır.
+
+**21.2 Keşfet**
+- `components/discover/VerseOfTheDayCard.js` baştan yazıldı:
+  - Uzun ayetlerde yazı boyu kendiliğinden küçülür; başlık satırı taşarsa alt satıra iner; düğmeler 3 sütunlu ızgarada durur (dar ekrana sığar).
+  - Arapça metin Mushaf ile aynı kaynaktan alınıp cihazda saklanır.
+  - **Meal artık Rowad mealidir ve künyesiyle gösterilir.** Eski karttaki elle yazılmış mealler ve her ayette aynı kalan uydurma "tefsir notu" kaldırıldı; yerine Muhtasar kısa tefsiri geldi.
+  - Unsplash resmi yerine kodla çizilen girih deseni kullanılıyor.
+  - Yeni işlemler: Tablo (Ayet Tablosu) ve "Sureyi aç".
+- `components/discover/IlimModulleri.jsx`: "Öne Çıkan İlim Modülleri" yenilendi:
+  - Eski şerit düzenine yakın, ama renkler temadan türetilir; ton ve koyuluk sırayla değişir, tek renkli temalarda da kartlar birbirinden ayrılır.
+  - Simge sivri kemer pencere içinde durur; sağda yavaşça dönen sekiz köşeli yıldız var.
+  - İlk modül geniş vitrin kartıdır.
+
+**21.3 Mushaf: ayete dokununca ayet öne gelir** (`pages/mushaf/AyetKarti.jsx`)
+- Dokunulan ayet kartta tek başına, büyük ve sabit kâğıt üzerinde görünür (yazı boyu ayarlanabilir); altında meali yazar.
+- **Meal:** Rowad, değiştirilmeden; dipnot açılır-kapanır; künye altında yazar.
+- **Tefsir:** Kısa tefsir (Muhtasar) açılır-kapanır.
+- **İşlemler:** Dinle (ayet sesi), Kopyala, Paylaş, Defterime ekle, Ayet tablosu, Sureyi aç.
+- **Gezinme:** Önceki/sonraki ayete düğmeyle ya da sağa-sola kaydırarak geçilir (sağdan sola düzen). Sayfadaki seçili ayet vurgulanır.
+- **Hız:** Sayfadaki surelerin meali sayfa açılınca her görünümde önceden yüklenir (`mealOnYukle`, oturum önbelleği); dokununca meal beklemeden belirir.
+- Meal ve İkisi görünümlerinde meal paragrafına dokunmak da kartı açar.
+- İlk kullanımda Mushaf sayfasının üstünde kısa bir ipucu çıkar.

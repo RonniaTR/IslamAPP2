@@ -4,6 +4,7 @@ import { DiscoverHeader } from '../components/discover/DiscoverHeader';
 import { VerseOfTheDayCard } from '../components/discover/VerseOfTheDayCard';
 import { QuickCategories } from '../components/discover/QuickCategories';
 import { ChallengeAndBadgeSection } from '../components/discover/ChallengeAndBadgeSection';
+import IlimModulleri from '../components/discover/IlimModulleri';
 import { useDiscoverContent } from '../hooks/useDiscoverContent';
 import { getDailyHadith } from '../data/dailyHadith';
 import { getHistory } from '../services/pathEngine';
@@ -88,7 +89,7 @@ const FEATURED_MODULES = [
 /* ─── Quick Access Grid ─── */
 const QUICK_ACCESS = [
   { path: '/ayet-tablosu', icon: PenTool, title: 'Ayet Tablosu', desc: 'Çini, Gece, Bahar, Kemer', color: '#D8B76A' },
-  { path: '/salavat', icon: Sparkles, title: 'Ortak Salavat', desc: 'Bugün hep birlikte', color: '#14B8A6' },
+  { path: '/salavat', icon: Sparkles, title: 'Salavât Silsilesi', desc: 'Bugün hep birlikte', color: '#14B8A6' },
   { path: '/sevap-points', icon: Star, title: 'Sevap Points', desc: 'Yıldız haritan ve ağacın', color: '#10B981' },
   { path: '/musluman-olmak', icon: BookOpen, title: 'Müslüman Olmak', desc: 'Kitap ve Hikmet Mecmuası', color: '#D97706' },
   { path: '/kids', icon: Baby, title: 'Çocuk Modu', desc: 'Bahçe, hikâye ve oyun', color: '#2D8A4E', isKids: true },
@@ -268,48 +269,7 @@ export default function DiscoverPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            {FEATURED_MODULES.map((mod, i) => {
-              const Icon = mod.icon;
-              return (
-                <FadeIn key={mod.path} delay={350 + i * 80}>
-                  <button
-                    onClick={() => navigate(mod.path)}
-                    className={`w-full bg-gradient-to-r ${mod.gradient} rounded-[28px] p-5 text-start relative overflow-hidden group transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] shadow-2xl`}
-                  >
-                    {/* Decorative glow */}
-                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none group-hover:bg-white/10 transition-all" />
-                    <div className="absolute bottom-0 right-0 w-24 h-24 opacity-10 pointer-events-none">
-                      <Icon size={96} />
-                    </div>
-
-                    <div className="relative z-10 flex items-start gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
-                        <Icon size={28} className="text-white drop-shadow-md" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-bold text-white">{mod.title}</h3>
-                          <span 
-                            className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider text-white shadow-sm"
-                            style={{ backgroundColor: mod.badgeColor + '40', borderColor: mod.badgeColor, borderWidth: 1 }}
-                          >
-                            {mod.badge}
-                          </span>
-                        </div>
-                        <p className="text-white/70 text-[13px] leading-relaxed pe-8">{mod.desc}</p>
-                      </div>
-                    </div>
-
-                    {/* Arrow */}
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center opacity-60 group-hover:opacity-100 transition-opacity">
-                      <ArrowRight size={16} className="text-white" />
-                    </div>
-                  </button>
-                </FadeIn>
-              );
-            })}
-          </div>
+          <IlimModulleri moduller={FEATURED_MODULES} />
         </FadeIn>
 
         {/* ── Hızlı Erişim Grid ── */}

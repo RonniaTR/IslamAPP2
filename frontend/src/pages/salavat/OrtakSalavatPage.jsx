@@ -6,8 +6,9 @@ import {
   GUNLUK_HEDEF, bugunAnahtari, benimKatkim, toplamKatkim, toplamiDinle, salavatEkle, gonder, bekleyenVar,
 } from '../../services/salavat';
 
-// 🤲 ORTAK SALAVAT — "Bugün hep birlikte".
+// 🤲 SALAVÂT SİLSİLESİ — "Bugün hep birlikte". (Silsile: Osmanlıca "zincir"; halka halka birbirine bağlanan dizi.)
 // Ortada sekiz köşeli yıldızlı bir mühür; çevresindeki altın halka günün ortak hedefine doğru dolar.
+// Altında on iki halkalık silsile: her halka günlük hedefin on ikide biri; doldukça zincir altına döner.
 // Alttaki geniş alana her dokunuş bir salavat. Sayılar yarış değildir: kimin ne kadar getirdiği görünmez, sıralama yok.
 
 const ZEMIN = 'radial-gradient(120% 80% at 50% 0%, #14523F 0%, #08241B 55%, #04130E 100%)';
@@ -38,6 +39,32 @@ const SALAVATLAR = [
     mana: "Allah'ım! İbrâhim'e ve İbrâhim'in âline salât ettiğin gibi Muhammed'e ve Muhammed'in âline de salât eyle.",
   },
 ];
+
+const HALKA = 12;
+/** On iki halkalık zincir; günün ortak hedefine göre halkalar sırayla altına döner. */
+function Silsile({ oran }) {
+  const dolu = Math.min(HALKA, oran * HALKA);
+  const w = 30; const ad = 25; const gen = ad * (HALKA - 1) + w + 8;
+  return (
+    <svg viewBox={`0 0 ${gen} 34`} width="100%" style={{ maxWidth: 360, display: 'block', margin: '0 auto' }} aria-label={`Silsile: ${Math.floor(dolu)} / ${HALKA} halka`}>
+      <defs>
+        <linearGradient id="sv-halka" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F3DDA0" /><stop offset="1" stopColor="#B8913F" /></linearGradient>
+      </defs>
+      {Array.from({ length: HALKA }, (_, i) => {
+        const x = 4 + i * ad; const dikey = i % 2 === 1;
+        const k = Math.max(0, Math.min(1, dolu - i));
+        const renk = k >= 1 ? 'url(#sv-halka)' : k > 0 ? ALTIN : 'rgba(216,183,106,0.28)';
+        return (
+          <g key={i} opacity={k > 0 && k < 1 ? 0.55 + k * 0.45 : 1}>
+            {dikey
+              ? <rect x={x + 6} y={5} width={w - 12} height={24} rx={(w - 12) / 2} fill="none" stroke={renk} strokeWidth="3.2" />
+              : <rect x={x} y={9} width={w} height={16} rx={8} fill="none" stroke={renk} strokeWidth="3.2" />}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
 
 function Muhur({ oran, toplam }) {
   const R = 118; const C = 2 * Math.PI * R;
@@ -123,12 +150,18 @@ export default function OrtakSalavatPage() {
           <ChevronLeft size={22} />
         </button>
         <div>
-          <h1 style={{ margin: 0, fontFamily: '"Fraunces", serif', fontSize: 24, fontWeight: 800 }}>Ortak Salavat</h1>
-          <p style={{ margin: 0, fontSize: 13, color: 'rgba(244,239,227,0.65)' }}>Bugün hep birlikte</p>
+          <h1 style={{ margin: 0, fontFamily: '"Fraunces", serif', fontSize: 24, fontWeight: 800 }}>Salavât Silsilesi</h1>
+          <p style={{ margin: 0, fontSize: 13, color: 'rgba(244,239,227,0.65)' }}>Bugün hep birlikte · halka halka</p>
         </div>
       </header>
 
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}><Muhur oran={oran} toplam={toplam} /></div>
+      <div style={{ margin: '0 20px' }}>
+        <Silsile oran={oran} />
+        <p style={{ margin: '6px 0 0', textAlign: 'center', fontSize: 12, color: 'rgba(244,239,227,0.65)' }}>
+          {Math.min(HALKA, Math.floor(oran * HALKA))} / {HALKA} halka · her halka {SAY(Math.round(GUNLUK_HEDEF / HALKA))} salavat
+        </p>
+      </div>
 
       <AnimatePresence>
         {oran >= 1 && (
@@ -165,12 +198,12 @@ export default function OrtakSalavatPage() {
           background: 'linear-gradient(180deg, rgba(216,183,106,0.22), rgba(216,183,106,0.08))', border: `1.5px solid ${ALTIN}`, color: KREM,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, WebkitTapHighlightColor: 'transparent' }}>
         <span style={{ fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 800 }}>Dokun, salavat getir</span>
-        <span style={{ fontSize: 13, color: 'rgba(244,239,227,0.7)' }}>Her dokunuş bir salavat</span>
+        <span style={{ fontSize: 13, color: 'rgba(244,239,227,0.7)' }}>Her dokunuş silsileye bir salavat</span>
         <AnimatePresence>
           {kivilcim.map((s) => (
             <motion.span key={s.id} aria-hidden initial={{ opacity: 1, y: 0, scale: 0.8 }} animate={{ opacity: 0, y: -60, scale: 1.2 }} exit={{ opacity: 0 }} transition={{ duration: 0.85 }}
-              style={{ position: 'absolute', left: s.x - 14, top: s.y - 14, color: ALTIN, fontWeight: 900, fontSize: 18, pointerEvents: 'none' }}>
-              +1
+              style={{ position: 'absolute', left: s.x - 14, top: s.y - 14, pointerEvents: 'none' }}>
+              <svg width="28" height="20" viewBox="0 0 28 20"><rect x="2" y="3" width="24" height="14" rx="7" fill="none" stroke={ALTIN} strokeWidth="3" /></svg>
             </motion.span>
           ))}
         </AnimatePresence>
@@ -196,7 +229,7 @@ export default function OrtakSalavatPage() {
         <footer style={{ marginTop: 4, fontSize: 11.5, color: ALTIN }}>Müslim, Salât 70 (408)</footer>
       </blockquote>
       <p style={{ margin: '12px 24px 0', fontSize: 11.5, color: 'rgba(244,239,227,0.5)', lineHeight: 1.5 }}>
-        Sayı bir yarış değildir: kimin ne kadar getirdiği kimseye görünmez, sıralama yoktur. Sunucuya yalnız sayı gider; kimlik ve konum gitmez.
+        Silsile, Osmanlıcada birbirine halka halka bağlanan zincir demektir; burada herkesin salavatı aynı zincire eklenir. Sayı bir yarış değildir: kimin ne kadar getirdiği kimseye görünmez, sıralama yoktur. Sunucuya yalnız sayı gider; kimlik ve konum gitmez.
       </p>
     </div>
   );

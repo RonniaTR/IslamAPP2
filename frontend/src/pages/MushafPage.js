@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { packPage } from '../services/offline';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, X, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { useTx } from '../i18n';
-import { fetchMeal, fetchTafsir, mealCredit } from '../services/mealService';
-import { addToDefter } from './DefterPage';
+import { mealCredit } from '../services/mealService';
+import AyetKarti, { mealOnYukle } from './mushaf/AyetKarti';
 
 // 📖 MUSHAF — tam sayfa okuma (604 sayfa, Medine tertibi)
 //
@@ -76,19 +77,17 @@ export default function MushafPage() {
 
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
-  const [sel, setSel] = useState(null);       // { surah, n } seçili ayet
-  const [detail, setDetail] = useState(null); // { meal, tafsir, credit, tafsirCredit }
+  const [secili, setSecili] = useState(null); // ayet kartında öne gelen ayetin sayfadaki sırası
   // Görünüm: mushaf (yalnız Arapça) · meal (yalnız meal) · ikisi (ayet + altında meal)
   const [mode, setModeState] = useState(() => read('mushaf_mode') || 'mushaf');
   const [meals, setMeals] = useState({}); // { 'sure:ayet': metin }
   const [mealNote, setMealNote] = useState('');
   const setMode = (m) => { setModeState(m); write('mushaf_mode', m); };
   const touchX = useRef(null);
-  const [saved, setSaved] = useState('');
 
   useEffect(() => {
     let alive = true;
-    setData(null); setError(false); setSel(null); setDetail(null);
+    setData(null); setError(false); setSecili(null);
     loadPage(page).then((d) => { if (alive) setData(d); }).catch(() => { if (alive) setError(true); });
     write(LAST, page);
     write('mushaf_last_ts', Date.now());
@@ -97,12 +96,13 @@ export default function MushafPage() {
     return () => { alive = false; };
   }, [page]);
 
-  // Meal gereken modlarda sayfadaki surelerin meali yüklenir (QuranEnc, önbellekli).
+  // Sayfadaki surelerin meali HER görünümde önceden yüklenir (QuranEnc/Rowad, önbellekli): ayete dokununca
+  // meal beklemeden belirir. Meal ve İkisi görünümleri aynı veriyi kullanır.
   useEffect(() => {
-    if (mode === 'mushaf' || !data) return undefined;
+    if (!data) return undefined;
     let alive = true;
     const surahs = [...new Set(data.ayahs.map((a) => a.surah))];
-    Promise.all(surahs.map((n) => fetchMeal(n, 'tr').catch(() => null))).then((list) => {
+    Promise.all(surahs.map((n) => mealOnYukle(n))).then((list) => {
       if (!alive) return;
       const map = {};
       list.forEach((m, i) => { (m?.ayahs || []).forEach((a) => { map[`${surahs[i]}:${a.aya}`] = a.text; }); });
@@ -111,7 +111,7 @@ export default function MushafPage() {
       setMealNote(ok ? mealCredit(ok.source, ok.version) : '');
     });
     return () => { alive = false; };
-  }, [mode, data]);
+  }, [data]);
 
   const go = useCallback((n) => {
     if (n >= 1 && n <= TOTAL_PAGES) navigate(`/mushaf/${n}`, { replace: true });
@@ -127,21 +127,13 @@ export default function MushafPage() {
     go(dx > 0 ? page + 1 : page - 1);
   };
 
-  const openAyah = async (a) => {
-    setSel({ surah: a.surah, n: a.n, ar: a.text });
-    setSaved('');
-    setDetail(null);
-    const [meal, tafsir] = await Promise.all([
-      fetchMeal(a.surah, 'tr').catch(() => null),
-      fetchTafsir(a.surah, 'tr').catch(() => null),
-    ]);
-    setDetail({
-      meal: meal?.ayahs.find((x) => x.aya === a.n)?.text || '',
-      credit: meal ? mealCredit(meal.source, meal.version) : '',
-      tafsir: tafsir?.ayahs.find((x) => x.aya === a.n)?.text || '',
-      tafsirCredit: tafsir ? mealCredit(tafsir.source, tafsir.version) : '',
-    });
+  // Ayete dokununca ayet kartı açılır: ayet öne gelir, meali altında yazar.
+  const openAyah = (a) => {
+    if (!data) return;
+    const i = data.ayahs.findIndex((x) => x.surah === a.surah && x.n === a.n);
+    if (i >= 0) { setSecili(i); write('mushaf_ipucu_gordu', 1); }
   };
+  const sel = secili != null && data ? data.ayahs[secili] : null;
 
   const first = data?.ayahs[0];
   const surahNames = data ? [...new Set(data.ayahs.map((a) => a.surahName))] : [];
@@ -164,6 +156,10 @@ export default function MushafPage() {
           </button>
         ))}
       </div>
+
+      {mode === 'mushaf' && !read('mushaf_ipucu_gordu') && data && (
+        <p className="text-center mb-1" style={{ fontSize: 12, color: '#8A7A55' }} onClick={() => write('mushaf_ipucu_gordu', 1)}>{tt('Bir ayete dokun: ayet öne gelir, meali altında yazar.')}</p>
+      )}
 
       {/* Sayfa */}
       <div className="flex-1 px-2 pb-2" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -219,7 +215,7 @@ export default function MushafPage() {
                         {bismillah ? `${bismillah} ` : ''}{text} <span style={{ fontSize: '0.8em' }}>﴿{toArabicDigits(a.n)}﴾</span>
                       </p>
                     )}
-                    <p style={{ fontSize: mode === 'meal' ? 16 : 13.5, lineHeight: 1.6, color: mode === 'meal' ? INK : '#4A4332' }}>
+                    <p onClick={() => openAyah(a)} style={{ fontSize: mode === 'meal' ? 16 : 13.5, lineHeight: 1.6, color: mode === 'meal' ? INK : '#4A4332', cursor: 'pointer' }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: '#8A7A55' }}>{a.n} </span>
                       {meals[`${a.surah}:${a.n}`] || '…'}
                     </p>
@@ -249,38 +245,10 @@ export default function MushafPage() {
         </button>
       </div>
 
-      {/* Ayet paneli: meal + tefsir (ayrı katmanda; ayet metninin üstüne hiçbir şey binmez) */}
-      {sel && (
-        <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-2xl px-5 pt-4 pb-6 max-h-[62vh] overflow-y-auto"
-          style={{ background: '#FFFFFF', boxShadow: '0 -8px 30px rgba(0,0,0,0.18)', color: '#1F2937' }} data-testid="ayah-sheet">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-[13px] font-bold flex items-center gap-2"><BookOpen size={16} /> {sel.surah}:{sel.n}</div>
-            <button onClick={() => { setSel(null); setDetail(null); }} aria-label={tt('Kapat')} className="p-1"><X size={18} /></button>
-          </div>
-          {!detail && <p className="text-sm text-gray-500">…</p>}
-          {detail && (
-            <>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1">{tt('Meal')}</p>
-              <p className="text-[15px] leading-relaxed mb-1">{detail.meal || tt('Meal şu an alınamadı.')}</p>
-              {detail.credit && <p className="text-[10px] text-gray-400 mb-4">{detail.credit}</p>}
-              {detail.tafsir && (
-                <>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1">{tt('Tefsir')}</p>
-                  <p className="text-[14px] leading-relaxed mb-1">{detail.tafsir}</p>
-                  <p className="text-[10px] text-gray-400 mb-4">{detail.tafsirCredit}</p>
-                </>
-              )}
-              <button onClick={() => setSaved(addToDefter({ surah: sel.surah, ayah: sel.n, ar: sel.ar, meal: detail.meal }) ? 'ok' : 'var')}
-                className="text-[13px] font-semibold me-4" style={{ color: '#8B6914' }}>
-                {saved === 'ok' ? tt('Defterine eklendi ✓') : saved === 'var' ? tt('Zaten defterinde') : tt('Defterime ekle')}
-              </button>
-              <button onClick={() => navigate(`/quran/${sel.surah}`)} className="text-[13px] font-semibold underline">
-                {tt('Sureyi ayet ayet aç')}
-              </button>
-            </>
-          )}
-        </div>
-      )}
+      {/* Ayet kartı: dokunulan ayet öne gelir, altında meali (ayet metninin üstüne hiçbir şey binmez) */}
+      <AnimatePresence>
+        {sel && <AyetKarti key="ayet-karti" ayetler={data.ayahs} indis={secili} onIndis={setSecili} onKapat={() => setSecili(null)} />}
+      </AnimatePresence>
     </div>
   );
 }

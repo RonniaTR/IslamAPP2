@@ -158,6 +158,11 @@
   "surahHints.js": {
    "kaynak": "ozgun",
    "durum": "tamam"
+  },
+  "zikirDua.js": {
+   "kaynak": "hadith",
+   "durum": "denetlenmedi",
+   "not": "Hadis kaynaklı zikir ve sünnet duaları (10 zikir, 27 dua); kaynakları satırlarda yazılı"
   }
  }
 }

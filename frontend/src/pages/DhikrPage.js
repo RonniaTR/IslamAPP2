@@ -1,133 +1,250 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MoreVertical, Sun, Moon, Shield, MapPin, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, X, Copy, Share2, ChevronRight, ChevronLeft, Minus, Plus, Compass, ListChecks, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { TYPOGRAPHY, SHADOWS } from '../styles/designTokens';
-import api from '../api';
-import { fetchWithCache } from '../services/cache';
+import { useTx } from '../i18n';
+import { ZIKIRLER, DUALAR, DUA_KATEGORILERI } from '../data/zikirDua';
+import { alfa, karistir } from '../styles/renk';
+
+// 🤲 DUA VE ZİKİR — iki kanat:
+//   ZİKİRLER: her zikir bir kart; dokununca gerçek tesbih ekranı açılır (/dhikr/:id) — taneler parmakla çekilir.
+//   DUALAR:   sünnet duaları kategoriye göre; dokununca alttan okuma kâğıdı açılır: Arapça, okunuş, anlam, kaynak.
+// Bütün renkler aktif temadan gelir. İçerik cihazdadır (bağlantı gerekmez).
+
+const AR_BOY = 'dua_ar_boy';
+
+function TesbihCizim({ renk, isik }) {
+  const taneler = Array.from({ length: 21 }, (_, i) => {
+    const a = (-0.1 + (i / 20) * 1.2) * Math.PI;
+    return [70 + Math.cos(a) * 46, 52 + Math.sin(a) * 40];
+  });
+  return (
+    <svg viewBox="0 0 150 110" width="100%" height="100%" aria-hidden>
+      <circle cx="118" cy="26" r="15" fill={isik} />
+      <circle cx="124" cy="21" r="13" fill="none" />
+      <path d="M118 11 a15 15 0 1 0 10 26 a12 12 0 1 1 -10 -26 Z" fill={renk} opacity="0.9" />
+      <path d={`M${taneler.map(([x, y]) => `${x} ${y}`).join(' L')}`} fill="none" stroke={renk} strokeWidth="0.8" opacity="0.6" />
+      {taneler.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i === 10 ? 6 : 4.8} fill={i === 10 ? renk : isik} stroke={renk} strokeWidth="1.2" />)}
+      <path d="M26 62 L20 86" stroke={renk} strokeWidth="1.4" />
+      <ellipse cx="19" cy="92" rx="4" ry="7" fill={renk} />
+      <g className="mod-salla" style={{ transformOrigin: '19px 99px' }}>{[-3, -1, 1, 3].map((d) => <line key={d} x1="19" y1="99" x2={19 + d} y2="109" stroke={renk} strokeWidth="1" />)}</g>
+    </svg>
+  );
+}
 
 export default function DhikrPage() {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('zikirler');
-  const [dhikrs, setDhikrs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const tt = useTx();
+  const [sekme, setSekme] = useState('zikir');
+  const [kat, setKat] = useState('hepsi');
+  const [ara, setAra] = useState('');
+  const [aramaAcik, setAramaAcik] = useState(false);
+  const [okunan, setOkunan] = useState(null); // dua index
+  const [arBoy, setArBoy] = useState(() => { try { return Number(localStorage.getItem(AR_BOY)) || 30; } catch { return 30; } });
+  const [kopyalandi, setKopyalandi] = useState(false);
 
-  useEffect(() => {
-    fetchWithCache('dhikr_list', () => api.get('/dhikr').then(r => r.data), { ttl: 24 * 60 * 60 * 1000 })
-      .then(({ data }) => {
-        setDhikrs(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => {
-        // Fallback mock data
-        setDhikrs([
-          { id: 1, title: 'Subhanallah', target: 33 },
-          { id: 2, title: 'Alhamdulillah', target: 33 },
-          { id: 3, title: 'Allahu Ekber', target: 34 },
-          { id: 4, title: 'La ilahe illallah', target: 100 },
-        ]);
-        setLoading(false);
-      });
-  }, []);
+  const koyu = theme.isDark;
+  const vurgu = karistir(theme.primary, theme.gold, 0.35);
+  const arRenk = koyu ? (theme.goldLight || theme.gold) : karistir(theme.gold, '#000000', 0.3);
+  const igne = ara.trim().toLocaleLowerCase('tr');
+  const eslesir = (...p) => !igne || p.filter(Boolean).join(' ').toLocaleLowerCase('tr').includes(igne);
 
-  const categories = [
-    { id: 'morning', label: 'Sabah', icon: Sun, color: '#F59E0B' },
-    { id: 'evening', label: 'Akşam', icon: Moon, color: '#8B5CF6' },
-    { id: 'prayer', label: 'Namaz', icon: Shield, color: '#3B82F6' },
-    { id: 'protection', label: 'Korunma', icon: Shield, color: '#10B981' },
-    { id: 'travel', label: 'Yolculuk', icon: MapPin, color: '#6366F1' },
-  ];
+  const zikirler = useMemo(() => ZIKIRLER.filter((z) => eslesir(z.ad, z.kisa, z.fazilet, ...z.adim.map((a) => `${a.oku} ${a.anlam}`))), [igne]); // eslint bilinçli
+  const dualar = useMemo(() => DUALAR.filter((d) => (kat === 'hepsi' || d.kat === kat) && eslesir(d.ad, d.ne, d.oku, d.anlam, d.kaynak)), [kat, igne]); // eslint bilinçli
+  const [oneCikan, ...digerZikir] = zikirler;
+  const dua = okunan != null ? dualar[okunan] : null;
+
+  const boyDegis = (d) => { const v = Math.max(20, Math.min(46, arBoy + d)); setArBoy(v); try { localStorage.setItem(AR_BOY, String(v)); } catch { /* kota */ } };
+  const metin = (d) => `${d.ad}\n\n${d.ar}\n\n${d.oku}\n\n${d.anlam}\n\n(${d.kaynak})`;
+  const kopyala = async (d) => { try { await navigator.clipboard.writeText(metin(d)); setKopyalandi(true); setTimeout(() => setKopyalandi(false), 1600); } catch { /* izin yok */ } };
+  const paylas = (d) => { if (navigator.share) navigator.share({ title: d.ad, text: metin(d) }).catch(() => {}); else kopyala(d); };
+
+  const kart = { background: theme.surface, border: `1px solid ${theme.cardBorder}`, borderRadius: 20 };
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: theme.bg }} data-testid="dhikr-page">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 pt-6 pb-4 bg-white/50 backdrop-blur-md sticky top-0 z-10">
-        <span className="font-extrabold text-2xl tracking-tight" style={{ color: theme.textPrimary, fontFamily: TYPOGRAPHY.fonts.heading }}>
-          Dua & Zikir
-        </span>
-        <div className="flex items-center gap-3">
-          <button className="p-2.5 rounded-full transition-colors" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
-            <Search size={20} style={{ color: theme.textPrimary }} />
-          </button>
-          <button className="p-2.5 rounded-full transition-colors" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
-            <MoreVertical size={20} style={{ color: theme.textPrimary }} />
-          </button>
+    <div data-testid="dhikr-page" style={{ minHeight: '100vh', background: theme.bg, color: theme.textPrimary, paddingBottom: 120 }}>
+      {/* ── Başlık ── */}
+      <div style={{ padding: '18px 18px 0', maxWidth: 620, margin: '0 auto' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 26, minHeight: 150, display: 'flex',
+          background: koyu ? `linear-gradient(140deg, ${karistir(theme.surface, vurgu, 0.4)}, ${theme.surface})` : `linear-gradient(140deg, ${karistir(theme.bg, vurgu, 0.2)}, ${karistir(theme.surface, vurgu, 0.05)})`,
+          border: `1px solid ${alfa(theme.gold, 0.25)}` }}>
+          <div style={{ flex: 1, padding: '18px 0 16px 18px', display: 'flex', flexDirection: 'column', gap: 6, zIndex: 1 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.6, textTransform: 'uppercase', color: koyu ? theme.gold : karistir(theme.gold, '#000', 0.25) }}>{tt('Her vakte')}</span>
+            <h1 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: 26, fontWeight: 700 }}>{tt('Dua ve Zikir')}</h1>
+            <span style={{ fontSize: 12.5, color: theme.textSecondary, lineHeight: 1.4 }}>{ZIKIRLER.length} {tt('zikir')} · {DUALAR.length} {tt('sünnet duası')} · {tt('kaynaklı')}</span>
+            <button type="button" onClick={() => navigate('/dhikr/serbest')} data-testid="serbest-tesbih"
+              style={{ marginTop: 'auto', alignSelf: 'flex-start', height: 38, padding: '0 16px', borderRadius: 19, border: 'none', background: theme.gold, color: '#1A1406', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+              📿 {tt('Tesbih çek')}
+            </button>
+          </div>
+          <div style={{ width: '44%', minWidth: 140, padding: 8 }}><TesbihCizim renk={koyu ? theme.gold : karistir(vurgu, '#000', 0.2)} isik={koyu ? alfa(theme.gold, 0.18) : '#FFFFFF'} /></div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="px-4 mb-6">
-        <div className="flex p-1 rounded-2xl" style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+        {/* Kısa yollar */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, overflowX: 'auto' }}>
           {[
-            { id: 'zikirler', label: 'Zikirler' },
-            { id: 'dualar', label: 'Dualar' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className="flex-1 py-2 text-[13px] font-bold rounded-xl transition-all"
-              style={{
-                background: activeTab === tab.id ? theme.primary : 'transparent',
-                color: activeTab === tab.id ? '#FFF' : theme.textSecondary,
-                boxShadow: activeTab === tab.id ? '0 4px 12px rgba(13,92,47,0.2)' : 'none'
-              }}
-            >
-              {tab.label}
+            { ad: 'Kıble', ikon: Compass, yol: '/qibla' },
+            { ad: 'Kaza takibi', ikon: ListChecks, yol: '/kaza' },
+            { ad: 'Salavât Silsilesi', ikon: Sparkles, yol: '/salavat' },
+            { ad: 'Hidayet duaları', ikon: Sparkles, yol: '/hazine/dualar' },
+          ].map((k) => (
+            <button key={k.yol} type="button" onClick={() => navigate(k.yol)} style={{ flexShrink: 0, height: 40, padding: '0 14px', borderRadius: 20, background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <k.ikon size={15} color={theme.gold} aria-hidden /> {tt(k.ad)}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Categories */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <h2 className="text-base font-bold px-4 mb-4" style={{ color: theme.textPrimary }}>Kategoriler</h2>
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide px-4 pb-2">
-          {categories.map((cat, idx) => (
-            <motion.button key={cat.id} whileTap={{ scale: 0.95 }} className="flex flex-col items-center gap-2 shrink-0">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center transition-shadow hover:shadow-md" 
-                   style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: cat.color }}>
-                <cat.icon size={24} />
-              </div>
-              <span className="text-[11px] font-bold" style={{ color: theme.textSecondary }}>{cat.label}</span>
-            </motion.button>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Öne Çıkan Zikirler */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="px-4">
-        <h2 className="text-base font-bold mb-4" style={{ color: theme.textPrimary }}>Öne Çıkan Zikirler</h2>
-        
-        {loading ? (
-           <div className="flex justify-center p-8"><div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: theme.primary, borderTopColor: 'transparent' }} /></div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {dhikrs.map((dhikr, idx) => (
-              <motion.button 
-                key={dhikr.id || idx}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate(`/dhikr/${dhikr.id}`)}
-                className="flex items-center justify-between p-4 rounded-[20px] transition-shadow hover:shadow-sm w-full text-start"
-                style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ background: `${theme.primary}15`, color: theme.primary }}>
-                    <span className="text-[10px]">📿</span>
-                  </div>
-                  <span className="font-bold text-[13px]" style={{ color: theme.textPrimary }}>{dhikr.title || dhikr.turkish}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold" style={{ color: theme.textSecondary }}>{dhikr.target || dhikr.recommended || 33}</span>
-                  <ChevronRight size={16} style={{ color: theme.textSecondary }} />
-                </div>
-              </motion.button>
+        {/* Sekmeler + arama */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 14, alignItems: 'center' }}>
+          <div role="tablist" style={{ flex: 1, display: 'flex', padding: 4, borderRadius: 18, background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+            {[{ id: 'zikir', ad: 'Zikirler' }, { id: 'dua', ad: 'Dualar' }].map((s) => (
+              <button key={s.id} role="tab" aria-selected={sekme === s.id} type="button" onClick={() => setSekme(s.id)}
+                style={{ flex: 1, height: 38, borderRadius: 14, border: 'none', fontSize: 14, fontWeight: 700, transition: 'background .2s, color .2s',
+                  background: sekme === s.id ? (koyu ? theme.gold : theme.primary) : 'transparent', color: sekme === s.id ? (koyu ? '#1A1406' : '#FFFFFF') : theme.textSecondary }}>
+                {tt(s.ad)}
+              </button>
             ))}
           </div>
+          <button type="button" aria-label={tt('Ara')} onClick={() => { setAramaAcik(!aramaAcik); if (aramaAcik) setAra(''); }}
+            style={{ width: 46, height: 46, borderRadius: 23, background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {aramaAcik ? <X size={18} /> : <Search size={18} />}
+          </button>
+        </div>
+        {aramaAcik && (
+          <input autoFocus value={ara} onChange={(e) => setAra(e.target.value)} placeholder={tt('Zikir ya da dua ara')} aria-label={tt('Ara')}
+            style={{ width: '100%', marginTop: 10, height: 46, borderRadius: 23, padding: '0 18px', background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, fontSize: 14, outline: 'none' }} />
         )}
-      </motion.div>
+      </div>
+
+      <div style={{ padding: '14px 18px 0', maxWidth: 620, margin: '0 auto' }}>
+        {sekme === 'zikir' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {oneCikan && (
+              <button type="button" className="gir-yukari mod-kart" style={{ '--s': 0, ...kart, borderRadius: 24, padding: 18, textAlign: 'start', color: theme.textPrimary, cursor: 'pointer', border: `1px solid ${alfa(theme.gold, 0.35)}` }}
+                onClick={() => navigate(`/dhikr/${oneCikan.id}`)} data-testid={`zikir-${oneCikan.id}`}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', color: theme.gold }}>{tt(oneCikan.kisa)}</span>
+                  <span style={{ marginInlineStart: 'auto', fontSize: 11, color: theme.textSecondary }}>{oneCikan.kaynak}</span>
+                </div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: 20, fontWeight: 700, margin: '4px 0 10px' }}>{tt(oneCikan.ad)}</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {oneCikan.adim.map((a, i) => (
+                    <span key={i} style={{ flex: '1 1 40%', minWidth: 120, padding: '10px 12px', borderRadius: 14, background: theme.bg, border: `1px solid ${theme.cardBorder}` }}>
+                      <span dir="rtl" lang="ar" style={{ display: 'block', fontFamily: "'Amiri', serif", fontSize: a.ar.length > 40 ? 15 : 22, color: arRenk, lineHeight: 1.6, textAlign: 'right' }}>{a.ar}</span>
+                      <span style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, marginTop: 2 }}><span>{a.oku.split(',')[0]}</span><span style={{ color: theme.gold }}>×{a.hedef}</span></span>
+                    </span>
+                  ))}
+                </div>
+                <span style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 16px', borderRadius: 19, background: theme.gold, color: '#1A1406', fontWeight: 700, fontSize: 13 }}>📿 {tt('Tesbihe başla')} <ChevronRight size={15} /></span>
+              </button>
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
+              {digerZikir.map((z, i) => {
+                const a = z.adim[0];
+                return (
+                  <button key={z.id} type="button" onClick={() => navigate(`/dhikr/${z.id}`)} className="gir-yukari mod-kart" data-testid={`zikir-${z.id}`}
+                    style={{ '--s': i + 1, ...kart, padding: 14, textAlign: 'start', color: theme.textPrimary, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6, minHeight: 168 }}>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.6, color: theme.textSecondary, textTransform: 'uppercase' }}>{tt(z.kisa)}</span>
+                      <span style={{ marginInlineStart: 'auto', fontSize: 11, fontWeight: 800, color: '#1A1406', background: theme.gold, borderRadius: 8, padding: '1px 7px' }}>×{a.hedef}</span>
+                    </span>
+                    <span dir="rtl" lang="ar" style={{ fontFamily: "'Amiri', serif", fontSize: a.ar.length > 50 ? 15 : a.ar.length > 25 ? 19 : 24, lineHeight: 1.65, color: arRenk, textAlign: 'right', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>{a.ar}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700 }}>{tt(z.ad)}</span>
+                    <span style={{ fontSize: 11.5, color: theme.textSecondary, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{tt(z.fazilet)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {!zikirler.length && <Bos theme={theme} tt={tt} />}
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -18px', padding: '0 18px 10px' }}>
+              {[{ id: 'hepsi', ad: 'Tümü' }, ...DUA_KATEGORILERI].map((k) => {
+                const n = k.id === 'hepsi' ? DUALAR.length : DUALAR.filter((d) => d.kat === k.id).length;
+                const sec = kat === k.id;
+                return (
+                  <button key={k.id} type="button" onClick={() => setKat(k.id)} style={{ flexShrink: 0, height: 36, padding: '0 14px', borderRadius: 18, fontSize: 12.5, fontWeight: 700,
+                    border: `1px solid ${sec ? theme.gold : theme.cardBorder}`, background: sec ? theme.gold : theme.surface, color: sec ? '#1A1406' : theme.textPrimary }}>
+                    {tt(k.ad)} <span style={{ opacity: 0.6, fontWeight: 600 }}>{n}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {dualar.map((d, i) => (
+                <button key={d.id} type="button" onClick={() => setOkunan(i)} className="gir-yukari mod-kart" data-testid={`dua-${d.id}`}
+                  style={{ '--s': Math.min(i, 10), ...kart, padding: '14px 14px 14px 16px', textAlign: 'start', color: theme.textPrimary, cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <span style={{ width: 4, alignSelf: 'stretch', borderRadius: 2, background: alfa(theme.gold, 0.7) }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', color: theme.gold }}>{tt(d.ne)}</span>
+                    <span style={{ display: 'block', fontSize: 15.5, fontWeight: 700, margin: '2px 0 4px' }}>{tt(d.ad)}</span>
+                    <span dir="rtl" lang="ar" style={{ display: 'block', fontFamily: "'Amiri', serif", fontSize: 18, color: arRenk, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.ar}</span>
+                    <span style={{ display: 'block', fontSize: 12, color: theme.textSecondary, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tt(d.anlam)}</span>
+                  </span>
+                  <ChevronRight size={18} color={theme.textSecondary} />
+                </button>
+              ))}
+              {!dualar.length && <Bos theme={theme} tt={tt} />}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Dua okuma kâğıdı ── */}
+      <AnimatePresence>
+        {dua && (
+          <motion.div key="perde" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOkunan(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+            <motion.div key={dua.id} data-testid="dua-kagidi" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+              onClick={(e) => e.stopPropagation()}
+              drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 0.6 }} onDragEnd={(_, info) => { if (info.offset.y > 120 || info.velocity.y > 600) setOkunan(null); }}
+              style={{ width: '100%', maxWidth: 620, maxHeight: '92vh', overflowY: 'auto', background: theme.surface, borderRadius: '28px 28px 0 0', padding: '10px 20px calc(24px + env(safe-area-inset-bottom))', willChange: 'transform' }}>
+              <div style={{ width: 44, height: 5, borderRadius: 3, background: alfa(theme.textSecondary, 0.35), margin: '0 auto 12px' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', color: theme.gold }}>{tt(dua.ne)}</span>
+                <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+                  <button type="button" aria-label={tt('Yazıyı küçült')} onClick={() => boyDegis(-3)} style={kucukDugme(theme)}><Minus size={15} /></button>
+                  <button type="button" aria-label={tt('Yazıyı büyüt')} onClick={() => boyDegis(3)} style={kucukDugme(theme)}><Plus size={15} /></button>
+                  <button type="button" aria-label={tt('Kapat')} onClick={() => setOkunan(null)} style={kucukDugme(theme)}><X size={16} /></button>
+                </span>
+              </div>
+              <h2 style={{ margin: '6px 0 14px', fontFamily: 'var(--font-heading)', fontSize: 24, fontWeight: 700 }}>{tt(dua.ad)}</h2>
+              <div style={{ borderRadius: 20, padding: '18px 16px', background: koyu ? karistir(theme.bg, theme.surface, 0.4) : karistir(theme.bg, '#FFFFFF', 0.5), border: `1px solid ${alfa(theme.gold, 0.25)}` }}>
+                <p dir="rtl" lang="ar" style={{ margin: 0, fontFamily: "'Amiri', serif", fontSize: arBoy, lineHeight: 1.9, textAlign: 'right', color: arRenk }}>{dua.ar}</p>
+              </div>
+              <div style={{ marginTop: 16 }}>
+                <div style={baslik(theme)}>{tt('Okunuşu')}</div>
+                <p style={{ margin: '4px 0 0', fontSize: 16, lineHeight: 1.6, fontWeight: 600, fontStyle: 'italic' }}>{dua.oku}</p>
+              </div>
+              <div style={{ marginTop: 14 }}>
+                <div style={baslik(theme)}>{tt('Anlamı')}</div>
+                <p style={{ margin: '4px 0 0', fontSize: 16.5, lineHeight: 1.65, fontFamily: 'var(--font-okuma)' }}>{tt(dua.anlam)}</p>
+              </div>
+              {dua.not && <p style={{ margin: '12px 0 0', fontSize: 13, lineHeight: 1.55, color: theme.textSecondary, padding: '10px 12px', borderRadius: 14, background: alfa(theme.gold, 0.08) }}>{tt(dua.not)}</p>}
+              <div style={{ marginTop: 12, fontSize: 12, color: theme.textSecondary }}>{tt('Kaynak')}: <b style={{ color: theme.textPrimary }}>{dua.kaynak}</b></div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+                <button type="button" disabled={okunan === 0} onClick={() => setOkunan(okunan - 1)} aria-label={tt('Önceki')} style={{ ...kucukDugme(theme), width: 46, height: 46, borderRadius: 23, opacity: okunan === 0 ? 0.4 : 1 }}><ChevronLeft size={18} /></button>
+                <button type="button" onClick={() => kopyala(dua)} style={{ flex: 1, height: 46, borderRadius: 23, border: `1px solid ${theme.cardBorder}`, background: theme.bg, color: theme.textPrimary, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Copy size={16} /> {tt(kopyalandi ? 'Kopyalandı' : 'Kopyala')}</button>
+                <button type="button" onClick={() => paylas(dua)} style={{ flex: 1, height: 46, borderRadius: 23, border: 'none', background: theme.gold, color: '#1A1406', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Share2 size={16} /> {tt('Paylaş')}</button>
+                <button type="button" disabled={okunan >= dualar.length - 1} onClick={() => setOkunan(okunan + 1)} aria-label={tt('Sonraki')} style={{ ...kucukDugme(theme), width: 46, height: 46, borderRadius: 23, opacity: okunan >= dualar.length - 1 ? 0.4 : 1 }}><ChevronRight size={18} /></button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
+}
+
+function Bos({ theme, tt }) {
+  return <p style={{ textAlign: 'center', padding: 30, color: theme.textSecondary, fontSize: 14 }}>{tt('Aradığın bulunamadı.')}</p>;
+}
+function kucukDugme(theme) {
+  return { width: 34, height: 34, borderRadius: 17, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.bg, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, cursor: 'pointer' };
+}
+function baslik(theme) {
+  return { fontSize: 10.5, fontWeight: 700, letterSpacing: 1.4, textTransform: 'uppercase', color: theme.textSecondary };
 }

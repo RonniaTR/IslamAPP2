@@ -1,5 +1,5 @@
-import React, { useState, useCallback, Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { useState, useCallback, Suspense, useEffect, useRef } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LangProvider } from './contexts/LangContext';
@@ -24,120 +24,123 @@ import { initOfflineSync } from './services/offlineSync';
 import { warmOffline } from './services/offline';
 import { initDiagnostics } from './services/diagnostics';
 import RouteMeter from './components/RouteMeter';
+import Yukleniyor from './components/Yukleniyor';
+import lazyR from './services/lazyRetry';
 // Yan etki: Geri Dönüş modunun plan filtresini pathEngine'e kaydeder.
 import './services/returnEngine';
 import api from './api';
 
 // --- YETİŞKİN SAYFALARI ---
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const QuranList = lazy(() => import('./pages/QuranList'));
-const SurahDetail = lazy(() => import('./pages/SurahDetail'));
-const MushafPage = lazy(() => import('./pages/MushafPage'));
-const KandilPage = lazy(() => import('./pages/KandilPage'));
-const MahrecPage = lazy(() => import('./pages/MahrecPage'));
-const HadithPage = lazy(() => import('./pages/HadithPage'));
-const AiChat = lazy(() => import('./pages/AiChat'));
-const ScholarsPage = lazy(() => import('./pages/ScholarsPage'));
-const QiblaPage = lazy(() => import('./pages/QiblaPage'));
-const MealAudioPage = lazy(() => import('./pages/MealAudioPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
-const LicensesPage = lazy(() => import('./pages/LicensesPage'));
-const RehberPage = lazy(() => import('./pages/RehberPage'));
-const OzelliklerPage = lazy(() => import('./pages/OzelliklerPage'));
-const KelimePage = lazy(() => import('./pages/KelimePage'));
-const SofraPage = lazy(() => import('./pages/SofraPage'));
-const HatimPlanPage = lazy(() => import('./pages/HatimPlanPage'));
-const KazaPage = lazy(() => import('./pages/KazaPage'));
-const DefterPage = lazy(() => import('./pages/DefterPage'));
-const TesbihatPage = lazy(() => import('./pages/TesbihatPage'));
-const RahmetPage = lazy(() => import('./pages/RahmetPage'));
-const RamadanPage = lazy(() => import('./pages/RamadanPage'));
-const KnowledgeDetail = lazy(() => import('./pages/KnowledgeDetail'));
-const NotesPage = lazy(() => import('./pages/NotesPage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const AuthCallback = lazy(() => import('./pages/AuthCallback'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const MultiplayerQuiz = lazy(() => import('./pages/MultiplayerQuiz'));
-const ComparativePage = lazy(() => import('./pages/ComparativePage'));
-const PomodoroPage = lazy(() => import('./pages/PomodoroPage'));
-const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
-const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
-const PremiumPage = lazy(() => import('./pages/PremiumPage'));
-const GamificationPage = lazy(() => import('./pages/GamificationPage'));
-const OfflinePacksPage = lazy(() => import('./pages/OfflinePacksPage'));
-const FiqhPage = lazy(() => import('./pages/FiqhPage'));
-const DhikrPage = lazy(() => import('./pages/DhikrPage'));
-const JourneyTracker = lazy(() => import('./pages/JourneyTracker'));
-const QuizEngine = lazy(() => import('./pages/QuizEngine'));
-const SuccessScreen = lazy(() => import('./pages/SuccessScreen'));
-const KnowledgeProfile = lazy(() => import('./pages/KnowledgeProfile'));
-const HalvetMode = lazy(() => import('./pages/HalvetMode'));
-const ContentDetail = lazy(() => import('./pages/ContentDetail'));
-const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
-const AdminPage = lazy(() => import('./pages/AdminPage'));
-const SeedData = lazy(() => import('./pages/SeedData'));
-const HatimPage = lazy(() => import('./pages/HatimPage'));
+const Dashboard = lazyR(() => import('./pages/Dashboard'));
+const QuranList = lazyR(() => import('./pages/QuranList'));
+const SurahDetail = lazyR(() => import('./pages/SurahDetail'));
+const MushafPage = lazyR(() => import('./pages/MushafPage'));
+const KandilPage = lazyR(() => import('./pages/KandilPage'));
+const MahrecPage = lazyR(() => import('./pages/MahrecPage'));
+const HadithPage = lazyR(() => import('./pages/HadithPage'));
+const AiChat = lazyR(() => import('./pages/AiChat'));
+const ScholarsPage = lazyR(() => import('./pages/ScholarsPage'));
+const QiblaPage = lazyR(() => import('./pages/QiblaPage'));
+const MealAudioPage = lazyR(() => import('./pages/MealAudioPage'));
+const SettingsPage = lazyR(() => import('./pages/SettingsPage'));
+const LicensesPage = lazyR(() => import('./pages/LicensesPage'));
+const RehberPage = lazyR(() => import('./pages/RehberPage'));
+const OzelliklerPage = lazyR(() => import('./pages/OzelliklerPage'));
+const KelimePage = lazyR(() => import('./pages/KelimePage'));
+const SofraPage = lazyR(() => import('./pages/SofraPage'));
+const HatimPlanPage = lazyR(() => import('./pages/HatimPlanPage'));
+const KazaPage = lazyR(() => import('./pages/KazaPage'));
+const DefterPage = lazyR(() => import('./pages/DefterPage'));
+const TesbihatPage = lazyR(() => import('./pages/TesbihatPage'));
+const RahmetPage = lazyR(() => import('./pages/RahmetPage'));
+const RamadanPage = lazyR(() => import('./pages/RamadanPage'));
+const KnowledgeDetail = lazyR(() => import('./pages/KnowledgeDetail'));
+const NotesPage = lazyR(() => import('./pages/NotesPage'));
+const LoginPage = lazyR(() => import('./pages/LoginPage'));
+const AuthCallback = lazyR(() => import('./pages/AuthCallback'));
+const ProfilePage = lazyR(() => import('./pages/ProfilePage'));
+const MultiplayerQuiz = lazyR(() => import('./pages/MultiplayerQuiz'));
+const ComparativePage = lazyR(() => import('./pages/ComparativePage'));
+const PomodoroPage = lazyR(() => import('./pages/PomodoroPage'));
+const BookmarksPage = lazyR(() => import('./pages/BookmarksPage'));
+const DiscoverPage = lazyR(() => import('./pages/DiscoverPage'));
+const PremiumPage = lazyR(() => import('./pages/PremiumPage'));
+const GamificationPage = lazyR(() => import('./pages/GamificationPage'));
+const OfflinePacksPage = lazyR(() => import('./pages/OfflinePacksPage'));
+const FiqhPage = lazyR(() => import('./pages/FiqhPage'));
+const DhikrPage = lazyR(() => import('./pages/DhikrPage'));
+const TesbihCek = lazyR(() => import('./pages/zikir/TesbihCek'));
+const JourneyTracker = lazyR(() => import('./pages/JourneyTracker'));
+const QuizEngine = lazyR(() => import('./pages/QuizEngine'));
+const SuccessScreen = lazyR(() => import('./pages/SuccessScreen'));
+const KnowledgeProfile = lazyR(() => import('./pages/KnowledgeProfile'));
+const HalvetMode = lazyR(() => import('./pages/HalvetMode'));
+const ContentDetail = lazyR(() => import('./pages/ContentDetail'));
+const LeaderboardPage = lazyR(() => import('./pages/LeaderboardPage'));
+const AdminPage = lazyR(() => import('./pages/AdminPage'));
+const SeedData = lazyR(() => import('./pages/SeedData'));
+const HatimPage = lazyR(() => import('./pages/HatimPage'));
 
 // --- YENİ ENTEGRE MODÜLLER ---
-const PathPage = lazy(() => import('./pages/PathPage'));
-const HifzPage = lazy(() => import('./pages/HifzPage'));
-const HazinePage = lazy(() => import('./pages/HazinePage'));
-const StoriesPage = lazy(() => import('./pages/StoriesPage'));
-const NightPage = lazy(() => import('./pages/NightPage'));
-const LibraryPage = lazy(() => import('./pages/LibraryPage'));
-const ElifBaPage = lazy(() => import('./pages/ElifBaPage'));
-const JournalPage = lazy(() => import('./pages/JournalPage'));
-const GamesPage = lazy(() => import('./pages/GamesPage'));
-const SiyerPage = lazy(() => import('./pages/SiyerPage'));
-const MuslumanOlmakPage = lazy(() => import('./pages/musluman/MuslumanOlmakPage'));
-const AyetTablosuPage = lazy(() => import('./pages/ayet/AyetTablosuPage'));
-const OrtakSalavatPage = lazy(() => import('./pages/salavat/OrtakSalavatPage'));
-const SevapPointsPage = lazy(() => import('./pages/sevap/SevapPointsPage'));
-const BildirimlerPage = lazy(() => import('./pages/BildirimlerPage'));
-const ProphetsPage = lazy(() => import('./pages/ProphetsPage'));
+const PathPage = lazyR(() => import('./pages/PathPage'));
+const HifzPage = lazyR(() => import('./pages/HifzPage'));
+const HazinePage = lazyR(() => import('./pages/HazinePage'));
+const StoriesPage = lazyR(() => import('./pages/StoriesPage'));
+const NightPage = lazyR(() => import('./pages/NightPage'));
+const LibraryPage = lazyR(() => import('./pages/LibraryPage'));
+const ElifBaPage = lazyR(() => import('./pages/ElifBaPage'));
+const JournalPage = lazyR(() => import('./pages/JournalPage'));
+const GamesPage = lazyR(() => import('./pages/GamesPage'));
+const SiyerPage = lazyR(() => import('./pages/SiyerPage'));
+const MuslumanOlmakPage = lazyR(() => import('./pages/musluman/MuslumanOlmakPage'));
+const AyetTablosuPage = lazyR(() => import('./pages/ayet/AyetTablosuPage'));
+const OrtakSalavatPage = lazyR(() => import('./pages/salavat/OrtakSalavatPage'));
+const SevapPointsPage = lazyR(() => import('./pages/sevap/SevapPointsPage'));
+const BildirimlerPage = lazyR(() => import('./pages/BildirimlerPage'));
+const ProphetsPage = lazyR(() => import('./pages/ProphetsPage'));
 
 // --- GERİ DÖNÜŞ ODASI (KIRK PERDE) ---
-const DonusShell = lazy(() => import('./components/donus/DonusShell'));
-const OdaPage = lazy(() => import('./pages/oda/OdaPage'));
+const DonusShell = lazyR(() => import('./components/donus/DonusShell'));
+const OdaPage = lazyR(() => import('./pages/oda/OdaPage'));
 // --- HERKESE AÇIK SAYFALAR (giriş istemez; mağaza formlarındaki web adresleri) ---
-const GizlilikPage = lazy(() => import('./pages/legal/GizlilikPage'));
-const HesapSilPage = lazy(() => import('./pages/legal/HesapSilPage'));
-const DonusHome = lazy(() => import('./pages/donus/DonusHome'));
-const DonusLesson = lazy(() => import('./pages/donus/DonusLesson'));
-const DonusPhase = lazy(() => import('./pages/donus/DonusPhase'));
-const DonusTemel = lazy(() => import('./pages/donus/DonusTemel'));
-const DonusMektup = lazy(() => import('./pages/donus/DonusMektup'));
-const DonusPerde = lazy(() => import('./pages/donus/DonusPerde'));
-const DonusYoldas = lazy(() => import('./pages/donus/DonusYoldas'));
+const GizlilikPage = lazyR(() => import('./pages/legal/GizlilikPage'));
+const HesapSilPage = lazyR(() => import('./pages/legal/HesapSilPage'));
+const DonusHome = lazyR(() => import('./pages/donus/DonusHome'));
+const DonusLesson = lazyR(() => import('./pages/donus/DonusLesson'));
+const DonusPhase = lazyR(() => import('./pages/donus/DonusPhase'));
+const DonusTemel = lazyR(() => import('./pages/donus/DonusTemel'));
+const DonusMektup = lazyR(() => import('./pages/donus/DonusMektup'));
+const DonusPerde = lazyR(() => import('./pages/donus/DonusPerde'));
+const DonusYoldas = lazyR(() => import('./pages/donus/DonusYoldas'));
 
 // --- ÇOCUK SAYFALARI ---
-const KidsDashboard = lazy(() => import('./pages/kids/KidsDashboard'));
-const KidsWelcome = lazy(() => import('./pages/kids/KidsWelcome'));
-const KidsStories = lazy(() => import('./pages/kids/KidsStories'));
-const KidsGames = lazy(() => import('./pages/kids/KidsGames'));
-const KidsRewards = lazy(() => import('./pages/kids/KidsRewards'));
-const KidsTasks = lazy(() => import('./pages/kids/KidsTasks'));
-const KidsStoryPlayer = lazy(() => import('./pages/kids/KidsStoryPlayer'));
-const KidsDuaList = lazy(() => import('./pages/kids/KidsDuaList'));
-const KidsElifba = lazy(() => import('./pages/kids/KidsElifba'));
-const KidsQuranList = lazy(() => import('./pages/kids/KidsQuranList'));
-const KidsSurahPlayer = lazy(() => import('./pages/kids/KidsSurahPlayer'));
-const KidsDhikr = lazy(() => import('./pages/kids/KidsDhikr'));
-const KidsBadges = lazy(() => import('./pages/kids/KidsBadges'));
-const KidsProgress = lazy(() => import('./pages/kids/KidsProgress'));
-const KidsColoring = lazy(() => import('./pages/kids/KidsColoring'));
-const KidsNamaz = lazy(() => import('./pages/kids/KidsNamaz'));
-const KidsKible = lazy(() => import('./pages/kids/KidsKible'));
-const KidsAilem = lazy(() => import('./pages/kids/KidsAilem'));
+const KidsDashboard = lazyR(() => import('./pages/kids/KidsDashboard'));
+const KidsWelcome = lazyR(() => import('./pages/kids/KidsWelcome'));
+const KidsStories = lazyR(() => import('./pages/kids/KidsStories'));
+const KidsGames = lazyR(() => import('./pages/kids/KidsGames'));
+const KidsRewards = lazyR(() => import('./pages/kids/KidsRewards'));
+const KidsTasks = lazyR(() => import('./pages/kids/KidsTasks'));
+const KidsStoryPlayer = lazyR(() => import('./pages/kids/KidsStoryPlayer'));
+const KidsDuaList = lazyR(() => import('./pages/kids/KidsDuaList'));
+const KidsElifba = lazyR(() => import('./pages/kids/KidsElifba'));
+const KidsQuranList = lazyR(() => import('./pages/kids/KidsQuranList'));
+const KidsSurahPlayer = lazyR(() => import('./pages/kids/KidsSurahPlayer'));
+const KidsDhikr = lazyR(() => import('./pages/kids/KidsDhikr'));
+const KidsBadges = lazyR(() => import('./pages/kids/KidsBadges'));
+const KidsProgress = lazyR(() => import('./pages/kids/KidsProgress'));
+const KidsColoring = lazyR(() => import('./pages/kids/KidsColoring'));
+const KidsNamaz = lazyR(() => import('./pages/kids/KidsNamaz'));
+const KidsKible = lazyR(() => import('./pages/kids/KidsKible'));
+const KidsAilem = lazyR(() => import('./pages/kids/KidsAilem'));
 
 // --- EBEVEYN SAYFALARI ---
-const ParentLayout = lazy(() => import('./components/ParentLayout'));
-const ParentProfiles = lazy(() => import('./pages/parent/ParentProfiles'));
-const ParentLimits = lazy(() => import('./pages/parent/ParentLimits'));
-const ParentActivity = lazy(() => import('./pages/parent/ParentActivity'));
-const ParentContentControl = lazy(() => import('./pages/parent/ParentContentControl'));
-const ParentAddProfile = lazy(() => import('./pages/parent/ParentAddProfile'));
-const ParentSettings = lazy(() => import('./pages/parent/ParentSettings'));
+const ParentLayout = lazyR(() => import('./components/ParentLayout'));
+const ParentProfiles = lazyR(() => import('./pages/parent/ParentProfiles'));
+const ParentLimits = lazyR(() => import('./pages/parent/ParentLimits'));
+const ParentActivity = lazyR(() => import('./pages/parent/ParentActivity'));
+const ParentContentControl = lazyR(() => import('./pages/parent/ParentContentControl'));
+const ParentAddProfile = lazyR(() => import('./pages/parent/ParentAddProfile'));
+const ParentSettings = lazyR(() => import('./pages/parent/ParentSettings'));
 
 initOfflineSync(api);
 initDiagnostics();
@@ -145,13 +148,33 @@ warmOffline();   // Türkçe meal + tefsir boşta cihaza iner; sonrası bağlant
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div style={{ minHeight: '100vh', background: '#F5F5F0' }} />;
+  // Oturum beklenirken boş beyaz sayfa yerine temanın kendi zemini (bkz. Yukleniyor)
+  if (loading && !user) return <Yukleniyor />;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 function PageLoader() {
-  return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F5F0' }} />;
+  return <Yukleniyor />;
+}
+
+// Açılış oynarken en çok kullanılan sayfalar arka planda indirilir; açılış bitince ekran hazır olur
+// (Suspense beklemesi ve beyaz ara kare olmaz). Tarayıcı boştayken çalışır, açılış animasyonunu yormaz.
+const ONCEDEN = [
+  () => import('./pages/Dashboard'),
+  () => import('./pages/DiscoverPage'),
+  () => import('./pages/PathPage'),
+  () => import('./pages/GamesPage'),
+  () => import('./pages/ProfilePage'),
+];
+let oncedenBasladi = false;
+function onceDenYukle() {
+  if (oncedenBasladi) return;
+  oncedenBasladi = true;
+  const bos = window.requestIdleCallback || ((f) => setTimeout(f, 200));
+  // Ana sayfa hemen; diğerleri sırayla, boşta
+  ONCEDEN[0]().catch(() => {});
+  ONCEDEN.slice(1).forEach((f, i) => bos(() => f().catch(() => {}), { timeout: 3000 + i * 800 }));
 }
 
 function KidsModeSwitch() {
@@ -205,6 +228,7 @@ function AdultRoutes() {
             <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
             <Route path="/fiqh" element={<PageTransition><FiqhPage /></PageTransition>} />
             <Route path="/dhikr" element={<PageTransition><DhikrPage /></PageTransition>} />
+            <Route path="/dhikr/:id" element={<TesbihCek />} />
             <Route path="/multiplayer" element={<PageTransition><MultiplayerQuiz /></PageTransition>} />
             <Route path="/comparative" element={<PageTransition><ComparativePage /></PageTransition>} />
             <Route path="/pomodoro" element={<PageTransition><PomodoroPage /></PageTransition>} />
@@ -341,10 +365,21 @@ function AppFlow() {
   const [showSplash, setShowSplash] = useState(() => !kapiGosterilsinMi());
   const [showKidsWelcome, setShowKidsWelcome] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Çocuktan yetişkine geçildiğinde adres hâlâ /kids… ise ana sayfaya alınır. Aksi hâlde yetişkin yönlendiricisindeki
+  // /kids → "çocuk moduna geç" kuralı modu hemen yine çocuğa çeviriyordu (köşedeki dönüş düğmesi "çalışmıyor" gibiydi).
+  const oncekiMod = useRef(appMode);
+  useEffect(() => {
+    if (appMode === 'adult' && oncekiMod.current !== 'adult' && location.pathname.startsWith('/kids')) navigate('/', { replace: true });
+    oncekiMod.current = appMode;
+  }, [appMode]); // eslint bilinçli: yalnız mod değişince
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
   }, []);
+
+  useEffect(() => { onceDenYukle(); }, []);
 
   // Initialize Native Plugins
   useEffect(() => {
@@ -420,7 +455,7 @@ function AppFlow() {
     );
   }
 
-  if (loading) {
+  if (loading && !user) {
     return <PageLoader />;
   }
 

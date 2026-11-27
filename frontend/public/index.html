@@ -22,26 +22,103 @@
     /* Safe area padding for notched devices */
     body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
     /* Prevent overscroll bounce */
-    html, body { overscroll-behavior: none; }
+    html, body { overscroll-behavior: none; background: #08241B; }
     /* Splash background while loading */
     #root:empty { background: #08241B; min-height: 100vh; }
     /* İlk kare: telefonun açılış ekranı ve Mühür Açılışı'nın ilk karesiyle birebir aynı (kesintisiz geçiş) */
-    #ilk-kare { position: fixed; inset: 0; background: #08241B; z-index: 1; }
-    #ilk-kare svg { position: absolute; left: 50%; top: calc(47vh - 44px); margin-left: -44px; }
+    #ilk-kare { position: fixed; inset: 0; top: 0; right: 0; bottom: 0; left: 0; background: #08241B; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   </style>
+  <script>
+    (function () {
+      // 1) Safari iOS (Gizli Sekme / Çerez Engeli) ve Google/WhatsApp uygulama içi tarayıcılarda
+      // localStorage/sessionStorage SecurityError veya QuotaExceededError fırlatırsa bellek içi yedek kullan
+      try {
+        var memStore = {};
+        var origGet = Storage.prototype.getItem;
+        var origSet = Storage.prototype.setItem;
+        var origRem = Storage.prototype.removeItem;
+        Storage.prototype.getItem = function (k) {
+          try { return origGet.call(this, k); } catch (e) { return Object.prototype.hasOwnProperty.call(memStore, k) ? memStore[k] : null; }
+        };
+        Storage.prototype.setItem = function (k, v) {
+          try { origSet.call(this, k, v); } catch (e) { memStore[k] = String(v); }
+        };
+        Storage.prototype.removeItem = function (k) {
+          try { origRem.call(this, k); } catch (e) { delete memStore[k]; }
+        };
+      } catch (e) {}
+
+      // 2) Eski Service Worker veya eski JS parçası ("Unexpected token '<'" / ChunkLoadError) yüzünden
+      // Safari / Chrome / iOS / Android'de beyaz ekran olursa önbelleği ve SW'yi otomatik temizleyip yenile
+      var RELOAD_KEY = '__islamapp_boot_heal_v25__';
+      function healAndReload() {
+        try {
+          if (sessionStorage.getItem(RELOAD_KEY)) return;
+          sessionStorage.setItem(RELOAD_KEY, '1');
+        } catch (e) {}
+        var p1 = ('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations)
+          ? navigator.serviceWorker.getRegistrations().then(function (regs) {
+              return Promise.all(regs.map(function (r) { return r.unregister(); }));
+            }).catch(function () {})
+          : Promise.resolve();
+        var p2 = (window.caches && caches.keys)
+          ? caches.keys().then(function (keys) {
+              return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+            }).catch(function () {})
+          : Promise.resolve();
+        Promise.all([p1, p2]).then(function () {
+          var url = window.location.pathname + '?v=' + Date.now();
+          window.location.replace(url);
+        });
+      }
+      window.__islamappHeal = healAndReload;
+
+      window.addEventListener('error', function (e) {
+        var t = e && e.target;
+        if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) {
+          var src = t.src || t.href || '';
+          if (src.indexOf('/static/') !== -1) healAndReload();
+          return;
+        }
+        var msg = String((e && e.message) || '');
+        if (/Unexpected token '<'|Loading chunk|ChunkLoadError|Importing a module script failed/i.test(msg)) {
+          healAndReload();
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function (e) {
+        var r = e && e.reason;
+        var msg = String((r && (r.message || r.name)) || r || '');
+        if (/Unexpected token '<'|Loading chunk|ChunkLoadError|Failed to fetch dynamically imported module|Importing a module script failed/i.test(msg)) {
+          healAndReload();
+        }
+      });
+
+      // 3) Emniyet bekçisi: 6.5 saniye içinde React yüklenmezse otomatik onar veya yenileme düğmesi göster
+      setTimeout(function () {
+        if (window.__APP_MOUNTED__) return;
+        var ilk = document.getElementById('ilk-kare');
+        if (!ilk) return;
+        try {
+          if (!sessionStorage.getItem(RELOAD_KEY)) {
+            healAndReload();
+            return;
+          }
+        } catch (e) {}
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'Uygulamayı Yenile';
+        btn.style.cssText = 'margin-top:24px;padding:12px 24px;border-radius:22px;border:1.5px solid #D8B76A;background:#D8B76A;color:#11281F;font-weight:800;font-size:14px;cursor:pointer;';
+        btn.onclick = function () {
+          try { sessionStorage.removeItem(RELOAD_KEY); } catch (e) {}
+          healAndReload();
+        };
+        ilk.appendChild(btn);
+      }, 6500);
+    })();
+  </script>
 </head>
 <body>
   <div id="root"><div id="ilk-kare"><svg width="88" height="88" viewBox="0 0 100 100" aria-hidden="true"><rect x="20" y="20" width="60" height="60" fill="none" stroke="#D8B76A" stroke-width="2"/><rect x="20" y="20" width="60" height="60" fill="none" stroke="#D8B76A" stroke-width="2" transform="rotate(45 50 50)"/></svg></div></div>
-  <script>
-    // Register SW efficiently - skipWaiting handles updates
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').then(function(reg) {
-          // Check for updates every 30 minutes
-          setInterval(function() { reg.update(); }, 1800000);
-        }).catch(function() {});
-      });
-    }
-  </script>
 </body>
 </html>

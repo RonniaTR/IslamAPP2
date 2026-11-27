@@ -1,512 +1,459 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BookOpen,
-  BookmarkPlus,
-  CheckCircle2,
-  Loader2,
-  Search,
-  Sparkles,
-  Star,
-  Volume2,
-  Waves,
-  X,
-  ChevronDown,
-  Shield,
-  Link2,
-  MessageCircle,
+  BookmarkPlus, CheckCircle2, Loader2, Search, Sparkles, Volume2, X, Link2, Share2,
+  ChevronLeft, ChevronRight, Minus, Plus, RotateCw, Languages,
 } from 'lucide-react';
 import { useLang } from '../contexts/LangContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTx } from '../i18n';
 import api from '../api';
 import localHadiths from '../data/hadiths.json';
+import { ayikla, ozet, okunus } from './hadis/hadisMetni';
+import { alfa, karistir } from '../styles/renk';
 
-const LOCAL_CATEGORIES = (() => {
-  const map = {};
-  localHadiths.forEach(h => {
-    if (h.categoryId && !map[h.categoryId]) map[h.categoryId] = { id: h.categoryId, name: h.category || h.categoryId };
-  });
-  return Object.values(map);
-})();
+// 📜 HADİS-İ ŞERİFLER — kartlı, tane tane okunan yapı.
+//  • Her hadis bir KART: önce Efendimizin (s.a.v.) sözü (sade Türkçe, okuma harfiyle), altında kaynak ve sıhhat.
+//    Uzun râvi zinciri ve tahrîc notları kartı boğmaz; okuma kâğıdında ayrı sekmelerde durur.
+//  • OKUMA KÂĞIDI (kart dokununca alttan açılır, sağa-sola kaydırınca sonraki/önceki hadis):
+//      Anlam · Arapça (metin; "tane tane" kelime kelime, kelimeye dokununca tahlil) · Okunuş (Arapça okumayanlar
+//      ve yabancılar için Latin harfli, yaklaşık) · Sened (râvi zinciri).
+//  • Günün hadisi: çevrilen kart (önü Türkçe, arkası Arapça + okunuş).
+// Renkler aktif temadan gelir. Veri cihazdadır; sunucu varsa daha geniş seçki ondan gelir.
 
-const GRADE_COLORS = {
-  sahih: '#10B981', hasen: '#F59E0B', zayif: '#EF4444', mevzu: '#6B7280',
-};
-const GRADE_ICONS = {
-  sahih: '✅', hasen: '⚠️', zayif: '❌', mevzu: '🚫',
-};
+const SAYFA = 20;
+const BOY_ANAHTAR = 'hadis_yazi_boyu';
 
-// Word popup for Arabic word analysis
-function WordPopup({ word, analysis, onClose, theme, t }) {
-  if (!analysis) return null;
+function gununIndisi(n) {
+  const d = new Date();
+  const k = d.getFullYear() * 1000 + Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5);
+  return k % n;
+}
+
+function SahihRozet({ h, theme, tt }) {
+  if (!h.authenticity && !h.grade) return null;
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.9, y: -5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
-      <div className="relative max-w-xs w-full rounded-2xl p-4 shadow-2xl"
-        style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}` }}
-        onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-2 right-2 p-1 rounded-lg"
-          style={{ color: theme.textSecondary }}><X size={14} /></button>
-        <p className="arabic-text text-2xl text-center mb-3" style={{ color: theme.gold }}>{word}</p>
-        <div className="space-y-2">
-          {analysis.root && <InfoRow label={t.word_root || 'Kök'} value={analysis.root} theme={theme} />}
-          {analysis.pattern && <InfoRow label={t.word_pattern || 'Kalıp (Vezin)'} value={analysis.pattern} theme={theme} />}
-          {analysis.meaning && <InfoRow label={t.word_meaning || 'Anlam'} value={analysis.meaning} theme={theme} />}
-          {analysis.grammar && <InfoRow label={t.word_grammar || 'Gramer'} value={analysis.grammar} theme={theme} />}
-          {analysis.quran_frequency != null && (
-            <InfoRow label={t.quran_usage || "Kur'an'daki Kullanım"} value={`${analysis.quran_frequency} ${t.verses || 'ayet'}`} theme={theme} />
-          )}
-        </div>
-      </div>
-    </motion.div>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 22, padding: '0 8px', borderRadius: 11, fontSize: 10.5, fontWeight: 700, background: alfa('#10B981', 0.14), color: theme.isDark ? '#6EE7B7' : '#047857' }}>
+      <CheckCircle2 size={11} /> {tt(h.authenticity || h.grade)}
+    </span>
   );
 }
 
-function InfoRow({ label, value, theme }) {
+function RaviZinciri({ chain, theme, tt }) {
+  if (!chain || !chain.chain || !chain.chain.length) return null;
+  const renk = (r) => (r === 'sika' ? '#10B981' : r === 'saduk' ? '#F59E0B' : '#EF4444');
   return (
-    <div className="flex justify-between items-start gap-2 py-1 text-xs"
-      style={{ borderBottom: `1px solid ${theme.cardBorder}` }}>
-      <span className="font-medium shrink-0" style={{ color: theme.textSecondary }}>{label}</span>
-      <span className="text-right" style={{ color: theme.textPrimary }}>{value}</span>
-    </div>
-  );
-}
-
-// Ravi chain visualization
-function RaviChain({ chain, theme, t }) {
-  if (!chain || !chain.chain || chain.chain.length === 0) return null;
-  return (
-    <div className="mt-3 p-3 rounded-xl" style={{ background: `${theme.gold}08`, border: `1px solid ${theme.gold}20` }}>
-      <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: theme.gold }}>
-        <Link2 size={10} className="inline me-1" /> {t.isnad_chain || 'İsnad Zinciri'}
-      </p>
-      <div className="flex flex-wrap items-center gap-1">
-        {chain.chain.map((ravi, i) => (
-          <React.Fragment key={i}>
-            <span className="text-[10px] px-2 py-0.5 rounded-full"
-              style={{
-                background: ravi.reliability === 'sika' ? '#10B98120' : ravi.reliability === 'saduk' ? '#F59E0B20' : '#EF444420',
-                color: ravi.reliability === 'sika' ? '#10B981' : ravi.reliability === 'saduk' ? '#F59E0B' : '#EF4444',
-              }}>
-              {ravi.name}
-            </span>
-            {i < chain.chain.length - 1 && <span style={{ color: theme.textSecondary }}>→</span>}
-          </React.Fragment>
-        ))}
-      </div>
-      {chain.grade && (
-        <p className="text-[9px] mt-1.5" style={{ color: theme.textSecondary }}>
-          {t.verdict || 'Hüküm'}: <span style={{ color: GRADE_COLORS[chain.grade] || theme.textPrimary }}>{chain.grade_label || chain.grade}</span>
-        </p>
-      )}
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 10 }}>
+      {chain.chain.map((ravi, i) => (
+        <React.Fragment key={i}>
+          <span style={{ fontSize: 11.5, padding: '3px 9px', borderRadius: 12, background: alfa(renk(ravi.reliability), 0.14), color: renk(ravi.reliability), fontWeight: 600 }}>{ravi.name}</span>
+          {i < chain.chain.length - 1 && <span style={{ color: theme.textSecondary }}>→</span>}
+        </React.Fragment>
+      ))}
+      {chain.grade && <span style={{ width: '100%', fontSize: 11, color: theme.textSecondary }}>{tt('Hüküm')}: {chain.grade_label || chain.grade}</span>}
     </div>
   );
 }
 
 export default function HadithPage() {
-  const { t } = useLang();
+  const { lang } = useLang() || {};
   const { user } = useAuth();
   const { theme } = useTheme();
-  const [categories, setCategories] = useState(LOCAL_CATEGORIES);
+  const tt = useTx();
   const [hadiths, setHadiths] = useState(localHadiths);
-  const [selected, setSelected] = useState('all');
-  const [expandedHadith, setExpandedHadith] = useState(null);
-  const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [secili, setSecili] = useState('all');
+  const [sorgu, setSorgu] = useState('');
+  const [gosterilen, setGosterilen] = useState(SAYFA);
+  const [acik, setAcik] = useState(null);       // okuma kâğıdındaki hadisin filtrelenmiş listedeki sırası
+  const [sekme, setSekme] = useState('anlam');
+  const [yon, setYon] = useState(0);
+  const [cevrik, setCevrik] = useState(false);  // günün hadisi kartı
+  const [taneTane, setTaneTane] = useState(false);
+  const [okuDil, setOkuDil] = useState(lang === 'en' ? 'en' : 'tr');
+  const [boy, setBoy] = useState(() => { try { return Number(localStorage.getItem(BOY_ANAHTAR)) || 18; } catch { return 18; } });
   const [audioLoadingId, setAudioLoadingId] = useState(null);
   const [playingId, setPlayingId] = useState(null);
   const [savingId, setSavingId] = useState(null);
   const [savedId, setSavedId] = useState(null);
-  const audioRef = useRef(null);
-  // Phase 3 states
-  const [wordPopup, setWordPopup] = useState(null); // { word, analysis }
+  const [wordPopup, setWordPopup] = useState(null);
   const [wordLoading, setWordLoading] = useState(false);
-  const [raviData, setRaviData] = useState({}); // { hadithId: chain }
+  const [raviData, setRaviData] = useState({});
   const [raviLoading, setRaviLoading] = useState(null);
-  const [aiExplain, setAiExplain] = useState({}); // { hadithId: explanation }
+  const [aiExplain, setAiExplain] = useState({});
   const [explainLoading, setExplainLoading] = useState(null);
   const [detailLevel, setDetailLevel] = useState('ozet');
-  const [dailyHadith, setDailyHadith] = useState(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([
-      api.get('/hadith/categories'),
-      api.get('/hadith/all'),
-      api.get('/hadith/daily').catch(() => ({ data: null })),
-    ]).then(([categoryResponse, hadithResponse, dailyResponse]) => {
-      if (!mounted) return;
-      if (Array.isArray(categoryResponse.data) && categoryResponse.data.length) setCategories(categoryResponse.data);
-      if (Array.isArray(hadithResponse.data) && hadithResponse.data.length) setHadiths(hadithResponse.data);
-      if (dailyResponse.data && dailyResponse.data.arabic) setDailyHadith(dailyResponse.data);
-    }).catch(() => {}).finally(() => { if (mounted) setLoading(false); });
+    api.get('/hadith/all').then((r) => { if (mounted && Array.isArray(r.data) && r.data.length > localHadiths.length) setHadiths(r.data); }).catch(() => {});
     return () => { mounted = false; if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } };
   }, []);
 
-  const filtered = useMemo(() => hadiths.filter((hadith) => {
-    const categoryMatch = selected === 'all' ? true : hadith.categoryId === selected || hadith.category === selected;
-    const haystack = [hadith.turkish, hadith.arabic, hadith.theme, hadith.bookTr, hadith.source].filter(Boolean).join(' ').toLowerCase();
-    const queryMatch = query.trim() ? haystack.includes(query.trim().toLowerCase()) : true;
-    return categoryMatch && queryMatch;
-  }), [hadiths, query, selected]);
+  // Metinler bir kez bölümlenir (sened/metin, râvi/söz/tahrîc)
+  const hazir = useMemo(() => hadiths.map((h) => ({ ...h, _: ayikla(h) })), [hadiths]);
+  const kategoriler = useMemo(() => {
+    const m = new Map();
+    hazir.forEach((h) => { const id = h.categoryId || h.category; if (id) m.set(id, { id, ad: h.category || id, n: (m.get(id)?.n || 0) + 1 }); });
+    return [...m.values()];
+  }, [hazir]);
+  const katRenk = useCallback((id) => {
+    const i = Math.max(0, kategoriler.findIndex((k) => k.id === id));
+    return karistir(theme.primary, theme.gold, (i % 5) / 4);
+  }, [kategoriler, theme.primary, theme.gold]);
 
-  const featuredHadith = filtered[0] || hadiths[0] || null;
+  const filtreli = useMemo(() => {
+    const q = sorgu.trim().toLocaleLowerCase('tr');
+    return hazir.filter((h) => {
+      const kat = secili === 'all' || h.categoryId === secili || h.category === secili;
+      if (!kat) return false;
+      if (!q) return true;
+      return [h._.soz, h.theme, h.bookTr, h.source, h.category].filter(Boolean).join(' ').toLocaleLowerCase('tr').includes(q);
+    });
+  }, [hazir, secili, sorgu]);
+  useEffect(() => { setGosterilen(SAYFA); }, [secili, sorgu]);
 
-  const stopAudio = () => {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    setPlayingId(null); setAudioLoadingId(null);
+  // Günün hadisi: kısa ve sözü net ayrılmış olanlardan
+  const gunun = useMemo(() => {
+    const aday = hazir.filter((h) => h._.soz && h._.soz.length > 40 && h._.soz.length < 260 && h._.metin.length < 320);
+    return aday.length ? aday[gununIndisi(aday.length)] : hazir[0];
+  }, [hazir]);
+
+  const h = acik != null ? filtreli[acik] : null;
+
+  const boyDegis = (d) => { const v = Math.max(14, Math.min(26, boy + d)); setBoy(v); try { localStorage.setItem(BOY_ANAHTAR, String(v)); } catch { /* kota */ } };
+  const ac = (i) => { setYon(0); setSekme('anlam'); setTaneTane(false); setAcik(i); };
+  const git = (d) => {
+    if (acik == null) return;
+    const n = acik + d;
+    if (n < 0 || n >= filtreli.length) return;
+    setYon(d); setTaneTane(false); setAcik(n);
+    if (n >= gosterilen) setGosterilen(n + 1);
   };
 
-  const handlePlay = async (hadith) => {
-    if (playingId === hadith.id) { stopAudio(); return; }
-    stopAudio(); setAudioLoadingId(hadith.id);
+  // ── Sunucu özellikleri (bağlantı yoksa düğmeler sessizce bir şey yapmaz) ──
+  const stopAudio = () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } setPlayingId(null); setAudioLoadingId(null); };
+  const handlePlay = async (x) => {
+    if (playingId === x.id) { stopAudio(); return; }
+    stopAudio(); setAudioLoadingId(x.id);
     try {
-      const text = [hadith.turkish, hadith.explanation, `Kaynak: ${hadith.source}`].filter(Boolean).join('. ');
-      const { data } = await api.post('/tts', { text });
+      const { data } = await api.post('/tts', { text: [x._.soz, `Kaynak: ${x.source}`].filter(Boolean).join('. ') });
       const audio = new Audio(`data:audio/${data.format || 'mp3'};base64,${data.audio}`);
-      audioRef.current = audio;
-      audio.onended = () => { audioRef.current = null; setPlayingId(null); };
-      await audio.play(); setPlayingId(hadith.id);
+      audioRef.current = audio; audio.onended = () => { audioRef.current = null; setPlayingId(null); };
+      await audio.play(); setPlayingId(x.id);
     } catch { setPlayingId(null); } finally { setAudioLoadingId(null); }
   };
-
-  const handleSave = async (hadith) => {
+  const handleSave = async (x) => {
     if (!user) return;
-    setSavingId(hadith.id);
+    setSavingId(x.id);
     try {
-      await api.post('/notes', {
-        type: 'hadith', title: `${hadith.theme} • ${hadith.source}`,
-        content: [hadith.turkish, hadith.arabic, hadith.explanation].filter(Boolean).join('\n\n'),
-        scholar_name: hadith.source,
-      });
-      setSavedId(hadith.id);
-      setTimeout(() => setSavedId(c => (c === hadith.id ? null : c)), 2200);
-    } catch {}
+      await api.post('/notes', { type: 'hadith', title: `${x.theme} • ${x.source}`, content: [x._.soz, x._.metin].filter(Boolean).join('\n\n'), scholar_name: x.source });
+      setSavedId(x.id); setTimeout(() => setSavedId((c) => (c === x.id ? null : c)), 2200);
+    } catch { /* bağlantı yok */ }
     setSavingId(null);
   };
-
-  // Phase 3: Word analysis
-  const handleWordClick = useCallback(async (word) => {
+  const paylas = (x) => {
+    const metin = `“${x._.soz}”\n\n${x.source}${x.number ? `, ${x.number}` : ''}`;
+    if (navigator.share) navigator.share({ title: tt('Hadis-i şerif'), text: metin }).catch(() => {});
+    else navigator.clipboard?.writeText(metin).catch(() => {});
+  };
+  const handleWord = useCallback(async (word) => {
     if (wordLoading) return;
     setWordLoading(true);
-    try {
-      const { data } = await api.post('/hadith/v2/word-analysis', { word, language: 'tr' });
-      setWordPopup({ word, analysis: data.analysis });
-    } catch { setWordPopup({ word, analysis: { meaning: 'Analiz yüklenemedi' } }); }
+    try { const { data } = await api.post('/hadith/v2/word-analysis', { word, language: lang === 'en' ? 'en' : 'tr' }); setWordPopup({ word, analysis: data.analysis }); }
+    catch { setWordPopup({ word, analysis: null }); }
     finally { setWordLoading(false); }
-  }, [wordLoading]);
-
-  // Phase 3: Ravi chain
-  const handleRaviChain = useCallback(async (hadithId) => {
-    if (raviData[hadithId] || raviLoading) return;
-    setRaviLoading(hadithId);
-    try {
-      const { data } = await api.get(`/hadith/v2/ravi-chain/${hadithId}`);
-      setRaviData(prev => ({ ...prev, [hadithId]: data }));
-    } catch {}
+  }, [wordLoading, lang]);
+  const handleRavi = useCallback(async (id) => {
+    if (raviData[id] || raviLoading) return;
+    setRaviLoading(id);
+    try { const { data } = await api.get(`/hadith/v2/ravi-chain/${id}`); setRaviData((p) => ({ ...p, [id]: data })); } catch { /* yok */ }
     finally { setRaviLoading(null); }
   }, [raviData, raviLoading]);
-
-  // Phase 3: AI explain
-  const handleExplain = useCallback(async (hadith) => {
-    if (aiExplain[hadith.id] || explainLoading) return;
-    setExplainLoading(hadith.id);
+  const handleExplain = useCallback(async (x) => {
+    if (aiExplain[x.id] || explainLoading) return;
+    setExplainLoading(x.id);
     try {
-      const { data } = await api.post('/hadith/v2/explain', {
-        hadith_text: hadith.turkish || hadith.arabic, source: hadith.source,
-        detail: detailLevel, language: 'tr',
-      });
-      setAiExplain(prev => ({ ...prev, [hadith.id]: data.explanation }));
-    } catch {}
+      const { data } = await api.post('/hadith/v2/explain', { hadith_text: x._.soz || x.turkish, source: x.source, detail: detailLevel, language: lang === 'en' ? 'en' : 'tr' });
+      setAiExplain((p) => ({ ...p, [x.id]: data.explanation }));
+    } catch { /* yok */ }
     finally { setExplainLoading(null); }
-  }, [aiExplain, explainLoading, detailLevel]);
+  }, [aiExplain, explainLoading, detailLevel, lang]);
 
-  // Render clickable Arabic words
-  const renderArabicWords = (text) => {
-    if (!text) return null;
-    const words = text.split(/\s+/);
-    return (
-      <p className="arabic-text text-[1.1rem] leading-loose" style={{ color: theme.gold }}>
-        {words.map((w, i) => (
-          <React.Fragment key={i}>
-            <span className="cursor-pointer hover:underline decoration-dotted transition-colors inline-block"
-              style={{ color: `${theme.gold}` }}
-              onClick={() => handleWordClick(w)}>
-              {w}
-            </span>
-            {i < words.length - 1 && ' '}
-          </React.Fragment>
-        ))}
-        {wordLoading && <Loader2 size={12} className="inline ms-1 animate-spin" style={{ color: theme.gold }} />}
-      </p>
-    );
-  };
+  const koyu = theme.isDark;
+  const arRenk = koyu ? (theme.goldLight || theme.gold) : karistir(theme.gold, '#000000', 0.35);
+  const kart = { background: theme.surface, border: `1px solid ${theme.cardBorder}`, borderRadius: 22 };
+  const kucuk = { width: 36, height: 36, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.bg, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary, cursor: 'pointer' };
 
   return (
-    <div className="animate-fade-in" data-testid="hadith-page" style={{ background: theme.bg }}>
-      {/* Hero */}
-      <div className="px-5 pt-6 pb-5" style={{ background: `linear-gradient(180deg, ${theme.surface} 0%, transparent 100%)` }}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.24em]"
-              style={{ border: `1px solid ${theme.gold}25`, background: `${theme.gold}10`, color: theme.gold }}>
-              <Sparkles size={12} /> {hadiths.length} {t.hadith_selection || 'Hadis Seçkisi'}
-            </div>
-            <div className="flex items-center gap-3 mt-4 mb-2">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${theme.gold}40, ${theme.gold}20)` }}>
-                <BookOpen size={22} style={{ color: theme.gold }} />
-              </div>
-              <h1 className="text-2xl font-bold" style={{ color: theme.textPrimary, fontFamily: 'Playfair Display, serif' }}>{t.hadith}</h1>
-            </div>
-            <p className="max-w-xl text-sm" style={{ color: theme.textSecondary }}>
-              {t.hadith_features || 'Kelime analizi · Ravi zinciri · AI açıklama · Sıhhat derecesi'}
-            </p>
+    <div data-testid="hadith-page" style={{ minHeight: '100vh', background: theme.bg, color: theme.textPrimary, paddingBottom: 120 }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '18px 18px 0' }}>
+        {/* Başlık */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.6, textTransform: 'uppercase', color: theme.gold }}>{hadiths.length} {tt('hadis')} · {tt('Sahîh-i Buhârî')}</span>
+            <h1 style={{ margin: '2px 0 0', fontFamily: 'var(--font-heading)', fontSize: 28, fontWeight: 700 }}>{tt('Hadis-i Şerifler')}</h1>
           </div>
-          <div className="hidden sm:grid grid-cols-2 gap-3 text-right">
-            <div className="p-2 rounded-xl" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: theme.textSecondary }}>{t.total || 'Toplam'}</p>
-              <p className="text-2xl font-semibold" style={{ color: theme.textPrimary }}>{hadiths.length}</p>
-            </div>
-            <div className="p-2 rounded-xl" style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-              <p className="text-[10px] uppercase tracking-widest" style={{ color: theme.textSecondary }}>{t.theme_count || 'Tema'}</p>
-              <p className="text-2xl font-semibold" style={{ color: theme.textPrimary }}>{categories.length}</p>
-            </div>
-          </div>
+          <svg width="64" height="56" viewBox="0 0 64 56" aria-hidden>
+            <line x1="32" y1="0" x2="32" y2="8" stroke={theme.gold} strokeWidth="1.2" />
+            <circle cx="32" cy="20" r="12" fill={alfa(theme.gold, 0.18)} className="mod-pirilti" />
+            <path d="M24 9 H40 L37 25 H27 Z" fill={alfa(theme.gold, 0.25)} stroke={theme.gold} strokeWidth="1.3" />
+            <path className="mod-alev" d="M32 13 C29.5 16 29.5 18.5 32 20.5 C34.5 18.5 34.5 16 32 13 Z" fill={koyu ? '#FFF3C8' : theme.gold} style={{ transformOrigin: '32px 20px' }} />
+            <path d="M32 54 C24 49 14 48 4 49 L4 33 C14 32 24 33 32 38 Z" fill={theme.surface} stroke={theme.gold} strokeWidth="1.3" />
+            <path d="M32 54 C40 49 50 48 60 49 L60 33 C50 32 40 33 32 38 Z" fill={theme.surface} stroke={theme.gold} strokeWidth="1.3" />
+          </svg>
         </div>
 
-        {/* Modern Search Bar */}
-        <div className="mt-6 mb-2 relative px-1">
-          <div className="absolute left-5 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-full"
-               style={{ background: `${theme.gold}20` }}>
-            <Search size={14} style={{ color: theme.gold }} />
-          </div>
-          <input value={query} onChange={e => setQuery(e.target.value)}
-            placeholder={t.search_hadith || 'Hadis, tema veya kaynak ara...'}
-            className="w-full rounded-2xl py-4 ps-14 pe-4 text-sm outline-none transition-all focus:shadow-lg"
-            style={{ 
-              background: theme.surface, 
-              border: `1px solid ${theme.cardBorder}`, 
-              color: theme.textPrimary,
-              boxShadow: `0 4px 20px rgba(0,0,0,0.05)`
-            }} />
-        </div>
-
-        {/* Daily Hadith Card */}
-        {dailyHadith && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-4 rounded-3xl p-5 relative overflow-hidden shadow-lg"
-            style={{ background: `linear-gradient(135deg, ${theme.gold}20, ${theme.gold}05)`, border: `1px solid ${theme.gold}30` }}>
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10"
-              style={{ background: theme.gold, transform: 'translate(30%, -30%)' }} />
-            <div className="flex items-center gap-2 mb-3">
-               <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: theme.gold }}>
-                 <Star size={12} className="text-white" />
-               </div>
-              <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: theme.gold }}>Günün Hadisi</span>
-            </div>
-            <p className="arabic-text text-[1.1rem] leading-loose mb-3" style={{ color: theme.gold }}>{dailyHadith.arabic}</p>
-            <p className="text-sm leading-relaxed" style={{ color: theme.textPrimary }}>{dailyHadith.turkish}</p>
-            <div className="mt-4 pt-3 border-t flex justify-between items-center" style={{ borderColor: `${theme.gold}20` }}>
-              <span className="text-xs font-medium" style={{ color: theme.textSecondary }}>{dailyHadith.source}</span>
-            </div>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Categories Cards */}
-      <div className="px-4 mt-2 mb-6">
-        <h3 className="text-sm font-semibold mb-3 px-1" style={{ color: theme.textPrimary }}>Kategoriler</h3>
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 px-1">
-          <button onClick={() => setSelected('all')}
-            className="shrink-0 w-24 h-24 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95"
-            style={selected === 'all'
-              ? { background: `linear-gradient(145deg, ${theme.gold}, ${theme.gold}dd)`, color: '#fff', boxShadow: `0 8px 16px ${theme.gold}40` }
-              : { background: theme.surface, color: theme.textPrimary, border: `1px solid ${theme.cardBorder}` }}>
-            <Sparkles size={24} style={{ color: selected === 'all' ? '#fff' : theme.gold }} />
-            <span className="text-xs font-medium">{t.all}</span>
-          </button>
-          {categories.map(c => (
-            <button key={c.id} onClick={() => setSelected(c.id)}
-              className="shrink-0 w-24 h-24 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all active:scale-95"
-              style={selected === c.id
-                ? { background: `linear-gradient(145deg, ${theme.gold}, ${theme.gold}dd)`, color: '#fff', boxShadow: `0 8px 16px ${theme.gold}40` }
-                : { background: theme.surface, color: theme.textPrimary, border: `1px solid ${theme.cardBorder}` }}>
-              <BookOpen size={24} style={{ color: selected === c.id ? '#fff' : theme.gold }} />
-              <span className="text-xs font-medium text-center px-1 truncate w-full">{c.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Detail level toggle */}
-      <div className="px-4 mb-3 flex items-center gap-2">
-        <span className="text-[10px]" style={{ color: theme.textSecondary }}>{t.ai_detail || 'AI Detay'}:</span>
-        {[{ id: 'ozet', label: t.summary_level || 'Özet' }, { id: 'orta', label: t.medium_level || 'Orta' }, { id: 'akademik', label: t.academic_level || 'Akademik' }].map(dl => (
-          <button key={dl.id} onClick={() => setDetailLevel(dl.id)}
-            className="px-2 py-0.5 rounded-full text-[9px] font-medium transition-all"
-            style={detailLevel === dl.id
-              ? { background: theme.gold, color: '#fff' }
-              : { background: theme.inputBg, color: theme.textSecondary }}>
-            {dl.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Hadiths */}
-      <div className="px-4 pb-8 space-y-4">
-        {featuredHadith && !loading && (
-          <div className="rounded-2xl p-4" style={{ background: theme.cardBg, border: `1px solid ${theme.gold}30` }}>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest" style={{ color: theme.textSecondary }}>{t.featured_hadith || 'Öne Çıkan Hadis'}</p>
-                <h2 className="text-lg font-semibold" style={{ color: theme.textPrimary }}>{featuredHadith.theme}</h2>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {featuredHadith.authenticity && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full"
-                    style={{ background: `${GRADE_COLORS[featuredHadith.grade] || '#10B981'}20`, color: GRADE_COLORS[featuredHadith.grade] || '#10B981' }}>
-                    {GRADE_ICONS[featuredHadith.grade] || '✅'} {featuredHadith.authenticity}
-                  </span>
-                )}
-                <span className="rounded-full px-3 py-1 text-[11px]"
-                  style={{ background: `${theme.gold}10`, color: theme.gold, border: `1px solid ${theme.gold}20` }}>
-                  {featuredHadith.bookTr}
-                </span>
-              </div>
-            </div>
-            {renderArabicWords(featuredHadith.arabic)}
-            <p className="mt-3 text-sm leading-7" style={{ color: theme.textPrimary }}>{featuredHadith.turkish}</p>
-            <div className="flex flex-wrap items-center gap-2 mt-3 text-xs" style={{ color: theme.textSecondary }}>
-              <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1"
-                style={{ background: theme.inputBg }}>
-                <Star size={12} style={{ color: theme.gold }} /> {featuredHadith.source}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-14" style={{ color: theme.textSecondary }}>
-            <Loader2 size={26} className="mx-auto mb-3 animate-spin" style={{ color: theme.gold }} />
-            {t.preparing_hadith || 'Hadisler hazırlanıyor...'}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-14">
-            <BookOpen size={34} className="mx-auto mb-3" style={{ color: theme.gold }} />
-            <p className="text-sm" style={{ color: theme.textPrimary }}>{t.no_hadith_found || 'Aramana uyan hadis bulunamadı.'}</p>
-            <p className="mt-1 text-xs" style={{ color: theme.textSecondary }}>{t.try_different || 'Farklı bir tema, kaynak veya kısa ifade dene.'}</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((h, index) => (
-              <motion.article key={h.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
-                className="rounded-2xl p-4" data-testid={`hadith-${h.id}`}
-                style={{ background: theme.cardBg, border: `1px solid ${theme.cardBorder}` }}>
-                <div className="flex items-center justify-between gap-3 mb-3">
-                  <span className="rounded-full px-3 py-1 text-[10px] uppercase tracking-widest"
-                    style={{ background: `${theme.gold}10`, color: theme.gold, border: `1px solid ${theme.gold}20` }}>
-                    {h.theme}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    {h.authenticity && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full"
-                        style={{ background: `${GRADE_COLORS[h.grade] || '#10B981'}20`, color: GRADE_COLORS[h.grade] || '#10B981' }}>
-                        {GRADE_ICONS[h.grade] || '✅'}
-                      </span>
-                    )}
-                    <span className="text-[11px]" style={{ color: theme.textSecondary }}>#{h.number}</span>
+        {/* Günün hadisi — çevrilen kart */}
+        {gunun && (
+          <div style={{ perspective: 1200, marginTop: 14 }}>
+            <motion.div data-testid="gunun-hadisi" animate={{ rotateY: cevrik ? 180 : 0 }} transition={{ type: 'spring', stiffness: 120, damping: 18 }}
+              style={{ position: 'relative', transformStyle: 'preserve-3d', minHeight: 230 }}>
+              {[false, true].map((arka) => (
+                <div key={String(arka)} onClick={() => setCevrik(!cevrik)} role="button" tabIndex={0} aria-label={tt(arka ? 'Türkçesini göster' : 'Arapçasını göster')}
+                  style={{ position: arka ? 'absolute' : 'relative', inset: 0, minHeight: 230, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: arka ? 'rotateY(180deg)' : 'none',
+                    borderRadius: 26, padding: '18px 20px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden',
+                    background: koyu ? `linear-gradient(150deg, ${karistir(theme.surface, theme.gold, 0.12)}, ${theme.surface})` : `linear-gradient(150deg, ${karistir(theme.bg, theme.gold, 0.14)}, ${theme.surface})`,
+                    border: `1px solid ${alfa(theme.gold, 0.35)}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.4, textTransform: 'uppercase', color: theme.gold }}>{tt('Günün hadisi')}</span>
+                    <span style={{ marginInlineStart: 'auto', fontSize: 11, color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: 4 }}><RotateCw size={12} /> {tt(arka ? 'Türkçe' : 'Arapçası')}</span>
+                  </div>
+                  {!arka ? (
+                    <p style={{ margin: 0, fontFamily: 'var(--font-okuma)', fontSize: 19, lineHeight: 1.6 }}>“{gunun._.soz}”</p>
+                  ) : (
+                    <>
+                      <p dir="rtl" lang="ar" style={{ margin: 0, fontFamily: "'Amiri', serif", fontSize: 22, lineHeight: 1.9, color: arRenk, textAlign: 'right' }}>{gunun._.metin}</p>
+                      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, fontStyle: 'italic', color: theme.textSecondary }}>{okunus(gunun._.metin, okuDil)}</p>
+                    </>
+                  )}
+                  <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 12, color: theme.textSecondary }}>{gunun.source} · {gunun.number}</span>
+                    <SahihRozet h={gunun} theme={theme} tt={tt} />
                   </div>
                 </div>
-
-                {/* Clickable Arabic words */}
-                {renderArabicWords(h.arabic)}
-
-                <p className={`mt-3 text-sm leading-7 ${expandedHadith === h.id ? '' : 'line-clamp-4'}`}
-                  style={{ color: theme.textPrimary }}>{h.turkish}</p>
-
-                <button onClick={() => setExpandedHadith(expandedHadith === h.id ? null : h.id)}
-                  className="mt-3 text-xs transition-colors" style={{ color: theme.gold }}>
-                  {expandedHadith === h.id ? (t.hide_detail || 'Detayı gizle ↑') : (t.show_detail || 'Detayı aç ↓')}
-                </button>
-
-                <AnimatePresence>
-                  {expandedHadith === h.id && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden">
-                      {h.explanation && (
-                        <div className="mt-3 rounded-xl p-3" style={{ background: theme.inputBg }}>
-                          <p className="text-[10px] uppercase tracking-widest mb-1" style={{ color: theme.textSecondary }}>{t.short_note || 'Kısa Not'}</p>
-                          <p className="text-sm leading-6" style={{ color: theme.textPrimary }}>{h.explanation}</p>
-                        </div>
-                      )}
-
-                      {/* Ravi Chain */}
-                      {raviData[h.id] ? (
-                        <RaviChain chain={raviData[h.id]} theme={theme} t={t} />
-                      ) : (
-                        <button onClick={() => handleRaviChain(h.id)}
-                          disabled={raviLoading === h.id}
-                          className="mt-2 flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg transition-colors"
-                          style={{ background: theme.inputBg, color: theme.gold }}>
-                          {raviLoading === h.id ? <Loader2 size={10} className="animate-spin" /> : <Link2 size={10} />}
-                          {t.isnad_chain || 'İsnad Zinciri'}
-                        </button>
-                      )}
-
-                      {/* AI Explanation */}
-                      {aiExplain[h.id] ? (
-                        <div className="mt-3 rounded-xl p-3" style={{ background: `${theme.gold}08`, border: `1px solid ${theme.gold}15` }}>
-                          <div className="flex items-center gap-1 mb-1.5">
-                            <MessageCircle size={10} style={{ color: theme.gold }} />
-                            <span className="text-[10px] font-bold" style={{ color: theme.gold }}>{t.ai_explanation || 'AI Açıklama'}</span>
-                          </div>
-                          <p className="text-xs leading-6 whitespace-pre-wrap" style={{ color: theme.textPrimary }}>{aiExplain[h.id]}</p>
-                        </div>
-                      ) : (
-                        <button onClick={() => handleExplain(h)}
-                          disabled={explainLoading === h.id}
-                          className="mt-2 flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg transition-colors"
-                          style={{ background: `${theme.gold}15`, color: theme.gold }}>
-                          {explainLoading === h.id ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
-                          {t.ai_explain || 'AI ile Açıkla'}
-                        </button>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: theme.textSecondary }}>
-                  <Star size={12} style={{ color: theme.gold }} />
-                  <span>{h.source}</span><span>•</span><span>{h.bookTr}</span>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button onClick={() => handlePlay(h)} disabled={audioLoadingId === h.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-colors"
-                    style={{ background: theme.inputBg, color: theme.textPrimary, border: `1px solid ${theme.inputBorder}` }}>
-                    {audioLoadingId === h.id ? <Loader2 size={14} className="animate-spin" /> : <Volume2 size={14} />}
-                    {playingId === h.id ? (t.stop || 'Durdur') : (t.listen || 'Dinle')}
-                  </button>
-                  <button onClick={() => handleSave(h)} disabled={savingId === h.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-colors"
-                    style={{ background: `${theme.gold}15`, color: theme.gold, border: `1px solid ${theme.gold}30` }}>
-                    {savingId === h.id ? <Loader2 size={14} className="animate-spin" /> : savedId === h.id ? <CheckCircle2 size={14} /> : <BookmarkPlus size={14} />}
-                    {savedId === h.id ? (t.done || 'Kaydedildi') : (t.save || 'Kaydet')}
-                  </button>
-                </div>
-              </motion.article>
-            ))}
+              ))}
+            </motion.div>
           </div>
         )}
+
+        {/* Arama */}
+        <label style={{ marginTop: 14, height: 48, borderRadius: 24, display: 'flex', alignItems: 'center', gap: 10, padding: '0 16px', background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+          <Search size={17} color={theme.textSecondary} aria-hidden />
+          <input value={sorgu} onChange={(e) => setSorgu(e.target.value)} placeholder={tt('Hadis, konu ya da kelime ara')} aria-label={tt('Ara')}
+            style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: theme.textPrimary, fontSize: 14 }} />
+          {sorgu && <button type="button" onClick={() => setSorgu('')} aria-label={tt('Temizle')} style={{ background: 'none', border: 'none', color: theme.textSecondary }}><X size={16} /></button>}
+        </label>
+
+        {/* Kategoriler */}
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '12px -18px 0', padding: '0 18px 4px' }}>
+          {[{ id: 'all', ad: 'Tümü', n: hazir.length }, ...kategoriler].map((k) => {
+            const sec = secili === k.id;
+            const r = k.id === 'all' ? theme.gold : katRenk(k.id);
+            return (
+              <button key={k.id} type="button" onClick={() => setSecili(k.id)} style={{ flexShrink: 0, height: 38, padding: '0 14px', borderRadius: 19, fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
+                border: `1px solid ${sec ? r : theme.cardBorder}`, background: sec ? r : theme.surface, color: sec ? '#FFFFFF' : theme.textPrimary }}>
+                {k.id !== 'all' && <span style={{ width: 8, height: 8, borderRadius: 4, background: sec ? '#FFFFFF' : r }} />}
+                {tt(k.ad)} <span style={{ opacity: 0.65, fontWeight: 600 }}>{k.n}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Kartlar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
+          {filtreli.slice(0, gosterilen).map((x, i) => (
+            <button key={x.id} type="button" onClick={() => ac(i)} className="gir-yukari mod-kart" data-testid={`hadith-${x.id}`}
+              style={{ '--s': i % SAYFA, ...kart, padding: 0, textAlign: 'start', color: theme.textPrimary, cursor: 'pointer', display: 'flex', overflow: 'hidden' }}>
+              <span style={{ width: 5, background: katRenk(x.categoryId || x.category) }} />
+              <span style={{ flex: 1, padding: '14px 16px 14px 14px', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: katRenk(x.categoryId || x.category) }}>{tt(x.category)}{x.theme && x.theme !== x.category ? ` · ${tt(x.theme)}` : ''}</span>
+                  <span style={{ marginInlineStart: 'auto', fontSize: 11, color: theme.textSecondary }}>#{x.number}</span>
+                </span>
+                <span style={{ fontFamily: 'var(--font-okuma)', fontSize: 16, lineHeight: 1.6 }}>“{ozet(x._.soz, 200)}”</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11.5, color: theme.textSecondary }}>{tt('Buhârî')}, {tt(x.bookTr)}</span>
+                  <SahihRozet h={x} theme={theme} tt={tt} />
+                  <span style={{ marginInlineStart: 'auto', fontSize: 11.5, fontWeight: 700, color: theme.gold, display: 'flex', alignItems: 'center', gap: 2 }}>{tt('Oku')} <ChevronRight size={14} /></span>
+                </span>
+              </span>
+            </button>
+          ))}
+          {!filtreli.length && <p style={{ textAlign: 'center', padding: 30, color: theme.textSecondary }}>{tt('Aramana uyan hadis bulunamadı.')}</p>}
+          {gosterilen < filtreli.length && (
+            <button type="button" onClick={() => setGosterilen(gosterilen + SAYFA)} style={{ height: 48, borderRadius: 24, border: `1px solid ${theme.gold}`, background: 'transparent', color: theme.gold, fontWeight: 700, fontSize: 14 }}>
+              {tt('Daha fazla göster')} ({filtreli.length - gosterilen})
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Word Analysis Popup */}
+      {/* ═══ OKUMA KÂĞIDI ═══ */}
       <AnimatePresence>
-        {wordPopup && <WordPopup word={wordPopup.word} analysis={wordPopup.analysis} onClose={() => setWordPopup(null)} theme={theme} t={t} />}
+        {h && (
+          <motion.div key="perde" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setAcik(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 140, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+            <motion.div data-testid="hadis-kagidi" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', stiffness: 300, damping: 34 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: 640, height: '94vh', background: theme.surface, borderRadius: '28px 28px 0 0', display: 'flex', flexDirection: 'column', overflow: 'hidden', willChange: 'transform' }}>
+              {/* üst */}
+              <div style={{ padding: '10px 18px 0' }}>
+                <div style={{ width: 44, height: 5, borderRadius: 3, background: alfa(theme.textSecondary, 0.35), margin: '0 auto 10px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 5, background: katRenk(h.categoryId || h.category) }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: theme.textSecondary }}>{tt(h.category)} · {tt('Buhârî')} {h.number}</span>
+                  <SahihRozet h={h} theme={theme} tt={tt} />
+                  <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+                    <button type="button" aria-label={tt('Yazıyı küçült')} onClick={() => boyDegis(-2)} style={kucuk}><Minus size={15} /></button>
+                    <button type="button" aria-label={tt('Yazıyı büyüt')} onClick={() => boyDegis(2)} style={kucuk}><Plus size={15} /></button>
+                    <button type="button" aria-label={tt('Kapat')} onClick={() => setAcik(null)} style={kucuk}><X size={16} /></button>
+                  </span>
+                </div>
+                <div role="tablist" style={{ display: 'flex', gap: 4, marginTop: 12, padding: 4, borderRadius: 16, background: theme.bg, border: `1px solid ${theme.cardBorder}` }}>
+                  {[['anlam', 'Anlam'], ['arapca', 'Arapça'], ['okunus', 'Okunuş'], ...(h._.sened ? [['sened', 'Sened']] : [])].map(([id, ad]) => (
+                    <button key={id} role="tab" aria-selected={sekme === id} type="button" onClick={() => setSekme(id)}
+                      style={{ flex: 1, height: 34, borderRadius: 12, border: 'none', fontSize: 13, fontWeight: 700, background: sekme === id ? (koyu ? theme.gold : theme.primary) : 'transparent', color: sekme === id ? (koyu ? '#1A1406' : '#FFFFFF') : theme.textSecondary }}>
+                      {tt(ad)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* gövde: sağa-sola kaydırınca hadis değişir */}
+              <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative' }}>
+                <AnimatePresence mode="wait" custom={yon} initial={false}>
+                  <motion.div key={`${h.id}-${sekme}`} custom={yon}
+                    initial={{ opacity: 0, x: yon * 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -yon * 40 }} transition={{ duration: 0.22 }}
+                    drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.25} dragDirectionLock
+                    onDragEnd={(_, info) => { if (info.offset.x < -80) git(1); else if (info.offset.x > 80) git(-1); }}
+                    style={{ padding: '16px 20px 24px', touchAction: 'pan-y' }}>
+                    {sekme === 'anlam' && (
+                      <>
+                        {h._.ravi && <p style={{ margin: '0 0 10px', fontSize: 13, lineHeight: 1.55, fontStyle: 'italic', color: theme.textSecondary }}>{h._.ravi}:</p>}
+                        <p style={{ margin: 0, fontFamily: 'var(--font-okuma)', fontSize: boy + 2, lineHeight: 1.7 }}>“{h._.soz}”</p>
+                        {h._.tahric && (
+                          <details style={{ marginTop: 14, fontSize: 12.5, color: theme.textSecondary }}>
+                            <summary style={{ cursor: 'pointer', fontWeight: 700 }}>{tt('Diğer rivayetler (tahrîc)')}</summary>
+                            <p style={{ margin: '6px 0 0', lineHeight: 1.5 }}>{h._.tahric}</p>
+                          </details>
+                        )}
+                        {/* Yapay zekâ açıklaması (isteğe bağlı) */}
+                        <div style={{ marginTop: 16, padding: 14, borderRadius: 18, background: alfa(theme.gold, 0.08), border: `1px solid ${alfa(theme.gold, 0.2)}` }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <Sparkles size={14} color={theme.gold} />
+                            <span style={{ fontSize: 12.5, fontWeight: 700 }}>{tt('Açıklama')}</span>
+                            <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4 }}>
+                              {[['ozet', 'Özet'], ['orta', 'Orta'], ['akademik', 'Akademik']].map(([id, ad]) => (
+                                <button key={id} type="button" onClick={() => setDetailLevel(id)} style={{ height: 26, padding: '0 9px', borderRadius: 13, fontSize: 11, fontWeight: 700, border: 'none', background: detailLevel === id ? theme.gold : theme.bg, color: detailLevel === id ? '#1A1406' : theme.textSecondary }}>{tt(ad)}</button>
+                              ))}
+                            </span>
+                          </div>
+                          {aiExplain[h.id] ? (
+                            <p style={{ margin: '8px 0 0', fontSize: 13.5, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{aiExplain[h.id]}</p>
+                          ) : (
+                            <button type="button" onClick={() => handleExplain(h)} disabled={explainLoading === h.id} style={{ marginTop: 10, height: 36, padding: '0 14px', borderRadius: 18, border: 'none', background: theme.gold, color: '#1A1406', fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {explainLoading === h.id ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} {tt('Bu hadisi açıkla')}
+                            </button>
+                          )}
+                          <p style={{ margin: '8px 0 0', fontSize: 10.5, color: theme.textSecondary }}>{tt('Açıklama yapay zekâ ile hazırlanır; hadis metninin yerine geçmez.')}</p>
+                        </div>
+                      </>
+                    )}
+
+                    {sekme === 'arapca' && (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                          <span style={{ fontSize: 12, color: theme.textSecondary }}>{tt('Efendimizin sözü (metin)')}</span>
+                          <button type="button" onClick={() => setTaneTane(!taneTane)} style={{ marginInlineStart: 'auto', height: 30, padding: '0 12px', borderRadius: 15, fontSize: 12, fontWeight: 700, border: `1px solid ${theme.gold}`, background: taneTane ? theme.gold : 'transparent', color: taneTane ? '#1A1406' : theme.gold }}>
+                            {tt('Tane tane')}
+                          </button>
+                        </div>
+                        {taneTane ? (
+                          <div dir="rtl" lang="ar" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {h._.metin.split(' ').filter(Boolean).map((w, i) => (
+                              <button key={i} type="button" onClick={() => handleWord(w.replace(/[،,.:؛]/g, ''))} className="gir-yukari"
+                                style={{ '--s': Math.min(i, 20), padding: '6px 12px', borderRadius: 14, background: theme.bg, border: `1px solid ${alfa(theme.gold, 0.3)}`, fontFamily: "'Amiri', serif", fontSize: boy + 8, lineHeight: 1.6, color: arRenk }}>
+                                {w}
+                              </button>
+                            ))}
+                            {wordLoading && <Loader2 size={16} className="animate-spin" color={theme.gold} />}
+                          </div>
+                        ) : (
+                          <p dir="rtl" lang="ar" style={{ margin: 0, fontFamily: "'Amiri', serif", fontSize: boy + 10, lineHeight: 2.05, textAlign: 'right', color: arRenk }}>{h._.metin}</p>
+                        )}
+                        <p style={{ margin: '12px 0 0', fontSize: 11.5, color: theme.textSecondary }}>{tt('Tane tane kipinde bir kelimeye dokun: kökü ve anlamı açılır (bağlantı gerekir).')}</p>
+                      </>
+                    )}
+
+                    {sekme === 'okunus' && (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                          <Languages size={14} color={theme.gold} />
+                          <span style={{ fontSize: 12, color: theme.textSecondary }}>{tt('Latin harfleriyle okunuş')}</span>
+                          <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4 }}>
+                            {[['tr', 'Türkçe'], ['en', 'International']].map(([id, ad]) => (
+                              <button key={id} type="button" onClick={() => setOkuDil(id)} style={{ height: 28, padding: '0 10px', borderRadius: 14, fontSize: 11.5, fontWeight: 700, border: 'none', background: okuDil === id ? theme.gold : theme.bg, color: okuDil === id ? '#1A1406' : theme.textSecondary }}>{ad}</button>
+                            ))}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: boy + 1, lineHeight: 1.75, fontStyle: 'italic' }}>{okunus(h._.metin, okuDil)}</p>
+                        <p style={{ margin: '14px 0 0', fontSize: 11.5, color: theme.textSecondary, lineHeight: 1.5 }}>{tt('Okunuş harekeli metinden kendiliğinden çıkarılır; yaklaşıktır. Doğru telaffuz için Arapça metni bir bilene dinletin.')}</p>
+                      </>
+                    )}
+
+                    {sekme === 'sened' && (
+                      <>
+                        <p style={{ margin: '0 0 8px', fontSize: 12.5, color: theme.textSecondary }}>{tt('Sened: hadisi Efendimizden (s.a.v.) bize ulaştıran râviler zinciri.')}</p>
+                        <p dir="rtl" lang="ar" style={{ margin: 0, fontFamily: "'Amiri', serif", fontSize: boy + 4, lineHeight: 1.95, textAlign: 'right', color: theme.textSecondary }}>{h._.sened}</p>
+                        {raviData[h.id] ? <RaviZinciri chain={raviData[h.id]} theme={theme} tt={tt} /> : (
+                          <button type="button" onClick={() => handleRavi(h.id)} disabled={raviLoading === h.id} style={{ marginTop: 12, height: 36, padding: '0 14px', borderRadius: 18, border: `1px solid ${theme.gold}`, background: 'transparent', color: theme.gold, fontSize: 12.5, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {raviLoading === h.id ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />} {tt('Râvileri çıkar')}
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* alt çubuk */}
+              <div style={{ display: 'flex', gap: 8, padding: '10px 16px calc(14px + env(safe-area-inset-bottom))', borderTop: `1px solid ${theme.cardBorder}` }}>
+                <button type="button" onClick={() => git(-1)} disabled={acik === 0} aria-label={tt('Önceki')} style={{ ...kucuk, width: 46, height: 46, borderRadius: 23, opacity: acik === 0 ? 0.4 : 1 }}><ChevronLeft size={19} /></button>
+                <button type="button" onClick={() => handlePlay(h)} style={{ ...kucuk, width: 'auto', flex: 1, height: 46, borderRadius: 23, gap: 6, fontWeight: 700, fontSize: 13 }}>
+                  {audioLoadingId === h.id ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {tt(playingId === h.id ? 'Durdur' : 'Dinle')}
+                </button>
+                <button type="button" onClick={() => handleSave(h)} style={{ ...kucuk, width: 'auto', flex: 1, height: 46, borderRadius: 23, gap: 6, fontWeight: 700, fontSize: 13 }}>
+                  {savingId === h.id ? <Loader2 size={16} className="animate-spin" /> : savedId === h.id ? <CheckCircle2 size={16} /> : <BookmarkPlus size={16} />} {tt(savedId === h.id ? 'Kaydedildi' : 'Kaydet')}
+                </button>
+                <button type="button" onClick={() => paylas(h)} style={{ flex: 1, height: 46, borderRadius: 23, border: 'none', background: theme.gold, color: '#1A1406', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Share2 size={16} /> {tt('Paylaş')}</button>
+                <button type="button" onClick={() => git(1)} disabled={acik >= filtreli.length - 1} aria-label={tt('Sonraki')} style={{ ...kucuk, width: 46, height: 46, borderRadius: 23, opacity: acik >= filtreli.length - 1 ? 0.4 : 1 }}><ChevronRight size={19} /></button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Kelime tahlili */}
+      <AnimatePresence>
+        {wordPopup && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setWordPopup(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 160, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <motion.div initial={{ scale: 0.92 }} animate={{ scale: 1 }} onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 320, borderRadius: 22, padding: 18, background: theme.surface, border: `1px solid ${theme.cardBorder}` }}>
+              <p dir="rtl" lang="ar" style={{ margin: 0, textAlign: 'center', fontFamily: "'Amiri', serif", fontSize: 34, color: arRenk }}>{wordPopup.word}</p>
+              <p style={{ margin: '2px 0 10px', textAlign: 'center', fontStyle: 'italic', color: theme.textSecondary }}>{okunus(wordPopup.word, okuDil)}</p>
+              {wordPopup.analysis ? (
+                [['root', 'Kök'], ['pattern', 'Kalıp (vezin)'], ['meaning', 'Anlam'], ['grammar', 'Gramer']].filter(([k]) => wordPopup.analysis[k]).map(([k, ad]) => (
+                  <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '6px 0', borderTop: `1px solid ${theme.cardBorder}`, fontSize: 13 }}>
+                    <span style={{ color: theme.textSecondary }}>{tt(ad)}</span><span style={{ textAlign: 'right' }}>{wordPopup.analysis[k]}</span>
+                  </div>
+                ))
+              ) : <p style={{ margin: 0, fontSize: 13, textAlign: 'center', color: theme.textSecondary }}>{tt('Kelime tahlili için bağlantı gerekiyor.')}</p>}
+              <button type="button" onClick={() => setWordPopup(null)} style={{ marginTop: 12, width: '100%', height: 42, borderRadius: 21, border: 'none', background: theme.gold, color: '#1A1406', fontWeight: 700 }}>{tt('Tamam')}</button>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

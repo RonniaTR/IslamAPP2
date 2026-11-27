@@ -14,7 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const ALTIN = '#D8B76A';
 const KREM = '#F4EFE3';
-const YOL = { iman: '/prophets', ibadet: '/dhikr', ahlak: '/musluman-olmak', ilim: '/hadith', kuran: '/mushaf', fen: '/musluman-olmak?oku=mecmua', sabir: '/yol', toplum: '/salavat' };
+const YOL = { iman: '/prophets', ibadet: '/dhikr', ahlak: '/musluman-olmak', ilim: '/hadith', kuran: '/quran', fen: '/musluman-olmak?oku=mecmua', sabir: '/yol', toplum: '/salavat' };
 const SAY = (n) => Math.round(n).toLocaleString('tr-TR');
 
 function SayacSayi({ deger }) {

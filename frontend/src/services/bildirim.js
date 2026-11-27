@@ -24,7 +24,7 @@ export const TURLER = [
   { id: 'namaz', ad: 'Namaz vakitleri', alt: 'Her vakit girerken temalı ve huzurlu bir hatırlatma', alan: 'ibadet' },
   { id: 'aksam', ad: 'Günün nasıl geçti?', alt: 'Düşünceni ve hâlini sorar, sana uygun bir âyet çıkarır', alan: 'sabir', saat: 'aksamSaat' },
   { id: 'ilim', ad: 'İlim saati', alt: 'Günde bir kez, en çok sevdiğin bölümden davet', alan: 'ilim', saat: 'ilimSaat' },
-  { id: 'salavat', ad: 'Salavat zinciri', alt: 'Akşam, ortak zincire bir halka', alan: 'toplum', saat: 'salavatSaat' },
+  { id: 'salavat', ad: 'Salavât Silsilesi', alt: 'Akşam, ortak silsileye bir halka', alan: 'toplum', saat: 'salavatSaat' },
 ];
 
 const canliDinleyiciler = new Set();
@@ -166,7 +166,7 @@ const ILIM_METNI = {
   sabir: ['İlim saati', 'Bugün yolundan bir adım: Nur Yolu seni bekliyor.'],
   toplum: ['İlim saati', 'Ailece bir soru: Aile Sofrası kartı hazır.'],
 };
-const ILIM_YOL = { kuran: '/mushaf', ilim: '/musluman-olmak', ahlak: '/musluman-olmak', fen: '/musluman-olmak?oku=mecmua', ibadet: '/fiqh', iman: '/prophets', sabir: '/yol', toplum: '/sofra' };
+const ILIM_YOL = { kuran: '/quran', ilim: '/musluman-olmak', ahlak: '/musluman-olmak', fen: '/musluman-olmak?oku=mecmua', ibadet: '/fiqh', iman: '/prophets', sabir: '/yol', toplum: '/sofra' };
 const VAKIT_AD = { Fajr: 'İmsak', Dhuhr: 'Öğle', Asr: 'İkindi', Maghrib: 'Akşam', Isha: 'Yatsı' };
 
 const saatTarih = (gun, hhmm) => { const [h, m] = hhmm.split(':').map(Number); const d = new Date(gun); d.setHours(h, m, 0, 0); return d; };
@@ -226,7 +226,7 @@ export async function bildirimleriKur(zorla = false) {
       }
       const ekle = (id, saat, title, body, ek = {}) => { const at = saatTarih(gun, saat); if (at.getTime() > simdi) liste.push({ id: taban + id, title, body, schedule: { at }, ...ek }); };
       if (t.ilim) { const [b, m] = ILIM_METNI[oncelik] || ILIM_METNI.ilim; ekle(10, t.ilimSaat, b, m, { extra: { yol: ILIM_YOL[oncelik] || '/musluman-olmak' } }); }
-      if (t.salavat) ekle(11, t.salavatSaat, 'Salavat zinciri', 'Bugün hep birlikte. Zincire bir halka da sen ekle.', { extra: { yol: '/salavat' } });
+      if (t.salavat) ekle(11, t.salavatSaat, 'Salavât Silsilesi', 'Bugün hep birlikte. Silsileye bir halka da sen ekle.', { extra: { yol: '/salavat' } });
       if (t.aksam) ekle(12, t.aksamSaat, 'Günün nasıl geçti?', 'Hâlini seç; sana bir âyet gelsin.', { actionTypeId: 'HAL', extra: { yol: '/chat' } });
     }
     if (liste.length) await LocalNotifications.schedule({ notifications: liste });

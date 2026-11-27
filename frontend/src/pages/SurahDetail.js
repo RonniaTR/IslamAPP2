@@ -3,16 +3,24 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Play, Pause, MoreVertical, BookOpen, Share2, Info } from 'lucide-react';
 import { Typography } from '../components/ui/Typography';
 import { quranData } from '../data/quranContent';
+import { SURAHS } from '../data/surahData';
 import { useAuth } from '../contexts/AuthContext';
 import { HistoryService } from '../services/HistoryService';
 import { fetchMeal, fetchTafsir, mealCredit } from '../services/mealService';
 import { useLang } from '../contexts/LangContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { alfa, karistir } from '../styles/renk';
 
 export default function SurahDetail() {
   const { surahNumber } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { lang } = useLang() || {};
+  const { theme } = useTheme();
+  const koyu = theme.isDark;
+  const altin = koyu ? theme.gold : karistir(theme.gold, '#000000', 0.25);
+  const yesil = koyu ? karistir(theme.primaryLight || theme.primary, '#FFFFFF', 0.35) : theme.primary;
+  const [hata, setHata] = useState(false);
   const mealLang = lang === 'en' ? 'en' : 'tr';
   const [surah, setSurah] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +66,7 @@ export default function SurahDetail() {
           
           setSurah({
             number: Number(surahNumber),
-            name: arData.data.englishName,
+            name: SURAHS[Number(surahNumber) - 1]?.name || arData.data.englishName,
             arabicName: arData.data.name,
             translation: localSurah?.translation || arData.data.englishNameTranslation,
             revelationType: arData.data.revelationType === 'Meccan' ? 'Mekki' : 'Medeni',
@@ -88,6 +96,7 @@ export default function SurahDetail() {
         }
       } catch (err) {
         console.error("AlQuran API failed", err);
+        setHata(true);
         setLoading(false);
       }
     };
@@ -143,14 +152,25 @@ export default function SurahDetail() {
 
   if (loading || !surah) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="bodySmall" style={{ color: '#CDA434' }}>Sure Yükleniyor...</Typography>
+      <div style={{ minHeight: '100vh', background: theme.bg, color: theme.textPrimary, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center' }}>
+        {hata || (!loading && !surah) ? (
+          <>
+            <Typography variant="bodySmall" style={{ color: theme.textPrimary, fontWeight: 700, fontSize: 17 }}>Sure şu an açılamadı</Typography>
+            <Typography variant="bodySmall" style={{ color: theme.textSecondary, maxWidth: 320 }}>Ayet ve meal için internet bağlantısı gerekiyor. Mushaf'ı cihazdaki sayfalarla açabilirsin.</Typography>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button type="button" onClick={() => window.location.reload()} style={{ height: 44, padding: '0 18px', borderRadius: 22, border: `1px solid ${theme.cardBorder}`, background: theme.surface, color: theme.textPrimary, fontWeight: 700 }}>Tekrar dene</button>
+              <button type="button" onClick={() => navigate('/mushaf')} style={{ height: 44, padding: '0 18px', borderRadius: 22, border: 'none', background: theme.gold, color: '#1A1406', fontWeight: 700 }}>Mushaf'ı aç</button>
+            </div>
+          </>
+        ) : (
+          <Typography variant="bodySmall" style={{ color: altin, fontWeight: 700 }}>Sure yükleniyor…</Typography>
+        )}
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', position: 'relative', paddingBottom: '120px' }}>
+    <div style={{ minHeight: '100vh', background: theme.bg, color: theme.textPrimary, position: 'relative', paddingBottom: '120px' }}>
       <audio 
         ref={audioRef} 
         src={surah.full_audio_url} 
@@ -158,15 +178,15 @@ export default function SurahDetail() {
       />
 
       {/* Header Bar */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: 'rgba(5, 42, 30, 0.9)', backdropFilter: 'blur(10px)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: alfa(theme.bg, 0.94), backdropFilter: 'blur(10px)', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${theme.cardBorder}` }}>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: theme.textPrimary, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ChevronLeft size={24} />
-          <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 600 }}>Geri</Typography>
+          <Typography variant="bodySmall" style={{ color: theme.textPrimary, fontWeight: 600 }}>Geri</Typography>
         </button>
-        <Typography variant="bodySmall" style={{ color: '#FFF', fontWeight: 700, fontSize: '18px' }}>
+        <Typography variant="bodySmall" style={{ color: theme.textPrimary, fontWeight: 700, fontSize: '18px' }}>
           {surah.name}
         </Typography>
-        <button style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}>
+        <button style={{ background: 'none', border: 'none', color: theme.textPrimary, cursor: 'pointer' }}>
           <MoreVertical size={24} />
         </button>
       </div>
@@ -174,20 +194,19 @@ export default function SurahDetail() {
       {/* Surah Banner */}
       <div style={{ padding: '24px' }}>
         <div style={{
-          background: 'linear-gradient(135deg, rgba(205, 164, 52, 0.2) 0%, rgba(15, 143, 87, 0.1) 100%)',
-          border: '1px solid rgba(205, 164, 52, 0.3)',
+          background: `linear-gradient(135deg, ${alfa(theme.gold, 0.18)} 0%, ${alfa(yesil, 0.08)} 100%)`,
+          border: `1px solid ${alfa(theme.gold, 0.35)}`,
           borderRadius: '24px', padding: '32px 24px', textAlign: 'center', position: 'relative', overflow: 'hidden'
         }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'url("https://www.transparenttextures.com/patterns/arabesque.png")', opacity: 0.05 }} />
           
-          <Typography variant="h2" style={{ color: '#FFF', fontSize: '36px', fontFamily: "'Amiri', serif", marginBottom: '8px', position: 'relative', zIndex: 2 }}>
+          <Typography variant="h2" style={{ color: theme.textPrimary, fontSize: '36px', fontFamily: "'Amiri', serif", marginBottom: '8px', position: 'relative', zIndex: 2 }}>
             {surah.arabicName}
           </Typography>
-          <Typography variant="bodySmall" style={{ color: '#CDA434', fontWeight: 800, fontSize: '18px', letterSpacing: '1px', marginBottom: '8px', position: 'relative', zIndex: 2 }}>
-            {surah.name.toUpperCase()}
+          <Typography variant="bodySmall" style={{ color: altin, fontWeight: 800, fontSize: '18px', letterSpacing: '1px', marginBottom: '8px', position: 'relative', zIndex: 2 }}>
+            {surah.name.toLocaleUpperCase('tr')}
           </Typography>
-          <div style={{ width: '60%', height: '1px', background: 'rgba(255,255,255,0.2)', margin: '16px auto', position: 'relative', zIndex: 2 }} />
-          <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'relative', zIndex: 2 }}>
+          <div style={{ width: '60%', height: '1px', background: theme.cardBorder, margin: '16px auto', position: 'relative', zIndex: 2 }} />
+          <Typography variant="caption" style={{ color: theme.textSecondary, fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', position: 'relative', zIndex: 2 }}>
             <span>{surah.revelationType}</span> • <span>{surah.totalVerses} Ayet</span>
           </Typography>
 
@@ -195,8 +214,8 @@ export default function SurahDetail() {
             onClick={togglePlay}
             style={{
               marginTop: '24px', width: '64px', height: '64px', borderRadius: '50%',
-              background: '#CDA434', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(205, 164, 52, 0.4)', cursor: 'pointer', position: 'relative', zIndex: 2
+              background: theme.gold, border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 8px 24px ${alfa(theme.gold, 0.4)}`, cursor: 'pointer', position: 'relative', zIndex: 2
             }}
           >
             {playing && !activeAyah ? <Pause size={28} color="#000" /> : <Play size={28} color="#000" style={{ marginInlineStart: '4px' }} />}
@@ -207,7 +226,7 @@ export default function SurahDetail() {
       {/* Bismillah */}
       {surah.number !== 1 && surah.number !== 9 && (
         <div style={{ textAlign: 'center', padding: '24px', marginBottom: '16px' }}>
-          <Typography variant="h2" style={{ color: '#FFF', fontSize: '28px', fontFamily: "'Amiri', serif" }}>
+          <Typography variant="h2" style={{ color: theme.textPrimary, fontSize: '28px', fontFamily: "'Amiri', serif" }}>
             بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
           </Typography>
         </div>
@@ -217,28 +236,28 @@ export default function SurahDetail() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '0 24px' }}>
         {surah.verses.map((ayah) => (
           <div key={ayah.number} id={`ayah-${ayah.number}`} style={{
-            background: activeAyah === ayah.number ? 'rgba(205, 164, 52, 0.05)' : 'transparent',
-            border: activeAyah === ayah.number ? '1px solid rgba(205, 164, 52, 0.3)' : '1px solid transparent',
+            background: activeAyah === ayah.number ? alfa(theme.gold, 0.08) : theme.surface,
+            border: activeAyah === ayah.number ? `1px solid ${alfa(theme.gold, 0.4)}` : `1px solid ${theme.cardBorder}`,
             borderRadius: '20px', padding: '20px', transition: 'all 0.3s'
           }}>
             {/* Top Bar for Ayah */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <div style={{
-                width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(15, 143, 87, 0.1)',
-                border: '1px solid rgba(15, 143, 87, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#2ECC71', fontWeight: 800, fontSize: '13px'
+                width: '36px', height: '36px', borderRadius: '50%', background: alfa(yesil, 0.12),
+                border: `1px solid ${alfa(yesil, 0.35)}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: yesil, fontWeight: 800, fontSize: '13px'
               }}>
                 {ayah.number}
               </div>
               
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button onClick={() => toggleTafsir(ayah.number)} style={{ background: 'none', border: 'none', color: '#CDA434', cursor: 'pointer' }}>
+                <button onClick={() => toggleTafsir(ayah.number)} style={{ background: 'none', border: 'none', color: altin, cursor: 'pointer' }}>
                   <Info size={20} />
                 </button>
-                <button onClick={() => playAyah(ayah)} style={{ background: 'none', border: 'none', color: '#2ECC71', cursor: 'pointer' }}>
+                <button onClick={() => playAyah(ayah)} style={{ background: 'none', border: 'none', color: yesil, cursor: 'pointer' }}>
                   {activeAyah === ayah.number && playing ? <Pause size={20} /> : <Play size={20} />}
                 </button>
-                <button style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}>
+                <button style={{ background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer' }}>
                   <Share2 size={20} />
                 </button>
               </div>
@@ -246,18 +265,18 @@ export default function SurahDetail() {
 
             {/* Arabic Text */}
             <div style={{ textAlign: 'right', marginBottom: '24px' }}>
-              <Typography variant="h2" style={{ color: '#FFF', fontSize: '32px', fontFamily: "'Amiri', serif", lineHeight: 1.8 }}>
+              <Typography variant="h2" style={{ color: theme.textPrimary, fontSize: '32px', fontFamily: "'Amiri', serif", lineHeight: 1.8 }}>
                 {ayah.arabic}
               </Typography>
             </div>
 
             {/* Translation */}
             <div>
-              <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', lineHeight: 1.6 }}>
+              <Typography variant="bodySmall" style={{ color: theme.textPrimary, fontSize: '16px', fontFamily: 'var(--font-okuma)', lineHeight: 1.6 }}>
                 {ayah.turkish}
               </Typography>
               {ayah.footnotes ? (
-                <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.55)', fontSize: '12px', lineHeight: 1.5, marginTop: '6px', whiteSpace: 'pre-line' }}>
+                <Typography variant="bodySmall" style={{ color: theme.textSecondary, fontSize: '12px', lineHeight: 1.5, marginTop: '6px', whiteSpace: 'pre-line' }}>
                   {ayah.footnotes}
                 </Typography>
               ) : null}
@@ -266,15 +285,15 @@ export default function SurahDetail() {
             {/* Tafsir Expandable */}
             {showTafsir[ayah.number] && ayah.tafsir && (
               <div style={{
-                marginTop: '16px', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px',
-                borderInlineStart: '4px solid #CDA434'
+                marginTop: '16px', padding: '16px', background: alfa(theme.gold, 0.06), borderRadius: '12px',
+                borderInlineStart: `4px solid ${theme.gold}`
               }}>
-                <Typography variant="caption" style={{ color: '#CDA434', fontWeight: 700, marginBottom: '8px', display: 'block' }}>TEFSİR</Typography>
-                <Typography variant="bodySmall" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', lineHeight: 1.6 }}>
+                <Typography variant="caption" style={{ color: altin, fontWeight: 700, marginBottom: '8px', display: 'block' }}>TEFSİR</Typography>
+                <Typography variant="bodySmall" style={{ color: theme.textSecondary, fontSize: '14px', lineHeight: 1.6 }}>
                   {ayah.tafsir}
                 </Typography>
                 {surah.tafsirCredit && (
-                  <Typography variant="caption" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '10px', marginTop: '8px', display: 'block' }}>
+                  <Typography variant="caption" style={{ color: theme.textSecondary, fontSize: '10px', marginTop: '8px', display: 'block' }}>
                     {surah.tafsirCredit}
                   </Typography>
                 )}
@@ -285,7 +304,7 @@ export default function SurahDetail() {
         {/* QuranEnc yeniden yayın şartı: yayıncı, kaynak ve sürüm açıkça gösterilir. */}
         {surah.mealCredit && (
           <a href={surah.mealUrl} target="_blank" rel="noopener noreferrer"
-            style={{ display: 'block', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '11px', padding: '8px 0 24px', textDecoration: 'none' }}>
+            style={{ display: 'block', textAlign: 'center', color: theme.textSecondary, fontSize: '11px', padding: '8px 0 24px', textDecoration: 'none' }}>
             Meal: {surah.mealCredit}
           </a>
         )}

@@ -233,8 +233,9 @@ export default function GateAnimation({ onDone }) {
     const h = stopHold();
     if (!h) return;
     h.audio.cancel();
-    if (performance.now() - h.t0 < 280) begin(false);                         // kısa dokunuş: kapı kendiliğinden açılır
-    else back.current = animate(door, 0, { duration: 0.9, ease: 'easeOut' }); // bırakıldı: kapı yine aralık
+    // Parmak ne zaman kalkarsa kalksın kapı AÇILIR (eskiden 0,3 sn'den uzun basıp bırakınca kapı geri kapanıyor,
+    // kullanıcı "giriş yapmıyor" sanıyordu). Basılı tutmak yalnız açılışı kişinin kendi nefesine bırakır.
+    begin(false);
   };
 
   const skip = (e) => { e.stopPropagation(); timers.current.forEach(clearTimeout); stopGate(); onDone && onDone(); };
@@ -257,6 +258,13 @@ export default function GateAnimation({ onDone }) {
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); begin(false); } }}
       data-testid="donus-gate">
 
+      {phase === 0 && !holding && (
+        <button type="button" data-testid="kapi-gir" onClick={(e) => { e.stopPropagation(); begin(false); }} onPointerDown={own}
+          className="absolute left-1/2 -translate-x-1/2 z-30 text-sm font-bold px-6 rounded-full"
+          style={{ bottom: 'calc(28px + env(safe-area-inset-bottom))', height: 46, color: '#1A1406', background: L.light }}>
+          {tt('Kapıdan gir')}
+        </button>
+      )}
       {phase > 0 && phase < 4 && (
         <button onClick={skip} onPointerDown={own} className="absolute top-5 left-5 z-30 text-[11px] font-bold px-3 py-2 rounded-xl"
           style={{ color: theme.textSecondary, background: 'rgba(255,255,255,0.06)' }}>{tt('Geç')}</button>

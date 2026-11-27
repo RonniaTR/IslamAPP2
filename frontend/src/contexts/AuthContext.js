@@ -19,12 +19,17 @@ export function AuthProvider({ children }) {
     } catch { return null; }
   });
   const [firebaseUser, setFirebaseUser] = useState(null); // Sadece auth user
-  const [loading, setLoading] = useState(true);
+  // Cihazda kayıtlı oturum (giriş ya da misafir) varsa uygulama BEKLEMEDEN açılır; Firebase sonra doğrular.
+  // Önceden Firestore kullanıcı kaydı gelene kadar ekran boş kalıyordu (yavaş/kopuk bağlantıda "beyaz ekran").
+  const [loading, setLoading] = useState(() => !user);
 
   useEffect(() => {
     // Yönlendirmeli girişten dönüldüyse (açılır pencere engelli tarayıcı) sonucu al; hata sessiz geçer.
     getRedirectResult(auth).catch(() => {});
+    // Firebase hiç cevap vermezse (çevrimdışı ilk açılış) en geç 4 sn sonra giriş ekranına geçilir.
+    const emniyet = setTimeout(() => setLoading(false), 4000);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      clearTimeout(emniyet);
       setFirebaseUser(currentUser);
       // Anonim oturum uygulamada giriş sayılmaz.
       if (currentUser && !currentUser.isAnonymous) {
@@ -35,14 +40,22 @@ export function AuthProvider({ children }) {
           email: currentUser.email || '',
           avatarUrl: currentUser.photoURL || '',
         };
-        // Kullanıcı giriş yaptıysa, Firestore'da users dokümanını yarat veya getir + Sevap Points senkronla
-        const firestoreUser = await UserService.createOrUpdateUser(currentUser);
-        const finalUser = firestoreUser || fallback;
+        // Önce cihazdaki bilgiyle hemen aç; Firestore kaydı (users dokümanı + Sevap Points senkronu) arkadan gelir.
+        let cached = null;
+        try { cached = JSON.parse(localStorage.getItem(AUTH_CACHE_KEY)); } catch { cached = null; }
+        const hizli = cached && cached.id === currentUser.uid ? cached : fallback;
+        setUser(hizli);
+        setLoading(false);
+        try { localStorage.removeItem(GUEST_KEY); } catch { /* kota */ }
         try {
-          localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(finalUser));
-          localStorage.removeItem(GUEST_KEY);
-        } catch { /* kota */ }
-        setUser(finalUser);
+          const firestoreUser = await UserService.createOrUpdateUser(currentUser);
+          const finalUser = firestoreUser || hizli;
+          try { localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(finalUser)); } catch { /* kota */ }
+          setUser(finalUser);
+        } catch {
+          try { localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(hizli)); } catch { /* kota */ }
+        }
+        return;
       } else {
         try { localStorage.removeItem(AUTH_CACHE_KEY); } catch { /* ignore */ }
         // Misafir kaydı cihazda tutulur; çıkış yapılınca silinir.
@@ -53,7 +66,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => { clearTimeout(emniyet); unsubscribe(); };
   }, []);
 
   const loginWith = useCallback(async (provider) => {

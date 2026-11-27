@@ -26,17 +26,24 @@ export default function GirisKapisi({ onComplete }) {
     onComplete();
   }, [onComplete]);
 
-  const open = () => {
+  const open = useCallback(() => {
     if (phase !== 'kapali') return;
     try { if (navigator.vibrate) navigator.vibrate(18); } catch { /* yok */ }
     try { playGate('kapi'); } catch { /* ses yok */ }
     setPhase('aciliyor');
-    setTimeout(() => setPhase('hosgeldin'), quick ? 200 : 1900);
-  };
+    setTimeout(() => setPhase('hosgeldin'), quick ? 150 : 1200);
+  }, [phase, quick]);
+
+  // Telefonda kullanıcı kapıya dokunmasa bile 1,8 sn sonra kapı kendiliğinden açılsın ("açılmıyor" hissi olmasın)
+  useEffect(() => {
+    if (phase !== 'kapali') return undefined;
+    const t = setTimeout(open, quick ? 200 : 1800);
+    return () => clearTimeout(t);
+  }, [phase, open, quick]);
 
   useEffect(() => {
     if (phase !== 'hosgeldin') return undefined;
-    const t = setTimeout(finish, quick ? 600 : 2600);
+    const t = setTimeout(finish, quick ? 350 : 1300);
     return () => clearTimeout(t);
   }, [phase, finish, quick]);
 
@@ -46,7 +53,7 @@ export default function GirisKapisi({ onComplete }) {
 
   return (
     <div data-testid="giris-kapisi" style={{ position: 'fixed', inset: 0, zIndex: 110, background: GECE.bg, color: GECE.ink, overflow: 'hidden' }}
-      onClick={phase === 'hosgeldin' ? finish : undefined} role="presentation">
+      onClick={phase === 'kapali' ? open : finish} role="presentation">
       <Yildizlar count={44} />
 
       <button type="button" onClick={(e) => { e.stopPropagation(); finish(); }} data-testid="kapi-gec"

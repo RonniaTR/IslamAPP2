@@ -1,5 +1,6 @@
 import React from 'react';
 import { logError } from '../services/diagnostics';
+import { parcaHatasiMi, birKezYenile } from '../services/lazyRetry';
 
 export class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -12,6 +13,8 @@ export class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
+    // Yeni sürüm yayımlandıktan sonra eski sayfa parçası bulunamadıysa: hata ekranı yerine bir kez yenile.
+    if (parcaHatasiMi(error) && birKezYenile()) return;
     console.error('App Error:', error, info);
     logError(error && error.message, 'ErrorBoundary');
   }

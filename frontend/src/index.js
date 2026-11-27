@@ -6,6 +6,10 @@ import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+if (typeof window !== 'undefined') {
+  window.__APP_MOUNTED__ = true;
+  try { sessionStorage.removeItem('__islamapp_boot_heal_v25__'); } catch { /* ignore */ }
+}
 
 // SERVİS ÇALIŞANI (çevrimdışı önbellek) — yalnız WEB sürümünde.
 // Telefon uygulamasında dosyalar zaten paketin içindedir; servis çalışanı orada eski sürümü önbellekten
@@ -24,7 +28,7 @@ if ('serviceWorker' in navigator) {
         refreshing = true;
         window.location.reload();
       });
-      navigator.serviceWorker.register('/sw.js').then((registration) => {
+      navigator.serviceWorker.register('/sw.js?v=25', { updateViaCache: 'none' }).then((registration) => {
         registration.update().catch(() => {});
       }).catch((registrationError) => {
         console.log('SW registration failed: ', registrationError);

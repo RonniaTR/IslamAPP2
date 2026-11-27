@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
-const CACHE_NAME = 'islamic-v24-20261126';
-const API_CACHE_NAME = 'islamic-api-v2';
+const CACHE_NAME = 'islamic-v25-20261127';
+const API_CACHE_NAME = 'islamic-api-v3';
 const APP_SHELL = '/';
 
 // API endpoints that should be cached for offline use
@@ -23,18 +23,14 @@ function isCacheableApiRequest(request) {
   return CACHEABLE_API_PATHS.some(path => request.url.includes(path));
 }
 
-// ÇEVRİMDIŞI ÖNCE: kurulumda uygulamanın BÜTÜN sayfa parçaları (asset-manifest) ön belleğe alınır;
-// böylece hiç açılmamış bir sayfa da bağlantı yokken açılır. Tek dosyanın hatası kurulumu durdurmaz.
+// Kurulumda yalnızca hafif kabuk dosyalarını önbelleğe al.
+// 125+ JS parçasını ilk açılış anında aynı anda indirmek iOS Safari ve Android Chrome'da
+// 6 bağlantı sınırını tıkayıp ana sayfanın yüklenmesini kilitliyordu. Parçalar açıldıkça önbelleğe alınır.
 async function precacheAll() {
-  const cache = await caches.open(CACHE_NAME);
-  await cache.add(APP_SHELL);
-  const extra = ['/manifest.json', '/packs/index.json'];
   try {
-    const res = await fetch('/asset-manifest.json', { cache: 'no-store' });
-    const files = Object.values((await res.json()).files || {}).filter((u) => typeof u === 'string' && !u.endsWith('.map'));
-    extra.push(...files);
-  } catch (e) { /* geliştirme ortamı: manifest yok */ }
-  await Promise.all(extra.map((u) => cache.add(u).catch(() => null)));
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.all([APP_SHELL, '/manifest.json'].map((u) => cache.add(u).catch(() => null)));
+  } catch (e) { /* ignore */ }
 }
 
 self.addEventListener('install', (event) => {
@@ -96,13 +92,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation: network-first, fallback to cached shell
+  // Navigation: network-first (no-cache so latest index.html is always fetched when online), fallback to cached shell
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-cache' })
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(APP_SHELL, copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(APP_SHELL, copy));
+          }
           return response;
         })
         .catch(() => caches.match(APP_SHELL).then(cached => cached || new Response('Offline', { status: 503 })))
@@ -110,14 +108,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets with content hash in URL: cache-first (immutable)
+  // Static assets with content hash in URL: cache-first, NEVER cache text/html fallback as JS/CSS
   if (event.request.url.match(/\/static\/(js|css|media)\/.+\.[a-f0-9]{8}\./)) {
+    const isCode = /\/static\/(js|css)\//.test(event.request.url);
     event.respondWith(
       caches.match(event.request).then((cached) => {
-        if (cached) return cached;
+        if (cached) {
+          const cachedType = cached.headers.get('content-type') || '';
+          if (!(isCode && cachedType.includes('text/html'))) return cached;
+          caches.open(CACHE_NAME).then((c) => c.delete(event.request));
+        }
         return fetch(event.request).then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          const ct = response.headers.get('content-type') || '';
+          if (isCode && ct.includes('text/html')) {
+            return new Response('Chunk not found', { status: 404, headers: { 'Content-Type': 'text/plain' } });
+          }
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
           return response;
         }).catch(() => new Response('Offline', { status: 503 }));
       })
@@ -136,8 +145,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
           return response;
         })
         .catch(() => caches.match(event.request).then(cached => cached || new Response('Offline', { status: 503 })))

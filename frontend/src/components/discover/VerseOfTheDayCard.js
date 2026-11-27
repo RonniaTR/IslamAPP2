@@ -1,286 +1,217 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { BookOpen, Play, Pause, Share2, Quote, RefreshCw, Volume2, Check } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, Play, Pause, Share2, RefreshCw, Volume2, Check, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTx } from '../../i18n';
+import { QURAN_PUBLIC } from '../../config/quranAccess';
+import { SURAHS, verseAudioUrl } from '../../data/surahData';
+import { fetchTafsir, mealCredit } from '../../services/mealService';
+import { mealOnYukle } from '../../pages/mushaf/AyetKarti';
+import { alfa, karistir } from '../../styles/renk';
 
-// Kur'an-ı Kerim'den seçme etkileyici ayetler listesi
-const FEATURED_VERSES = [
-  {
-    surahName: 'Bakara Suresi',
-    verseNumber: 286,
-    arabic: 'لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ',
-    turkish: 'Allah, hiç kimseye gücünün yettiğinden fazlasını yüklemez.',
-    audioUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/293.mp3',
-    surahId: 2
-  },
-  {
-    surahName: 'İnşirah Suresi',
-    verseNumber: 5,
-    arabic: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۙ',
-    turkish: 'Şüphesiz her zorlukla beraber bir kolaylık vardır.',
-    audioUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6115.mp3',
-    surahId: 94
-  },
-  {
-    surahName: 'Zümer Suresi',
-    verseNumber: 53,
-    arabic: 'لَا تَقْنَطُوا مِنْ رَحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا',
-    turkish: 'Allah’ın rahmetinden ümidinizi kesmeyin. Şüphesiz Allah bütün günahları bağışlar.',
-    audioUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/4111.mp3',
-    surahId: 39
-  },
-  {
-    surahName: 'Rad Suresi',
-    verseNumber: 28,
-    arabic: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ',
-    turkish: 'Bilesiniz ki kalpler ancak Allah’ı anmakla huzur bulur.',
-    audioUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/1735.mp3',
-    surahId: 13
-  },
-  {
-    surahName: 'Âl-i İmrân Suresi',
-    verseNumber: 139,
-    arabic: 'وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنْتُمُ الْأَعْلَوْنَ إِنْ كُنْتُمْ مُؤْمِنِينَ',
-    turkish: 'Gevşemeyin, üzülmeyin! Eğer gerçekten inanıyorsanız üstün olan sizsiniz.',
-    audioUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/432.mp3',
-    surahId: 3
-  },
-  {
-    surahName: 'Duha Suresi',
-    verseNumber: 7,
-    arabic: 'وَوَجَدَكَ ضَالًّا فَهَدَىٰ',
-    turkish: 'Seni yolunu kaybetmiş bulup da doğru yola iletmedi mi?',
-    audioUrl: 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/6082.mp3',
-    surahId: 93
-  }
+// 📖 GÜNÜN AYETİ (Keşfet) — her gün bir ayet; "Farklı ayet" ile değişir.
+//  • Arapça metin Mushaf ile aynı kaynaktan (Tanzil / alquran.cloud) alınır ve cihazda saklanır; ağ yoksa
+//    kayıtlı kısa metin gösterilir (ayetin tamamı değilse sonuna "…" konur).
+//  • Meal Rowad (QuranEnc) mealidir ve DEĞİŞTİRİLMEDEN gösterilir; künyesi altında yazar. Elle yazılmış meal yoktur.
+//  • Uzun ayetlerde yazı boyu kendiliğinden küçülür: kart ekrana sığar, satırlar taşmaz.
+//  • Kısa tefsir (Muhtasar) açılır-kapanır; arka plan kodla çizilen girih desenidir (dış resim yok).
+
+const AYETLER = [
+  { s: 94, a: 5, kisa: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا', tam: true },
+  { s: 13, a: 28, kisa: 'الَّذِينَ آمَنُوا وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ اللَّهِ ۗ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ', tam: true },
+  { s: 3, a: 139, kisa: 'وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ إِن كُنتُم مُّؤْمِنِينَ', tam: true },
+  { s: 93, a: 7, kisa: 'وَوَجَدَكَ ضَالًّا فَهَدَىٰ', tam: true },
+  { s: 2, a: 152, kisa: 'فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ', tam: true },
+  { s: 2, a: 286, kisa: 'لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا', tam: false },
+  { s: 39, a: 53, kisa: 'لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا', tam: false },
+  { s: 65, a: 3, kisa: 'وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ', tam: false },
+  { s: 94, a: 6, kisa: 'إِنَّ مَعَ الْعُسْرِ يُسْرًا', tam: true },
+  { s: 20, a: 114, kisa: 'وَقُل رَّبِّ زِدْنِي عِلْمًا', tam: false },
 ];
+const AR_ONBELLEK = 'ayet_metin_v1:';
+
+function gununSirasi() {
+  const d = new Date();
+  return Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 864e5) % AYETLER.length;
+}
+
+/** Ayetin Mushaf metni: önce cihaz, sonra ağ; ikisi de yoksa kayıtlı kısa metin. */
+function useAyetMetni(v) {
+  const [metin, setMetin] = useState(() => { try { return localStorage.getItem(AR_ONBELLEK + v.s + ':' + v.a) || null; } catch { return null; } });
+  useEffect(() => {
+    const k = AR_ONBELLEK + v.s + ':' + v.a;
+    let kayitli = null;
+    try { kayitli = localStorage.getItem(k); } catch { /* yok */ }
+    setMetin(kayitli);
+    if (kayitli) return undefined;
+    let canli = true;
+    fetch(`https://api.alquran.cloud/v1/ayah/${v.s}:${v.a}/quran-uthmani`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        const t = j && j.data && j.data.text;
+        if (!t || !canli) return;
+        try { localStorage.setItem(k, t); } catch { /* kota */ }
+        setMetin(t);
+      }).catch(() => {});
+    return () => { canli = false; };
+  }, [v.s, v.a]);
+  return metin || (v.tam ? v.kisa : `${v.kisa} …`);
+}
+
+function GirihDesen({ renk }) {
+  return (
+    <svg aria-hidden width="100%" height="100%" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      <defs>
+        <pattern id="vod-girih" width="56" height="56" patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={renk} strokeWidth="0.8">
+            <rect x="16" y="16" width="24" height="24" /><rect x="16" y="16" width="24" height="24" transform="rotate(45 28 28)" />
+            <path d="M0 28 H8 M48 28 H56 M28 0 V8 M28 48 V56" />
+          </g>
+        </pattern>
+        <linearGradient id="vod-sol" x1="0" x2="1"><stop offset="0" stopColor="#000" stopOpacity="1" /><stop offset="0.55" stopColor="#000" stopOpacity="0" /></linearGradient>
+        <mask id="vod-maske"><rect width="100%" height="100%" fill="#fff" /><rect width="100%" height="100%" fill="url(#vod-sol)" /></mask>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#vod-girih)" mask="url(#vod-maske)" />
+    </svg>
+  );
+}
 
 export function VerseOfTheDayCard() {
   const { theme } = useTheme();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlayingArabic, setIsPlayingArabic] = useState(false);
-  const [isPlayingTurkish, setIsPlayingTurkish] = useState(false);
-  const [showMealModal, setShowMealModal] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
+  const tt = useTx();
+  const [sira, setSira] = useState(gununSirasi);
+  const [meal, setMeal] = useState(null);          // { text, credit } | 'yok'
+  const [tefsir, setTefsir] = useState(null);
+  const [tefsirAcik, setTefsirAcik] = useState(false);
+  const [calan, setCalan] = useState('');          // 'ar' | 'tr' | ''
+  const [kopyalandi, setKopyalandi] = useState(false);
+  const ses = useRef(null);
+  const v = AYETLER[sira];
+  const arapca = useAyetMetni(v);
+  const sureAd = SURAHS[v.s - 1]?.name || String(v.s);
 
-  const audioRef = useRef(null);
-  const currentVerse = FEATURED_VERSES[currentIndex];
-
-  // Stop audios when verse changes
   useEffect(() => {
-    stopAllAudio();
-  }, [currentIndex]);
+    let canli = true;
+    setMeal(null); setTefsir(null); setTefsirAcik(false); durdur();
+    mealOnYukle(v.s).then((m) => {
+      if (!canli) return;
+      const r = m?.ayahs?.find((x) => x.aya === v.a);
+      setMeal(r ? { text: r.text, credit: mealCredit(m.source, m.version) } : 'yok');
+    });
+    return () => { canli = false; };
+  }, [sira]); // eslint bilinçli
 
-  const stopAllAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-    setIsPlayingArabic(false);
-    setIsPlayingTurkish(false);
+  useEffect(() => () => durdur(), []); // eslint bilinçli
+
+  function durdur() {
+    if (ses.current) { ses.current.pause(); ses.current = null; }
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch { /* yok */ }
+    setCalan('');
+  }
+  const arapcaDinle = () => {
+    if (calan === 'ar') { durdur(); return; }
+    durdur();
+    const au = new Audio(verseAudioUrl(v.s, v.a));
+    ses.current = au; au.onended = () => setCalan('');
+    au.play().then(() => setCalan('ar')).catch(() => setCalan(''));
+  };
+  const mealDinle = () => {
+    if (calan === 'tr') { durdur(); return; }
+    durdur();
+    if (!meal || meal === 'yok' || !('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(meal.text);
+    u.lang = 'tr-TR'; u.rate = 0.92; u.onend = () => setCalan(''); u.onerror = () => setCalan('');
+    setCalan('tr'); window.speechSynthesis.speak(u);
+  };
+  const tefsirAc = () => {
+    setTefsirAcik(!tefsirAcik);
+    if (!tefsir) fetchTafsir(v.s, 'tr').then((t) => { const r = t?.ayahs?.find((x) => x.aya === v.a); setTefsir(r ? { text: r.text, credit: mealCredit(t.source, t.version) } : 'yok'); }).catch(() => setTefsir('yok'));
+  };
+  const paylas = () => {
+    const m = meal && meal !== 'yok' ? meal.text : '';
+    const t = `${QURAN_PUBLIC ? `${arapca}\n\n` : ''}${m}\n\n(${sureAd} ${v.a})`;
+    if (navigator.share) navigator.share({ title: tt('Günün ayeti'), text: t }).catch(() => {});
+    else navigator.clipboard?.writeText(t).then(() => { setKopyalandi(true); setTimeout(() => setKopyalandi(false), 1600); }).catch(() => {});
   };
 
-  // 1. Arapça Ses Çalma (Alafasy Audio)
-  const toggleArabicAudio = () => {
-    if (isPlayingTurkish) {
-      window.speechSynthesis.cancel();
-      setIsPlayingTurkish(false);
-    }
-
-    if (isPlayingArabic) {
-      audioRef.current?.pause();
-      setIsPlayingArabic(false);
-    } else {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(currentVerse.audioUrl);
-      } else {
-        audioRef.current.src = currentVerse.audioUrl;
-      }
-
-      audioRef.current.play()
-        .then(() => setIsPlayingArabic(true))
-        .catch(err => console.error("Audio playback error", err));
-
-      audioRef.current.onended = () => setIsPlayingArabic(false);
-    }
-  };
-
-  // 2. Türkçe Meali Okuma (SpeechSynthesis API)
-  const toggleTurkishAudio = () => {
-    if (isPlayingArabic) {
-      audioRef.current?.pause();
-      setIsPlayingArabic(false);
-    }
-
-    if (isPlayingTurkish) {
-      window.speechSynthesis.cancel();
-      setIsPlayingTurkish(false);
-    } else {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(currentVerse.turkish);
-        utterance.lang = 'tr-TR';
-        utterance.rate = 0.9;
-        
-        utterance.onend = () => setIsPlayingTurkish(false);
-        utterance.onerror = () => setIsPlayingTurkish(false);
-
-        setIsPlayingTurkish(true);
-        window.speechSynthesis.speak(utterance);
-      } else {
-        alert("Tarayıcınız Türkçe seslendirmeyi desteklemiyor.");
-      }
-    }
-  };
-
-  // 3. Başka Ayet Getir
-  const handleNextVerse = () => {
-    setCurrentIndex(prev => (prev + 1) % FEATURED_VERSES.length);
-  };
-
-  // 4. Ayeti Paylaş / Kopyala
-  const handleShare = () => {
-    const shareText = `"${currentVerse.turkish}" (${currentVerse.surahName} - ${currentVerse.verseNumber})\n\nNur App ile öğreniyorum 🌟`;
-    if (navigator.share) {
-      navigator.share({
-        title: 'Günün Ayeti',
-        text: shareText,
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(shareText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const btnIdle = {
-    background: theme.surface,
-    color: theme.textPrimary,
-    borderColor: theme.cardBorder,
-  };
-  const accentColor = theme.isDark ? '#10b981' : theme.primary;
+  // Arapça yazı boyu: metin uzadıkça küçülür (ekrana sığsın)
+  const arBoy = useMemo(() => { const n = arapca.length; return n < 35 ? 34 : n < 70 ? 28 : n < 120 ? 24 : 21; }, [arapca]);
+  const koyu = theme.isDark;
+  const vurgu = koyu ? (theme.goldLight || theme.gold) : karistir(theme.gold, '#000000', 0.3);
+  const dugme = { height: 40, padding: '0 14px', borderRadius: 20, border: `1px solid ${theme.cardBorder}`, background: theme.surface, color: theme.textPrimary, fontSize: 12.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, cursor: 'pointer', whiteSpace: 'nowrap' };
 
   return (
-    <div
-      className="relative rounded-[32px] p-6 overflow-hidden shadow-xl font-sans transition-colors duration-300"
-      style={{
-        background: theme.isDark
-          ? `linear-gradient(135deg, ${theme.surfaceLight} 0%, ${theme.surface} 60%, ${theme.bg} 100%)`
-          : `linear-gradient(135deg, ${theme.surface} 0%, ${theme.surfaceLight} 100%)`,
-        border: `1px solid ${theme.cardBorder}`,
-        color: theme.textPrimary,
-      }}
-    >
-      
-      {/* Hidden Audio Element */}
-      <audio ref={audioRef} />
+    <section data-testid="gunun-ayeti" style={{ position: 'relative', overflow: 'hidden', borderRadius: 30, padding: '18px 18px 16px', color: theme.textPrimary,
+      background: koyu ? `linear-gradient(150deg, ${karistir(theme.surface, theme.gold, 0.1)} 0%, ${theme.surface} 70%)` : `linear-gradient(150deg, ${karistir(theme.surface, theme.gold, 0.1)} 0%, ${theme.surface} 70%)`,
+      border: `1px solid ${alfa(theme.gold, 0.3)}`, boxShadow: koyu ? '0 18px 40px -24px rgba(0,0,0,0.8)' : '0 18px 40px -28px rgba(60,45,10,0.45)' }}>
+      <GirihDesen renk={alfa(theme.gold, koyu ? 0.18 : 0.22)} />
 
-      {/* Background Graphic Pattern */}
-      <div className="absolute top-0 right-0 bottom-0 w-1/2 pointer-events-none" style={{ opacity: theme.isDark ? 0.22 : 0.1 }}>
-        <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1609599006353-e629aaab31f5?q=80&w=600&auto=format&fit=crop')] bg-cover bg-right" />
-        <div className="absolute inset-0" style={{ background: `linear-gradient(90deg, ${theme.surface} 0%, transparent 100%)` }} />
-      </div>
-
-      <div className="relative z-10 flex flex-col h-full">
-        
-        {/* Header Row */}
-        <div className="flex justify-between items-center mb-5">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full shadow-sm"
-            style={{ background: `${theme.gold}18`, color: theme.gold, border: `1px solid ${theme.gold}35` }}>
-            <Quote size={14} fill="currentColor" />
-            <span className="text-xs font-bold">Günün Ayeti</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold tracking-wide" style={{ color: theme.textSecondary }}>
-              {currentVerse.surahName} - {currentVerse.verseNumber}
-            </span>
-
-            {/* Rastgele Ayet Getir Button */}
-            <button 
-              onClick={handleNextVerse}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-all"
-              style={{ background: `${theme.primary}20`, color: accentColor, border: `1px solid ${theme.primary}40` }}
-              title="Başka Ayet Getir"
-            >
-              <RefreshCw size={12} className="animate-spin-once" />
-              <span>Farklı Ayet</span>
-            </button>
-          </div>
+      <div style={{ position: 'relative' }}>
+        {/* Başlık: etiket solda, künye sağda (taşarsa alt satıra iner) */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 28, padding: '0 12px', borderRadius: 14, fontSize: 12, fontWeight: 800, background: alfa(theme.gold, 0.16), color: vurgu, border: `1px solid ${alfa(theme.gold, 0.35)}` }}>
+            <BookOpen size={13} /> {tt('Günün ayeti')}
+          </span>
+          <span style={{ marginInlineStart: 'auto', fontSize: 12.5, fontWeight: 700, color: theme.textSecondary }}>{sureAd} · {v.a}</span>
         </div>
 
-        {/* Verse Content */}
-        <div className="text-center py-3 mb-5">
-          <div className="text-3xl md:text-4xl font-arabic leading-relaxed mb-4" dir="rtl"
-            style={{ color: theme.gold, textShadow: `0 4px 12px ${theme.gold}28` }}>
-            {currentVerse.arabic}
-          </div>
-          <p className="text-sm md:text-base leading-relaxed px-4 font-medium italic" style={{ color: theme.textPrimary }}>
-            "{currentVerse.turkish}"
-          </p>
-        </div>
-
-        {/* Action Buttons Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
-          
-          {/* Arapça Dinle */}
-          <button 
-            onClick={toggleArabicAudio}
-            className="py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
-            style={isPlayingArabic ? { background: theme.primary, color: '#FFFFFF', borderColor: theme.primary } : btnIdle}
-          >
-            {isPlayingArabic ? <Pause size={14} /> : <Play size={14} style={{ color: accentColor }} />}
-            <span>{isPlayingArabic ? 'Durdur' : 'Arapça Oku'}</span>
-          </button>
-
-          {/* Türkçe Meali Dinle */}
-          <button 
-            onClick={toggleTurkishAudio}
-            className="py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
-            style={isPlayingTurkish ? { background: theme.gold, color: '#1A1A1A', borderColor: theme.gold } : btnIdle}
-          >
-            {isPlayingTurkish ? <Pause size={14} /> : <Volume2 size={14} style={{ color: theme.gold }} />}
-            <span>{isPlayingTurkish ? 'Durdur' : 'Meali Oku'}</span>
-          </button>
-
-          {/* Ayetin Meali Modal Toggle */}
-          <button 
-            onClick={() => setShowMealModal(!showMealModal)}
-            className="py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
-            style={btnIdle}
-          >
-            <BookOpen size={14} style={{ color: accentColor }} />
-            <span>Ayet Detayı</span>
-          </button>
-
-          {/* Paylaş */}
-          <button 
-            onClick={handleShare}
-            className="py-2.5 px-3 rounded-full border transition-all flex items-center justify-center gap-1.5 text-xs font-bold"
-            style={btnIdle}
-          >
-            {copied ? <Check size={14} className="text-green-500" /> : <Share2 size={14} style={{ color: accentColor }} />}
-            <span>{copied ? 'Kopyalandı' : 'Paylaş'}</span>
-          </button>
-
-        </div>
-
-        {/* Meal Detail Inline Box */}
-        {showMealModal && (
-          <div className="mt-4 p-4 rounded-2xl text-xs leading-relaxed animate-fadeIn"
-            style={{ background: theme.surface, border: `1px solid ${theme.cardBorder}`, color: theme.textPrimary }}>
-            <div className="flex justify-between items-center mb-2 font-bold" style={{ color: accentColor }}>
-              <span>{currentVerse.surahName} ({currentVerse.verseNumber}. Ayet) Tefsir Notu</span>
-              <button onClick={() => setShowMealModal(false)} style={{ color: theme.textSecondary }}>✕</button>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={sira} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+            {QURAN_PUBLIC && (
+              <p dir="rtl" lang="ar" data-testid="gunun-ayeti-ar" style={{ margin: '16px 0 0', fontFamily: "'Amiri', 'Scheherazade New', serif", fontSize: arBoy, lineHeight: 1.85, textAlign: 'center', color: vurgu, overflowWrap: 'anywhere' }}>
+                {arapca}
+              </p>
+            )}
+            <div style={{ margin: '12px auto 0', maxWidth: 520, textAlign: 'center' }}>
+              {meal === null && <div className="yuk-satir" style={{ alignItems: 'center' }}><span style={{ width: '90%' }} /><span style={{ width: '70%' }} /></div>}
+              {meal === 'yok' && <p style={{ margin: 0, fontSize: 13, color: theme.textSecondary }}>{tt('Meal için internet bağlantısı gerekiyor.')}</p>}
+              {meal && meal !== 'yok' && (
+                <>
+                  <p style={{ margin: 0, fontFamily: 'var(--font-okuma)', fontSize: meal.text.length > 220 ? 15 : 17, lineHeight: 1.6 }}>{meal.text}</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 10, color: theme.textSecondary }}>{tt('Meal')}: {meal.credit}</p>
+                </>
+              )}
             </div>
-            <p style={{ color: theme.textSecondary }}>
-              Bu mübarek ayet, kulun taşıyamayacağı yükle mükellef tutulmayacağını ve her halükarda Allah'ın merhametinin kuşatıcılığını müjdelemektedir. Tefsirlerde müminin her türlü darlık anında bu ilahi beyana sığınması tavsiye olunur.
-            </p>
-          </div>
-        )}
+          </motion.div>
+        </AnimatePresence>
 
+        {/* Kısa tefsir */}
+        <AnimatePresence initial={false}>
+          {tefsirAcik && (
+            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              style={{ marginTop: 12, padding: '12px 14px', borderRadius: 16, background: alfa(theme.gold, 0.08), border: `1px solid ${alfa(theme.gold, 0.2)}`, fontSize: 13.5, lineHeight: 1.6 }}>
+              {tefsir === null && <div className="yuk-satir"><span /><span style={{ width: '75%' }} /></div>}
+              {tefsir === 'yok' && <span style={{ color: theme.textSecondary }}>{tt('Tefsir için internet bağlantısı gerekiyor.')}</span>}
+              {tefsir && tefsir !== 'yok' && (<>{tefsir.text}<div style={{ marginTop: 6, fontSize: 10, color: theme.textSecondary }}>{tefsir.credit}</div></>)}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* İşlemler: iki satırlı ızgara, dar ekranda taşmaz */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8, marginTop: 14 }}>
+          {QURAN_PUBLIC && (
+            <button type="button" onClick={arapcaDinle} style={{ ...dugme, ...(calan === 'ar' ? { background: theme.gold, color: '#1A1406', borderColor: theme.gold } : {}) }}>
+              {calan === 'ar' ? <Pause size={14} /> : <Play size={14} />} {tt(calan === 'ar' ? 'Durdur' : 'Dinle')}
+            </button>
+          )}
+          <button type="button" onClick={mealDinle} style={{ ...dugme, ...(calan === 'tr' ? { background: theme.gold, color: '#1A1406', borderColor: theme.gold } : {}) }}>
+            {calan === 'tr' ? <Pause size={14} /> : <Volume2 size={14} />} {tt(calan === 'tr' ? 'Durdur' : 'Meal')}
+          </button>
+          <button type="button" onClick={tefsirAc} style={dugme}><ChevronDown size={14} style={{ transform: tefsirAcik ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} /> {tt('Tefsir')}</button>
+          <button type="button" onClick={paylas} style={dugme}>{kopyalandi ? <Check size={14} /> : <Share2 size={14} />} {tt(kopyalandi ? 'Kopyalandı' : 'Paylaş')}</button>
+          <button type="button" onClick={() => navigate(`/ayet-tablosu?s=${v.s}&a=${v.a}`)} style={dugme}><ImageIcon size={14} /> {tt('Tablo')}</button>
+          <button type="button" data-testid="farkli-ayet" onClick={() => setSira((sira + 1) % AYETLER.length)} style={{ ...dugme, background: koyu ? theme.gold : theme.primary, color: koyu ? '#1A1406' : '#FFFFFF', border: 'none' }}>
+            <RefreshCw size={14} /> {tt('Farklı')}
+          </button>
+        </div>
+        {QURAN_PUBLIC && (
+          <button type="button" onClick={() => navigate(`/quran/${v.s}`)} style={{ marginTop: 10, width: '100%', background: 'none', border: 'none', color: vurgu, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+            {sureAd} {tt('suresini aç')} →
+          </button>
+        )}
       </div>
-    </div>
+    </section>
   );
 }
